@@ -1,7 +1,9 @@
+﻿
 #pragma once
 #include <sol/sol.hpp>
 #include "Runtime/Core/Math/Vector.h"
 #include "Runtime/Engine/UserInterface/Console.h"
+#include "Developer/LuaUtils/LuaBindMacros.h"
 
 #include "Engine/Engine.h"
 #include "World/World.h"
@@ -11,34 +13,92 @@ namespace LuaBindingHelpers
     // FVector 타입 바인딩 함수
     inline void BindFVector(sol::state& Lua)
     {
-        Lua.new_usertype<FVector>("FVector",
-            sol::constructors<
-            FVector(),               // 기본 생성자
-            FVector(float, float, float)  // XYZ 지정 생성자
-            >(),
-            // 멤버 변수 노출
-            "X", &FVector::X,
-            "Y", &FVector::Y,
-            "Z", &FVector::Z,
-
-            // 덧셈
-            sol::meta_function::addition,
-            [](const FVector& a, const FVector& b) { return a + b; },
-
-            // 뺄셈
-            sol::meta_function::subtraction,
-            [](const FVector& a, const FVector& b) { return a - b; },
-
-            // 곱셈 (vector * scalar, scalar * vector)
-            sol::meta_function::multiplication,
-            sol::overload(
-                [](const FVector& v, float s) { return v * s; },
-                [](float s, const FVector& v) { return v * s; }
+        Lua.Lua_NewUserType(
+            FVector,
+    
+            // Constructors
+            LUA_BIND_CONSTRUCTORS(
+                FVector(),
+                FVector(float, float, float),
+                FVector(float)
             ),
-
-            // 나눗셈 (vector / scalar)
-            sol::meta_function::division,
-            [](const FVector& v, float s) { return v / s; }
+    
+            // Member variables
+            LUA_BIND_MEMBER(&FVector::X),
+            LUA_BIND_MEMBER(&FVector::Y),
+            LUA_BIND_MEMBER(&FVector::Z),
+    
+            // Utility functions
+            LUA_BIND_FUNC(&FVector::Dot),
+            LUA_BIND_FUNC(&FVector::Cross),
+            LUA_BIND_FUNC(&FVector::Equals),
+            LUA_BIND_FUNC(&FVector::AllComponentsEqual),
+            LUA_BIND_FUNC(&FVector::Length),
+            LUA_BIND_FUNC(&FVector::SquaredLength),
+            LUA_BIND_FUNC(&FVector::SizeSquared),
+            LUA_BIND_FUNC(&FVector::Normalize),
+            LUA_BIND_FUNC(&FVector::GetUnsafeNormal),
+            LUA_BIND_FUNC(&FVector::GetSafeNormal),
+            LUA_BIND_FUNC(&FVector::ComponentMin),
+            LUA_BIND_FUNC(&FVector::ComponentMax),
+            LUA_BIND_FUNC(&FVector::IsNearlyZero),
+            LUA_BIND_FUNC(&FVector::IsZero),
+            LUA_BIND_FUNC(&FVector::IsNormalized),
+            LUA_BIND_FUNC(&FVector::ToString),
+    
+            // Static Method
+            LUA_BIND_FUNC(&FVector::Zero),
+            LUA_BIND_FUNC(&FVector::One),
+    
+            LUA_BIND_FUNC(&FVector::UnitX),
+            LUA_BIND_FUNC(&FVector::UnitY),
+            LUA_BIND_FUNC(&FVector::UnitZ),
+    
+            LUA_BIND_FUNC(&FVector::Distance),
+            LUA_BIND_FUNC(&FVector::DotProduct),
+            LUA_BIND_FUNC(&FVector::CrossProduct),
+    
+            // Static properties
+            LUA_BIND_STATIC(FVector::ZeroVector),
+            LUA_BIND_STATIC(FVector::OneVector),
+            LUA_BIND_STATIC(FVector::UpVector),
+            LUA_BIND_STATIC(FVector::DownVector),
+            LUA_BIND_STATIC(FVector::ForwardVector),
+            LUA_BIND_STATIC(FVector::BackwardVector),
+            LUA_BIND_STATIC(FVector::RightVector),
+            LUA_BIND_STATIC(FVector::LeftVector),
+            LUA_BIND_STATIC(FVector::XAxisVector),
+            LUA_BIND_STATIC(FVector::YAxisVector),
+            LUA_BIND_STATIC(FVector::ZAxisVector),
+    
+            // Operators
+            sol::meta_function::addition, LUA_BIND_OVERLOAD_WITHOUT_NAME2(\
+                &FVector::operator+,
+                FVector(const FVector&) const,
+                FVector(float) const
+            ),
+            sol::meta_function::subtraction, LUA_BIND_OVERLOAD_WITHOUT_NAME2(
+                &FVector::operator-,
+                FVector(const FVector&) const,
+                FVector(float) const
+            ),
+            sol::meta_function::multiplication, LUA_BIND_OVERLOAD_WITHOUT_NAME2(
+                &FVector::operator*,
+                FVector(const FVector&) const,
+                FVector(float) const
+            ),
+            sol::meta_function::division, LUA_BIND_OVERLOAD_WITHOUT_NAME2(
+                &FVector::operator/,
+                FVector(const FVector&) const,
+                FVector(float) const
+            ),
+            sol::meta_function::equal_to, &FVector::operator==,
+    
+            // 연산자 메서드
+            "AddAssign", [](FVector& Self, const FVector& Other) { return Self += Other; },
+            "SubAssign", [](FVector& Self, const FVector& Other) { return Self -= Other; },
+            "MulAssign", [](FVector& Self, float Scalar) { return Self *= Scalar; },
+            "DivAssign", [](FVector& Self, float Scalar) { return Self /= Scalar; }
         );
     }
 
@@ -102,7 +162,7 @@ namespace LuaBindingHelpers
     inline void BindController(sol::state& Lua)
     {
         Lua.set_function("controller",
-            [](const std::string& Key, std::function<void(float)> Callback)
+            [](const std::string& Key, const std::function<void(float)>& Callback)
             {
                 //FString 주면 됨
                 GEngine->ActiveWorld->GetPlayerController()->BindAction(FString(Key), Callback);
