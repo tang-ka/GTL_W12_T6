@@ -2,7 +2,7 @@
 
 #include "Math/Vector.h"
 #include "Math/Rotator.h"
-#include "ImGUI/imgui_internal.h"
+#include "ImGui/imgui_internal.h"
 
 void FImGuiWidget::DrawVec3Control(const std::string& label, FVector& values, float resetValue, float columnWidth)
 {

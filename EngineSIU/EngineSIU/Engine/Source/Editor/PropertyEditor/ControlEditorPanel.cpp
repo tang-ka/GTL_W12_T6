@@ -20,7 +20,7 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "tinyfiledialogs/tinyfiledialogs.h"
+#include "tinyfiledialogs.h"
 
 #include "Actors/Cube.h"
 

@@ -3,7 +3,7 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "HAL/PlatformType.h"
 #include "UObject/NameTypes.h"
-#include "ImGUI/imgui.h"
+#include "ImGui/imgui.h"
 #include "PropertyEditor/IWindowToggleable.h"
 
 #define UE_LOG Console::GetInstance().AddLog
