@@ -82,7 +82,7 @@ void ULuaScriptComponent::InitializeComponent()
             DisplayName
         );
         if (!bSuccess) {
-            UE_LOG(LogLevel::Error, TEXT("Failed to create script from template"));
+            UE_LOG(ELogLevel::Error, TEXT("Failed to create script from template"));
             return;
         }
     }
@@ -105,7 +105,7 @@ void ULuaScriptComponent::InitializeLuaState()
             DisplayName
         );
         if (!bSuccess) {
-            UE_LOG(LogLevel::Error, TEXT("Failed to create script from template"));
+            UE_LOG(ELogLevel::Error, TEXT("Failed to create script from template"));
             return;
         }
     }*/
@@ -120,7 +120,7 @@ void ULuaScriptComponent::InitializeLuaState()
         LastWriteTime = std::filesystem::last_write_time(FilePath);
     }
     catch (const sol::error& err) {
-        UE_LOG(LogLevel::Error, TEXT("Lua Initialization error: %s"), err.what());
+        UE_LOG(ELogLevel::Error, TEXT("Lua Initialization error: %s"), err.what());
     }
 
     CallLuaFunction("InitializeLua");
@@ -170,7 +170,7 @@ bool ULuaScriptComponent::CheckFileModified()
         }
     }
     catch (const std::exception& e) {
-        UE_LOG(LogLevel::Error, TEXT("Failed to check lua script file"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to check lua script file"));
     }
     return false;
 }
@@ -202,10 +202,10 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
     if (CheckFileModified()) {
         try {
             ReloadScript();
-            UE_LOG(LogLevel::Display, TEXT("Lua script reloaded"));
+            UE_LOG(ELogLevel::Display, TEXT("Lua script reloaded"));
         }
         catch (const sol::error& e) {
-            UE_LOG(LogLevel::Error, TEXT("Failed to reload lua script"));
+            UE_LOG(ELogLevel::Error, TEXT("Failed to reload lua script"));
         }
     }
 }

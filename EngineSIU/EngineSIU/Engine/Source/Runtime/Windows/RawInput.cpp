@@ -34,7 +34,7 @@ void FRawInput::ProcessRawInput(LPARAM lParam) const
     Buffer.SetNum(static_cast<int32>(DataSize));
     if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, Buffer.GetData(), &DataSize, sizeof(RAWINPUTHEADER)) == static_cast<uint32>(-1))
     {
-        LogRawInput(LogLevel::Error, "Failed to get raw input data.");
+        LogRawInput(ELogLevel::Error, "Failed to get raw input data.");
         return;
     }
 
@@ -64,7 +64,7 @@ void FRawInput::RegisterDevices()
 
     if (!RegisterRawInputDevices(&KeyboardRid, 1, sizeof(KeyboardRid)))
     {
-        LogRawInput(LogLevel::Error, "Keyboard registration failed: " + GetLastErrorString());
+        LogRawInput(ELogLevel::Error, "Keyboard registration failed: " + GetLastErrorString());
         return;
     }
 
@@ -79,7 +79,7 @@ void FRawInput::RegisterDevices()
 
     if (!RegisterRawInputDevices(&MouseRid, 1, sizeof(MouseRid)))
     {
-        LogRawInput(LogLevel::Error, "Mouse registration failed: " + GetLastErrorString());
+        LogRawInput(ELogLevel::Error, "Mouse registration failed: " + GetLastErrorString());
         return;
     }
 
@@ -119,7 +119,7 @@ std::string FRawInput::GetLastErrorString()
     return Message;
 }
 
-void FRawInput::LogRawInput(LogLevel Level, const std::string& Message)
+void FRawInput::LogRawInput(ELogLevel Level, const std::string& Message)
 {
     OutputDebugStringA(("[RawInput] " + Message + "\n").c_str());
     UE_LOG(Level, "[RawInput] %s", Message.c_str());

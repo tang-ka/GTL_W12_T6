@@ -39,7 +39,7 @@ private:
     void UnregisterDevices();
 
     static std::string GetLastErrorString();
-    static void LogRawInput(LogLevel Level, const std::string& Message);
+    static void LogRawInput(ELogLevel Level, const std::string& Message);
 
 private:
     HWND AppWnd;

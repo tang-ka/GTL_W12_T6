@@ -26,7 +26,7 @@ public:
 
         GUObjectArray.AddObject(Obj);
 
-        UE_LOG(LogLevel::Display, "Created New Object : %s", *Name);
+        UE_LOG(ELogLevel::Display, "Created New Object : %s", *Name);
         return Obj;
     }
 

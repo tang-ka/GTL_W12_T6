@@ -17,7 +17,7 @@ UAssetManager& UAssetManager::Get()
     }
     else
     {
-        UE_LOG(LogLevel::Error, "Cannot use AssetManager if no AssetManagerClassName is defined!");
+        UE_LOG(ELogLevel::Error, "Cannot use AssetManager if no AssetManagerClassName is defined!");
         assert(0);
         return *new UAssetManager; // never calls this
     }

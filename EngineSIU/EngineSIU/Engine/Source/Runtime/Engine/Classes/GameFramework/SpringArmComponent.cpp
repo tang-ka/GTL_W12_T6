@@ -88,7 +88,7 @@ void USpringArmComponent::TickComponent(float DeltaTime)
 void USpringArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocationLag, bool bDoRotationLag, float DeltaTime)
 {
     FRotator DesiredRot = GetTargetRotation();
-    //UE_LOG(LogLevel::Display, TEXT("Target Rotation : %.2f %.2f %.2f"), DesiredRot.Yaw, DesiredRot.Pitch, DesiredRot.Roll);
+    //UE_LOG(ELogLevel::Display, TEXT("Target Rotation : %.2f %.2f %.2f"), DesiredRot.Yaw, DesiredRot.Pitch, DesiredRot.Roll);
 
     /* 회전 지연 여부 검사 및 반영 : bDoRotationLag */
     /* 서브스텝 분기 및 단일 스텝 분기 (DeltaTime 전체를 여러 LagMaxTimeStep이하 조각으로 나누고, 각 조각마다 RInterTo를 호출 */
@@ -174,7 +174,7 @@ void USpringArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocati
         else
         {
             FVector RayDir = RayDelta / RayLen;
-            //UE_LOG(LogLevel::Error, "Ray direction : %.2f %.2f %.2f", RayDir.X, RayDir.Y, RayDir.Z);
+            //UE_LOG(ELogLevel::Error, "Ray direction : %.2f %.2f %.2f", RayDir.X, RayDir.Y, RayDir.Z);
             bool bHitSomething = false;
             float ClosestT = 1.f;               // 가중치 (0: 시작점, 1: 끝점)
             FVector BestHitWorld = DesiredLoc;
@@ -219,7 +219,7 @@ void USpringArmComponent::UpdateDesiredArmLocation(bool bDoTrace, bool bDoLocati
         ResultLoc = DesiredLoc;
     }
 
-    //UE_LOG(LogLevel::Display, TEXT("Result Location : %.2f %.2f %.2f"), ResultLoc.X, ResultLoc.Y, ResultLoc.Z);
+    //UE_LOG(ELogLevel::Display, TEXT("Result Location : %.2f %.2f %.2f"), ResultLoc.X, ResultLoc.Y, ResultLoc.Z);
     SetWorldLocation(ResultLoc);
     SetWorldRotation(DesiredRot);
 }

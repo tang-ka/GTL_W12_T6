@@ -118,7 +118,7 @@ void UPrimitiveDrawBatch::UpdateGridConstantBuffer(const FGridParameters& GridPa
     }
     else
     {
-        UE_LOG(LogLevel::Warning, "Grid parameters 업데이트 실패");
+        UE_LOG(ELogLevel::Warning, "Grid parameters 업데이트 실패");
     }
 }
 

@@ -136,7 +136,7 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
     {
-        UE_LOG(LogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
+        UE_LOG(ELogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
         return;
     }
     

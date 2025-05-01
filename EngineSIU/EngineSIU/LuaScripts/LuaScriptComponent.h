@@ -39,7 +39,7 @@ public:
 
     void OnPressSpacebar()
     {
-        UE_LOG(LogLevel::Error, "Deligate Space Press");
+        UE_LOG(ELogLevel::Error, "Deligate Space Press");
     }
 
     FOnLocationTenUp FOnLocationTenUp;

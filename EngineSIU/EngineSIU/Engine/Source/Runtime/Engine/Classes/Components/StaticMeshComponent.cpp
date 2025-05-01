@@ -61,19 +61,19 @@ void UStaticMeshComponent::SetProperties(const TMap<FString, FString>& InPropert
             if (UStaticMesh* MeshToSet = FObjManager::CreateStaticMesh(*TempStr))
             {
                 SetStaticMesh(MeshToSet); // 성공 시 메시 설정
-                UE_LOG(LogLevel::Display, TEXT("Set StaticMesh '%s' for %s"), **TempStr, *GetName());
+                UE_LOG(ELogLevel::Display, TEXT("Set StaticMesh '%s' for %s"), **TempStr, *GetName());
             }
             else
             {
                 // 로드 실패 시 경고 로그
-                UE_LOG(LogLevel::Warning, TEXT("Could not load StaticMesh '%s' for %s"), **TempStr, *GetName());
+                UE_LOG(ELogLevel::Warning, TEXT("Could not load StaticMesh '%s' for %s"), **TempStr, *GetName());
                 SetStaticMesh(nullptr); // 안전하게 nullptr로 설정
             }
         }
         else // 값이 "None"이면
         {
             SetStaticMesh(nullptr); // 명시적으로 메시 없음 설정
-            UE_LOG(LogLevel::Display, TEXT("Set StaticMesh to None for %s"), *GetName());
+            UE_LOG(ELogLevel::Display, TEXT("Set StaticMesh to None for %s"), *GetName());
         }
     }
     else // 키 자체가 없으면
@@ -81,7 +81,7 @@ void UStaticMeshComponent::SetProperties(const TMap<FString, FString>& InPropert
         // 키가 없는 경우 어떻게 처리할지 결정 (기본값 유지? nullptr 설정?)
         // 여기서는 기본값을 유지하거나, 안전하게 nullptr로 설정할 수 있습니다.
         // SetStaticMesh(nullptr); // 또는 아무것도 안 함
-        UE_LOG(LogLevel::Display, TEXT("StaticMeshPath key not found for %s, mesh unchanged."), *GetName());
+        UE_LOG(ELogLevel::Display, TEXT("StaticMeshPath key not found for %s, mesh unchanged."), *GetName());
     }
 }
 

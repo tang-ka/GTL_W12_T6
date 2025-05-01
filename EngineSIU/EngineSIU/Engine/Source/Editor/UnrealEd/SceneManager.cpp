@@ -111,7 +111,7 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
     std::ifstream JsonFile(FilePath);
     if (!JsonFile.is_open())
     {
-        UE_LOG(LogLevel::Error, "Failed to open file for reading: %s", FilePath.c_str());
+        UE_LOG(ELogLevel::Error, "Failed to open file for reading: %s", FilePath.c_str());
         return;
     }
 
@@ -128,7 +128,7 @@ void SceneManager::LoadSceneFromJsonFile(const std::filesystem::path& FilePath, 
     bool Result = JsonToSceneData(JsonString,SceneData);
     if (!Result)
     {
-        UE_LOG(LogLevel::Error, "Failed to parse scene data from file: %s", FilePath.c_str());
+        UE_LOG(ELogLevel::Error, "Failed to parse scene data from file: %s", FilePath.c_str());
         return ;
     }
 
@@ -163,7 +163,7 @@ bool SceneManager::JsonToSceneData(const FString& InJsonString, FSceneData& OutS
     }
     catch (const std::exception& e)
     {
-        UE_LOG(LogLevel::Error, "Error parsing JSON: %s", e.what());
+        UE_LOG(ELogLevel::Error, "Error parsing JSON: %s", e.what());
         return false;
     }
     return true;
@@ -178,7 +178,7 @@ bool SceneManager::SceneDataToJson(const FSceneData& InSceneData, FString& OutJs
     }
     catch (const std::exception& e)
     {
-        UE_LOG(LogLevel::Error, "Error parsing JSON: %s", e.what());
+        UE_LOG(ELogLevel::Error, "Error parsing JSON: %s", e.what());
         return false;
     }
     return true;
@@ -233,7 +233,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
 {
     if (targetWorld == nullptr)
     {
-        UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Target World is null!"));
+        UE_LOG(ELogLevel::Error, TEXT("LoadSceneFromData: Target World is null!"));
         return false;
     }
 
@@ -243,7 +243,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
     
 
     // --- 1단계: 액터 및 컴포넌트 생성 ---
-    UE_LOG(LogLevel::Display, TEXT("Loading Scene Data: Phase 1 - Spawning Actors and Components..."));
+    UE_LOG(ELogLevel::Display, TEXT("Loading Scene Data: Phase 1 - Spawning Actors and Components..."));
     for (const FActorSaveData& actorData : sceneData.Actors)
     {
         // 1.1. 액터 클래스 찾기
@@ -263,7 +263,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
         // // 또는 특정 경로에서 클래스 로드: UClass* ActorClass = LoadClass<AActor>(nullptr, *actorData.ActorClass);
         if (SpawnedActor == nullptr)
         {
-            UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Could not find Actor Class '%s'. Skipping Actor '%s'."),
+            UE_LOG(ELogLevel::Error, TEXT("LoadSceneFromData: Could not find Actor Class '%s'. Skipping Actor '%s'."),
                    *actorData.ActorClass, *actorData.ActorID);
             continue;
         }
@@ -279,7 +279,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
 
         if (SpawnedActor == nullptr)
         {
-            UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Failed to spawn Actor '%s' of class '%s'."),
+            UE_LOG(ELogLevel::Error, TEXT("LoadSceneFromData: Failed to spawn Actor '%s' of class '%s'."),
                    *actorData.ActorID, *actorData.ActorClass);
             continue;
         }
@@ -306,7 +306,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
 
             // 클래스 일치 확인
             if (TargetComponent && TargetComponent->GetClass()->GetName() != componentData.ComponentClass) {
-                UE_LOG(LogLevel::Warning, TEXT("Component '%s' class mismatch. Recreating."), *componentData.ComponentID);
+                UE_LOG(ELogLevel::Warning, TEXT("Component '%s' class mismatch. Recreating."), *componentData.ComponentID);
                 // TODO: 기존 컴포넌트를 제거해야 할 수도 있음? 아니면 그냥 새것으로 덮어쓰나? 정책 필요.
                 TargetComponent = nullptr; // 새로 생성하도록 리셋
             }
@@ -348,7 +348,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
             
             if (TargetComponent == nullptr)
             {
-                 UE_LOG(LogLevel::Error, TEXT("LoadSceneFromData: Failed to create Component '%s' of class '%s' for Actor '%s'."),
+                 UE_LOG(ELogLevel::Error, TEXT("LoadSceneFromData: Failed to create Component '%s' of class '%s' for Actor '%s'."),
                        *componentData.ComponentID, *componentData.ComponentClass, *actorData.ActorID);
                 continue;
             }
@@ -380,7 +380,7 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
                 USceneComponent* RootSceneComp = Cast<USceneComponent>(*FoundRootCompPtr);
                 if (RootSceneComp) {
                     SpawnedActor->SetRootComponent(RootSceneComp);
-                    UE_LOG(LogLevel::Display, TEXT("Set RootComponent '%s' for Actor '%s'"), *actorData.RootComponentID, *actorData.ActorID);
+                    UE_LOG(ELogLevel::Display, TEXT("Set RootComponent '%s' for Actor '%s'"), *actorData.RootComponentID, *actorData.ActorID);
                 }
                 else { /* 루트가 SceneComponent 아님 경고 */ }
             }
@@ -413,13 +413,13 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
                     if (ParentSceneComp) {
                         // 부착 실행 (SetupAttachment 대신 AttachToComponent 권장 - 규칙 명시 가능)
                         CurrentSceneComp->SetupAttachment(ParentSceneComp);
-                        UE_LOG(LogLevel::Display, TEXT("Attached Component '%s' to Parent '%s' in Actor '%s'"), *componentData.ComponentID, *(*ParentIDPtr), *actorData.ActorID);
+                        UE_LOG(ELogLevel::Display, TEXT("Attached Component '%s' to Parent '%s' in Actor '%s'"), *componentData.ComponentID, *(*ParentIDPtr), *actorData.ActorID);
                     }
                     else { /* 부모가 SceneComponent 아님 경고 */ }
                 }
                 else {
                     // 부모 컴포넌트를 이 액터 내에서 찾지 못함 (오류 가능성 높음)
-                    UE_LOG(LogLevel::Warning, TEXT("Could not find Parent component '%s' within Actor '%s' for '%s'."), *(*ParentIDPtr), *actorData.ActorID, *componentData.ComponentID);
+                    UE_LOG(ELogLevel::Warning, TEXT("Could not find Parent component '%s' within Actor '%s' for '%s'."), *(*ParentIDPtr), *actorData.ActorID, *componentData.ComponentID);
                 }
             }
 
@@ -441,9 +441,9 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
         }
 
     }
-    UE_LOG(LogLevel::Display, TEXT("Loading Scene Data: Phase 1 Complete. Spawned %d actors."), SpawnedActorsMap.Num());
+    UE_LOG(ELogLevel::Display, TEXT("Loading Scene Data: Phase 1 Complete. Spawned %d actors."), SpawnedActorsMap.Num());
 
-    UE_LOG(LogLevel::Display, TEXT("Scene loading complete."));
+    UE_LOG(ELogLevel::Display, TEXT("Scene loading complete."));
 
     // 임시 맵 정리 (선택적)
     SpawnedActorsMap.Empty();
@@ -452,6 +452,6 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
     // 필요하다면 추가적인 월드 초기화 로직 (예: 네비게이션 재빌드 요청)
     // ...
 
-    UE_LOG(LogLevel::Display, TEXT("Scene loading complete."));
+    UE_LOG(ELogLevel::Display, TEXT("Scene loading complete."));
     return true;
 }

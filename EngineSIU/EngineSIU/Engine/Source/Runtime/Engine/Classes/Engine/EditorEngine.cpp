@@ -99,7 +99,7 @@ void UEditorEngine::StartPIE()
 {
     if (PIEWorld)
     {
-        UE_LOG(LogLevel::Warning, TEXT("PIEWorld already exists!"));
+        UE_LOG(ELogLevel::Warning, TEXT("PIEWorld already exists!"));
         return;
     }
     this->ClearActorSelection(); // Editor World 기준 Select Actor 해제 

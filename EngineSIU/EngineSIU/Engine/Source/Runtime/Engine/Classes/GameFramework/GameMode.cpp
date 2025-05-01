@@ -11,7 +11,7 @@
 
 AGameMode::AGameMode()
 {
-    OnGameInit.AddLambda([]() { UE_LOG(LogLevel::Display, TEXT("Game Initialized")); });
+    OnGameInit.AddLambda([]() { UE_LOG(ELogLevel::Display, TEXT("Game Initialized")); });
     
     //LuaScriptComp->GetOuter()->
 

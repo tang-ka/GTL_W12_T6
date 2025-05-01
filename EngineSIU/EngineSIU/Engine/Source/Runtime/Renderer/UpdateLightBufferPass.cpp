@@ -245,7 +245,7 @@ void FUpdateLightBufferPass::CreatePointLightBuffer()
     HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &PointLightBuffer);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create PointLightBuffer"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLightBuffer"));
     }
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -257,7 +257,7 @@ void FUpdateLightBufferPass::CreatePointLightBuffer()
     hr = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &srvDesc, &PointLightSRV);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create PointLight SRV"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLight SRV"));
     }
 }
 
@@ -272,7 +272,7 @@ void FUpdateLightBufferPass::CreateSpotLightBuffer()
     HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &SpotLightBuffer);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create SpotLightBuffer"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLightBuffer"));
     }
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
@@ -282,7 +282,7 @@ void FUpdateLightBufferPass::CreateSpotLightBuffer()
     hr = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &srvDesc, &SpotLightSRV);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create SpotLight SRV"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLight SRV"));
     }
 }
 
@@ -301,7 +301,7 @@ void FUpdateLightBufferPass::CreatePointLightPerTilesBuffer()
     HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &PointLightPerTilesBuffer);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create PointLightPerTilesBuffer"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLightPerTilesBuffer"));
     }
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -313,7 +313,7 @@ void FUpdateLightBufferPass::CreatePointLightPerTilesBuffer()
     hr = Graphics->Device->CreateShaderResourceView(PointLightPerTilesBuffer, &srvDesc, &PointLightPerTilesSRV);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create PointLightPerTiles SRV"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLightPerTiles SRV"));
     }
 }
 
@@ -329,7 +329,7 @@ void FUpdateLightBufferPass::CreateSpotLightPerTilesBuffer()
     HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &SpotLightPerTilesBuffer);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create SpotLightPerTilesBuffer"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLightPerTilesBuffer"));
     }
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
@@ -339,7 +339,7 @@ void FUpdateLightBufferPass::CreateSpotLightPerTilesBuffer()
     hr = Graphics->Device->CreateShaderResourceView(SpotLightPerTilesBuffer, &srvDesc, &SpotLightPerTilesSRV);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create SpotLightPerTiles SRV"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLightPerTiles SRV"));
     }
 }
 

@@ -58,7 +58,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 
     if (!GPUTimingManager.Initialize(GraphicDevice.Device, GraphicDevice.DeviceContext))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to initialize GPU Timing Manager!"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to initialize GPU Timing Manager!"));
     }
     EngineProfiler.SetGPUTimingManager(&GPUTimingManager);
 

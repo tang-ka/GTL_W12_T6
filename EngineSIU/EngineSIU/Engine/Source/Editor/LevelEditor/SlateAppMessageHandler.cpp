@@ -660,7 +660,7 @@ void FSlateAppMessageHandler::OnRawMouseInput(const RAWMOUSE& RawMouseInput)
         {
             // 태블릿, 터치스크린, 고급 트랙패드 같은 장치들에서 이벤트 발생
             // TODO: 언젠가 구?현 하기
-            UE_LOG(LogLevel::Warning, "Absolute mouse movement detected (currently not fully supported).");
+            UE_LOG(ELogLevel::Warning, "Absolute mouse movement detected (currently not fully supported).");
         }
 
         OnRawMouseInputDelegate.Broadcast(FPointerEvent{

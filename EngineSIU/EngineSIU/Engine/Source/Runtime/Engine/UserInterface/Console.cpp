@@ -212,7 +212,7 @@ void Console::Clear() {
 }
 
 // 로그 추가
-void Console::AddLog(const LogLevel Level, const char* Format, ...) {
+void Console::AddLog(const ELogLevel Level, const char* Format, ...) {
     char Buf[1024];
     va_list args;
     va_start(args, Format);
@@ -294,9 +294,9 @@ void Console::Draw() {
         }
 
         // 로그 수준에 맞는 필터링
-        if ((Level == LogLevel::Display && !ShowLogTemp) ||
-            (Level == LogLevel::Warning && !ShowWarning) ||
-            (Level == LogLevel::Error && !ShowError))
+        if ((Level == ELogLevel::Display && !ShowLogTemp) ||
+            (Level == ELogLevel::Warning && !ShowWarning) ||
+            (Level == ELogLevel::Error && !ShowError))
         {
             continue;
         }
@@ -305,13 +305,13 @@ void Console::Draw() {
         ImVec4 Color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         switch (Level)
         {
-        case LogLevel::Display:
+        case ELogLevel::Display:
             Color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // 기본 흰색
             break;
-        case LogLevel::Warning:
+        case ELogLevel::Warning:
             Color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색
             break;
-        case LogLevel::Error:
+        case ELogLevel::Error:
             Color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f); // 빨간색
             break;
         }
@@ -334,7 +334,7 @@ void Console::Draw() {
     {
         if (InputBuf[0])
         {
-            AddLog(LogLevel::Display, ">> %s", InputBuf);
+            AddLog(ELogLevel::Display, ">> %s", InputBuf);
             const std::string Command(InputBuf);
             ExecuteCommand(Command);
             History.Add(std::string(InputBuf));
@@ -356,7 +356,7 @@ void Console::Draw() {
 
 void Console::ExecuteCommand(const std::string& Command)
 {
-    AddLog(LogLevel::Display, "Executing command: %s", Command.c_str());
+    AddLog(ELogLevel::Display, "Executing command: %s", Command.c_str());
 
     if (Command == "clear")
     {
@@ -364,12 +364,12 @@ void Console::ExecuteCommand(const std::string& Command)
     }
     else if (Command == "help")
     {
-        AddLog(LogLevel::Display, "Available commands:");
-        AddLog(LogLevel::Display, " - clear: Clears the console");
-        AddLog(LogLevel::Display, " - help: Shows available commands");
-        AddLog(LogLevel::Display, " - stat fps: Toggle FPS display");
-        AddLog(LogLevel::Display, " - stat memory: Toggle Memory display");
-        AddLog(LogLevel::Display, " - stat none: Hide all stat overlays");
+        AddLog(ELogLevel::Display, "Available commands:");
+        AddLog(ELogLevel::Display, " - clear: Clears the console");
+        AddLog(ELogLevel::Display, " - help: Shows available commands");
+        AddLog(ELogLevel::Display, " - stat fps: Toggle FPS display");
+        AddLog(ELogLevel::Display, " - stat memory: Toggle Memory display");
+        AddLog(ELogLevel::Display, " - stat none: Hide all stat overlays");
     }
     else if (Command.starts_with("stat "))
     {
@@ -377,7 +377,7 @@ void Console::ExecuteCommand(const std::string& Command)
     }
     else
     {
-        AddLog(LogLevel::Error, "Unknown command: %s", Command.c_str());
+        AddLog(ELogLevel::Error, "Unknown command: %s", Command.c_str());
     }
 }
 

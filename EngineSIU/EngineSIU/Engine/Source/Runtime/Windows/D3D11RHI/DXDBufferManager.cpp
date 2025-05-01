@@ -274,7 +274,7 @@ void FDXDBufferManager::SetStartUV(wchar_t hangul, FVector2D& UVOffset)
 
     if (offset == -1)
     {
-        UE_LOG(LogLevel::Warning, "Text Error");
+        UE_LOG(ELogLevel::Warning, "Text Error");
     }
 
     int offsetV = (offset + StartU) / 106;

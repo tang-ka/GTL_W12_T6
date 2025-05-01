@@ -181,7 +181,7 @@ UActorComponent* AActor::AddComponent(UClass* InClass, FName InName, bool bTryRo
 {
     if (!InClass)
     {
-        UE_LOG(LogLevel::Error, TEXT("UActorComponent failed: ComponentClass is null."));
+        UE_LOG(ELogLevel::Error, TEXT("UActorComponent failed: ComponentClass is null."));
         return nullptr;
     }
     
@@ -191,7 +191,7 @@ UActorComponent* AActor::AddComponent(UClass* InClass, FName InName, bool bTryRo
 
         if (!Component)
         {
-            UE_LOG(LogLevel::Error, TEXT("UActorComponent failed: Class '%s' is not derived from AActor."), *InClass->GetName());
+            UE_LOG(ELogLevel::Error, TEXT("UActorComponent failed: Class '%s' is not derived from AActor."), *InClass->GetName());
             return nullptr;
         }
         
@@ -226,7 +226,7 @@ UActorComponent* AActor::AddComponent(UClass* InClass, FName InName, bool bTryRo
         return Component;
     }
     
-    UE_LOG(LogLevel::Error, TEXT("UActorComponent failed: ComponentClass is null."));
+    UE_LOG(ELogLevel::Error, TEXT("UActorComponent failed: ComponentClass is null."));
     return nullptr;
 }
 

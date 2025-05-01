@@ -169,7 +169,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     // 유효성 검사
     if (!D3DContext || cascadeIndex >= (uint32_t)DirectionalShadowCascadeDepthRHI->ShadowDSVs.Num() || !DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex])
     {
-         UE_LOG(LogLevel::Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
+         UE_LOG(ELogLevel::Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
         return;
     }
 
@@ -247,7 +247,7 @@ FMatrix FShadowManager::GetCascadeViewProjMatrix(int i) const
 {
     if (i < 0 || i >= CascadesViewProjMatrices.Num())
     {
-        UE_LOG(LogLevel::Warning, TEXT("GetCascadeViewProjMatrix: Invalid cascade index."));
+        UE_LOG(ELogLevel::Warning, TEXT("GetCascadeViewProjMatrix: Invalid cascade index."));
         return FMatrix::Identity;
     }
     return CascadesViewProjMatrices[i];
@@ -365,7 +365,7 @@ bool FShadowManager::CreatePointShadowResources() // << 추가된 함수 구현
     HRESULT hr = D3DDevice->CreateTexture2D(&texDesc, nullptr, &PointShadowCubeMapRHI->ShadowTexture);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Cube Map texture!"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create Shadow Cube Map texture!"));
         return hr;
     }
 
@@ -469,7 +469,7 @@ bool FShadowManager::CreateDirectionalShadowResources()
     HRESULT hr = D3DDevice->CreateTexture2D(&texDesc, nullptr, &DirectionalShadowCascadeDepthRHI->ShadowTexture);
     if (FAILED(hr))
     {
-        UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Cube Map texture!"));
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create Shadow Cube Map texture!"));
         return hr;
     }
 
@@ -692,7 +692,7 @@ bool FShadowManager::CreateSamplers()
     hr = D3DDevice->CreateSamplerState(&PointSamplerDesc, &ShadowPointSampler);
     if (FAILED(hr))
     {
-        // UE_LOG(LogLevel::Error, TEXT("Failed to create Shadow Point Sampler!"));
+        // UE_LOG(ELogLevel::Error, TEXT("Failed to create Shadow Point Sampler!"));
         ReleaseSamplers(); // 생성된 Comparison 샘플러 해제
         return false;
     }
