@@ -1,48 +1,49 @@
 #include "Console.h"
 #include <cstdarg>
 #include <cstdio>
-#include "UnrealEd/EditorViewportClient.h"
+
+#include "Actors/PointLightActor.h"
+#include "Actors/SpotLightActor.h"
+#include "Components/Light/LightComponent.h"
 #include "Engine/Engine.h"
 #include "Renderer/UpdateLightBufferPass.h"
-#include "UObject/Casts.h"
-#include "UObject/UObjectIterator.h"
-#include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
-#include "Components/Light/AmbientLightComponent.h"
-#include "Stats/ProfilerStatsManager.h"
 #include "Stats/GPUTimingManager.h"
+#include "Stats/ProfilerStatsManager.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include "UObject/UObjectIterator.h"
 
-void StatOverlay::ToggleStat(const std::string& Command)
+
+void FStatOverlay::ToggleStat(const std::string& Command)
 {
     if (Command == "stat fps")
     {
-        ShowFPS = true;
-        ShowRender = true;
+        bShowFps = true;
+        bShowRender = true;
     }
     else if (Command == "stat memory")
     {
-        ShowMemory = true;
-        ShowRender = true;
+        bShowMemory = true;
+        bShowRender = true;
     }
     else if (Command == "stat light")
     {
-        ShowLight = true;
-        ShowRender = true;
+        bShowLight = true;
+        bShowRender = true;
+    }
+    else if (Command == "stat all")
+    {
+        StatFlags = 0xFF;
     }
     else if (Command == "stat none")
     {
-        ShowFPS = false;
-        ShowMemory = false;
-        ShowLight = false;
-        ShowRender = false;
+        // 모든 Flag 끄기
+        StatFlags = 0x00;
     }
 }
 
-void StatOverlay::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) const
+void FStatOverlay::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) const
 {
-    if (!ShowRender)
+    if (!bShowRender)
     {
         return;
     }
@@ -57,72 +58,37 @@ void StatOverlay::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) 
     ImGui::SetNextWindowSize(WindowSize, ImGuiCond_Always);
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-    ImGui::Begin("Stat Overlay", nullptr,
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoScrollbar);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
+    ImGui::Begin(
+        "Stat Overlay", nullptr,
+        ImGuiWindowFlags_NoTitleBar
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoMove
+        | ImGuiWindowFlags_NoInputs
+        | ImGuiWindowFlags_AlwaysAutoResize
+    );
 
-    if (ShowFPS)
+    if (bShowFps)
     {
-        static float LastTime = ImGui::GetTime();
-        static float FPS = 0.0f;
-        static float FrameTimeMS = 0.0f;
-
-        float CurrentTime = ImGui::GetTime();
-        float DeltaTime = CurrentTime - LastTime;
-
-        FPS = 1.0f / DeltaTime;
-        FrameTimeMS = DeltaTime * 1000.0f;
-
-        ImGui::Text("%.2f FPS", FPS);
-        ImGui::Text("%.2f ms", FrameTimeMS);
-        ImGui::Text("\n");
-
-        LastTime = CurrentTime;
+        // FPS 정보 출력
+        const float Fps = ImGui::GetIO().Framerate;
+        ImGui::Text("FPS: %.1f (%.1f ms)", Fps, 1000.0f / Fps);
     }
 
-    if (ShowMemory)
+    if (bShowMemory)
     {
+        ImGui::SeparatorText("Memory Usage");
         ImGui::Text("Allocated Object Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Object>());
-        ImGui::Text("Allocated Object Memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Object>());
+        ImGui::Text("Allocated Object Memory: %llu Byte", FPlatformMemory::GetAllocationBytes<EAT_Object>());
         ImGui::Text("Allocated Container Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Container>());
-        ImGui::Text("Allocated Container memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Container>());
+        ImGui::Text("Allocated Container Memory: %llu Byte", FPlatformMemory::GetAllocationBytes<EAT_Container>());
     }
 
-    if (ShowLight)
+    if (bShowLight)
     {
-        // @todo Find Better Way to Get Light Count
-        int NumPointLights = 0;
-        int NumSpotLights = 0;
-        for (const auto iter : TObjectRange<ULightComponentBase>())
-        {
-            if (iter->GetWorld() == GEngine->ActiveWorld)
-            {
-                if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
-                {
-                    NumPointLights++;
-                }
-                else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
-                {
-                    NumSpotLights++;
-                }
-                /*
-                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
-                {
-                    DirectionalLights.Add(DirectionalLight);
-                }
-                else if (UAmbientLightComponent* AmbientLight = Cast<UAmbientLightComponent>(iter))
-                {
-                    AmbientLights.Add(AmbientLight);
-                }
-                */
-            }
-        }
-        ImGui::Text("[ Light Counters ]\n");
-        ImGui::Text("Point Light: %d", NumPointLights);
-        ImGui::Text("Spot Light: %d", NumSpotLights);
-        ImGui::Text("\n");
+        ImGui::SeparatorText("[ Light Counters ]\n");
+        ImGui::Text("Point Light: %d", GetNumOfObjectsByClass(APointLight::StaticClass()));
+        ImGui::Text("Spot Light: %d", GetNumOfObjectsByClass(ASpotLight::StaticClass()));
     }
 
     ImGui::PopStyleColor();
@@ -201,18 +167,18 @@ void FEngineProfiler::RegisterStatScope(const FString& DisplayName, const FName&
 }
 
 // 싱글톤 인스턴스 반환
-Console& Console::GetInstance() {
-    static Console Instance;
+FConsole& FConsole::GetInstance() {
+    static FConsole Instance;
     return Instance;
 }
 
 // 로그 초기화
-void Console::Clear() {
+void FConsole::Clear() {
     Items.Empty();
 }
 
 // 로그 추가
-void Console::AddLog(const ELogLevel Level, const char* Format, ...) {
+void FConsole::AddLog(const ELogLevel Level, const char* Format, ...) {
     char Buf[1024];
     va_list args;
     va_start(args, Format);
@@ -224,7 +190,7 @@ void Console::AddLog(const ELogLevel Level, const char* Format, ...) {
 }
 
 // 콘솔 창 렌더링
-void Console::Draw() {
+void FConsole::Draw() {
     if (!bWasOpen)
     {
         return;
@@ -354,7 +320,7 @@ void Console::Draw() {
     ImGui::End();
 }
 
-void Console::ExecuteCommand(const std::string& Command)
+void FConsole::ExecuteCommand(const std::string& Command)
 {
     AddLog(ELogLevel::Display, "Executing command: %s", Command.c_str());
 
@@ -381,7 +347,7 @@ void Console::ExecuteCommand(const std::string& Command)
     }
 }
 
-void Console::OnResize(HWND hWnd)
+void FConsole::OnResize(HWND hWnd)
 {
     RECT ClientRect;
     GetClientRect(hWnd, &ClientRect);

@@ -6,7 +6,23 @@
 #include "ImGui/imgui.h"
 #include "PropertyEditor/IWindowToggleable.h"
 
-#define UE_LOG Console::GetInstance().AddLog
+static consteval const char* GetFileName(const char* Path)
+{
+    const char* Name = Path;
+    while (*Path)
+    {
+        if (*Path == '/' || *Path == '\\')
+        {
+            Name = Path + 1;
+        }
+        Path++;
+    }
+    return Name;
+}
+
+#define FILENAME GetFileName(__FILE__)
+#define UE_LOG(Level, Fmt, ...) FConsole::GetInstance().AddLog(Level, "[%s:%d] " Fmt, FILENAME, __LINE__, __VA_ARGS__)
+
 
 enum class ELogLevel : uint8
 {
@@ -15,14 +31,22 @@ enum class ELogLevel : uint8
     Error
 };
 
-class StatOverlay
+class FStatOverlay
 {
 public:
     // @todo Stat-FPS Default 설정 복구 (showFPS = false, showRender = false)
-    bool ShowFPS = false;
-    bool ShowMemory = false;
-    bool ShowLight = false;
-    bool ShowRender = false;
+    // TODO: 추후에 enum 비트연산으로 바꿔도 좋을듯
+    union
+    {
+        struct  // NOLINT(clang-diagnostic-nested-anon-types)
+        {
+            uint8 bShowFps : 1;
+            uint8 bShowMemory : 1;
+            uint8 bShowLight : 1;
+            uint8 bShowRender : 1;
+        };
+        uint8 StatFlags = 0; // 기본적으로 다 끄기
+    };
 
     void ToggleStat(const std::string& Command);
     void Render(ID3D11DeviceContext* Context, UINT Width, UINT Height) const;
@@ -53,20 +77,21 @@ private:
     bool bShowWindow = true;
 };
 
-class Console : public IWindowToggleable
+class FConsole : public IWindowToggleable
 {
 private:
-    Console() = default;
+    FConsole() = default;
+    virtual ~FConsole() override = default;
 
 public:
     // 복사 방지
-    Console(const Console&) = delete;
-    Console& operator=(const Console&) = delete;
-    Console(Console&&) = delete;
-    Console& operator=(Console&&) = delete;
+    FConsole(const FConsole&) = delete;
+    FConsole& operator=(const FConsole&) = delete;
+    FConsole(FConsole&&) = delete;
+    FConsole& operator=(FConsole&&) = delete;
 
 public:
-    static Console& GetInstance(); // 참조 반환으로 변경
+    static FConsole& GetInstance(); // 참조 반환으로 변경
 
     void Clear();
     void AddLog(ELogLevel Level, const char* Format, ...);
@@ -107,7 +132,7 @@ public:
 
     bool bWasOpen = true;
 
-    StatOverlay Overlay;
+    FStatOverlay Overlay;
 
 private:
     bool bExpand = true;
