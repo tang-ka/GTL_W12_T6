@@ -2,6 +2,8 @@
 #include <functional>
 #include "Core/Container/Map.h"
 #include "UObject/WeakObjectPtr.h"
+#include "UserInterface/Console.h"
+
 
 #define FUNC_DECLARE_DELEGATE(DelegateName, ReturnType, ...) \
 	using DelegateName = TDelegate<ReturnType(__VA_ARGS__)>;
@@ -86,7 +88,7 @@ public:
     void BindWeakLambda(UserClass* InUserObject, FunctorType&& InFunctor)
     {
         Func = [
-            SafeObject = TSafeObjectPtr<UserClass>(InUserObject),
+            SafeObject = TWeakObjectPtr<UserClass>(InUserObject),
             Func = std::forward<FunctorType>(InFunctor)
         ](ParamTypes... Params) mutable
         {
@@ -104,7 +106,7 @@ public:
         requires std::derived_from<UserClass, UObject> && std::is_member_function_pointer_v<MethodType>
     void BindUObject(UserClass* Obj, MethodType InMethod)
     {
-        Func = [SafeObj = TSafeObjectPtr<UserClass>(Obj), InMethod](ParamTypes... Params) mutable
+        Func = [SafeObj = TWeakObjectPtr<UserClass>(Obj), InMethod](ParamTypes... Params) mutable
         {
             if (SafeObj.IsValid())
             {
@@ -176,7 +178,7 @@ public:
             Handle,
             [
                 this, Handle,
-                SafeObject = TSafeObjectPtr<UserClass>(InUserObject),
+                SafeObject = TWeakObjectPtr<UserClass>(InUserObject),
                 Func = std::forward<FunctorType>(InFunctor)
             ](ParamTypes... Params) mutable
             {
@@ -201,7 +203,7 @@ public:
             Handle,
             [
                 this, Handle,
-                SafeObj = TSafeObjectPtr<UserClass>(InUserObject),
+                SafeObj = TWeakObjectPtr<UserClass>(InUserObject),
                 InMethod
             ](ParamTypes... Params)
             {
@@ -232,7 +234,7 @@ public:
 		auto CopyDelegates = DelegateHandles;
 		for (const auto& [Handle, Delegate] : CopyDelegates)
 		{
-			Delegate(std::forward<ParamTypes>(Params)...);
+			Delegate(Params...);
 		}
 	}
 };
