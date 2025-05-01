@@ -438,10 +438,14 @@ FString FName::ToString() const
 
 	// TODO: WIDECHAR에 대응 해야함
 	FNameEntry Entry = FNamePool::Get().Resolve(DisplayIndex);
-	return {
-		// Entry.Header.IsWide ? Entry.WideName : Entry.AnsiName
-		Entry.AnsiName
-	};
+    if (Entry.Header.IsWide)
+    {
+        return {Entry.WideName};
+    }
+    else
+    {
+        return {Entry.AnsiName};
+    }
 }
 
 bool FName::operator==(const FName& Other) const

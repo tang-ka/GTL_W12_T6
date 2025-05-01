@@ -33,7 +33,7 @@ public: \
     __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
     static UClass* StaticClass() { \
         static UClass ClassInfo{ \
-            TEXT(#TClass), \
+            #TClass, \
             static_cast<uint32>(sizeof(TClass)), \
             static_cast<uint32>(alignof(TClass)), \
             TSuperClass::StaticClass(), \
@@ -51,7 +51,7 @@ public: \
     __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
     static UClass* StaticClass() { \
         static UClass ClassInfo{ \
-            TEXT(#TClass), \
+            #TClass, \
             static_cast<uint32>(sizeof(TClass)), \
             static_cast<uint32>(alignof(TClass)), \
             TSuperClass::StaticClass(), \

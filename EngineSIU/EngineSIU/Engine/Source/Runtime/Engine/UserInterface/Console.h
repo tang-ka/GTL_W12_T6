@@ -94,7 +94,8 @@ public:
     static FConsole& GetInstance(); // 참조 반환으로 변경
 
     void Clear();
-    void AddLog(ELogLevel Level, const char* Format, ...);
+    void AddLog(ELogLevel Level, const ANSICHAR* Fmt, ...);
+    void AddLog(ELogLevel Level, const WIDECHAR* Fmt, ...);
     void Draw();
     void ExecuteCommand(const std::string& Command);
     void OnResize(HWND hWnd);

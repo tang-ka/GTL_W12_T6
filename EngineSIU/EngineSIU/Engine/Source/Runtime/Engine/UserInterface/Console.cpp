@@ -178,15 +178,30 @@ void FConsole::Clear() {
 }
 
 // 로그 추가
-void FConsole::AddLog(const ELogLevel Level, const char* Format, ...) {
-    char Buf[1024];
-    va_list args;
-    va_start(args, Format);
-    vsnprintf(Buf, sizeof(Buf), Format, args);
-    va_end(args);
+void FConsole::AddLog(ELogLevel Level, const ANSICHAR* Fmt, ...)
+{
+    va_list Args;
+    va_start(Args, Fmt);
+    // AddLog(Level, Fmt, Args);
 
-    Items.Add({ Level, std::string(Buf) });
-    ScrollToBottom = true;
+    char Buf[1024];
+    vsnprintf_s(Buf, sizeof(Buf), _TRUNCATE, Fmt, Args);
+
+    Items.Emplace(Level, std::string(Buf));
+    va_end(Args);
+}
+
+void FConsole::AddLog(ELogLevel Level, const WIDECHAR* Fmt, ...)
+{
+    va_list Args;
+    va_start(Args, Fmt);
+    // AddLog(Level, Fmt, Args);
+
+    wchar_t Buf[1024];
+    _vsnwprintf_s(Buf, sizeof(Buf), _TRUNCATE, Fmt, Args);
+
+    Items.Emplace(Level, FString(Buf).ToAnsiString());
+    va_end(Args);
 }
 
 // 콘솔 창 렌더링
