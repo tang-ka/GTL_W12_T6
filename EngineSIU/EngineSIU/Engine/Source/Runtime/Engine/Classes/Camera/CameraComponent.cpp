@@ -63,7 +63,7 @@ void UCameraComponent::ProceedFInterp(float DeltaTime)
         FVector FromLocation = GetWorldLocation();
 
         //카메라 위치
-        FVector MoveLocation = FMath::FInterpTo(FromLocation, FInterpTargetLocation, DeltaTime, FInterpToSpeed);
+        FVector MoveLocation = FMath::VInterpTo(FromLocation, FInterpTargetLocation, DeltaTime, FInterpToSpeed);
 
         FVector Lookat = LookTarget;
     
@@ -79,7 +79,7 @@ void UCameraComponent::ProceedFInterp(float DeltaTime)
    
 }
 
-void UCameraComponent::SetLocationWithFInterpTo(FVector& ToLocation) //LerpSpeed = 0은 안움직이고 1은 바로이동
+void UCameraComponent::SetLocationWithFInterpTo(const FVector& ToLocation) //LerpSpeed = 0은 안움직이고 1은 바로이동
 {
     FInterpTargetLocation = ToLocation;
 }

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cassert>
+#include <compare>
 #include "MathUtility.h"
 #include "Serialization/Archive.h"
 
@@ -7,10 +8,14 @@
 
 struct FVector2D
 {
-    float X, Y;
+public:
+	float X, Y;
 
+    using FReal = float;
+
+public:
     FVector2D() : X(0), Y(0) {}
-    FVector2D(float InX, float InY) : X(InX), Y(InY) {}
+	FVector2D(float InX, float InY) : X(InX), Y(InY) {}
     FVector2D(float Scalar) : X(Scalar), Y(Scalar) {}
 
     static const FVector2D ZeroVector;
@@ -70,23 +75,31 @@ public:
     * Initialize this Vector based on an FString. The String is expected to contain X=, Y=.
     * The TVector2<T> will be bogus when InitFromString returns false.
     *
-    * @param    InSourceString    FString containing the vector values.
+    * @param	InSourceString	FString containing the vector values.
     * @return true if the X,Y values were read successfully; false otherwise.
     */
     bool InitFromString(const FString& InSourceString);
+
+    [[nodiscard]] float SquaredLength() const { return X * X + Y * Y; }
+    [[nodiscard]] float SizeSquared() const { return SquaredLength(); }
+    [[nodiscard]] float Length() const { return FMath::Sqrt(SquaredLength()); }
+    [[nodiscard]] float Size() const { return Length(); }
 };
 
 // 3D 벡터
 struct FVector
 {
+public:
     float X, Y, Z;
 
+    using FReal = float;
+
+public:
     FVector() : X(0), Y(0), Z(0) {}
     FVector(float X, float Y, float Z) : X(X), Y(Y), Z(Z) {}
-    explicit  FVector(float Scalar) : X(Scalar), Y(Scalar), Z(Scalar) {}
+    explicit FVector(float Scalar) : X(Scalar), Y(Scalar), Z(Scalar) {}
 
-    
-    FVector(const FRotator& InRotator);
+    explicit FVector(const FRotator& InRotator);
 
     // Vector(0, 0, 0)
     static const FVector ZeroVector;
@@ -120,14 +133,23 @@ struct FVector
     static const FVector ZAxisVector;
 
 public:
-    static inline FVector Zero() { return ZeroVector; }
-    static inline FVector One() { return OneVector; }
+    static FORCEINLINE FVector Zero() { return ZeroVector; }
+    static FORCEINLINE FVector One() { return OneVector; }
 
-    static inline FVector UnitX() { return XAxisVector; }
-    static inline FVector UnitY() { return YAxisVector; }
-    static inline FVector UnitZ() { return ZAxisVector; }
+    static FORCEINLINE FVector UnitX() { return XAxisVector; }
+    static FORCEINLINE FVector UnitY() { return YAxisVector; }
+    static FORCEINLINE FVector UnitZ() { return ZAxisVector; }
 
-    static float Distance(const FVector& V1, const FVector& V2);
+    static FORCEINLINE float DistSquared(const FVector& V1, const FVector& V2);
+
+    static FORCEINLINE float Distance(const FVector& V1, const FVector& V2);
+    static FORCEINLINE float Dist(const FVector& V1, const FVector& V2) { return Distance(V1, V2); }
+
+    static FORCEINLINE float DistSquaredXY(const FVector &V1, const FVector &V2);
+    static FORCEINLINE float DistSquared2D(const FVector &V1, const FVector &V2) { return DistSquaredXY(V1, V2); }
+
+    static FORCEINLINE float DistXY(const FVector &V1, const FVector &V2);
+    static FORCEINLINE float Dist2D(const FVector &V1, const FVector &V2) { return DistXY(V1, V2); }
 
     /** Dot Product */
     float operator|(const FVector& Other) const;
@@ -140,9 +162,11 @@ public:
     static FVector CrossProduct(const FVector& A, const FVector& B);
 
     FVector operator+(const FVector& Other) const;
+    FVector operator+(float Scalar) const;
     FVector& operator+=(const FVector& Other);
 
     FVector operator-(const FVector& Other) const;
+    FVector operator-(float Scalar) const;
     FVector& operator-=(const FVector& Other);
 
     FVector operator*(const FVector& Other) const;
@@ -158,70 +182,38 @@ public:
     bool operator==(const FVector& Other) const;
     bool operator!=(const FVector& Other) const;
 
+    std::partial_ordering operator<=>(const FVector& Other) const;
+    std::partial_ordering operator<=>(float Scalar) const;
+    friend std::partial_ordering operator<=>(float Scalar, const FVector& Vector);
+
     float& operator[](int Index);
     const float& operator[](int Index) const;
 
-    // 길이 제곱 계산
-    FORCEINLINE float SizeSquared() const
+    static inline FVector GetAbs(const FVector& v)
     {
-        return (X * X + Y * Y + Z * Z);
+         return FVector(abs(v.X), abs(v.Y), abs(v.Z));
     }
-
-    // < 연산자: 제곱 길이 비교
-    FORCEINLINE bool operator<(const FVector& Other) const
-    {
-        return (SizeSquared() < Other.SizeSquared());
-    }
-
-    // > 연산자: 제곱 길이 비교
-    FORCEINLINE bool operator>(const FVector& Other) const
-    {
-        return (SizeSquared() > Other.SizeSquared());
-    }
-    
-    // FVector < float (제곱 길이 비교)
-    FORCEINLINE bool operator<(float Scalar) const
-    {
-        return SizeSquared() < Scalar * Scalar;
-    }
-
-    // FVector > float (제곱 길이 비교)
-    FORCEINLINE bool operator>(float Scalar) const
-    {
-        return SizeSquared() > Scalar * Scalar;
-    }
-
-    // float < FVector (제곱 길이 비교)
-    friend FORCEINLINE bool operator<(float Scalar, const FVector& Vec)
-    {
-        return Scalar * Scalar < Vec.SizeSquared();
-    }
-
-    // float > FVector (제곱 길이 비교)
-    friend FORCEINLINE bool operator>(float Scalar, const FVector& Vec)
-    {
-        return Scalar * Scalar > Vec.SizeSquared();
-    }
-
 public:
     bool Equals(const FVector& V, float Tolerance = KINDA_SMALL_NUMBER) const;
     bool AllComponentsEqual(float Tolerance = KINDA_SMALL_NUMBER) const;
 
     float Length() const;
-    float LengthSquared() const;
+    float Size() const { return Length(); }
+    float SquaredLength() const;
+    float SizeSquared() const { return SquaredLength(); }
 
-    bool Normalize(float Tolerance = SMALL_NUMBER);
+    bool Normalize(float Tolerance = KINDA_SMALL_NUMBER);
 
     FVector GetUnsafeNormal() const;
-    FVector GetSafeNormal(float Tolerance = SMALL_NUMBER) const;
+    FVector GetSafeNormal(float Tolerance = KINDA_SMALL_NUMBER) const;
 
     FVector ComponentMin(const FVector& Other) const;
     FVector ComponentMax(const FVector& Other) const;
 
-    bool IsNearlyZero(float Tolerance = SMALL_NUMBER) const;
+    bool IsNearlyZero(float Tolerance = KINDA_SMALL_NUMBER) const;
     bool IsZero() const;
+    bool IsNormalized() const;
 
-    
     FString ToString() const;
     bool InitFromString(const FString& InSourceString);
 };
@@ -231,6 +223,11 @@ inline FVector::FVector(const FRotator& InRotator)
 {
 }
 
+inline float FVector::DistSquared(const FVector& V1, const FVector& V2)
+{
+    return FMath::Square(V2.X-V1.X) + FMath::Square(V2.Y-V1.Y) + FMath::Square(V2.Z-V1.Z);
+}
+
 inline float FVector::Distance(const FVector& V1, const FVector& V2)
 {
     return FMath::Sqrt(
@@ -238,6 +235,22 @@ inline float FVector::Distance(const FVector& V1, const FVector& V2)
         + FMath::Square(V2.Y - V1.Y)
         + FMath::Square(V2.Z - V1.Z)
     );
+}
+
+float FVector::DistSquaredXY(const FVector& V1, const FVector& V2)
+{
+    return FMath::Square(V2.X-V1.X) + FMath::Square(V2.Y-V1.Y);
+}
+
+float FVector::DistXY(const FVector& V1, const FVector& V2)
+{
+    return FMath::Sqrt(DistSquaredXY(V1, V2));
+}
+
+inline bool FVector::IsNormalized() const
+{
+    constexpr float ThreshVectorNormalized = 0.01f;
+    return (FMath::Abs(1.f - SizeSquared()) < ThreshVectorNormalized);
 }
 
 inline float FVector::operator|(const FVector& Other) const
@@ -279,6 +292,15 @@ inline FVector FVector::operator+(const FVector& Other) const
     return {X + Other.X, Y + Other.Y, Z + Other.Z};
 }
 
+inline FVector FVector::operator+(float Scalar) const
+{
+    return FVector{
+        X + Scalar,
+        Y + Scalar,
+        Z + Scalar
+    };
+}
+
 inline FVector& FVector::operator+=(const FVector& Other)
 {
     X += Other.X; Y += Other.Y; Z += Other.Z;
@@ -288,6 +310,15 @@ inline FVector& FVector::operator+=(const FVector& Other)
 inline FVector FVector::operator-(const FVector& Other) const
 {
     return {X - Other.X, Y - Other.Y, Z - Other.Z};
+}
+
+inline FVector FVector::operator-(float Scalar) const
+{
+    return FVector{
+        X - Scalar,
+        Y - Scalar,
+        Z - Scalar
+    };
 }
 
 inline FVector& FVector::operator-=(const FVector& Other)
@@ -335,12 +366,27 @@ inline FVector FVector::operator-() const
 
 inline bool FVector::operator==(const FVector& Other) const
 {
-    return X == Other.X && Y == Other.Y && Z == Other.Z;
+    return X == Other.X && Y == Other.Y && Z == Other.Z;  // NOLINT(clang-diagnostic-float-equal)
 }
 
 inline bool FVector::operator!=(const FVector& Other) const
 {
-    return X != Other.X || Y != Other.Y || Z != Other.Z;
+    return X != Other.X || Y != Other.Y || Z != Other.Z;  // NOLINT(clang-diagnostic-float-equal)
+}
+
+inline std::partial_ordering FVector::operator<=>(const FVector& Other) const
+{
+    return SizeSquared() <=> Other.SizeSquared();
+}
+
+inline std::partial_ordering FVector::operator<=>(float Scalar) const
+{
+    return SizeSquared() <=> Scalar * Scalar;
+}
+
+inline std::partial_ordering operator<=>(float Scalar, const FVector& Vector)
+{
+    return Scalar * Scalar <=> Vector.SizeSquared();
 }
 
 inline float& FVector::operator[](int Index)
@@ -370,7 +416,7 @@ inline float FVector::Length() const
     return FMath::Sqrt(X * X + Y * Y + Z * Z);
 }
 
-inline float FVector::LengthSquared() const
+inline float FVector::SquaredLength() const
 {
     return X * X + Y * Y + Z * Z;
 }
@@ -432,16 +478,14 @@ inline bool FVector::IsNearlyZero(float Tolerance) const
 {
     return
         FMath::Abs(X)<=Tolerance
-        &&    FMath::Abs(Y)<=Tolerance
-        &&    FMath::Abs(Z)<=Tolerance;
+        && FMath::Abs(Y)<=Tolerance
+        && FMath::Abs(Z)<=Tolerance;
 }
 
 inline bool FVector::IsZero() const
 {
     return X==0.f && Y==0.f && Z==0.f;
 }
-
-
 
 inline FArchive& operator<<(FArchive& Ar, FVector2D& V)
 {

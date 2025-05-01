@@ -28,7 +28,7 @@ FVector ClosestPointOnLineSegment(const FVector& Point, const FVector& SegmentSt
     }
 
     FVector SegmentDir = SegmentEnd - SegmentStart;
-    double SegmentLengthSq = SegmentDir.LengthSquared(); // double 사용 권장 (정밀도)
+    double SegmentLengthSq = SegmentDir.SquaredLength(); // double 사용 권장 (정밀도)
 
     // 수치 안정성을 위해 매우 작은 길이는 0으로 처리
     if (SegmentLengthSq < KINDA_SMALL_NUMBER)
@@ -84,7 +84,7 @@ float SquaredDistBetweenLineSegments(const FVector& A, const FVector& B, const F
     FVector Q = C + v * tc;
     
     // 두 점 사이의 거리 제곱 반환
-    return (P - Q).LengthSquared();
+    return (P - Q).SquaredLength();
 }
 
 // 점 P와 OBB 사이의 가장 가까운 점을 찾는 함수
@@ -204,11 +204,11 @@ float SquaredDistSegmentOBB(const FVector& A, const FVector& B, const UBoxCompon
         FVector NewPointOnSegment = ClosestPointOnLineSegment(PointOnBox, A, B);
 
         // 3. 수렴 확인: 이전 단계의 점과 새 점 사이의 거리 제곱 확인
-        double CurrentDistSq = (PointOnBox - NewPointOnSegment).LengthSquared();
+        double CurrentDistSq = (PointOnBox - NewPointOnSegment).SquaredLength();
         double ImprovementSq = FMath::Abs(CurrentDistSq - LastDistSq);
 
         // 점이 거의 움직이지 않거나 거리가 더 이상 줄어들지 않으면 수렴으로 간주
-        if ((PointOnSegment - NewPointOnSegment).LengthSquared() < ToleranceSq || ImprovementSq < ToleranceSq * 0.1 ) // 개선 정도도 확인
+        if ((PointOnSegment - NewPointOnSegment).SquaredLength() < ToleranceSq || ImprovementSq < ToleranceSq * 0.1 ) // 개선 정도도 확인
         {
             PointOnSegment = NewPointOnSegment; // 마지막 위치 업데이트
             LastDistSq = CurrentDistSq;
@@ -354,7 +354,7 @@ bool FCollisionManager::Check_Box_Box(const UShapeComponent* A, const UShapeComp
         {
             FVector Cross = FVector::CrossProduct(AxesA[i], AxesB[j]);
             // 외적이 0 벡터에 가까우면 (축이 평행하면) 검사할 필요 없음
-            if (Cross.LengthSquared() > 1e-6f)
+            if (Cross.SquaredLength() > 1e-6f)
             { // 작은 값 (epsilon)으로 비교
                 TestAxes[AxisIndex++] = Cross; //.Normalize(); // 정규화는 이론적으로 필요하나, OverlapOnAxis 결과에 영향 안 줌
             }
@@ -388,7 +388,7 @@ bool FCollisionManager::Check_Box_Sphere(const UShapeComponent* A, const UShapeC
 
     // P와 Q 사이의 거리 제곱 계산
     FVector Diff = Sphere->GetWorldLocation() - ClosestPoint;
-    float DistSq = Diff.LengthSquared();
+    float DistSq = Diff.SquaredLength();
 
     // 거리 제곱이 스피어 반지름 제곱보다 작거나 같으면 충돌
     float RadiusSq = Sphere->GetRadius() * Sphere->GetRadius();
@@ -426,7 +426,7 @@ bool FCollisionManager::Check_Sphere_Sphere(const UShapeComponent* A, const USha
     float RadiusSum = SphereA->GetRadius() + SphereB->GetRadius();
 
     FVector Diff = SphereA->GetWorldLocation() - SphereB->GetWorldLocation();
-    float DistSq = Diff.LengthSquared();
+    float DistSq = Diff.SquaredLength();
     
     return DistSq <= (RadiusSum * RadiusSum);
 }
@@ -444,7 +444,7 @@ bool FCollisionManager::Check_Sphere_Capsule(const UShapeComponent* A, const USh
 
     // 스피어 중심과 가장 가까운 점 사이의 거리 제곱 계산
     FVector Diff = Sphere->GetWorldLocation() - ClosestPointOnSegment;
-    float DistSq = Diff.LengthSquared();
+    float DistSq = Diff.SquaredLength();
 
     // 캡슐 반지름과 스피어 반지름의 합 계산
     float TotalRadius = Capsule->GetRadius() + Sphere->GetRadius();

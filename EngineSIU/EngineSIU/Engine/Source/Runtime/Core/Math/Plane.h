@@ -173,7 +173,7 @@ inline float FPlane::PlaneDot(const FVector& P) const
 
 inline bool FPlane::Normalize(float Tolerance)
 {
-	const float NormalLengthSq = X * X + Y * Y + Z * Z; // FVector::LengthSquared()
+	const float NormalLengthSq = X * X + Y * Y + Z * Z; // FVector::SquaredLength()
 
 	if (NormalLengthSq > Tolerance)
 	{

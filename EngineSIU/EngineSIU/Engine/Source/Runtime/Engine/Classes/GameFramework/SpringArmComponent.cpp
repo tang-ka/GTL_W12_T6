@@ -249,7 +249,7 @@ bool USpringArmComponent::RaySweepBox(const FVector& Start, const FVector& Dir,
         float origin = LocalStart[i];
         float dir = LocalDir[i];
         float e = Extents[i];
-        if (FMath::Abs(dir) < UE_SMALL_NUMBER)
+        if (FMath::Abs(dir) < SMALL_NUMBER)
         {
             if (origin < -e || origin > e)
                 return false;
