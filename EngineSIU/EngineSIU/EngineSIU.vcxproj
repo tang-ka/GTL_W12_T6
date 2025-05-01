@@ -226,6 +226,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Pl
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Object.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectFactory.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Property.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectArray.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectHash.cpp" />
@@ -481,10 +482,12 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Pl
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectMacros.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Property.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectArray.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectHash.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectIterator.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\WeakObjectPtr.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\Array.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\ContainerAllocator.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\CString.h" />
