@@ -1,9 +1,6 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++,visualstudio
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,visualstudio
 
-.idea/
-.vscode/
-
 ### C++ ###
 # Prerequisites
 *.d
@@ -58,6 +55,8 @@
 *.userosscache
 *.sln.docstates
 
+!*.vcxproj.user
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -77,7 +76,7 @@ Intermediate/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-[Bb]in/
+#[Bb]in/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
@@ -125,7 +124,7 @@ StyleCopReport.xml
 *.ilk
 *.meta
 
-*.pdb
+# *.pdb
 *.ipdb
 *.pgc
 *.pgd
@@ -428,7 +427,6 @@ FodyWeavers.xsd
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
 
 # Local History for Visual Studio Code
 .history/
