@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Define.h"
 #include "Hal/PlatformType.h"
+#include "Container/Array.h"
 
 struct FSkeletalMeshVertex
 {
@@ -11,4 +13,19 @@ struct FSkeletalMeshVertex
     float U = 0, V = 0;
     uint32 BoneIndices[4];
     float BoneWeights[4];
+};
+
+struct FSkeletalMeshRenderData
+{
+    FWString ObjectName;
+    FString DisplayName;
+
+    TArray<FSkeletalMeshVertex> Vertices;
+    TArray<UINT> Indices;
+
+    TArray<FObjMaterialInfo> Materials;
+    TArray<FMaterialSubset> MaterialSubsets;
+
+    FVector BoundingBoxMin;
+    FVector BoundingBoxMax;
 };

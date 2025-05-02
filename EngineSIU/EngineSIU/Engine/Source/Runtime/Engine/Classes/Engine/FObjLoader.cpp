@@ -2,7 +2,7 @@
 
 #include "UObject/ObjectFactory.h"
 #include "Components/Material/Material.h"
-#include "Components/Mesh/StaticMeshRenderData.h"
+#include "Engine/StaticMesh.h"
 
 #include "Asset/StaticMeshAsset.h"
 
