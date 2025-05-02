@@ -28,7 +28,6 @@ void RemoveFromClassMap(UObject* Object);
  * ClassToLookFor와 일치하는 자식 UClass를 반환합니다.
  * @param ClassToLookFor 찾을 자식클래스의 부모 클래스
  * @param Results ClassToLookFor의 파생클래스가 담길 목록
- * TODO: GetClassMap 사용해서 Spawn 안 된 UClass도 찾기
  */
 void GetChildOfClass(UClass* ClassToLookFor, TArray<UClass*>& Results);
 
