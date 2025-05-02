@@ -446,11 +446,10 @@ FodyWeavers.xsd
 
 ### Game Tech Lab ###
 
-# 특정 폴더 아래의 .obj 파일은 다시 포함
-!**/Assets/**/*.obj
-!**/Contents/**/*.obj
-!**/ThirdParty/**/*.lib
-!**/ThirdParty/**/*.dll
+# 다시 포함
+!EngineSIU/EngineSIU/Assets/**/*.obj
+!EngineSIU/EngineSIU/Contents/**/*.obj
+!EngineSIU/EngineSIU/Engine/Source/ThirdParty/**
 
 *.bin
 
