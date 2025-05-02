@@ -1,4 +1,4 @@
-#include "StaticMeshRenderData.h"
+#include "StaticMesh.h"
 #include "Engine/FObjLoader.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
