@@ -1,0 +1,120 @@
+name: Create Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Git 태그 이름 (예: v1.0.0). 이 태그로 GitHub Release가 생성됩니다.'
+        required: true
+        type: string
+      force_clean_build:
+        description: '캐시를 사용하지 않고 강제로 클린 빌드를 수행합니다.'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  # 프로젝트 루트 기준 솔루션 파일 경로
+  SOLUTION_FILE_PATH: ./EngineSIU/EngineSIU.sln
+  # 프로젝트 루트 기준 MSBuild 중간 파일 디렉토리 경로
+  INTERMEDIATE_DIR_PATH: EngineSIU/Intermediate/Build
+  # 빌드 구성
+  BUILD_CONFIGURATION: Release
+  # 빌드 플랫폼
+  BUILD_PLATFORM: x64
+  # 릴리즈 패키징을 위한 임시 디렉토리 이름
+  RELEASE_DIR: release_package
+  # 압축될 ZIP 파일 이름
+  ZIP_FILE_NAME: EngineSIU-Release-${{ github.event.inputs.tag_name }}.zip
+
+permissions:
+  contents: write # GitHub Release 생성 및 에셋 업로드를 위해 필요
+  actions: write # actions/cache@v4 사용을 위해 필요 (읽기/쓰기)
+
+jobs:
+  build_and_release:
+    runs-on: windows-latest
+
+    steps:
+    # 1. 레포지토리 체크아웃
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. MSBuild 중간 파일 캐시 복원 시도
+    # Pull Request 워크플로우에서 생성된 캐시를 사용합니다.
+    - name: Restore MSBuild intermediate files cache
+      uses: actions/cache@v4
+      # workflow_dispatch 트리거 시 force_clean_build 입력이 true가 아닐 때만 캐시 복원 시도
+      if: github.event.inputs.force_clean_build != true
+      with:
+        # 캐싱할 경로 (Pull Request 워크플로우와 동일하게 설정)
+        path: ${{ env.INTERMEDIATE_DIR_PATH }}
+        # 캐시 키 (Pull Request 워크플로우와 정확히 동일해야 함)
+        key: ${{ runner.os }}-${{ env.BUILD_PLATFORM }}-${{ env.BUILD_CONFIGURATION }}-msbuild-${{ hashFiles('**/*.sln', '**/*.vcxproj') }}
+        # 복원 키 (정확한 키가 없을 때 이전 캐시라도 사용 시도)
+        restore-keys: |
+          ${{ runner.os }}-${{ env.BUILD_PLATFORM }}-${{ env.BUILD_CONFIGURATION }}-msbuild-
+
+    # 3. MSBuild 설정
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    # 4. 솔루션 빌드 (Release 설정)
+    - name: Build Solution (Release)
+      working-directory: ${{ github.workspace }}
+      run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:Platform=${{ env.BUILD_PLATFORM }} ${{ env.SOLUTION_FILE_PATH }}
+
+    # 5. 릴리즈 파일 패키징 준비
+    - name: Create Release Directory
+      run: mkdir ${{ env.RELEASE_DIR }}
+      shell: bash # mkdir 명령어가 bash에서 더 간결함
+
+    # 6. 필요한 파일/폴더 복사
+    # PowerShell의 Copy-Item 또는 cmd의 xcopy/robocopy 사용
+    - name: Copy Binaries
+      run: |
+        $SourcePath = "${{ github.workspace }}/EngineSIU/Binaries/${{ env.BUILD_PLATFORM }}/${{ env.BUILD_CONFIGURATION }}"
+        $DestPath = "${{ github.workspace }}/${{ env.RELEASE_DIR }}"
+        # 실행 파일 및 관련 파일 (예: .pdb, .dll 등) 복사. 필요에 따라 파일명 또는 확장자 지정
+        Copy-Item -Path "$SourcePath/EngineSIU.exe" -Destination $DestPath -ErrorAction Stop
+        # 필요한 다른 바이너리 파일이 있다면 여기에 추가 (예: Copy-Item -Path "$SourcePath/*.dll" ...)
+      shell: pwsh
+
+    - name: Copy Assets folder
+      run: Copy-Item -Path "${{ github.workspace }}/EngineSIU/EngineSIU/Assets" -Destination "${{ github.workspace }}/${{ env.RELEASE_DIR }}/Assets" -Recurse -Force -ErrorAction Stop
+      shell: pwsh
+
+    - name: Copy Contents folder
+      run: Copy-Item -Path "${{ github.workspace }}/EngineSIU/EngineSIU/Contents" -Destination "${{ github.workspace }}/${{ env.RELEASE_DIR }}/Contents" -Recurse -Force -ErrorAction Stop
+      shell: pwsh
+
+    - name: Copy Shaders folder
+      run: Copy-Item -Path "${{ github.workspace }}/EngineSIU/EngineSIU/Shaders" -Destination "${{ github.workspace }}/${{ env.RELEASE_DIR }}/Shaders" -Recurse -Force -ErrorAction Stop
+      shell: pwsh
+
+    # 7. 압축 파일 생성
+    - name: Create Zip Archive
+      run: Compress-Archive -Path "${{ env.RELEASE_DIR }}/*" -DestinationPath "${{ env.ZIP_FILE_NAME }}" -Force
+      shell: pwsh
+
+    # 8. GitHub Release 생성 및 Zip 파일 업로드
+    - name: Create GitHub Release and Upload Asset
+      uses: softprops/action-gh-release@v2
+      with:
+        # 업로드할 파일 경로 (ZIP 파일)
+        files: ${{ env.ZIP_FILE_NAME }}
+        # workflow_dispatch 입력으로 받은 태그 이름 사용
+        tag_name: ${{ github.event.inputs.tag_name }}
+        # 릴리즈 이름 (기본값은 태그 이름)
+        name: "Release ${{ github.event.inputs.tag_name }}"
+        # 릴리즈 설명 (선택 사항)
+        body: |
+          Automated release build for tag ${{ github.event.inputs.tag_name }}.
+          Contains runtime executables and necessary assets.
+        # 초안(draft) 상태로 만들지 여부 (false = 즉시 게시)
+        draft: false
+        # 사전 릴리즈(prerelease)로 표시할지 여부
+        prerelease: false
+      env:
+        # GITHUB_TOKEN은 자동으로 제공됨
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
