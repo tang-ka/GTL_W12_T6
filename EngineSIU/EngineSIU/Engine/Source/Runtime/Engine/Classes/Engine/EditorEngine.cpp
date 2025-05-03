@@ -48,7 +48,7 @@ void UEditorEngine::Init()
 #ifdef _DEBUG
     AActor* SKActor = EditorWorld->SpawnActor<AActor>();
     USkeletalMeshComponent* SKM = SKActor->AddComponent<USkeletalMeshComponent>();
-    SKM->SetSkeletalMesh(FFbxManager::GetSkeletalMesh(L"Contents/Mixamo.fbx"));
+    SKM->SetSkeletalMesh(FFbxManager::GetSkeletalMesh(L"Contents/X Bot.fbx"));
     SKActor->SetRootComponent(SKM);
 #endif
 }
@@ -56,6 +56,12 @@ void UEditorEngine::Init()
 void UEditorEngine::Release()
 {
     SaveLevel("Saved/AutoSaves.scene");
+    
+    for (FWorldContext* WorldContext : WorldList)
+    {
+        WorldContext->World()->Release();
+    }
+    WorldList.Empty();
 }
 
 void UEditorEngine::Tick(float DeltaTime)

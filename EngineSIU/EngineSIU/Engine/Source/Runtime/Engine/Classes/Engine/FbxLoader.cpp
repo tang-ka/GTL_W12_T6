@@ -113,50 +113,57 @@ bool GetVertexElementData(const FbxLayerElementType* Element, int32 ControlPoint
     const auto MappingMode = Element->GetMappingMode();
     const auto ReferenceMode = Element->GetReferenceMode();
 
-    int32 Index = -1;
-    switch (MappingMode)
+    // eAllSame: 모든 정점이 같은 값
+    if (MappingMode == FbxLayerElement::eAllSame)
     {
-    case FbxLayerElement::eByControlPoint:
-        Index = ControlPointIndex;
-        break;
-    case FbxLayerElement::eByPolygonVertex:
-        Index = VertexIndex;
-        break;
-    // 다른 매핑 모드(eByPolygon, eByEdge, eAllSame)는 이 컨텍스트에서 덜 일반적임
-    case FbxLayerElement::eAllSame: // 모든 정점이 같은 값을 가짐
-         if (Element->GetDirectArray().GetCount() > 0)
-         {
-             OutData = Element->GetDirectArray().GetAt(0);
-             return true;
-         }
-         break;
-    default:
-        break;
+        if (Element->GetDirectArray().GetCount() > 0)
+        {
+            OutData = Element->GetDirectArray().GetAt(0);
+            return true;
+        }
+        return false;
     }
 
-    if (Index < Element->GetIndexArray().GetCount())
+    // 2) 인덱스 결정 (eByControlPoint, eByPolygonVertex만 처리)
+    int32 Index = -1;
+    if (MappingMode == FbxLayerElement::eByControlPoint)
     {
-        switch (ReferenceMode)
+        Index = ControlPointIndex;
+    }
+    else if (MappingMode == FbxLayerElement::eByPolygonVertex)
+    {
+        Index = VertexIndex;
+    }
+    else
+    {
+        // eByPolygon, eByEdge 등 필요시 추가
+        return false;
+    }
+
+    // 3) ReferenceMode별 분리 처리
+    if (ReferenceMode == FbxLayerElement::eDirect)
+    {
+        // DirectArray 크기만 검사
+        if (Index >= 0 && Index < Element->GetDirectArray().GetCount())
         {
-        case FbxLayerElement::eDirect:
             OutData = Element->GetDirectArray().GetAt(Index);
             return true;
-        case FbxLayerElement::eIndexToDirect:
-        case FbxLayerElement::eIndex: // eIndex는 사용되지 않음
+        }
+    }
+    else if (ReferenceMode == FbxLayerElement::eIndexToDirect)
+    {
+        // IndexArray, DirectArray 순차 검사
+        if (Index >= 0 && Index < Element->GetIndexArray().GetCount())
         {
             int32 DirectIndex = Element->GetIndexArray().GetAt(Index);
-            if (DirectIndex < Element->GetDirectArray().GetCount())
+            if (DirectIndex >= 0 && DirectIndex < Element->GetDirectArray().GetCount())
             {
                 OutData = Element->GetDirectArray().GetAt(DirectIndex);
                 return true;
             }
         }
-            break;
-        default:
-            break; // 다른 레퍼런스 모드는 지원하지 않음
-        }
     }
-    
+
     return false;
 }
 
@@ -312,6 +319,26 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
     const FbxLayerElementUV* UVElement = BaseLayer->GetUVs();
     const FbxLayerElementVertexColor* ColorElement = BaseLayer->GetVertexColors();
 
+    // 컨트롤 포인트별 본·스킨 가중치 맵
+    TMap<int32, TArray<TPair<int32, double>>> SkinWeightMap;
+    /*
+    for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++DeformerIdx)
+    {
+        FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIdx, FbxDeformer::eSkin));
+        for (int32 ClusterIdx = 0; ClusterIdx < Skin->GetClusterCount(); ++ClusterIdx)
+        {
+            FbxCluster* Cluster = Skin->GetCluster(ClusterIdx);
+            int32 BoneIndex = 본 인덱스 테이블에서 Cl->GetLink() 찾기;
+            auto const* CPoints = Cluster->GetControlPointIndices();
+            auto const* Weights = Cluster->GetControlPointWeights();
+            for (int ControlPointIdx = 0; ControlPointIdx < Cluster->GetControlPointIndicesCount(); ++ControlPointIdx)
+            {
+                SkinWeightMap[CPoints[ControlPointIdx]].Emplace(BoneIndex, Weights[ControlPointIdx]);
+            }
+        }
+    }
+*/
+
     int VertexCounter = 0; // 폴리곤 정점 인덱스 (eByPolygonVertex 모드용)
 
     // 폴리곤(삼각형) 순회
@@ -345,41 +372,60 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
             {
                 FSkeletalMeshVertex NewVertex;
 
+                // Position
                 if (ControlPointIndex < ControlPointsCount)
                 {
                     Position = LocalTransformMatrix.MultT(Position);
                     SetVertexPosition(NewVertex, Position);
                 }
 
+                // Normal
                 if (NormalElement && GetVertexElementData(NormalElement, ControlPointIndex, VertexCounter, Normal))
                 {
                     Normal = LocalTransformMatrix.Inverse().Transpose().MultT(Normal);
                     SetVertexNormal(NewVertex, Normal);
                 }
 
+                // Tangent
                 if (TangentElement && GetVertexElementData(TangentElement, ControlPointIndex, VertexCounter, Tangent))
                 {
                      SetVertexTangent(NewVertex, Tangent);
                 }
 
+                // UV
                 if(UVElement && GetVertexElementData(UVElement, ControlPointIndex, VertexCounter, UV))
                 {
                     SetVertexUV(NewVertex, UV);
                 }
 
+                // Vertex Color
                 if (ColorElement && GetVertexElementData(ColorElement, ControlPointIndex, VertexCounter, Color))
                 {
                      SetVertexColor(NewVertex, Color);
                 }
 
-                // 본 데이터 설정 (현재는 기본값 사용)
-                // 실제로는 FbxSkin, FbxCluster 등을 처리해야 함 (생략)
-                NewVertex.BoneIndices[0] = 0;
-                NewVertex.BoneWeights[0] = 1.0f;
-                for(int k = 1; k < 4; ++k)
+                // 본 데이터 설정
+                auto& InfList = SkinWeightMap[ControlPointIndex];
+                std::sort(InfList.begin(), InfList.end(),
+                    [](auto const& A, auto const& B)
+                    {
+                        return A.Value > B.Value; // Weight 기준 내림차순 정렬
+                    }
+                );
+                
+                double TotalWeight = 0.0;
+                for (int32 BoneIdx = 0; BoneIdx < 4 && BoneIdx < InfList.Num(); ++BoneIdx)
                 {
-                    NewVertex.BoneIndices[k] = 0;
-                    NewVertex.BoneWeights[k] = 0.0f;
+                    NewVertex.BoneIndices[BoneIdx] = InfList[BoneIdx].Key;
+                    NewVertex.BoneWeights[BoneIdx] = static_cast<float>(InfList[BoneIdx].Value);
+                    TotalWeight += InfList[BoneIdx].Value;
+                }
+                if (TotalWeight > 0.0)
+                {
+                    for (int BoneIdx = 0; BoneIdx < 4; ++BoneIdx)
+                    {
+                        NewVertex.BoneWeights[BoneIdx] /= static_cast<float>(TotalWeight);
+                    }
                 }
 
                 // 새로운 정점을 Vertices 배열에 추가
