@@ -11,3 +11,8 @@ void USkeletalMesh::SetData(std::unique_ptr<FSkeletalMeshRenderData> InRenderDat
 {
     RenderData = std::move(InRenderData);
 }
+
+const FSkeletalMeshRenderData* USkeletalMesh::GetRenderData() const
+{
+    return RenderData.get(); 
+}

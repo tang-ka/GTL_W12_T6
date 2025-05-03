@@ -55,7 +55,7 @@ inline void SetVertexPosition(FSkeletalMeshVertex& Vertex, const FbxVector4& Pos
     // FbxAxisSystem::Max.ConvertScene(Scene) 사용 시 (Max Z-up -> Unreal Z-up 가정)
     // X -> X, Y -> -Y, Z -> Z
     Vertex.X = static_cast<float>(Pos[0]);
-    Vertex.Y = static_cast<float>(-Pos[1]); // Y축 반전
+    Vertex.Y = static_cast<float>(Pos[1]); // Y축 반전
     Vertex.Z = static_cast<float>(Pos[2]);
 }
 
@@ -64,7 +64,7 @@ inline void SetVertexNormal(FSkeletalMeshVertex& Vertex, const FbxVector4& Norma
 {
     // FbxAxisSystem::Max.ConvertScene(Scene) 사용 시
     Vertex.NormalX = static_cast<float>(Normal[0]);
-    Vertex.NormalY = static_cast<float>(-Normal[1]); // Y축 반전
+    Vertex.NormalY = static_cast<float>(Normal[1]); // Y축 반전
     Vertex.NormalZ = static_cast<float>(Normal[2]);
 }
 
@@ -73,7 +73,7 @@ inline void SetVertexTangent(FSkeletalMeshVertex& Vertex, const FbxVector4& Tang
 {
     // FbxAxisSystem::Max.ConvertScene(Scene) 사용 시
     Vertex.TangentX = static_cast<float>(Tangent[0]);
-    Vertex.TangentY = static_cast<float>(-Tangent[1]); // Y축 반전
+    Vertex.TangentY = static_cast<float>(Tangent[1]); // Y축 반전
     Vertex.TangentZ = static_cast<float>(Tangent[2]);
     Vertex.TangentW = static_cast<float>(Tangent[3]); // W (Handedness)
 }

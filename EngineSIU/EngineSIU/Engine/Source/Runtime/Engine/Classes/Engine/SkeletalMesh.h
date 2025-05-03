@@ -1,5 +1,6 @@
 #pragma once
 #include "SkinnedAsset.h"
+#include "Asset/StaticMeshAsset.h"
 
 struct FSkeletalMeshRenderData;
 
@@ -12,6 +13,8 @@ public:
     virtual ~USkeletalMesh() override;
 
     void SetData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData);
+
+    const FSkeletalMeshRenderData* GetRenderData() const;
 
 protected:
     std::unique_ptr<FSkeletalMeshRenderData> RenderData;
