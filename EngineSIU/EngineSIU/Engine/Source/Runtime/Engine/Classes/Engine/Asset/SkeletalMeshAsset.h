@@ -6,8 +6,8 @@
 
 struct FSkeletalMeshVertex
 {
-    float X, Y, Z;    // Position
-    float R, G, B, A; // Color
+    float X, Y, Z;
+    float R, G, B, A;
     float NormalX, NormalY, NormalZ;
     float TangentX, TangentY, TangentZ, TangentW;
     float U = 0, V = 0;

@@ -2,6 +2,8 @@
 #include "Engine.h"
 
 #include <filesystem>
+
+#include "FbxLoader.h"
 #include "Engine/FObjLoader.h"
 
 bool UAssetManager::IsInitialized()
@@ -62,6 +64,11 @@ void UAssetManager::LoadObjFiles()
             FObjManager::CreateStaticMesh(MeshName);
             // ObjFileNames.push_back(UGTLStringLibrary::StringToWString(Entry.path().string()));
             // FObjManager::LoadObjStaticMeshAsset(UGTLStringLibrary::StringToWString(Entry.path().string()));
+        }
+        else if (Entry.is_regular_file() && Entry.path().extension() == ".fbx")
+        {
+            FString MeshName = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
+            FFbxManager::GetSkeletalMesh(MeshName.ToWideString());
         }
     }
 }
