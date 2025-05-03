@@ -94,71 +94,26 @@ inline void SetVertexUV(FSkeletalMeshVertex& Vertex, const FbxVector2& UV)
     Vertex.V = 1.0f - static_cast<float>(UV[1]); // V 좌표는 보통 뒤집힘 (DirectX 스타일)
 }
 
-
 // FbxLayerElementTemplate에서 데이터를 가져오는 일반화된 헬퍼 함수
 template<typename FbxLayerElementType, typename TDataType>
-bool GetVertexElementData(const FbxLayerElementType* Element, int ControlPointIndex, int VertexIndex, TDataType& OutData)
+bool GetVertexElementData(const FbxLayerElementType* Element, int32 ControlPointIndex, int32 VertexIndex, TDataType& OutData)
 {
-    if (!Element) return false;
+    if (!Element)
+    {
+        return false;
+    }
 
-    switch (Element->GetMappingMode())
+    const auto MappingMode = Element->GetMappingMode();
+    const auto ReferenceMode = Element->GetReferenceMode();
+
+    int32 Index = -1;
+    switch (MappingMode)
     {
     case FbxLayerElement::eByControlPoint:
-        switch (Element->GetReferenceMode())
-        {
-        case FbxLayerElement::eDirect:
-            if (ControlPointIndex < Element->GetDirectArray().GetCount())
-            {
-                OutData = Element->GetDirectArray().GetAt(ControlPointIndex);
-                return true;
-            }
-            break;
-        case FbxLayerElement::eIndexToDirect:
-        case FbxLayerElement::eIndex: // eIndex는 사용되지 않음
-        {
-            if (ControlPointIndex < Element->GetIndexArray().GetCount())
-            {
-                int Index = Element->GetIndexArray().GetAt(ControlPointIndex);
-                if (Index < Element->GetDirectArray().GetCount())
-                {
-                   OutData = Element->GetDirectArray().GetAt(Index);
-                   return true;
-                }
-            }
-            break;
-        }
-        default:
-            break; // 다른 레퍼런스 모드는 지원하지 않음
-        }
+        Index = ControlPointIndex;
         break;
-
     case FbxLayerElement::eByPolygonVertex:
-        switch (Element->GetReferenceMode())
-        {
-        case FbxLayerElement::eDirect:
-             if (VertexIndex < Element->GetDirectArray().GetCount())
-             {
-                OutData = Element->GetDirectArray().GetAt(VertexIndex);
-                return true;
-             }
-            break;
-        case FbxLayerElement::eIndexToDirect:
-        case FbxLayerElement::eIndex: // eIndex는 사용되지 않음
-        {
-            if (VertexIndex < Element->GetIndexArray().GetCount())
-            {
-                int Index = Element->GetIndexArray().GetAt(VertexIndex);
-                if (Index < Element->GetDirectArray().GetCount())
-                {
-                    OutData = Element->GetDirectArray().GetAt(Index);
-                    return true;
-                }
-            }
-            break;
-        }
-        default:
-            break; // 다른 레퍼런스 모드는 지원하지 않음
-        }
+        Index = VertexIndex;
         break;
     // 다른 매핑 모드(eByPolygon, eByEdge, eAllSame)는 이 컨텍스트에서 덜 일반적임
     case FbxLayerElement::eAllSame: // 모든 정점이 같은 값을 가짐
@@ -171,6 +126,30 @@ bool GetVertexElementData(const FbxLayerElementType* Element, int ControlPointIn
     default:
         break;
     }
+
+    if (Index < Element->GetIndexArray().GetCount())
+    {
+        switch (ReferenceMode)
+        {
+        case FbxLayerElement::eDirect:
+            OutData = Element->GetDirectArray().GetAt(Index);
+            return true;
+        case FbxLayerElement::eIndexToDirect:
+        case FbxLayerElement::eIndex: // eIndex는 사용되지 않음
+            {
+                int32 DirectIndex = Element->GetIndexArray().GetAt(Index);
+                if (DirectIndex < Element->GetDirectArray().GetCount())
+                {
+                    OutData = Element->GetDirectArray().GetAt(DirectIndex);
+                    return true;
+                }
+            }
+            break;
+        default:
+            break; // 다른 레퍼런스 모드는 지원하지 않음
+        }
+    }
+    
     return false;
 }
 
@@ -208,90 +187,6 @@ FFbxLoader::~FFbxLoader()
     }
 }
 
-FbxString GetAttributeTypeName(FbxNodeAttribute::EType type) {
-    switch(type)
-    {
-    case FbxNodeAttribute::eUnknown: return "unidentified";
-    case FbxNodeAttribute::eNull: return "null";
-    case FbxNodeAttribute::eMarker: return "marker";
-    case FbxNodeAttribute::eSkeleton: return "skeleton";
-    case FbxNodeAttribute::eMesh: return "mesh";
-    case FbxNodeAttribute::eNurbs: return "nurbs";
-    case FbxNodeAttribute::ePatch: return "patch";
-    case FbxNodeAttribute::eCamera: return "camera";
-    case FbxNodeAttribute::eCameraStereo: return "stereo";
-    case FbxNodeAttribute::eCameraSwitcher: return "camera switcher";
-    case FbxNodeAttribute::eLight: return "light";
-    case FbxNodeAttribute::eOpticalReference: return "optical reference";
-    case FbxNodeAttribute::eOpticalMarker: return "marker";
-    case FbxNodeAttribute::eNurbsCurve: return "nurbs curve";
-    case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface";
-    case FbxNodeAttribute::eBoundary: return "boundary";
-    case FbxNodeAttribute::eNurbsSurface: return "nurbs surface";
-    case FbxNodeAttribute::eShape: return "shape";
-    case FbxNodeAttribute::eLODGroup: return "lodgroup";
-    case FbxNodeAttribute::eSubDiv: return "subdiv";
-    default: return "unknown";
-    }
-}
-
-void PrintAttribute(FbxNodeAttribute* Attribute, int32 Level)
-{
-    if (Attribute == nullptr) return;
-
-    for (int i = 0; i < Level; ++i)
-    {
-        OutputDebugStringA("  ");
-    }
-    OutputDebugStringA("   ");
-
-    FbxString TypeName = GetAttributeTypeName(Attribute->GetAttributeType());
-    OutputDebugStringA(std::format("[Attribute type] {}\n", TypeName.Buffer()).c_str());
-    if (Attribute->GetAttributeType() == FbxNodeAttribute::eMesh)
-    {
-        FbxMesh* Mesh = static_cast<FbxMesh*>(Attribute);
-        Mesh->GetElementNormal();
-        OutputDebugStringA(std::format("[Mesh] {}\n", Mesh->GetName()).c_str());
-        for (int i = 0; i < Mesh->GetPolygonCount(); ++i)
-        {
-            OutputDebugStringA(std::format("    [Polygon] {}\n", i).c_str());
-            for (int j = 0; j < Mesh->GetPolygonSize(i); ++j)
-            {
-                OutputDebugStringA(std::format("      [Vertex] {}\n", Mesh->GetPolygonVertex(i, j)).c_str());
-            }
-        }
-    }
-}
-
-void PrintNodeRecursive(FbxNode* Node, int32 Level)
-{
-    if (Node == nullptr) return;
-    
-    for (int i = 0; i < Level; ++i)
-    {
-        OutputDebugStringA("  ");
-    }
-
-    const char* NodeName = Node->GetName();
-    FbxDouble3 Translation = Node->LclTranslation.Get();
-    FbxDouble3 Rotation = Node->LclRotation.Get();
-    FbxDouble3 Scale = Node->LclScaling.Get();
-    
-    OutputDebugStringA("-- ");
-    OutputDebugStringA(Node->GetName());
-    OutputDebugStringA(std::format(": [Translation] {}, {}, {} [Rotation] {}, {}, {} [Scale] {}, {}, {}",
-        Translation[0], Translation[1], Translation[2],
-        Rotation[0], Rotation[1], Rotation[2],
-        Scale[0], Scale[1], Scale[2]
-    ).c_str());
-    OutputDebugStringA("\n");
-    PrintAttribute(Node->GetNodeAttribute(), Level); // 어트리뷰트는 여러개가 가능하지만 일반적으로 하나만 존재 (DCC 툴에서 지원 안할 가능성 높음)
-    for (int i = 0; i < Node->GetChildCount(); ++i)
-    {
-        PrintNodeRecursive(Node->GetChild(i), Level + 1);
-    }
-}
-
 bool FFbxLoader::LoadFBX(const FString& InFilePath, FSkeletalMeshRenderData& OutRenderData)
 {
     bool bRet = false;
@@ -309,7 +204,18 @@ bool FFbxLoader::LoadFBX(const FString& InFilePath, FSkeletalMeshRenderData& Out
     OutRenderData.DisplayName = ""; // TODO: temp
 
     // Read FBX
-    FbxAxisSystem::Max.ConvertScene(Scene); // 언리얼 엔진 방식 좌표축
+    int32 UpSign = 1;
+    FbxAxisSystem::EUpVector UpVector = FbxAxisSystem::eZAxis;
+
+    int32 FrontSign = 1;
+    FbxAxisSystem::EFrontVector FrontVector = FbxAxisSystem::eParityEven;
+
+    FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eLeftHanded;
+
+    FbxAxisSystem DesiredAxisSystem(UpVector, FrontVector, CoordSystem);
+    
+    // DesiredAxisSystem.ConvertScene(Scene); // 언리얼 엔진 방식 좌표축
+    //FbxAxisSystem::Max.ConvertScene(Scene); // 언리얼 엔진 방식 좌표축
 
     const FbxGlobalSettings& GlobalSettings = Scene->GetGlobalSettings();
     FbxSystemUnit SystemUnit = GlobalSettings.GetSystemUnit();
@@ -371,10 +277,13 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
         return;
     }
 
+    FbxGeometryConverter Converter(Manager);
+    FbxAMatrix Matrix = Node->EvaluateLocalTransform();
+
     // 정점 데이터 추출 및 병합
-    const int PolygonCount = Mesh->GetPolygonCount(); // 삼각형 개수 (Triangulate 후)
+    const int32 PolygonCount = Mesh->GetPolygonCount(); // 삼각형 개수 (Triangulate 후)
     const FbxVector4* ControlPoints = Mesh->GetControlPoints(); // 제어점 (정점 위치) 배열
-    const int ControlPointsCount = Mesh->GetControlPointsCount();
+    const int32 ControlPointsCount = Mesh->GetControlPointsCount();
 
     // 정점 병합을 위한 맵
     TMap<FVertexKey, uint32> UniqueVertices;
@@ -398,12 +307,12 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
     int VertexCounter = 0; // 폴리곤 정점 인덱스 (eByPolygonVertex 모드용)
 
     // 폴리곤(삼각형) 순회
-    for (int i = 0; i < PolygonCount; ++i)
+    for (int32 i = 0; i < PolygonCount; ++i)
     {
         // 각 폴리곤(삼각형)의 정점 3개 순회
-        for (int j = 0; j < 3; ++j) // Triangulate 했으므로 항상 3개
+        for (int32 j = 0; j < 3; ++j) // Triangulate 했으므로 항상 3개
         {
-            const int ControlPointIndex = Mesh->GetPolygonVertex(i, j);
+            const int32 ControlPointIndex = Mesh->GetPolygonVertex(i, j);
 
             // --- 현재 정점의 속성 인덱스 결정 ---
             // 속성 데이터 자체를 키로 사용하면 복잡하고 느릴 수 있으므로,
@@ -497,14 +406,16 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
                 // 1. 위치 설정 (Control Point 사용)
                 if (ControlPointIndex < ControlPointsCount)
                 {
-                    SetVertexPosition(NewVertex, ControlPoints[ControlPointIndex]);
+                    SetVertexPosition(NewVertex, Matrix.MultT(ControlPoints[ControlPointIndex]));
                 }
 
                 // 2. 노멀 설정 (GetVertexElementData 사용)
                 if (NormalElement && GetVertexElementData(NormalElement, ControlPointIndex, VertexCounter, TempNormal))
                 {
-                    SetVertexNormal(NewVertex, TempNormal);
-                } else {
+                    SetVertexNormal(NewVertex, Matrix.Inverse().Transpose().MultT(TempNormal));
+                }
+                else
+                {
                     // 노멀 데이터 없을 경우 기본값 사용 (FSkeletalMeshVertex 생성자에서 설정됨)
                      OutputDebugStringA(std::format("Warning: Normal data not found for vertex (CP Index: {}, Vtx Counter: {}). Using default.\n", ControlPointIndex, VertexCounter).c_str());
                 }

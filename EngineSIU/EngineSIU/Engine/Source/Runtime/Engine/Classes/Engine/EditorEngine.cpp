@@ -48,7 +48,7 @@ void UEditorEngine::Init()
 #ifdef _DEBUG
     AActor* SKActor = EditorWorld->SpawnActor<AActor>();
     USkeletalMeshComponent* SKM = SKActor->AddComponent<USkeletalMeshComponent>();
-    SKM->SetSkeletalMesh(FFbxManager::GetSkeletalMesh(L"Contents/X Bot.fbx"));
+    SKM->SetSkeletalMesh(FFbxManager::GetSkeletalMesh(L"Contents/Mixamo.fbx"));
     SKActor->SetRootComponent(SKM);
 #endif
 }
