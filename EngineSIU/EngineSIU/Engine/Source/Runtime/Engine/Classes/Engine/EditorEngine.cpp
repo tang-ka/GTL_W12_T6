@@ -1,11 +1,14 @@
 #include "EditorEngine.h"
 
+#include "FbxLoader.h"
+#include "FObjLoader.h"
 #include "World/World.h"
 #include "Level.h"
 #include "Actors/Cube.h"
 #include "Actors/DirectionalLightActor.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
 #include "UObject/UObjectIterator.h"
 
@@ -40,7 +43,14 @@ void UEditorEngine::Init()
         assert(AssetManager);
         AssetManager->InitAssetManager();
     }
-    LoadLevel("Saved/AutoSaves.scene");
+    // LoadLevel("Saved/AutoSaves.scene");
+
+#ifdef _DEBUG
+    AActor* SKActor = EditorWorld->SpawnActor<AActor>();
+    USkeletalMeshComponent* SKM = SKActor->AddComponent<USkeletalMeshComponent>();
+    SKM->SetSkeletalMesh(FFbxManager::GetSkeletalMesh(L"Contents/X Bot.fbx"));
+    SKActor->SetRootComponent(SKM);
+#endif
 }
 
 void UEditorEngine::Release()
