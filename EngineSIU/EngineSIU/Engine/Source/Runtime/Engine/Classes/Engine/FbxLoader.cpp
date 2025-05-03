@@ -405,8 +405,8 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
                 }
 
                 // 본 데이터 설정
-                auto& InfList = SkinWeightMap[ControlPointIndex];
-                std::sort(InfList.begin(), InfList.end(),
+                auto& InfluenceList = SkinWeightMap[ControlPointIndex];
+                std::sort(InfluenceList.begin(), InfluenceList.end(),
                     [](auto const& A, auto const& B)
                     {
                         return A.Value > B.Value; // Weight 기준 내림차순 정렬
@@ -414,11 +414,11 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
                 );
                 
                 double TotalWeight = 0.0;
-                for (int32 BoneIdx = 0; BoneIdx < 4 && BoneIdx < InfList.Num(); ++BoneIdx)
+                for (int32 BoneIdx = 0; BoneIdx < 4 && BoneIdx < InfluenceList.Num(); ++BoneIdx)
                 {
-                    NewVertex.BoneIndices[BoneIdx] = InfList[BoneIdx].Key;
-                    NewVertex.BoneWeights[BoneIdx] = static_cast<float>(InfList[BoneIdx].Value);
-                    TotalWeight += InfList[BoneIdx].Value;
+                    NewVertex.BoneIndices[BoneIdx] = InfluenceList[BoneIdx].Key;
+                    NewVertex.BoneWeights[BoneIdx] = static_cast<float>(InfluenceList[BoneIdx].Value);
+                    TotalWeight += InfluenceList[BoneIdx].Value;
                 }
                 if (TotalWeight > 0.0)
                 {
