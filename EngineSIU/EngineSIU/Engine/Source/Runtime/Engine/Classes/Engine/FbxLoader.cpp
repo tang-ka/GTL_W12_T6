@@ -353,6 +353,8 @@ void FFbxLoader::BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSke
     
     CollectBoneData(SkeletonRoot, ReferenceSkeleton, INDEX_NONE);
 
+    ReferenceSkeleton.InitializeInverseBindPoseMatrices();
+
     OutSkeleton->SetReferenceSkeleton(ReferenceSkeleton);
 }
 

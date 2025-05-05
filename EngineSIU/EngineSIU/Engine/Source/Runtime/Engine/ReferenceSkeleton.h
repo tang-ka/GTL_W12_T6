@@ -32,7 +32,12 @@ public:
     TArray<FMeshBoneInfo> RawRefBoneInfo;
     TArray<FTransform> RawRefBonePose;
 
+    TArray<FMatrix> InverseBindPoseMatrices;
+
     TMap<FName, int32> RawNameToIndexMap;
 
     int32 FindBoneIndex(const FName& BoneName) const;
+
+    // 바인드 포즈 역행렬 계산 및 초기화
+    void InitializeInverseBindPoseMatrices();
 };

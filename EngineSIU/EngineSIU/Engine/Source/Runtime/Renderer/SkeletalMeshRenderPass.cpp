@@ -40,9 +40,14 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+
+    Graphics->DeviceContext->VSSetShaderResources(0, 1, &BoneSRV);
 }
 
 void FSkeletalMeshRenderPass::CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+    Graphics->DeviceContext->VSSetShaderResources(0, 1, NullSRV);
+    
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }

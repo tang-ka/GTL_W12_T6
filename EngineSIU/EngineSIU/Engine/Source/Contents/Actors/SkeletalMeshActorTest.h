@@ -1,6 +1,7 @@
 #pragma once
 #include "GameFramework/Actor.h"
 
+class UStaticMeshComponent;
 class USkeletalMeshComponent;
 
 class ASkeletalMeshActorTest : public AActor
@@ -17,4 +18,8 @@ public:
 
 protected:
     USkeletalMeshComponent* MeshComp;
+
+    float ElapsedTime = 0.f;
+
+    TArray<UStaticMeshComponent*> DotComponents;
 };

@@ -1,7 +1,9 @@
 #pragma once
 #include "IRenderPass.h"
 #include "Container/Array.h"
+#include "D3D11RHI/DXDShaderManager.h"
 
+class USkeletalMesh;
 class UMaterial;
 struct FSkeletalMeshRenderData;
 class USkeletalMeshComponent;
@@ -27,9 +29,9 @@ public:
     virtual void ClearRenderArr() override;
 
 protected:
-    virtual void CreateResource() {}
+    virtual void CreateResource();
 
-    virtual void ReleaseResource() {}
+    virtual void ReleaseResource();
 
     virtual void PrepareRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport) = 0;
 
@@ -47,9 +49,17 @@ protected:
 
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
 
+    void UpdateBone(const USkeletalMesh* SkeletalMesh);
+
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
 
     TArray<USkeletalMeshComponent*> SkeletalMeshComponents;
+
+    // 일단 렌더패스에서 직접 관리
+    ID3D11Buffer* BoneBuffer;
+    ID3D11ShaderResourceView* BoneSRV;
+
+    const int32 MaxBoneNum = 256;
 };
