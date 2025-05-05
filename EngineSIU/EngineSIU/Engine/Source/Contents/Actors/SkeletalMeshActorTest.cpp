@@ -1,0 +1,55 @@
+
+#include "SkeletalMeshActorTest.h"
+
+#include "Animation/Skeleton.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/AssetManager.h"
+#include "Engine/FObjLoader.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/Asset/SkeletalMeshAsset.h"
+
+ASkeletalMeshActorTest::ASkeletalMeshActorTest()
+{
+}
+
+void ASkeletalMeshActorTest::PostSpawnInitialize()
+{
+    AActor::PostSpawnInitialize();
+
+    MeshComp = AddComponent<USkeletalMeshComponent>(FName("SkeletalMeshComponent_0"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/X Bot"));
+    RootComponent = MeshComp;
+
+    if (MeshComp->GetSkeletalMesh())
+    {
+        const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
+        TArray<UStaticMeshComponent*> DotComponents;
+        for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+        {
+            UStaticMeshComponent* Dot = AddComponent<UStaticMeshComponent>();
+            Dot->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/SpherePrimitive.obj"));
+            DotComponents.Add(Dot);
+            
+            int32 ParentIndex = RefSkeleton.RawRefBoneInfo[i].ParentIndex;
+            if (ParentIndex != INDEX_NONE)
+            {
+                Dot->AttachToComponent(DotComponents[ParentIndex]);
+            }
+            else
+            {
+                Dot->AttachToComponent(RootComponent);
+            }
+            
+            Dot->SetRelativeTransform(RefSkeleton.RawRefBonePose[i]);
+            Dot->SetComponentScale3D(FVector(1.f));
+        }
+    }
+}
+
+void ASkeletalMeshActorTest::Tick(float DeltaTime)
+{
+    AActor::Tick(DeltaTime);
+
+    // MeshComp->GetSkeletalMesh()->GetSkeleton()->
+}
