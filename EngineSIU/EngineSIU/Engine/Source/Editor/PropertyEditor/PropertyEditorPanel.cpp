@@ -23,8 +23,11 @@
 #include "Engine/Engine.h"
 #include "Components/HeightFogComponent.h"
 #include "Components/ProjectileMovementComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Engine/AssetManager.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/Asset/SkeletalMeshAsset.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
@@ -122,6 +125,10 @@ void PropertyEditorPanel::Render()
     {
         RenderForStaticMesh(StaticMeshComponent);
         RenderForMaterial(StaticMeshComponent);
+    }
+    if (USkeletalMeshComponent* SkeletalMeshComponent = GetTargetComponent<USkeletalMeshComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForSkeletalMesh(SkeletalMeshComponent);
     }
     if (UHeightFogComponent* FogComponent = GetTargetComponent<UHeightFogComponent>(SelectedActor, SelectedComponent))
     {
@@ -381,6 +388,11 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         {
             for (const auto& Asset : Assets)
             {
+                if (Asset.Value.AssetType != EAssetType::StaticMesh)
+                {
+                    continue;
+                }
+                
                 if (ImGui::Selectable(GetData(Asset.Value.AssetName.ToString()), false))
                 {
                     FString MeshName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
@@ -388,6 +400,52 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
                     if (StaticMesh)
                     {
                         StaticMeshComp->SetStaticMesh(StaticMesh);
+                    }
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp) const
+{
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        ImGui::Text("SkeletalMesh");
+        ImGui::SameLine();
+
+        FString PreviewName = FString("None");
+        if (USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh())
+        {
+            if (const FSkeletalMeshRenderData* RenderData = SkeletalMesh->GetRenderData())
+            {
+                PreviewName = RenderData->DisplayName;
+            }
+        }
+        
+        const TMap<FName, FAssetInfo> Assets = UAssetManager::Get().GetAssetRegistry();
+
+        if (ImGui::BeginCombo("##SkeletalMesh", GetData(PreviewName), ImGuiComboFlags_None))
+        {
+            for (const auto& Asset : Assets)
+            {
+                if (Asset.Value.AssetType != EAssetType::SkeletalMesh)
+                {
+                    continue;
+                }
+                
+                if (ImGui::Selectable(GetData(Asset.Value.AssetName.ToString()), false))
+                {
+                    FString MeshName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
+                    USkeletalMesh* SkeletalMesh = UAssetManager::Get().GetSkeletalMesh(FName(MeshName));
+                    if (SkeletalMesh)
+                    {
+                        SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
                     }
                 }
             }

@@ -132,7 +132,8 @@ void UAssetManager::LoadContentFiles()
         }
         else if (Entry.is_regular_file() && Entry.path().extension() == ".fbx")
         {
-            FString FilePath = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
+            const FString FilePath = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
+            const FString FileNameWithoutExt = Entry.path().stem().filename().string();
 
             FFbxLoader Loader;
             FFbxLoadResult Result = Loader.LoadFBX(FilePath);
@@ -141,32 +142,41 @@ void UAssetManager::LoadContentFiles()
             AssetInfo.PackagePath = FName(Entry.path().parent_path().wstring());
             AssetInfo.Size = static_cast<uint32>(std::filesystem::file_size(Entry.path()));
 
-            for (USkeleton* Skeleton : Result.Skeletons)
+            for (int32 i = 0; i < Result.Skeletons.Num(); ++i)
             {
-                FAssetInfo SkeletonAssetInfo = AssetInfo;
-                SkeletonAssetInfo.AssetName = FName(Entry.path().filename().wstring() + Skeleton->GetName());
-                SkeletonAssetInfo.AssetType = EAssetType::Skeleton;
-                SkeletonMap.Add(SkeletonAssetInfo.AssetName, Skeleton);
+                USkeleton* Skeleton = Result.Skeletons[i];
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = i > 0 ? FName(FileNameWithoutExt + FString::FromInt(i)) : FName(FileNameWithoutExt);
+                Info.AssetType = EAssetType::Skeleton;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 
-                AssetRegistry->PathNameToAssetInfo.Add(SkeletonAssetInfo.AssetName, SkeletonAssetInfo);
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                SkeletonMap.Add(Key, Skeleton);
             }
-            for (USkeletalMesh* SkeletalMesh : Result.SkeletalMeshes)
+            for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
             {
-                FAssetInfo SkeletalMeshAssetInfo = AssetInfo;
-                SkeletalMeshAssetInfo.AssetName = FName(Entry.path().filename().wstring() + SkeletalMesh->GetName());
-                SkeletalMeshAssetInfo.AssetType = EAssetType::SkeletalMesh;
-                SkeletalMeshMap.Add(SkeletalMeshAssetInfo.AssetName, SkeletalMesh);
+                USkeletalMesh* SkeletalMesh = Result.SkeletalMeshes[i];
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = i > 0 ? FName(FileNameWithoutExt + FString::FromInt(i)) : FName(FileNameWithoutExt);
+                Info.AssetType = EAssetType::SkeletalMesh;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 
-                AssetRegistry->PathNameToAssetInfo.Add(SkeletalMeshAssetInfo.AssetName, SkeletalMeshAssetInfo);
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                SkeletalMeshMap.Add(Key, SkeletalMesh);
             }
-            for (UMaterial* Material : Result.Materials)
+            for (int32 i = 0; i < Result.Materials.Num(); ++i)
             {
-                FAssetInfo MaterialAssetInfo = AssetInfo;
-                MaterialAssetInfo.AssetName = FName(Entry.path().filename().wstring() + Material->GetName());
-                MaterialAssetInfo.AssetType = EAssetType::Material;
-                MaterialMap.Add(MaterialAssetInfo.AssetName, Material);
+                UMaterial* Material = Result.Materials[i];
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = i > 0 ? FName(FileNameWithoutExt + FString::FromInt(i)) : FName(FileNameWithoutExt);
+                Info.AssetType = EAssetType::Material;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 
-                AssetRegistry->PathNameToAssetInfo.Add(MaterialAssetInfo.AssetName, MaterialAssetInfo);
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                MaterialMap.Add(Key, Material);
             }
         }
     }
