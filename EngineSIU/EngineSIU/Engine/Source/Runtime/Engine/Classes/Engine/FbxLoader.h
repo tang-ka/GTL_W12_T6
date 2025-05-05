@@ -21,7 +21,12 @@ private:
     FbxImporter* Importer;
     FbxScene* Scene;
 
-    void TraverseNodeRecursive(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+    void TraverseNodeForSkeleton(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+
+    void TraverseNodeForMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+
+    void ProcessSkeleton(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+
     void ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
 };
 

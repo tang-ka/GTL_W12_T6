@@ -1651,6 +1651,10 @@
       <Filter>Engine\Source\Runtime\Engine\Classes\Components\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPassBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\ReferenceSkeleton.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1675,6 +1679,11 @@
       <Filter>Engine\Source\Runtime\Engine\Classes\Components\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\NumericLimits.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\SkeletalMeshRenderPassBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\ReferenceSkeleton.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />
@@ -1704,5 +1713,7 @@
     <None Include="cpp.hint" />
     <None Include="Shaders\CameraEffectShader.hlsl" />
     <None Include="Shaders\StaticMeshPixelShaderWorldTangent.hlsl" />
+    <None Include="Shaders\SkeletalMeshPixelShader.hlsl" />
+    <None Include="Shaders\SkeletalMeshVertexShader.hlsl" />
   </ItemGroup>
 </Project>
