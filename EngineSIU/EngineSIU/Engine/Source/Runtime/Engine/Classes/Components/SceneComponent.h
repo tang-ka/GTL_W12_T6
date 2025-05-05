@@ -2,10 +2,10 @@
 #include "ActorComponent.h"
 #include "Math/Rotator.h"
 #include "UObject/ObjectMacros.h"
+#include "Math/Transform.h"
 
 struct FHitResult;
 struct FOverlapInfo;
-struct FTransform;
 
 class USceneComponent : public UActorComponent
 {
