@@ -51,11 +51,11 @@ public:
     FVector GetRelativeScale3D() const { return RelativeScale3D; }
     FTransform GetRelativeTransform() const;
 
-    void SetWorldLocation(const FVector& InLocation);
-    void SetWorldRotation(const FRotator& InRotation);
-    void SetWorldRotation(const FQuat& InQuat);
-    void SetWorldScale3D(const FVector& InScale);
-    void SetWorldTransform(const FTransform& InTransform);
+    void SetComponentLocation(const FVector& InLocation);
+    void SetComponentRotation(const FRotator& InRotation);
+    void SetComponentRotation(const FQuat& InQuat);
+    void SetComponentScale3D(const FVector& InScale);
+    void SetComponentTransform(const FTransform& InTransform);
     
     FVector GetWorldLocation() const;
     FRotator GetWorldRotation() const;
@@ -101,4 +101,10 @@ public:
     void SetUsingAbsoluteRotation(const bool bInAbsoluteRotation);
 protected:
     uint8 bAbsoluteRotation : 1;
+    
+private:
+    // TODO: 캐싱해서 사용하기
+    bool bComponentToWorldUpdated = true;
+
+    FTransform ComponentToWorld;
 };

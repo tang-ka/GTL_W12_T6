@@ -368,7 +368,7 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
     }
 
     // 쿼터니언의 곱 순서는 delta * current 가 맞음.
-    Component->SetWorldRotation(RotationDelta * CurrentRotation); 
+    Component->SetComponentRotation(RotationDelta * CurrentRotation); 
 }
 
 void AEditorPlayer::ControlScale(USceneComponent* Component, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY)
