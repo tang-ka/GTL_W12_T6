@@ -35,7 +35,7 @@ USpringArmComponent::USpringArmComponent()
 
 FRotator USpringArmComponent::GetDesiredRotation() const
 {
-    return GetWorldRotation();
+    return GetComponentRotation();
 }
 
 FRotator USpringArmComponent::GetTargetRotation() const

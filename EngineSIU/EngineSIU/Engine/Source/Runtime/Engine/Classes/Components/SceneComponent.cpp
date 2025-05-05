@@ -135,21 +135,21 @@ void USceneComponent::DestroyComponent(bool bPromoteChildren)
 FVector USceneComponent::GetForwardVector() const
 {
     FVector Forward = FVector::ForwardVector;
-    Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
+    Forward = JungleMath::FVectorRotate(Forward, GetComponentRotation());
     return Forward;
 }
 
 FVector USceneComponent::GetRightVector() const
 {
     FVector Right = FVector::RightVector;
-    Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
+    Right = JungleMath::FVectorRotate(Right, GetComponentRotation());
     return Right;
 }
 
 FVector USceneComponent::GetUpVector() const
 {
     FVector Up = FVector::UpVector;
-    Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
+    Up = JungleMath::FVectorRotate(Up, GetComponentRotation());
     return Up;
 }
 
@@ -246,26 +246,26 @@ void USceneComponent::SetComponentScale3D(const FVector& InScale)
     RelativeScale3D = NewRelativeScale;
 }
 
-FVector USceneComponent::GetWorldLocation() const
+FVector USceneComponent::GetComponentLocation() const
 {
     return GetWorldMatrix().GetTranslationVector();
 }
 
-FRotator USceneComponent::GetWorldRotation() const
+FRotator USceneComponent::GetComponentRotation() const
 {
     FMatrix WorldMatrix = GetWorldMatrix().GetMatrixWithoutScale();
     FQuat Quat = WorldMatrix.ToQuat();
     return FRotator(Quat);
 }
 
-FVector USceneComponent::GetWorldScale3D() const
+FVector USceneComponent::GetComponentScale3D() const
 {
     return GetWorldMatrix().GetScaleVector();
 }
 
-FTransform USceneComponent::GetWorldTransform() const
+FTransform USceneComponent::GetComponentTransform() const
 {
-    return FTransform(GetWorldRotation(), GetWorldLocation(), GetWorldScale3D());
+    return FTransform(GetComponentRotation(), GetComponentLocation(), GetComponentScale3D());
 }
 
 FMatrix USceneComponent::GetScaleMatrix() const
@@ -367,7 +367,7 @@ void USceneComponent::SetComponentTransform(const FTransform& InTransform)
     if (AttachParent)
     {
         // 부모의 월드 트랜스폼 가져오기
-        FTransform ParentWorldTransform = AttachParent->GetWorldTransform();
+        FTransform ParentWorldTransform = AttachParent->GetComponentTransform();
         
         // 월드 트랜스폼에서 상대 트랜스폼 계산
         // 상대 트랜스폼 = 월드 트랜스폼 * 부모 월드 트랜스폼^-1
@@ -429,9 +429,9 @@ bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRo
         *OutHit = FHitResult(1.f);
     }
 
-    if (!Delta.IsNearlyZero() || !NewRotation.Equals(GetWorldRotation().Quaternion()))
+    if (!Delta.IsNearlyZero() || !NewRotation.Equals(GetComponentRotation().Quaternion()))
     {
-        SetComponentLocation(GetWorldLocation() + Delta);
+        SetComponentLocation(GetComponentLocation() + Delta);
         SetComponentRotation(NewRotation);
 
         UpdateOverlaps();

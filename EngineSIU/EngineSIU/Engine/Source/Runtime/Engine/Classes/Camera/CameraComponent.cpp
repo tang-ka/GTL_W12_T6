@@ -60,7 +60,7 @@ void UCameraComponent::ProceedFInterp(float DeltaTime)
     }    
     else
     {
-        FVector FromLocation = GetWorldLocation();
+        FVector FromLocation = GetComponentLocation();
 
         //카메라 위치
         FVector MoveLocation = FMath::VInterpTo(FromLocation, FInterpTargetLocation, DeltaTime, FInterpToSpeed);
@@ -109,8 +109,8 @@ void UCameraComponent::ResetFollowToPlayer()
 void UCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
 
-    DesiredView.Location = GetWorldLocation();
-    DesiredView.Rotation = GetWorldRotation();
+    DesiredView.Location = GetComponentLocation();
+    DesiredView.Rotation = GetComponentRotation();
     DesiredView.FOV = ViewFOV;
     DesiredView.PerspectiveNearClip = NearClip;
     DesiredView.PerspectiveFarClip = FarClip;

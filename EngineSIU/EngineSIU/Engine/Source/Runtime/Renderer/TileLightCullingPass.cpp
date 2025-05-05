@@ -169,7 +169,7 @@ void FTileLightCullingPass::CreatePointLightBufferGPU()
         if (!LightComp) continue;
         FPointLightGPU LightData;
         LightData = {
-            .Position = LightComp->GetWorldLocation(),
+            .Position = LightComp->GetComponentLocation(),
             .Radius = LightComp->GetRadius(),
             .Direction = LightComp->GetUpVector(),
             .Padding = 0.0f
@@ -222,7 +222,7 @@ void FTileLightCullingPass::CreateSpotLightBufferGPU()
         if (!LightComp) continue;
         FSpotLightGPU LightData;
         LightData = {
-            .Position = LightComp->GetWorldLocation(),
+            .Position = LightComp->GetComponentLocation(),
             .Radius = LightComp->GetRadius(),
             .Direction = LightComp->GetDirection(),
             .Angle = LightComp->GetOuterDegree(),

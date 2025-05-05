@@ -342,7 +342,7 @@ void SLevelEditor::RegisterEditorInputDelegates()
                         FVector RayOrigin, RayDir;
                         ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
 
-                        const FVector TargetLocation = TargetComponent->GetWorldLocation();
+                        const FVector TargetLocation = TargetComponent->GetComponentLocation();
                         const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetLocation);
                         const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
                         TargetDiff = TargetLocation - TargetRayEnd;
@@ -515,11 +515,11 @@ void SLevelEditor::RegisterEditorInputDelegates()
                         FVector RayOrigin, RayDir;
                         ActiveViewportClient->DeprojectFVector2D(FWindowsCursor::GetClientPosition(), RayOrigin, RayDir);
 
-                        const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetComponent->GetWorldLocation());
+                        const float TargetDist = FVector::Distance(ViewTransform->GetLocation(), TargetComponent->GetComponentLocation());
                         const FVector TargetRayEnd = RayOrigin + RayDir * TargetDist;
                         const FVector Result = TargetRayEnd + TargetDiff;
 
-                        FVector NewLocation = TargetComponent->GetWorldLocation();
+                        FVector NewLocation = TargetComponent->GetComponentLocation();
                         if (EdEngine->GetEditorPlayer()->GetCoordMode() == CDM_WORLD)
                         {
                             // 월드 좌표계에서 카메라 방향을 고려한 이동
@@ -542,7 +542,7 @@ void SLevelEditor::RegisterEditorInputDelegates()
                         else
                         {
                             // Result에서 현재 액터 위치를 빼서 이동 벡터를 구함
-                            const FVector Delta = Result - TargetComponent->GetWorldLocation();
+                            const FVector Delta = Result - TargetComponent->GetComponentLocation();
                             // 각 축에 대해 Local 방향 벡터에 투영하여 이동량 계산
                             if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
                             {

@@ -62,7 +62,7 @@ void UDirectionalLightComponent::SetProperties(const TMap<FString, FString>& InP
 FVector UDirectionalLightComponent::GetDirection()  
 {
     // 컴포넌트의 월드 회전을 얻습니다.
-    const FRotator WorldRotation = GetWorldRotation();
+    const FRotator WorldRotation = GetComponentRotation();
 
     // 컴포넌트의 로컬 전방 벡터 (+X)를 월드 공간으로 회전시킵니다.
     // 이것이 빛이 '오는' 방향입니다.

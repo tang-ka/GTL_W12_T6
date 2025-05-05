@@ -231,7 +231,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
             FViewportCamera& ViewTransform = PerspectiveCamera;
             ViewTransform.SetLocation(
                 // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
-                TargetComponent->GetWorldLocation() - (ViewTransform.GetForwardVector() * 10.0f)
+                TargetComponent->GetComponentLocation() - (ViewTransform.GetForwardVector() * 10.0f)
             );
             break;
         }

@@ -112,7 +112,7 @@ void ProjectOBB(const UBoxComponent* Box, const FVector& Axis, float& OutMin, fl
     FVector HalfSize = Box->GetBoxExtent();
 
     // 박스 중심을 축에 투영
-    float CenterProj = FVector::DotProduct(Box->GetWorldLocation(), Axis);
+    float CenterProj = FVector::DotProduct(Box->GetComponentLocation(), Axis);
 
     // 박스 각 축 방향의 반경을 현재 축에 투영한 값의 절대값을 모두 더함
     float RadiusProj = FMath::Abs(FVector::DotProduct(Axes[0] * HalfSize.X, Axis)) +
@@ -384,10 +384,10 @@ bool FCollisionManager::Check_Box_Sphere(const UShapeComponent* A, const UShapeC
     USphereComponent* Sphere = Cast<USphereComponent>(B);
     
     // 스피어 중심 P에서 OBB 위의 가장 가까운 점 Q 찾기
-    FVector ClosestPoint = ClosestPointOnOBB(Sphere->GetWorldLocation(), Box);
+    FVector ClosestPoint = ClosestPointOnOBB(Sphere->GetComponentLocation(), Box);
 
     // P와 Q 사이의 거리 제곱 계산
-    FVector Diff = Sphere->GetWorldLocation() - ClosestPoint;
+    FVector Diff = Sphere->GetComponentLocation() - ClosestPoint;
     float DistSq = Diff.SquaredLength();
 
     // 거리 제곱이 스피어 반지름 제곱보다 작거나 같으면 충돌
@@ -425,7 +425,7 @@ bool FCollisionManager::Check_Sphere_Sphere(const UShapeComponent* A, const USha
 
     float RadiusSum = SphereA->GetRadius() + SphereB->GetRadius();
 
-    FVector Diff = SphereA->GetWorldLocation() - SphereB->GetWorldLocation();
+    FVector Diff = SphereA->GetComponentLocation() - SphereB->GetComponentLocation();
     float DistSq = Diff.SquaredLength();
     
     return DistSq <= (RadiusSum * RadiusSum);
@@ -440,10 +440,10 @@ bool FCollisionManager::Check_Sphere_Capsule(const UShapeComponent* A, const USh
     Capsule->GetEndPoints(StartCap, EndCap);
 
     // 스피어 중심(Sp.Location)에서 캡슐 선분(StartCap-EndCap)까지 가장 가까운 점 찾기
-    FVector ClosestPointOnSegment = ClosestPointOnLineSegment(Sphere->GetWorldLocation(), StartCap, EndCap);
+    FVector ClosestPointOnSegment = ClosestPointOnLineSegment(Sphere->GetComponentLocation(), StartCap, EndCap);
 
     // 스피어 중심과 가장 가까운 점 사이의 거리 제곱 계산
-    FVector Diff = Sphere->GetWorldLocation() - ClosestPointOnSegment;
+    FVector Diff = Sphere->GetComponentLocation() - ClosestPointOnSegment;
     float DistSq = Diff.SquaredLength();
 
     // 캡슐 반지름과 스피어 반지름의 합 계산

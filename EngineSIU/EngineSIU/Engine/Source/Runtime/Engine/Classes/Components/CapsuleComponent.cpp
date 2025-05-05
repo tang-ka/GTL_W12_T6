@@ -43,6 +43,6 @@ void UCapsuleComponent::GetProperties(TMap<FString, FString>& OutProperties) con
 void UCapsuleComponent::GetEndPoints(FVector& OutStart, FVector& OutEnd) const
 {
     const float LineHalfLength = CapsuleHalfHeight - CapsuleRadius;
-    OutStart = GetWorldLocation() + GetUpVector() * LineHalfLength;
-    OutEnd = GetWorldLocation() - GetUpVector() * LineHalfLength;
+    OutStart = GetComponentLocation() + GetUpVector() * LineHalfLength;
+    OutEnd = GetComponentLocation() - GetUpVector() * LineHalfLength;
 }

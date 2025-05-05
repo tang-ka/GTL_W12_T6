@@ -638,12 +638,12 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponentBase* LightCompone
     if (ImGui::Button("Override Camera with Light's Perspective"))
     {
         // 1. 라이트의 월드 위치 및 회전 가져오기
-        FVector LightLocation = LightComponent->GetWorldLocation();
+        FVector LightLocation = LightComponent->GetComponentLocation();
 
         FVector Forward = FVector(1.f, 0.f, 0.0f);
         Forward = JungleMath::FVectorRotate(Forward, LightLocation);
         FVector LightForward = Forward;
-        FRotator LightRotation = LightComponent->GetWorldRotation();
+        FRotator LightRotation = LightComponent->GetComponentRotation();
         FVector LightRotationVector;
         LightRotationVector.X = LightRotation.Roll;
         LightRotationVector.Y = -LightRotation.Pitch;

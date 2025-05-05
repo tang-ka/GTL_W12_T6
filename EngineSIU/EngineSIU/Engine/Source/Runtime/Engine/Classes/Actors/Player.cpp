@@ -324,7 +324,7 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
     FVector CameraRight = ViewTransform->GetRightVector();
     FVector CameraUp = ViewTransform->GetUpVector();
 
-    FQuat CurrentRotation = Component->GetWorldRotation().Quaternion();
+    FQuat CurrentRotation = Component->GetComponentRotation().Quaternion();
 
     FQuat RotationDelta = FQuat();
 

@@ -112,10 +112,10 @@ FMatrix UBillboardComponent::CreateBillboardMatrix() const
     CameraView.M[2][2] = -CameraView.M[2][2];
     FMatrix LookAtCamera = FMatrix::Transpose(CameraView);
 
-    FVector WorldLocation = GetWorldLocation();
+    FVector WorldLocation = GetComponentLocation();
     if (UUIDParent)
     {
-        WorldLocation = UUIDParent->GetWorldLocation() + RelativeLocation;
+        WorldLocation = UUIDParent->GetComponentLocation() + RelativeLocation;
     }
     
     FVector WorldScale = RelativeScale3D;
@@ -175,7 +175,7 @@ bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& quadVertices,
     // 마우스 NDC 좌표가 quad의 NDC 경계 사각형 내에 있는지 검사
     if (ndcX >= minX && ndcX <= maxX && ndcY >= minY && ndcY <= maxY)
     {
-        const FVector WorldLocation = GetWorldLocation();
+        const FVector WorldLocation = GetComponentLocation();
         const FVector CameraLocation = ActiveViewport->GetCameraLocation();
         hitDistance = (WorldLocation - CameraLocation).Length();
         return true;

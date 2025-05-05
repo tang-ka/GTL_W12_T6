@@ -145,7 +145,7 @@ void FFogRenderPass::UpdateFogConstant(UHeightFogComponent* Fog)
         Constants.FogHeightFalloff = Fog->GetFogHeightFalloff();
         Constants.StartDistance = Fog->GetStartDistance();
         Constants.EndDistance = Fog->GetEndDistance();
-        Constants.FogHeight = Fog->GetWorldLocation().Z;
+        Constants.FogHeight = Fog->GetComponentLocation().Z;
     }
     //상수버퍼 업데이트
     BufferManager->UpdateConstantBuffer(TEXT("FFogConstants"), Constants);
