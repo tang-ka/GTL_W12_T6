@@ -17,9 +17,12 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
 {
     AActor::PostSpawnInitialize();
 
+    USceneComponent* Root = AddComponent<USceneComponent>(FName("RootComponent_0"));
+    RootComponent = Root;
+
     MeshComp = AddComponent<USkeletalMeshComponent>(FName("SkeletalMeshComponent_0"));
     MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/X Bot"));
-    RootComponent = MeshComp;
+    MeshComp->SetupAttachment(RootComponent);
 
     if (MeshComp->GetSkeletalMesh())
     {

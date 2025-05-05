@@ -59,31 +59,41 @@ namespace std
     };
 }
 
+FbxAMatrix GlobalCoordinateTransform;
+
 // 헬퍼 함수: FbxVector4를 FSkeletalMeshVertex의 XYZ로 변환 (좌표계 변환 포함)
 inline void SetVertexPosition(FSkeletalMeshVertex& Vertex, const FbxVector4& Pos)
 {
-    // FbxAxisSystem::Max.ConvertScene(Scene) 사용 시 (Max Z-up -> Unreal Z-up 가정)
-    // X -> X, Y -> -Y, Z -> Z
+    FbxVector4 TransformedPos = GlobalCoordinateTransform.MultT(Pos);
+
     Vertex.X = static_cast<float>(Pos[0]);
-    Vertex.Y = static_cast<float>(Pos[1]); // Y축 반전
+    Vertex.Y = static_cast<float>(Pos[1]);
     Vertex.Z = static_cast<float>(Pos[2]);
 }
 
 // 헬퍼 함수: FbxVector4를 FSkeletalMeshVertex의 Normal XYZ로 변환 (좌표계 변환 포함)
 inline void SetVertexNormal(FSkeletalMeshVertex& Vertex, const FbxVector4& Normal)
 {
-    // FbxAxisSystem::Max.ConvertScene(Scene) 사용 시
+    // 노멀은 역행렬의 전치로 변환 (회전만 적용)
+    FbxAMatrix NormalTransform = GlobalCoordinateTransform;
+    NormalTransform.SetT(FbxVector4(0,0,0));
+    FbxVector4 TransformedNormal = NormalTransform.MultT(Normal);
+
     Vertex.NormalX = static_cast<float>(Normal[0]);
-    Vertex.NormalY = static_cast<float>(Normal[1]); // Y축 반전
+    Vertex.NormalY = static_cast<float>(Normal[1]);
     Vertex.NormalZ = static_cast<float>(Normal[2]);
 }
 
 // 헬퍼 함수: FbxVector4를 FSkeletalMeshVertex의 Tangent XYZW로 변환 (좌표계 변환 포함)
 inline void SetVertexTangent(FSkeletalMeshVertex& Vertex, const FbxVector4& Tangent)
 {
-    // FbxAxisSystem::Max.ConvertScene(Scene) 사용 시
+    // 탄젠트도 노멀과 동일하게 처리
+    FbxAMatrix TangentTransform = GlobalCoordinateTransform;
+    TangentTransform.SetT(FbxVector4(0,0,0));
+    FbxVector4 TransformedTangent = TangentTransform.MultT(Tangent);
+
     Vertex.TangentX = static_cast<float>(Tangent[0]);
-    Vertex.TangentY = static_cast<float>(Tangent[1]); // Y축 반전
+    Vertex.TangentY = static_cast<float>(Tangent[1]);
     Vertex.TangentZ = static_cast<float>(Tangent[2]);
     Vertex.TangentW = static_cast<float>(Tangent[3]); // W (Handedness)
 }
@@ -269,21 +279,7 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
         return std::move(FFbxLoadResult());
     }
 
-    // Read FBX
-    /*
-    int32 UpSign = 1;
-    FbxAxisSystem::EUpVector UpVector = FbxAxisSystem::eZAxis;
-
-    int32 FrontSign = 1;
-    FbxAxisSystem::EFrontVector FrontVector = FbxAxisSystem::eParityEven;
-
-    FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eLeftHanded;
-
-    FbxAxisSystem DesiredAxisSystem(UpVector, FrontVector, CoordSystem);
-    
-    // DesiredAxisSystem.ConvertScene(Scene); // 언리얼 엔진 방식 좌표축
-    //FbxAxisSystem::Max.ConvertScene(Scene); // 언리얼 엔진 방식 좌표축
-    */
+    ConvertSceneToLeftHandedZUpXForward(Scene);
 
     const FbxGlobalSettings& GlobalSettings = Scene->GetGlobalSettings();
     FbxSystemUnit SystemUnit = GlobalSettings.GetSystemUnit();
@@ -390,7 +386,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     RefBoneInfo.Add(BoneInfo);
     
     // 뼈 변환 정보 추가 (FBX 변환 매트릭스를 FTransform으로 변환)
-    FTransform BoneTransform = ConvertFbxTransformToUnreal(Node);
+    FTransform BoneTransform = ConvertFbxTransformToFTransform(Node);
     RefBonePose.Add(BoneTransform);
     
     // 자식 노드들을 재귀적으로 처리
@@ -406,9 +402,12 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     }
 }
 
-FTransform FFbxLoader::ConvertFbxTransformToUnreal(FbxNode* Node) const
+FTransform FFbxLoader::ConvertFbxTransformToFTransform(FbxNode* Node) const
 {
     FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
+
+    // 좌표계 변환 적용
+    FbxAMatrix TransformedMatrix = GlobalCoordinateTransform * LocalMatrix * GlobalCoordinateTransform.Inverse();
     
     // FBX 행렬에서 스케일, 회전, 위치 추출
     FbxVector4 T = LocalMatrix.GetT();
@@ -429,10 +428,10 @@ FTransform FFbxLoader::ConvertFbxTransformToUnreal(FbxNode* Node) const
     );
     
     FQuat Rotation(
-        static_cast<float>(Q[3]), // W
-        static_cast<float>(Q[0]), // X
-        static_cast<float>(Q[1]), // Y
-        static_cast<float>(Q[2])  // Z
+        static_cast<float>(Q[0]),
+        static_cast<float>(Q[1]),
+        static_cast<float>(Q[2]),
+        static_cast<float>(Q[3])
     );
     
     return FTransform(Rotation, Translation, Scale);
@@ -748,4 +747,105 @@ USkeleton* FFbxLoader::FindAssociatedSkeleton(FbxNode* MeshNode, const TArray<US
     }
     
     return BestMatch;
+}
+
+void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
+{
+    if (!Scene)
+    {
+        return;
+    }
+    
+    // 현재 좌표계 확인 및 출력
+    FbxAxisSystem SourceAxisSystem = Scene->GetGlobalSettings().GetAxisSystem();
+    
+    // 원본 좌표계 정보 출력 (디버깅용)
+    int UpSign, FrontSign;
+    FbxAxisSystem::EUpVector UpVector = SourceAxisSystem.GetUpVector(UpSign);
+    FbxAxisSystem::EFrontVector FrontVector = SourceAxisSystem.GetFrontVector(FrontSign);
+    FbxAxisSystem::ECoordSystem CoordSystem = SourceAxisSystem.GetCoorSystem();
+    
+    std::string CoordSystemStr = (CoordSystem == FbxAxisSystem::eRightHanded) ? "Right-Handed" : "Left-Handed";
+    std::string UpVectorStr;
+    std::string FrontVectorStr;
+    
+    switch (UpVector) {
+        case FbxAxisSystem::eXAxis: UpVectorStr = "X"; break;
+        case FbxAxisSystem::eYAxis: UpVectorStr = "Y"; break;
+        case FbxAxisSystem::eZAxis: UpVectorStr = "Z"; break;
+    }
+    
+    switch (FrontVector) {
+        case FbxAxisSystem::eParityEven: FrontVectorStr = "ParityEven"; break;
+        case FbxAxisSystem::eParityOdd: FrontVectorStr = "ParityOdd"; break;
+    }
+    
+    OutputDebugStringA(std::format("Source Axis System: {} Up={}({}) Front={}\n", 
+        CoordSystemStr.c_str(), UpVectorStr.c_str(), UpSign, FrontVectorStr.c_str()).c_str());
+    
+    // 변환 행렬 계산 - 원본 좌표계에서 목표 좌표계로의 변환 행렬
+    CalculateCoordinateSystemTransform(SourceAxisSystem);
+    
+    // ConvertScene 대신 직접 변환 행렬을 적용
+    // Scene->GetGlobalSettings().SetAxisSystem(FbxAxisSystem::eLeftHanded, FbxAxisSystem::eZAxis, FbxAxisSystem::eParityEven);
+}
+
+// 원본 좌표계에서 대상 좌표계(왼손 Z-up X-forward)로 변환하는 행렬 계산
+void FFbxLoader::CalculateCoordinateSystemTransform(const FbxAxisSystem& SourceAxisSystem)
+{
+    // 기본값으로 단위 행렬 설정
+    GlobalCoordinateTransform.SetIdentity();
+    
+    // 원본 좌표계 속성 가져오기
+    int UpSign, FrontSign;
+    FbxAxisSystem::EUpVector UpVector = SourceAxisSystem.GetUpVector(UpSign);
+    FbxAxisSystem::EFrontVector FrontVector = SourceAxisSystem.GetFrontVector(FrontSign);
+    FbxAxisSystem::ECoordSystem CoordSystem = SourceAxisSystem.GetCoorSystem();
+    
+    // 대상 좌표계: 왼손 Z-up X-forward
+    
+    // 원본 좌표계 유형에 따른 변환 행렬 정의
+    if (UpVector == FbxAxisSystem::eYAxis) {
+        // Y-up에서 Z-up으로 변환 (Y→Z, Z→-Y)
+        // 90도 X축 회전
+        FbxAMatrix RotationMatrix;
+        RotationMatrix.SetIdentity();
+        RotationMatrix.SetR(FbxVector4(90.0 * UpSign, 0.0, 0.0));
+        GlobalCoordinateTransform = RotationMatrix * GlobalCoordinateTransform;
+    }
+    else if (UpVector == FbxAxisSystem::eXAxis) {
+        // X-up에서 Z-up으로 변환 (X→Z, Z→-X)
+        // 90도 Y축 회전
+        FbxAMatrix RotationMatrix;
+        RotationMatrix.SetIdentity();
+        RotationMatrix.SetR(FbxVector4(0.0, 90.0 * UpSign, 0.0));
+        GlobalCoordinateTransform = RotationMatrix * GlobalCoordinateTransform;
+    }
+    
+    // 오른손->왼손 좌표계 변환 (필요시)
+    if (CoordSystem == FbxAxisSystem::eRightHanded) {
+        FbxAMatrix HandednessMatrix;
+        HandednessMatrix.SetIdentity();
+        // Z축 반전 (오른손→왼손)
+        HandednessMatrix.SetS(FbxVector4(1.0, 1.0, -1.0));
+        GlobalCoordinateTransform = HandednessMatrix * GlobalCoordinateTransform;
+    }
+    
+    // Forward 방향 조정 (X가 Forward가 되도록)
+    if (FrontVector != FbxAxisSystem::eParityEven) {
+        // ParityOdd는 Y가 Forward (언리얼에서는 X가 Forward)
+        // 추가 90도 Z축 회전으로 Y→X, X→-Y
+        FbxAMatrix ForwardMatrix;
+        ForwardMatrix.SetIdentity();
+        ForwardMatrix.SetR(FbxVector4(0.0, 0.0, 90.0 * FrontSign));
+        GlobalCoordinateTransform = ForwardMatrix * GlobalCoordinateTransform;
+    }
+    
+    // 변환 행렬 출력 (디버깅용)
+    FbxVector4 T = GlobalCoordinateTransform.GetT();
+    FbxVector4 R = GlobalCoordinateTransform.GetR();
+    FbxVector4 S = GlobalCoordinateTransform.GetS();
+    
+    OutputDebugStringA(std::format("Transform Matrix - Rotation: ({}, {}, {}) Scale: ({}, {}, {})\n",
+        R[0], R[1], R[2], S[0], S[1], S[2]).c_str());
 }
