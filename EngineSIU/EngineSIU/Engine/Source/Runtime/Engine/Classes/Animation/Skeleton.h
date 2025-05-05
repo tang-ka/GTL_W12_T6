@@ -12,7 +12,12 @@ public:
     USkeleton() = default;
     virtual ~USkeleton() override = default;
 
-    const FReferenceSkeleton& GetReferenceSkeleton() const
+    FReferenceSkeleton GetReferenceSkeleton() const
+    {
+        return ReferenceSkeleton;
+    }
+
+    FReferenceSkeleton& GetReferenceSkeleton()
     {
         return ReferenceSkeleton;
     }

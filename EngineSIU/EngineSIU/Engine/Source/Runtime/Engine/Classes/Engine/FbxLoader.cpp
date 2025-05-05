@@ -353,8 +353,6 @@ void FFbxLoader::BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSke
     
     CollectBoneData(SkeletonRoot, ReferenceSkeleton, INDEX_NONE);
 
-    ReferenceSkeleton.InitializeInverseBindPoseMatrices();
-
     OutSkeleton->SetReferenceSkeleton(ReferenceSkeleton);
 }
 
@@ -494,6 +492,13 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* 
 
     std::unique_ptr<FSkeletalMeshRenderData> RenderData = std::make_unique<FSkeletalMeshRenderData>();
 
+    TArray<FMatrix> InverseBindPoseMatrices;
+    ExtractBindPoseMatrices(Mesh, Skeleton, InverseBindPoseMatrices);
+    
+    // 추출한 역행렬을 스켈레톤에 설정
+    FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
+    RefSkeleton.InverseBindPoseMatrices = InverseBindPoseMatrices;
+    
     const FbxAMatrix LocalTransformMatrix = Node->EvaluateLocalTransform();
 
     // 정점 데이터 추출 및 병합
@@ -732,6 +737,79 @@ USkeleton* FFbxLoader::FindAssociatedSkeleton(FbxNode* MeshNode, const TArray<US
     }
     
     return BestMatch;
+}
+
+void FFbxLoader::ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const
+{
+    if (!Mesh || !Skeleton)
+    {
+        return;
+    }
+    
+    const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
+    const int32 BoneCount = RefSkeleton.RawRefBoneInfo.Num();
+    
+    // 역행렬 배열 초기화 (단위 행렬로)
+    OutInverseBindPoseMatrices.SetNum(BoneCount);
+    for (int32 i = 0; i < BoneCount; ++i)
+    {
+        OutInverseBindPoseMatrices[i] = FMatrix::Identity;
+    }
+    
+    // 모든 스킨 디포머 순회
+    for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++DeformerIdx)
+    {
+        FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIdx, FbxDeformer::eSkin));
+        if (!Skin)
+        {
+            continue;
+        }
+        
+        // 모든 클러스터(본) 순회
+        for (int32 ClusterIdx = 0; ClusterIdx < Skin->GetClusterCount(); ++ClusterIdx)
+        {
+            FbxCluster* Cluster = Skin->GetCluster(ClusterIdx);
+            if (!Cluster || !Cluster->GetLink())
+            {
+                continue;
+            }
+            
+            // 본 인덱스 찾기
+            FName BoneName(Cluster->GetLink()->GetName());
+            int32 BoneIndex = RefSkeleton.FindBoneIndex(BoneName);
+            if (BoneIndex == INDEX_NONE)
+            {
+                continue;
+            }
+            
+            // 바인드 포즈 행렬 가져오기
+            FbxAMatrix TransformMatrix;      // 메시의 월드 변환
+            FbxAMatrix TransformLinkMatrix;  // 본의 월드 변환
+            Cluster->GetTransformMatrix(TransformMatrix);
+            Cluster->GetTransformLinkMatrix(TransformLinkMatrix);
+            
+            // 스키닝 행렬 계산 (오프셋 행렬)
+            // 메시 로컬 공간의 정점을 본 로컬 공간으로 변환하는 행렬
+            FbxAMatrix OffsetMatrix = TransformLinkMatrix.Inverse() * TransformMatrix;
+            
+            // FBX 행렬을 FMatrix로 변환하여 저장
+            OutInverseBindPoseMatrices[BoneIndex] = ConvertFbxMatrixToFMatrix(OffsetMatrix);
+        }
+    }
+}
+
+FMatrix FFbxLoader::ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const
+{
+    FMatrix Result;
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            Result.M[i][j] = static_cast<float>(FbxMatrix.Get(i, j));
+        }
+    }
+    return Result;
+
 }
 
 void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)

@@ -13,6 +13,7 @@ class FString;
 class USkeletalMesh;
 struct FSkeletalMeshRenderData;
 struct FFbxLoadResult;
+struct FMatrix;
 
 class FFbxLoader
 {
@@ -47,6 +48,10 @@ private:
     USkeletalMesh* CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* Skeleton);
 
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
+
+    void ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const;
+    
+    FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
     // End Mesh
 
     // 좌표계 변환을 수행하는 헬퍼 메소드

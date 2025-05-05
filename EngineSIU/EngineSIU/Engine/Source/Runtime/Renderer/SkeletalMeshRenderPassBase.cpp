@@ -197,38 +197,47 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMesh* SkeletalMesh)
         return;
     }
 
-    // Load Data to Array
-    const FReferenceSkeleton RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
+    // Skeleton 정보 가져오기
+    const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
     const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose;
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
+    
+    // 역행렬이 설정되어 있는지 확인
+    if (RefSkeleton.InverseBindPoseMatrices.Num() != BoneNum)
+    {
+        UE_LOG(ELogLevel::Error, TEXT("역바인드 포즈 행렬이 제대로 설정되지 않았습니다"));
+        return;
+    }
 
-    // 3. 현재 애니메이션 상태의 본 트랜스폼 행렬 계산
+    // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
     TArray<FMatrix> CurrentBoneMatrices;
     CurrentBoneMatrices.SetNum(BoneNum);
 
-    // 현재 애니메이션 포즈의 본 행렬 계산 (계층 구조 고려)
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
-        // 여기서는 간단히 바인드 포즈를 사용하지만, 실제로는 애니메이션에서 가져온 포즈 사용
-        FTransform CurrentTransform = RefSkeleton.RawRefBonePose[BoneIndex]; 
+        // 현재 본의 로컬 변환 (여기서는 바인드 포즈 사용, 실제로는 애니메이션 포즈 사용)
+        FTransform CurrentTransform = BindPose[BoneIndex]; 
         
-        // 부모 본의 영향을 고려한 월드 트랜스폼 계산
+        // 부모 본의 영향을 적용하여 월드 변환 구성
         int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
         if (ParentIndex != INDEX_NONE)
         {
+            // 로컬 변환에 부모 월드 변환 적용
             CurrentTransform = CurrentTransform * FTransform(CurrentBoneMatrices[ParentIndex]);
         }
         
+        // 결과 행렬 저장
         CurrentBoneMatrices[BoneIndex] = CurrentTransform.ToMatrixWithScale();
     }
     
-    // 4. 각 본마다 바인드 포즈 역행렬을 계산하고 현재 행렬과 결합
+    // 2. 최종 스키닝 행렬 계산 (FBX SDK에서 가져온 역행렬 활용)
     TArray<FMatrix> FinalBoneMatrices;
     FinalBoneMatrices.SetNum(BoneNum);
     
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
-        // 미리 계산된 바인드 포즈 역행렬 사용
+        // FBX SDK에서 가져온 역바인드 포즈 행렬과 현재 본 행렬 조합
+        // 중요! 이 곱셈 순서가 핵심입니다
         FinalBoneMatrices[BoneIndex] = CurrentBoneMatrices[BoneIndex] * RefSkeleton.InverseBindPoseMatrices[BoneIndex];
     }
     
@@ -240,6 +249,8 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMesh* SkeletalMesh)
         UE_LOG(ELogLevel::Error, TEXT("Buffer Map 실패, HRESULT: 0x%X"), hr);
         return;
     }
+    
+    ZeroMemory(MappedResource.pData, sizeof(FMatrix) * MaxBoneNum);
     memcpy(MappedResource.pData, FinalBoneMatrices.GetData(), sizeof(FMatrix) * BoneNum);
     Graphics->DeviceContext->Unmap(BoneBuffer, 0); 
 }
