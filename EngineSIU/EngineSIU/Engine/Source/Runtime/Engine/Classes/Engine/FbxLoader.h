@@ -51,7 +51,4 @@ private:
 
     // 좌표계 변환을 수행하는 헬퍼 메소드
     void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
-    
-    // 좌표계 변환을 위한 변환 행렬 계산
-    void CalculateCoordinateSystemTransform(const FbxAxisSystem& SourceAxisSystem);
 };
