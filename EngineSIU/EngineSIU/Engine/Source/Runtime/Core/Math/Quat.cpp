@@ -5,28 +5,20 @@
 
 const FQuat FQuat::Identity = FQuat{0.0f, 0.0f, 0.0f, 1.0f};
 
-
 FQuat::FQuat(const FVector& Axis, float Angle)
 {
-    float HalfAngle = Angle * 0.5f;
-    float SinHalfAngle = sinf(HalfAngle);
-    float CosHalfAngle = cosf(HalfAngle);
-
-    X = Axis.X * SinHalfAngle;
-    Y = Axis.Y * SinHalfAngle;
-    Z = Axis.Z * SinHalfAngle;
-    W = CosHalfAngle;
+    *this = FromAxisAngle(Axis, Angle);
 }
 
 FQuat::FQuat(const FMatrix& InMatrix)
 {
     float S;
     // Check diagonal (trace)
-    const float trace = InMatrix.M[0][0] + InMatrix.M[1][1] + InMatrix.M[2][2]; // 행렬의 Trace 값 (대각합)
+    const float Trace = InMatrix.M[0][0] + InMatrix.M[1][1] + InMatrix.M[2][2]; // 행렬의 Trace 값 (대각합)
 
-    if (trace > 0.0f) 
+    if (Trace > 0.0f) 
     {
-        float InvS = FMath::InvSqrt(trace + 1.f);
+        float InvS = FMath::InvSqrt(Trace + 1.f);
         this->W = 0.5f * (1.f / InvS);
         S = 0.5f * InvS;
 
@@ -40,10 +32,14 @@ FQuat::FQuat(const FMatrix& InMatrix)
         int32 i = 0;
 
         if (InMatrix.M[1][1] > InMatrix.M[0][0])
+        {
             i = 1;
+        }
 
         if (InMatrix.M[2][2] > InMatrix.M[i][i])
+        {
             i = 2;
+        }
 
         static constexpr int32 nxt[3] = { 1, 2, 0 };
         const int32 j = nxt[i];
@@ -66,7 +62,6 @@ FQuat::FQuat(const FMatrix& InMatrix)
         this->Y = qt[1];
         this->Z = qt[2];
         this->W = qt[3];
-
     }
 }
 
@@ -113,10 +108,10 @@ FQuat FQuat::FindBetween(const FVector& A, const FVector& B)
 FQuat FQuat::operator*(const FQuat& Other) const
 {
     return FQuat(
-            W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z,
             W * Other.X + X * Other.W + Y * Other.Z - Z * Other.Y,
             W * Other.Y - X * Other.Z + Y * Other.W + Z * Other.X,
-            W * Other.Z + X * Other.Y - Y * Other.X + Z * Other.W
+            W * Other.Z + X * Other.Y - Y * Other.X + Z * Other.W,
+            W * Other.W - X * Other.X - Y * Other.Y - Z * Other.Z
         );
 }
 
@@ -128,12 +123,12 @@ bool FQuat::operator==(const FQuat& Q) const
 FVector FQuat::RotateVector(const FVector& Vec) const
 {
     // 벡터를 쿼터니언으로 변환
-    FQuat vecQuat(0.0f, Vec.X, Vec.Y, Vec.Z);
+    FQuat VecQuat(Vec.X, Vec.Y, Vec.Z, 0.f);
     // 회전 적용 (q * vec * q^-1)
-    FQuat conjugate = FQuat(W, -X, -Y, -Z); // 쿼터니언의 켤레
-    FQuat result = *this * vecQuat * conjugate;
+    FQuat Conjugate = FQuat(-X, -Y, -Z, W); // 쿼터니언의 켤레
+    FQuat Result = *this * VecQuat * Conjugate;
 
-    return FVector(result.X, result.Y, result.Z); // 회전된 벡터 반환
+    return FVector(Result.X, Result.Y, Result.Z); // 회전된 벡터 반환
 }
 
 bool FQuat::IsNormalized() const
@@ -163,7 +158,7 @@ void FQuat::Normalize(float Tolerance)
 
 void FQuat::ToAxisAndAngle(FVector& Axis, float& Angle) const
 {
-    Angle = (float)GetAngle();  // 각도 추출
+    Angle = GetAngle();  // 각도 추출
     Axis = GetRotationAxis();   // 축 벡터 계산
 }
 
@@ -228,9 +223,11 @@ FQuat FQuat::Slerp_NotNormalized(const FQuat& Quat1, const FQuat& Quat2, float S
 
 FQuat FQuat::FromAxisAngle(const FVector& Axis, float Angle)
 {
-    float halfAngle = Angle * 0.5f;
-    float sinHalfAngle = sinf(halfAngle);
-    return FQuat(cosf(halfAngle), Axis.X * sinHalfAngle, Axis.Y * sinHalfAngle, Axis.Z * sinHalfAngle);
+    float HalfAngle = Angle * 0.5f;
+    float SinHalfAngle = sinf(HalfAngle);
+    float CosHalfAngle = cosf(HalfAngle);
+
+    return FQuat(Axis.X * SinHalfAngle, Axis.Y * SinHalfAngle, Axis.Z * SinHalfAngle, CosHalfAngle);
 }
 
 FQuat FQuat::CreateRotation(float roll, float pitch, float yaw)
