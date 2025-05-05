@@ -13,7 +13,7 @@ public:
     USkeletalMesh() = default;
     virtual ~USkeletalMesh() override;
 
-    void SetData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData);
+    void SetRenderData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData);
 
     const FSkeletalMeshRenderData* GetRenderData() const;
 

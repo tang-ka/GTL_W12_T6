@@ -4,7 +4,45 @@
 #include <filesystem>
 
 #include "FbxLoader.h"
+#include "Animation/Skeleton.h"
+#include "SkeletalMesh.h"
+#include "Components/Material/Material.h"
 #include "Engine/FObjLoader.h"
+#include "UObject/Casts.h"
+#include "Asset/SkeletalMeshAsset.h"
+
+UAssetManager::~UAssetManager()
+{
+    for (auto& [Name, Object] : SkeletonMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    SkeletonMap.Empty();
+    
+    for (auto& [Name, Object] : SkeletalMeshMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    SkeletalMeshMap.Empty();
+
+    for (auto& [Name, Object] : MaterialMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    MaterialMap.Empty();
+}
 
 bool UAssetManager::IsInitialized()
 {
@@ -34,7 +72,7 @@ void UAssetManager::InitAssetManager()
 {
     AssetRegistry = std::make_unique<FAssetRegistry>();
 
-    LoadObjFiles();
+    LoadContentFiles();
 }
 
 const TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistry()
@@ -42,7 +80,34 @@ const TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistry()
     return AssetRegistry->PathNameToAssetInfo;
 }
 
-void UAssetManager::LoadObjFiles()
+USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name)
+{
+    if (SkeletalMeshMap.Contains(Name))
+    {
+        return SkeletalMeshMap[Name];
+    }
+    return nullptr;
+}
+
+USkeleton* UAssetManager::GetSkeleton(const FName& Name)
+{
+    if (SkeletonMap.Contains(Name))
+    {
+        return SkeletonMap[Name];
+    }
+    return nullptr;
+}
+
+UMaterial* UAssetManager::GetMaterial(const FName& Name)
+{
+    if (MaterialMap.Contains(Name))
+    {
+        return MaterialMap[Name];
+    }
+    return nullptr;
+}
+
+void UAssetManager::LoadContentFiles()
 {
     const std::string BasePathName = "Contents/";
 
@@ -67,8 +132,42 @@ void UAssetManager::LoadObjFiles()
         }
         else if (Entry.is_regular_file() && Entry.path().extension() == ".fbx")
         {
-            FString MeshName = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
-            FFbxManager::GetSkeletalMesh(MeshName.ToWideString());
+            FString FilePath = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
+
+            FFbxLoader Loader;
+            FFbxLoadResult Result = Loader.LoadFBX(FilePath);
+
+            FAssetInfo AssetInfo = {};
+            AssetInfo.PackagePath = FName(Entry.path().parent_path().wstring());
+            AssetInfo.Size = static_cast<uint32>(std::filesystem::file_size(Entry.path()));
+
+            for (USkeleton* Skeleton : Result.Skeletons)
+            {
+                FAssetInfo SkeletonAssetInfo = AssetInfo;
+                SkeletonAssetInfo.AssetName = FName(Entry.path().filename().wstring() + Skeleton->GetName());
+                SkeletonAssetInfo.AssetType = EAssetType::Skeleton;
+                SkeletonMap.Add(SkeletonAssetInfo.AssetName, Skeleton);
+
+                AssetRegistry->PathNameToAssetInfo.Add(SkeletonAssetInfo.AssetName, SkeletonAssetInfo);
+            }
+            for (USkeletalMesh* SkeletalMesh : Result.SkeletalMeshes)
+            {
+                FAssetInfo SkeletalMeshAssetInfo = AssetInfo;
+                SkeletalMeshAssetInfo.AssetName = FName(Entry.path().filename().wstring() + SkeletalMesh->GetName());
+                SkeletalMeshAssetInfo.AssetType = EAssetType::SkeletalMesh;
+                SkeletalMeshMap.Add(SkeletalMeshAssetInfo.AssetName, SkeletalMesh);
+
+                AssetRegistry->PathNameToAssetInfo.Add(SkeletalMeshAssetInfo.AssetName, SkeletalMeshAssetInfo);
+            }
+            for (UMaterial* Material : Result.Materials)
+            {
+                FAssetInfo MaterialAssetInfo = AssetInfo;
+                MaterialAssetInfo.AssetName = FName(Entry.path().filename().wstring() + Material->GetName());
+                MaterialAssetInfo.AssetType = EAssetType::Material;
+                MaterialMap.Add(MaterialAssetInfo.AssetName, Material);
+
+                AssetRegistry->PathNameToAssetInfo.Add(MaterialAssetInfo.AssetName, MaterialAssetInfo);
+            }
         }
     }
 }

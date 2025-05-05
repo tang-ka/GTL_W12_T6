@@ -7,7 +7,7 @@ USkeletalMesh::~USkeletalMesh()
     OutputDebugStringA("USkeletalMesh destroyed");
 }
 
-void USkeletalMesh::SetData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData)
+void USkeletalMesh::SetRenderData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData)
 {
     RenderData = std::move(InRenderData);
 }

@@ -3,8 +3,11 @@
 
 #include <format>
 
+#include "AssetManager.h"
 #include "Asset/SkeletalMeshAsset.h"
 #include "UObject/ObjectFactory.h"
+#include "Math/transform.h"
+#include "Animation/Skeleton.h"
 #include "SkeletalMesh.h"
 
 struct FVertexKey
@@ -254,21 +257,17 @@ void PrintNodeAttribute(FbxNode* Node, int32 Depth)
     }
 }
 
-bool FFbxLoader::LoadFBX(const FString& InFilePath, FSkeletalMeshRenderData& OutRenderData)
+FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
 {
-    bool bRet = false;
+    bool bSuccess = false;
     if (Importer->Initialize(*InFilePath, -1, Manager->GetIOSettings()))
     {
-        bRet = Importer->Import(Scene);
+        bSuccess = Importer->Import(Scene);
     }
-    if (!bRet)
+    if (!bSuccess)
     {
-        return false;
+        return std::move(FFbxLoadResult());
     }
-
-    // Basic Setup
-    OutRenderData.ObjectName = InFilePath.ToWideString();
-    OutRenderData.DisplayName = ""; // TODO: temp
 
     // Read FBX
     /*
@@ -290,121 +289,226 @@ bool FFbxLoader::LoadFBX(const FString& InFilePath, FSkeletalMeshRenderData& Out
     FbxSystemUnit SystemUnit = GlobalSettings.GetSystemUnit();
     const double ScaleFactor = SystemUnit.GetScaleFactor();
     OutputDebugStringA(std::format("### FBX ###\nScene Scale: {} cm\n", ScaleFactor).c_str());
-    
-    if (FbxNode* RootNode = Scene->GetRootNode())
+
+    FbxNode* RootNode = Scene->GetRootNode();
+    if (!RootNode)
     {
-        FbxGeometryConverter Converter(Manager);
-        Converter.Triangulate(Scene, true);
-
-        PrintNodeAttribute(RootNode, 0);
-
-        TraverseNodeForSkeleton(RootNode, OutRenderData);
-        
-        TraverseNodeForMesh(RootNode, OutRenderData);
+        return std::move(FFbxLoadResult());
     }
+
+    FFbxLoadResult Result;
     
-    return true;
+    FbxGeometryConverter Converter(Manager);
+    Converter.Triangulate(Scene, true);
+
+    PrintNodeAttribute(RootNode, 0);
+
+    ProcessSkeletonHierarchy(RootNode, Result);
+
+    ProcessMeshesWithSkeletons(RootNode, Result);
+    
+    return Result;
 }
 
-void FFbxLoader::TraverseNodeForSkeleton(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData)
+void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult)
+{
+    // 스켈레톤 계층 구조를 찾기 위한 첫 번째 패스
+    TArray<FbxNode*> SkeletonRoots;
+    FindSkeletonRootNodes(RootNode, SkeletonRoots);
+    
+    // 각 스켈레톤 루트 노드에 대해 전체 스켈레톤 생성
+    for (FbxNode* SkeletonRoot : SkeletonRoots)
+    {
+        USkeleton* NewSkeleton = FObjectFactory::ConstructObject<USkeleton>(nullptr);
+        
+        // 스켈레톤 구조 구축
+        BuildSkeletonHierarchy(SkeletonRoot, NewSkeleton);
+        
+        // 결과에 추가
+        OutResult.Skeletons.Add(NewSkeleton);
+    }
+}
+
+void FFbxLoader::FindSkeletonRootNodes(FbxNode* Node, TArray<FbxNode*>& OutSkeletonRoots)
+{
+    if (IsSkeletonRootNode(Node))
+    {
+        OutSkeletonRoots.Add(Node);
+        return; // 이미 루트로 식별된 노드 아래는 더 탐색하지 않음
+    }
+    
+    // 자식 노드들 재귀적으로 탐색
+    for (int i = 0; i < Node->GetChildCount(); i++)
+    {
+        FindSkeletonRootNodes(Node->GetChild(i), OutSkeletonRoots);
+    }
+}
+
+bool FFbxLoader::IsSkeletonRootNode(FbxNode* Node)
 {
     if (!Node)
     {
-        return;
+        return false;
     }
-
+    
     FbxNodeAttribute* Attribute = Node->GetNodeAttribute();
     if (Attribute && Attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
     {
-        ProcessSkeleton(Node, OutRenderData);
+        // 부모가 없거나 부모가 스켈레톤이 아닌 경우에만 루트로 간주
+        FbxNode* Parent = Node->GetParent();
+        if (Parent == nullptr || Parent->GetNodeAttribute() == nullptr || 
+            Parent->GetNodeAttribute()->GetAttributeType() != FbxNodeAttribute::eSkeleton)
+        {
+            return true;
+        }
     }
-
-    for (int32 i = 0; i < Node->GetChildCount(); ++i)
-    {
-        TraverseNodeForSkeleton(Node->GetChild(i), OutRenderData);
-    }
-
+    return false;
 }
 
-void FFbxLoader::TraverseNodeForMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData)
+void FFbxLoader::BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton)
 {
-    if (!Node)
-    {
-        return;
-    }
+    FReferenceSkeleton ReferenceSkeleton;
+    
+    CollectBoneData(SkeletonRoot, ReferenceSkeleton, INDEX_NONE);
 
-    FbxNodeAttribute* Attribute = Node->GetNodeAttribute();
-    if (Attribute && Attribute->GetAttributeType() == FbxNodeAttribute::eMesh)
-    {
-        ProcessMesh(Node, OutRenderData);
-    }
+    OutSkeleton->SetReferenceSkeleton(ReferenceSkeleton);
+}
 
-    for (int32 i = 0; i < Node->GetChildCount(); ++i)
+void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex)
+{
+    TArray<FMeshBoneInfo>& RefBoneInfo = OutReferenceSkeleton.RawRefBoneInfo;
+    TArray<FTransform>& RefBonePose = OutReferenceSkeleton.RawRefBonePose;
+    TMap<FName, int32>& NameToIndexMap = OutReferenceSkeleton.RawNameToIndexMap;
+    
+    // 현재 노드를 뼈대로 처리
+    FName BoneName = FName(Node->GetName());
+    int32 CurrentIndex = OutReferenceSkeleton.RawRefBoneInfo.Num();
+    NameToIndexMap.Add(BoneName, CurrentIndex);
+    
+    // 뼈 정보 추가
+    FMeshBoneInfo BoneInfo(BoneName, ParentIndex);
+    RefBoneInfo.Add(BoneInfo);
+    
+    // 뼈 변환 정보 추가 (FBX 변환 매트릭스를 FTransform으로 변환)
+    FTransform BoneTransform = ConvertFbxTransformToUnreal(Node);
+    RefBonePose.Add(BoneTransform);
+    
+    // 자식 노드들을 재귀적으로 처리
+    for (int i = 0; i < Node->GetChildCount(); i++)
     {
-        TraverseNodeForMesh(Node->GetChild(i), OutRenderData);
+        FbxNode* ChildNode = Node->GetChild(i);
+        if (ChildNode &&
+            ChildNode->GetNodeAttribute() &&
+            ChildNode->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+        {
+            CollectBoneData(ChildNode, OutReferenceSkeleton, CurrentIndex);
+        }
     }
 }
 
-void FFbxLoader::ProcessSkeleton(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData)
+FTransform FFbxLoader::ConvertFbxTransformToUnreal(FbxNode* Node) const
 {
-    // 스켈레톤이 아직 생성되지 않았다면 생성
-    if (!OutRenderData.Skeleton)
-    {
-        OutRenderData.Skeleton = std::make_unique<USkeleton>();
-    }
-
-    // 노드에 스켈레톤 속성이 있는지 확인
-    FbxNodeAttribute* Attribute = Node->GetNodeAttribute();
-    if (!Attribute || Attribute->GetAttributeType() != FbxNodeAttribute::eSkeleton)
-    {
-        return;
-    }
-
-    // 노드의 이름 가져오기
-    FString BoneName = Node->GetName();
-    
-    // 부모 노드 찾기
-    int32 ParentIndex = -1;
-    FbxNode* ParentNode = Node->GetParent();
-    if (ParentNode && ParentNode != Scene->GetRootNode())
-    {
-        // 부모 본의 인덱스 찾기
-        FString ParentName = ParentNode->GetName();
-        ParentIndex = OutRenderData.Skeleton->FindBoneIndex(ParentName);
-    }
-    
-    // 로컬 트랜스폼 가져오기
     FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
     
-    // FTransform으로 변환 (필요에 따라 좌표계 변환 수행)
-    FTransform LocalTransform;
-    // LocalMatrix를 LocalTransform으로 변환하는 코드...
+    // FBX 행렬에서 스케일, 회전, 위치 추출
+    FbxVector4 T = LocalMatrix.GetT();
+    FbxVector4 S = LocalMatrix.GetS();
+    FbxQuaternion Q = LocalMatrix.GetQ();
     
-    // 뼈 추가
-    int32 BoneIndex = OutRenderData.Skeleton->AddBone(BoneName, ParentIndex, LocalTransform);
+    // 언리얼 엔진 형식으로 변환
+    FVector Translation(
+        static_cast<float>(T[0]),
+        static_cast<float>(T[1]),
+        static_cast<float>(T[2])
+    );
     
-    // 각 자식 노드에 대해 재귀적으로 처리
-    for (int32 i = 0; i < Node->GetChildCount(); ++i)
+    FVector Scale(
+        static_cast<float>(S[0]),
+        static_cast<float>(S[1]),
+        static_cast<float>(S[2])
+    );
+    
+    FQuat Rotation(
+        static_cast<float>(Q[3]), // W
+        static_cast<float>(Q[0]), // X
+        static_cast<float>(Q[1]), // Y
+        static_cast<float>(Q[2])  // Z
+    );
+    
+    return FTransform(Rotation, Translation, Scale);
+}
+
+void FFbxLoader::ProcessMeshesWithSkeletons(FbxNode* Node, FFbxLoadResult& OutResult)
+{
+    if (Node && Node->GetNodeAttribute() && 
+        Node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh)
     {
-        ProcessSkeleton(Node->GetChild(i), OutRenderData);
+        FbxMesh* Mesh = Node->GetMesh();
+        if (!Mesh)
+        {
+            return;
+        }
+        
+        // 먼저 스킨 데이터가 있는지 확인하여 메시 유형 결정
+        bool bHasSkin = false;
+        for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(); ++DeformerIdx)
+        {
+            FbxDeformer* Deformer = Mesh->GetDeformer(DeformerIdx);
+            if (Deformer && Deformer->GetDeformerType() == FbxDeformer::eSkin)
+            {
+                bHasSkin = true;
+                break;
+            }
+        }
+        
+        if (bHasSkin)
+        {
+            // 이 메시와 연결된 스켈레톤 찾기
+            USkeleton* AssociatedSkeleton = FindAssociatedSkeleton(Node, OutResult.Skeletons);
+            
+            if (AssociatedSkeleton)
+            {
+                // 스켈레탈 메시 생성 (스켈레톤 정보 전달)
+                USkeletalMesh* SkeletalMesh = CreateSkeletalMeshFromNode(Node, AssociatedSkeleton);
+                if (SkeletalMesh)
+                {
+                    SkeletalMesh->SetSkeleton(AssociatedSkeleton);
+                    OutResult.SkeletalMeshes.Add(SkeletalMesh);
+                }
+            }
+        }
+        else
+        {
+            // 스태틱 메시 처리 (기존 TraverseNodeForMesh 함수로 처리)
+            // 여기서는 생략
+        }
+    }
+    
+    // 자식 노드 재귀 처리
+    for (int i = 0; i < Node->GetChildCount(); i++)
+    {
+        ProcessMeshesWithSkeletons(Node->GetChild(i), OutResult);
     }
 }
 
-void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData)
+USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* Skeleton)
 {
     FbxMesh* Mesh = Node->GetMesh();
     if (!Mesh)
     {
-        return;
+        return nullptr;
     }
 
-    // 이미 데이터가 있다면 병합하지 않고 반환 (여러 메쉬 노드를 어떻게 처리할지 정책 필요)
-    // 여기서는 첫 번째 찾은 메쉬만 사용한다고 가정
-    if (!OutRenderData.Vertices.IsEmpty())
+    // 레이어 요소 가져오기 (UV, Normal, Tangent, Color 등은 레이어에 저장됨)
+    // 보통 Layer 0을 사용
+    FbxLayer* BaseLayer = Mesh->GetLayer(0);
+    if (!BaseLayer)
     {
-        OutputDebugStringA(std::format("Skipping additional mesh node: {}. Already processed one.\n", Node->GetName()).c_str());
-        return;
+        OutputDebugStringA("Error: Mesh has no Layer 0.\n");
+        return nullptr;
     }
+
+    std::unique_ptr<FSkeletalMeshRenderData> RenderData = std::make_unique<FSkeletalMeshRenderData>();
 
     const FbxAMatrix LocalTransformMatrix = Node->EvaluateLocalTransform();
 
@@ -415,17 +519,8 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
 
     // 정점 병합을 위한 맵
     TMap<FVertexKey, uint32> UniqueVertices;
-    OutRenderData.Vertices.Reserve(ControlPointsCount); // 대략적인 크기 예약 (정확하지 않음)
-    OutRenderData.Indices.Reserve(PolygonCount * 3);
-
-    // 레이어 요소 가져오기 (UV, Normal, Tangent, Color 등은 레이어에 저장됨)
-    // 보통 Layer 0을 사용
-    FbxLayer* BaseLayer = Mesh->GetLayer(0);
-    if (!BaseLayer)
-    {
-        OutputDebugStringA("Error: Mesh has no Layer 0.\n");
-        return;
-    }
+    RenderData->Vertices.Reserve(ControlPointsCount); // 대략적인 크기 예약 (정확하지 않음)
+    RenderData->Indices.Reserve(PolygonCount * 3);
 
     const FbxLayerElementNormal* NormalElement = BaseLayer->GetNormals();
     const FbxLayerElementTangent* TangentElement = BaseLayer->GetTangents();
@@ -500,7 +595,7 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
             // 맵에서 키 검색
             if (const uint32* Found = UniqueVertices.Find(Key))
             {
-                OutRenderData.Indices.Add(*Found);
+                RenderData->Indices.Add(*Found);
             }
             else
             {
@@ -563,11 +658,11 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
                 }
 
                 // 새로운 정점을 Vertices 배열에 추가
-                OutRenderData.Vertices.Add(NewVertex);
+                RenderData->Vertices.Add(NewVertex);
                 // 새 정점의 인덱스 계산
-                uint32 NewIndex = static_cast<uint32>(OutRenderData.Vertices.Num() - 1);
+                uint32 NewIndex = static_cast<uint32>(RenderData->Vertices.Num() - 1);
                 // 인덱스 버퍼에 새 인덱스 추가
-                OutRenderData.Indices.Add(NewIndex);
+                RenderData->Indices.Add(NewIndex);
                 // 맵에 새 정점 정보 추가
                 UniqueVertices.Add(Key, NewIndex);
             }
@@ -575,46 +670,82 @@ void FFbxLoader::ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderDa
             VertexCounter++; // 다음 폴리곤 정점으로 이동
         } // End for each vertex in polygon
     } // End for each polygon
+    
+    USkeletalMesh* SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
+    SkeletalMesh->SetRenderData(std::move(RenderData));
+
+    return SkeletalMesh;
 }
 
-std::unique_ptr<FSkeletalMeshRenderData> FFbxManager::LoadFbxSkeletalMeshAsset(const FWString& FilePath)
+USkeleton* FFbxLoader::FindAssociatedSkeleton(FbxNode* MeshNode, const TArray<USkeleton*>& Skeletons)
 {
-    std::unique_ptr<FSkeletalMeshRenderData> Data = std::make_unique<FSkeletalMeshRenderData>();
-
-    // TODO: 여기에서 바이너리 파일 검색해서 찾으면 읽고 Data 채워서 리턴.
-
-    FFbxLoader Loader;
-    if (Loader.LoadFBX(FilePath, *Data))
-    {
-        return Data;
-    }
-    return nullptr;
-}
-
-USkeletalMesh* FFbxManager::CreateMesh(const FWString& FilePath)
-{
-    std::unique_ptr<FSkeletalMeshRenderData> SkeletalMeshRenderData = LoadFbxSkeletalMeshAsset(FilePath);
-
-    if (SkeletalMeshRenderData == nullptr)
+    if (!MeshNode || Skeletons.Num() == 0)
     {
         return nullptr;
     }
-
-    USkeletalMesh* Mesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
-    if (Mesh)
+    
+    FbxMesh* Mesh = MeshNode->GetMesh();
+    if (!Mesh)
     {
-        Mesh->SetData(std::move(SkeletalMeshRenderData));
-        SkeletalMeshMap.Add(FilePath, Mesh);
+        return nullptr;
     }
     
-    return Mesh;
-}
-
-USkeletalMesh* FFbxManager::GetSkeletalMesh(const FWString& FilePath)
-{
-    if (SkeletalMeshMap.Find(FilePath))
+    // 스킨 데이터가 있는지 확인
+    bool bHasSkin = false;
+    TSet<FbxNode*> BoneNodes;
+    
+    // 모든 스킨 디포머 순회
+    for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++DeformerIdx)
     {
-        return SkeletalMeshMap[FilePath];
+        FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIdx, FbxDeformer::eSkin));
+        if (!Skin)
+        {
+            continue;
+        }
+        
+        bHasSkin = true;
+        
+        // 모든 클러스터 순회하여 본 노드 수집
+        for (int32 ClusterIdx = 0; ClusterIdx < Skin->GetClusterCount(); ++ClusterIdx)
+        {
+            FbxCluster* Cluster = Skin->GetCluster(ClusterIdx);
+            if (Cluster && Cluster->GetLink())
+            {
+                BoneNodes.Add(Cluster->GetLink());
+            }
+        }
     }
-    return CreateMesh(FilePath);
+    
+    if (!bHasSkin || BoneNodes.Num() == 0)
+    {
+        return nullptr; // 스킨 데이터가 없으면 스태틱 메시로 간주
+    }
+    
+    // 가장 많은 본을 공유하는 스켈레톤 찾기
+    USkeleton* BestMatch = nullptr;
+    int32 MaxSharedBones = 0;
+    
+    for (USkeleton* Skeleton : Skeletons)
+    {
+        int32 SharedBones = 0;
+        
+        // 현재 스켈레톤의 모든 본 이름 확인
+        const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
+        for (FbxNode* BoneNode : BoneNodes)
+        {
+            FName BoneName(BoneNode->GetName());
+            if (RefSkeleton.FindBoneIndex(BoneName) != INDEX_NONE)
+            {
+                SharedBones++;
+            }
+        }
+        
+        if (SharedBones > MaxSharedBones)
+        {
+            MaxSharedBones = SharedBones;
+            BestMatch = Skeleton;
+        }
+    }
+    
+    return BestMatch;
 }

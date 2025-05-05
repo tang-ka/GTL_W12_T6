@@ -2,6 +2,7 @@
 #include "Math/Quat.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
+#include "ReferenceSkeleton.h"
 
 class USkeleton : public UObject
 {
@@ -11,30 +12,19 @@ public:
     USkeleton() = default;
     virtual ~USkeleton() override = default;
 
-    struct FBoneNode
+    const FReferenceSkeleton& GetReferenceSkeleton() const
     {
-        FName Name;
-        int32 ParentIndex;
-        
-        FVector LocalLocation;
-        FQuat LocalQuat;
-        
-        FVector GlobalLocation;
-        FQuat GlobalQuat;
-    };
+        return ReferenceSkeleton;
+    }
 
-    // 뼈 배열
-    TArray<FBoneNode> BoneTree;
+    void SetReferenceSkeleton(const FReferenceSkeleton& InReferenceSkeleton)
+    {
+        ReferenceSkeleton = InReferenceSkeleton;
+    }
+
+    int32 FindBoneIndex(const FName& BoneName) const;
+
+protected:
+    FReferenceSkeleton ReferenceSkeleton;
     
-    // 이름으로 뼈 인덱스를 찾는 맵
-    TMap<FString, int32> BoneNameToIndexMap;
-    
-    // 뼈 추가
-    int32 AddBone(const FString& InName, int32 ParentIndex, const FTransform& LocalTransform);
-    
-    // 이름으로 뼈 인덱스 찾기
-    int32 FindBoneIndex(const FString& BoneName) const;
-    
-    // 스켈레톤 데이터 초기화
-    void Initialize();
 };

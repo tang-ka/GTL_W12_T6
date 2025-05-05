@@ -3,6 +3,7 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 #include "UObject/NameTypes.h"
+#include "Math/Transform.h"
 
 struct FMeshBoneInfo
 {
@@ -27,16 +28,11 @@ struct FMeshBoneInfo
 
 struct FReferenceSkeleton
 {
-private:
+public:
     TArray<FMeshBoneInfo> RawRefBoneInfo;
     TArray<FTransform> RawRefBonePose;
 
-    TArray<FMeshBoneInfo> FinalRefBoneInfo;
-    TArray<FTransform> FinalRefBonePose;
-
     TMap<FName, int32> RawNameToIndexMap;
-    TMap<FName, int32> FinalNameToIndexMap;
 
-    TArray<FBoneIndexType>  RequiredVirtualBones;
-    TArray<FVirtualBoneRefData> UsedVirtualBoneData;
+    int32 FindBoneIndex(const FName& BoneName) const;
 };

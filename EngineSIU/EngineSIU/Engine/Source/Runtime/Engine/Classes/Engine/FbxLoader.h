@@ -2,11 +2,17 @@
 
 #include <fbxsdk.h>
 
-#include "Container/Map.h"
 #include "HAL/PlatformType.h"
+#include "Container/Array.h"
 
+struct FReferenceSkeleton;
+struct FTransform;
+struct FMeshBoneInfo;
+class USkeleton;
+class FString;
 class USkeletalMesh;
 struct FSkeletalMeshRenderData;
+struct FFbxLoadResult;
 
 class FFbxLoader
 {
@@ -14,30 +20,32 @@ public:
     FFbxLoader();
     ~FFbxLoader();
 
-    bool LoadFBX(const FString& InFilePath, FSkeletalMeshRenderData& OutRenderData);
+    FFbxLoadResult LoadFBX(const FString& InFilePath);
 
 private:
     FbxManager* Manager;
     FbxImporter* Importer;
     FbxScene* Scene;
 
-    void TraverseNodeForSkeleton(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+    // Begin Skeleton
+    void ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult);
 
-    void TraverseNodeForMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+    void FindSkeletonRootNodes(FbxNode* Node, TArray<FbxNode*>& OutSkeletonRoots);
 
-    void ProcessSkeleton(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
+    bool IsSkeletonRootNode(FbxNode* Node);
 
-    void ProcessMesh(FbxNode* Node, FSkeletalMeshRenderData& OutRenderData);
-};
+    void BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton);
 
-class FFbxManager
-{
-public:
-    static USkeletalMesh* GetSkeletalMesh(const FWString& FilePath);
+    void CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex);
 
-protected:
-    static std::unique_ptr<FSkeletalMeshRenderData> LoadFbxSkeletalMeshAsset(const FWString& FilePath);
-    static USkeletalMesh* CreateMesh(const FWString& FilePath);
+    FTransform ConvertFbxTransformToUnreal(FbxNode* Node) const;
+    // End Skeleton
+    
+    // Begin Mesh
+    void ProcessMeshesWithSkeletons(FbxNode* Node, FFbxLoadResult& OutResult);
 
-    inline static TMap<FString, USkeletalMesh*> SkeletalMeshMap;
+    USkeletalMesh* CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* Skeleton);
+
+    USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
+    // End Mesh
 };
