@@ -419,7 +419,7 @@ void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
                     if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(PointLightComp))
                     {
                         FConstantBufferDebugSphere b;
-                        b.Position = PointLightComp->GetWorldLocation();
+                        b.Position = PointLightComp->GetComponentLocation();
                         b.Radius = PointLightComp->GetRadius();
                         BufferAll.Add(b);
                     }
@@ -428,7 +428,7 @@ void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
             else
             {
                 FConstantBufferDebugSphere b;
-                b.Position = PointLightComp->GetWorldLocation();
+                b.Position = PointLightComp->GetComponentLocation();
                 b.Radius = PointLightComp->GetRadius();
                 BufferAll.Add(b);
             }
@@ -478,7 +478,7 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
                     if (Cast<UEditorEngine>(GEngine)->GetSelectedActor()->GetComponents().Contains(SpotLightComp))
                     {
                         FConstantBufferDebugCone b;
-                        b.ApexPosition = SpotLightComp->GetWorldLocation();
+                        b.ApexPosition = SpotLightComp->GetComponentLocation();
                         b.Radius = SpotLightComp->GetRadius();
                         b.Direction = SpotLightComp->GetDirection();
                         // Inner Cone
@@ -493,7 +493,7 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
             else
             {
                 FConstantBufferDebugCone b;
-                b.ApexPosition = SpotLightComp->GetWorldLocation();
+                b.ApexPosition = SpotLightComp->GetComponentLocation();
                 b.Radius = SpotLightComp->GetRadius();
                 b.Direction = SpotLightComp->GetDirection();
                 // Inner Cone
@@ -607,7 +607,7 @@ void FEditorRenderPass::RenderArrowInstanced()
         if (UDirectionalLightComponent* DLightComp = Cast<UDirectionalLightComponent>(LightComp))
         {
             FConstantBufferDebugArrow Buf;
-            Buf.Position = DLightComp->GetWorldLocation();
+            Buf.Position = DLightComp->GetComponentLocation();
             Buf.ScaleXYZ = ArrowScale;
             Buf.Direction = DLightComp->GetDirection();
             Buf.ScaleZ = ArrowScale;
@@ -616,7 +616,7 @@ void FEditorRenderPass::RenderArrowInstanced()
         else if (USpotLightComponent* SpotComp = Cast<USpotLightComponent>(LightComp))
         {
             FConstantBufferDebugArrow Buf;
-            Buf.Position = SpotComp->GetWorldLocation();
+            Buf.Position = SpotComp->GetComponentLocation();
             Buf.ScaleXYZ = ArrowScale;
             Buf.Direction = SpotComp->GetDirection();
             Buf.ScaleZ = ArrowScale;
@@ -721,7 +721,7 @@ void FEditorRenderPass::RenderSphereInstanced(uint64 ShowFlag)
             if (Actor && Actor->GetComponents().Contains(SphereComponent))
             {
                 FConstantBufferDebugSphere b;
-                b.Position = SphereComponent->GetWorldLocation();
+                b.Position = SphereComponent->GetComponentLocation();
                 b.Radius = SphereComponent->GetRadius();
                 BufferAll.Add(b);
             }
@@ -729,7 +729,7 @@ void FEditorRenderPass::RenderSphereInstanced(uint64 ShowFlag)
         else
         {
             FConstantBufferDebugSphere b;
-            b.Position = SphereComponent->GetWorldLocation();
+            b.Position = SphereComponent->GetComponentLocation();
             b.Radius = SphereComponent->GetRadius();
             BufferAll.Add(b);
         }

@@ -104,7 +104,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
         if (SpotLightsCount < MAX_SPOT_LIGHT)
         {
             LightBufferData.SpotLights[SpotLightsCount] = Light->GetSpotLightInfo();
-            LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
+            LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetComponentLocation();
             LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
             SpotLightsCount++;
         }
@@ -115,7 +115,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
         if (PointLightsCount < MAX_POINT_LIGHT)
         {
             LightBufferData.PointLights[PointLightsCount] = Light->GetPointLightInfo();
-            LightBufferData.PointLights[PointLightsCount].Position = Light->GetWorldLocation();
+            LightBufferData.PointLights[PointLightsCount].Position = Light->GetComponentLocation();
             PointLightsCount++;
         }
     }
@@ -353,7 +353,7 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
     for (uint32 i = 0; i < PointLights.Num(); ++i)
     {
         FPointLightInfo& LightInfo = PointLights[i]->GetPointLightInfo();
-        LightInfo.Position = PointLights[i]->GetWorldLocation();
+        LightInfo.Position = PointLights[i]->GetComponentLocation();
         for (int j = 0; j < 6; ++j)
         {
             LightInfo.LightViewProjs[j] = PointLights[i]->GetViewProjectionMatrix(j);
@@ -376,7 +376,7 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
     for (uint32 i = 0; i < SpotLights.Num(); ++i)
     {
         FSpotLightInfo& LightInfo = SpotLights[i]->GetSpotLightInfo();
-        LightInfo.Position = SpotLights[i]->GetWorldLocation();
+        LightInfo.Position = SpotLights[i]->GetComponentLocation();
         LightInfo.Direction = SpotLights[i]->GetDirection();
         LightInfo.LightViewProj = SpotLights[i]->GetViewMatrix() * SpotLights[i]->GetProjectionMatrix();
         LightInfo.ShadowMapArrayIndex = i;

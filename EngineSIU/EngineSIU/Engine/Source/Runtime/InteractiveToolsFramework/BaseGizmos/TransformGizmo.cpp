@@ -118,10 +118,10 @@ void ATransformGizmo::Tick(float DeltaTime)
 
     if (TargetComponent)
     {
-        SetActorLocation(TargetComponent->GetWorldLocation());
+        SetActorLocation(TargetComponent->GetComponentLocation());
         if (EditorPlayer->GetCoordMode() == ECoordMode::CDM_LOCAL || EditorPlayer->GetControlMode() == EControlMode::CM_SCALE)
         {
-            SetActorRotation(TargetComponent->GetWorldRotation());
+            SetActorRotation(TargetComponent->GetComponentRotation());
         }
         else
         {

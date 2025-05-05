@@ -6,7 +6,7 @@
 
 UPointLightComponent::UPointLightComponent()
 {
-    PointLightInfo.Position = GetWorldLocation();
+    PointLightInfo.Position = GetComponentLocation();
     PointLightInfo.Radius = 30.f;
 
     PointLightInfo.LightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -337,7 +337,7 @@ void UPointLightComponent::SetType(int InType)
 
 void UPointLightComponent::UpdateViewMatrix()
 {
-    FVector PointLightPos = GetWorldLocation();
+    FVector PointLightPos = GetComponentLocation();
     // ViewMatrices 배열의 크기가 6인지 확인하고, 아니면 조정합니다.
     // 생성자 등에서 미리 크기를 6으로 설정하는 것이 더 효율적일 수 있습니다.
     if (ViewMatrices.Num() != 6)

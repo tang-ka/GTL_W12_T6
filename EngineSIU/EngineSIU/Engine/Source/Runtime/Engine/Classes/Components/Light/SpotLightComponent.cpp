@@ -9,7 +9,7 @@
 
 USpotLightComponent::USpotLightComponent()
 {
-    SpotLightInfo.Position = GetWorldLocation();
+    SpotLightInfo.Position = GetComponentLocation();
     SpotLightInfo.Radius = 30.0f;
     SpotLightInfo.Direction = GetForwardVector();
     SpotLightInfo.LightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -200,8 +200,8 @@ void USpotLightComponent::SetOuterDegree(float InOuterDegree)
 
 void USpotLightComponent::UpdateViewMatrix()
 {
-    FVector SpotLightPos = GetWorldLocation();
-    FRotator SpotLightRot = GetWorldRotation(); // 월드 회전 값 가져오기
+    FVector SpotLightPos = GetComponentLocation();
+    FRotator SpotLightRot = GetComponentRotation(); // 월드 회전 값 가져오기
 
     // 월드 공간에서의 Forward 벡터 계산
     FVector Forward = FVector(1.f, 0.f, 0.0f); // 로컬 +X 축

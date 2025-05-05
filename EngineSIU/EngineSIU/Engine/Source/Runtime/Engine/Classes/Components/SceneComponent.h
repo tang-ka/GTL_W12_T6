@@ -57,10 +57,10 @@ public:
     void SetComponentScale3D(const FVector& InScale);
     void SetComponentTransform(const FTransform& InTransform);
     
-    FVector GetWorldLocation() const;
-    FRotator GetWorldRotation() const;
-    FVector GetWorldScale3D() const;
-    FTransform GetWorldTransform() const;
+    FVector GetComponentLocation() const;
+    FRotator GetComponentRotation() const;
+    FVector GetComponentScale3D() const;
+    FTransform GetComponentTransform() const;
 
     FMatrix GetScaleMatrix() const;
     FMatrix GetRotationMatrix() const;

@@ -145,7 +145,7 @@ void UWorld::BeginPlay()
         // GameMode Delegate addition [Need to delete later]
         GameMode->OnGameInit.AddLambda([this]() {
             if (MainTextComponent) {
-                FVector Target = MainTextComponent->GetWorldLocation();
+                FVector Target = MainTextComponent->GetComponentLocation();
                 Target.X -= 20.0f;
             
                 MainTextComponent->SetText(L"Press Space to start");
