@@ -6,7 +6,7 @@ UObject* UMaterial::Duplicate(UObject* InOuter)
 {
     ThisClass* NewMaterial = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-    NewMaterial->materialInfo = materialInfo;
+    NewMaterial->MaterialInfo = MaterialInfo;
 
     return NewMaterial;
 }

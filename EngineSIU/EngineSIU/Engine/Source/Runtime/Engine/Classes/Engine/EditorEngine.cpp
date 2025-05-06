@@ -1,12 +1,12 @@
 #include "EditorEngine.h"
 
+#include "FbxLoader.h"
+#include "FObjLoader.h"
 #include "World/World.h"
 #include "Level.h"
-#include "Actors/Cube.h"
-#include "Actors/DirectionalLightActor.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
-#include "Components/Light/DirectionalLightComponent.h"
+#include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "UObject/UObjectIterator.h"
 
 namespace PrivateEditorSelection
@@ -40,12 +40,22 @@ void UEditorEngine::Init()
         assert(AssetManager);
         AssetManager->InitAssetManager();
     }
-    LoadLevel("Saved/AutoSaves.scene");
+    // LoadLevel("Saved/AutoSaves.scene");
+
+#ifdef _DEBUG
+    AActor* SKActor = EditorWorld->SpawnActor<ASkeletalMeshActorTest>();
+#endif
 }
 
 void UEditorEngine::Release()
 {
     SaveLevel("Saved/AutoSaves.scene");
+    
+    for (FWorldContext* WorldContext : WorldList)
+    {
+        WorldContext->World()->Release();
+    }
+    WorldList.Empty();
 }
 
 void UEditorEngine::Tick(float DeltaTime)

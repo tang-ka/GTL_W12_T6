@@ -239,6 +239,12 @@ AActor* UWorld::SpawnActor(UClass* InClass, FName InActorName)
         PendingBeginPlayActors.Add(NewActor);
 
         NewActor->PostSpawnInitialize();
+
+        if (NewActor->GetRootComponent() == nullptr)
+        {
+            NewActor->SetRootComponent(NewActor->AddComponent<USceneComponent>());
+        }
+        
         return NewActor;
     }
     

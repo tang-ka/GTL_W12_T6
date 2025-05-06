@@ -6,13 +6,13 @@
 
 struct FSkeletalMeshVertex
 {
-    float X, Y, Z;    // Position
-    float R, G, B, A; // Color
-    float NormalX, NormalY, NormalZ;
-    float TangentX, TangentY, TangentZ, TangentW;
+    float X = 0.f, Y = 0.f, Z = 0.f;
+    float R = 0.5f, G = 0.5f, B = 0.5f, A = 0.5f;
+    float NormalX = 0.f, NormalY = 0.f, NormalZ = 0.f;
+    float TangentX = 0.f, TangentY = 0.f, TangentZ = 0.f, TangentW = 0.f;
     float U = 0, V = 0;
-    uint32 BoneIndices[4];
-    float BoneWeights[4];
+    uint32 BoneIndices[4] = { 0, 0, 0, 0 };
+    float BoneWeights[4] = { 0.f, 0.f, 0.f, 0.f };
 };
 
 struct FSkeletalMeshRenderData

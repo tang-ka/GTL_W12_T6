@@ -9,6 +9,7 @@
 #include "Math/Rotator.h"
 #include "UObject/Casts.h"
 
+class USkeletalMeshComponent;
 class USpringArmComponent;
 class UShapeComponent;
 class UAmbientLightComponent;
@@ -59,6 +60,7 @@ private:
     
     /* Static Mesh Settings */
     void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const;
+    void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp) const;
 
     void RenderForAmbientLightComponent(UAmbientLightComponent* AmbientLightComponent) const;
     void RenderForDirectionalLightComponent(UDirectionalLightComponent* DirectionalLightComponent) const;

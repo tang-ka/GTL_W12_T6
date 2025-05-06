@@ -41,9 +41,17 @@ FTransform::FTransform(const FRotator& InRotation)
     , Scale3D(FVector::OneVector)
 {}
 
+FTransform::FTransform(const FMatrix& InMatrix)
+    : Translation(FVector::ZeroVector)
+    , Rotation(FQuat::Identity)
+    , Scale3D(FVector::OneVector)
+{
+    SetFromMatrix(InMatrix);
+}
+
 FVector FTransform::TransformDirection(const FVector& V) const
 {
-    // 방향 벡터는 이동(Translation)의 영향을 받지 않고 회전과 크기 조정만 영향받음
+    // 방향 벡터는 이동(Translation)과 스케일(Scale)의 영향을 받지 않고 회전만 변환.
     return Rotation.RotateVector(V);
 }
 
@@ -347,7 +355,7 @@ void FTransform::BlendFromIdentityAndAccumulate(FTransform& OutTransform, const 
     OutTransform = OutTransform * BlendedTransform;
 }
 
-FTransform FTransform::operator*(const FTransform& Other) const
+FTransform FTransform::operator*(const FTransform& Other) const 
 {
     FTransform Result;
     Result.Scale3D = Scale3D * Other.Scale3D;

@@ -2,7 +2,47 @@
 #include "Engine.h"
 
 #include <filesystem>
+
+#include "FbxLoader.h"
+#include "Animation/Skeleton.h"
+#include "SkeletalMesh.h"
+#include "Components/Material/Material.h"
 #include "Engine/FObjLoader.h"
+#include "UObject/Casts.h"
+#include "Asset/SkeletalMeshAsset.h"
+
+UAssetManager::~UAssetManager()
+{
+    for (auto& [Name, Object] : SkeletonMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    SkeletonMap.Empty();
+    
+    for (auto& [Name, Object] : SkeletalMeshMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    SkeletalMeshMap.Empty();
+
+    for (auto& [Name, Object] : MaterialMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    MaterialMap.Empty();
+}
 
 bool UAssetManager::IsInitialized()
 {
@@ -32,7 +72,7 @@ void UAssetManager::InitAssetManager()
 {
     AssetRegistry = std::make_unique<FAssetRegistry>();
 
-    LoadObjFiles();
+    LoadContentFiles();
 }
 
 const TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistry()
@@ -40,7 +80,34 @@ const TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistry()
     return AssetRegistry->PathNameToAssetInfo;
 }
 
-void UAssetManager::LoadObjFiles()
+USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name)
+{
+    if (SkeletalMeshMap.Contains(Name))
+    {
+        return SkeletalMeshMap[Name];
+    }
+    return nullptr;
+}
+
+USkeleton* UAssetManager::GetSkeleton(const FName& Name)
+{
+    if (SkeletonMap.Contains(Name))
+    {
+        return SkeletonMap[Name];
+    }
+    return nullptr;
+}
+
+UMaterial* UAssetManager::GetMaterial(const FName& Name)
+{
+    if (MaterialMap.Contains(Name))
+    {
+        return MaterialMap[Name];
+    }
+    return nullptr;
+}
+
+void UAssetManager::LoadContentFiles()
 {
     const std::string BasePathName = "Contents/";
 
@@ -62,6 +129,58 @@ void UAssetManager::LoadObjFiles()
             FObjManager::CreateStaticMesh(MeshName);
             // ObjFileNames.push_back(UGTLStringLibrary::StringToWString(Entry.path().string()));
             // FObjManager::LoadObjStaticMeshAsset(UGTLStringLibrary::StringToWString(Entry.path().string()));
+        }
+        else if (Entry.is_regular_file() && Entry.path().extension() == ".fbx")
+        {
+            const FString FilePath = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
+            const FString FileNameWithoutExt = Entry.path().stem().filename().string();
+
+            FFbxLoader Loader;
+            FFbxLoadResult Result = Loader.LoadFBX(FilePath);
+
+            FAssetInfo AssetInfo = {};
+            AssetInfo.PackagePath = FName(Entry.path().parent_path().wstring());
+            AssetInfo.Size = static_cast<uint32>(std::filesystem::file_size(Entry.path()));
+
+            for (int32 i = 0; i < Result.Skeletons.Num(); ++i)
+            {
+                USkeleton* Skeleton = Result.Skeletons[i];
+                FString BaseAssetName = FileNameWithoutExt + "_Skeleton";
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = i > 0 ? FName(BaseAssetName + FString::FromInt(i)) : FName(BaseAssetName);
+                Info.AssetType = EAssetType::Skeleton;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
+
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                SkeletonMap.Add(Key, Skeleton);
+            }
+            for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
+            {
+                USkeletalMesh* SkeletalMesh = Result.SkeletalMeshes[i];
+                FString BaseAssetName = FileNameWithoutExt;
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = i > 0 ? FName(BaseAssetName + FString::FromInt(i)) : FName(BaseAssetName);
+                Info.AssetType = EAssetType::SkeletalMesh;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
+
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                SkeletalMeshMap.Add(Key, SkeletalMesh);
+            }
+            for (int32 i = 0; i < Result.Materials.Num(); ++i)
+            {
+                UMaterial* Material = Result.Materials[i];
+                FString BaseAssetName = Material->GetName();
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = FName(BaseAssetName);
+                Info.AssetType = EAssetType::Material;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
+
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                MaterialMap.Add(Key, Material);
+            }
         }
     }
 }

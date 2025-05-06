@@ -20,7 +20,7 @@ bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
     OutObjInfo.FilePath = ObjFilePath.ToWideString().substr(0, ObjFilePath.ToWideString().find_last_of(L"\\/") + 1);
     OutObjInfo.ObjectName = ObjFilePath.ToWideString();
     // ObjectName은 wstring 타입이므로, 이를 string으로 변환 (간단한 ASCII 변환의 경우)
-    std::wstring wideName = OutObjInfo.ObjectName.substr(ObjFilePath.ToWideString().find_last_of(L"\\/") + 1);;
+    std::wstring wideName = OutObjInfo.ObjectName.substr(ObjFilePath.ToWideString().find_last_of(L"\\/") + 1);
     std::string fileName(wideName.begin(), wideName.end());
 
     // 마지막 '.'을 찾아 확장자를 제거
@@ -282,7 +282,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutF
         {
             float x;
             LineStream >> x;
-            OutFStaticMesh.Materials[MaterialIndex].SpecularExponent = x;
+            OutFStaticMesh.Materials[MaterialIndex].Shininess = x;
         }
         if (Token == "Ni")
         {
@@ -750,7 +750,7 @@ bool FObjManager::SaveStaticMeshToBinary(const FWString& FilePath, const FStatic
         File.write(reinterpret_cast<const char*>(&Material.AmbientColor), sizeof(Material.AmbientColor));
         File.write(reinterpret_cast<const char*>(&Material.EmissiveColor), sizeof(Material.EmissiveColor));
         
-        File.write(reinterpret_cast<const char*>(&Material.SpecularExponent), sizeof(Material.SpecularExponent));
+        File.write(reinterpret_cast<const char*>(&Material.Shininess), sizeof(Material.Shininess));
         File.write(reinterpret_cast<const char*>(&Material.IOR), sizeof(Material.IOR));
         File.write(reinterpret_cast<const char*>(&Material.Transparency), sizeof(Material.Transparency));
         File.write(reinterpret_cast<const char*>(&Material.BumpMultiplier), sizeof(Material.BumpMultiplier));
@@ -833,7 +833,7 @@ bool FObjManager::LoadStaticMeshFromBinary(const FWString& FilePath, FStaticMesh
         File.read(reinterpret_cast<char*>(&Material.AmbientColor), sizeof(Material.AmbientColor));
         File.read(reinterpret_cast<char*>(&Material.EmissiveColor), sizeof(Material.EmissiveColor));
         
-        File.read(reinterpret_cast<char*>(&Material.SpecularExponent), sizeof(Material.SpecularExponent));
+        File.read(reinterpret_cast<char*>(&Material.Shininess), sizeof(Material.Shininess));
         File.read(reinterpret_cast<char*>(&Material.IOR), sizeof(Material.IOR));
         File.read(reinterpret_cast<char*>(&Material.Transparency), sizeof(Material.Transparency));
         File.read(reinterpret_cast<char*>(&Material.BumpMultiplier), sizeof(Material.BumpMultiplier));
