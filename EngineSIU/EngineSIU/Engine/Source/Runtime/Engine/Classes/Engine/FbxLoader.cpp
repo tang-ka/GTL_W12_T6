@@ -448,6 +448,10 @@ void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& Out
     for (FbxNode* SkeletonRoot : SkeletonRoots)
     {
         FbxPose* BindPose = FindBindPose(SkeletonRoot);
+        // if (BindPose == nullptr)
+        // {
+        //     Manager->CreateMissingBindPoses(Scene);
+        // }
         
         USkeleton* NewSkeleton = FObjectFactory::ConstructObject<USkeleton>(nullptr);
         OutResult.Skeletons.Add(NewSkeleton);
@@ -638,7 +642,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
                     }
                 
                     // 로컬 트랜스폼 계산: Local = Global * ParentGlobal^-1
-                    LocalMatrix = NodeGlobalMatrix * ParentGlobalMatrix.Inverse();
+                    LocalMatrix = ParentGlobalMatrix.Inverse() * NodeGlobalMatrix ;
                 }
                 else
                 {
@@ -1134,7 +1138,7 @@ void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
     
     // 왼손 좌표계, Z-up, X-forward 좌표계 정의
     // X-forward는 ParityOdd와 함께 설정하여 X축이 앞쪽을 향하게 함
-    FbxAxisSystem TargetAxisSystem(FbxAxisSystem::eZAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eLeftHanded);
+    FbxAxisSystem TargetAxisSystem(FbxAxisSystem::eZAxis, FbxAxisSystem::eParityEven, FbxAxisSystem::eLeftHanded);
     
     // 현재 좌표계와 목표 좌표계가 다른 경우에만 변환
     if (SceneAxisSystem != TargetAxisSystem)

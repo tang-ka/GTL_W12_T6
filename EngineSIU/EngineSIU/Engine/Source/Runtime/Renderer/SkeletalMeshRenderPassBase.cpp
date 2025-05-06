@@ -207,24 +207,25 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
     // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
-    TArray<FMatrix> CurrentBoneMatrices;
-    CurrentBoneMatrices.SetNum(BoneNum);
+    TArray<FMatrix> CurrentGlobalBoneMatrices;
+    CurrentGlobalBoneMatrices.SetNum(BoneNum);
 
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
         // 현재 본의 로컬 변환
-        FTransform CurrentTransform = CurrentPose[BoneIndex]; 
+        FTransform CurrentLocalTransform = CurrentPose[BoneIndex];
+        FMatrix LocalMatrix = CurrentLocalTransform.ToMatrixWithScale(); // FTransform -> FMatrix
         
         // 부모 본의 영향을 적용하여 월드 변환 구성
         int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
         if (ParentIndex != INDEX_NONE)
         {
             // 로컬 변환에 부모 월드 변환 적용
-            CurrentTransform = CurrentTransform * FTransform(CurrentBoneMatrices[ParentIndex]);
+            LocalMatrix = LocalMatrix * CurrentGlobalBoneMatrices[ParentIndex];
         }
         
         // 결과 행렬 저장
-        CurrentBoneMatrices[BoneIndex] = CurrentTransform.ToMatrixWithScale();
+        CurrentGlobalBoneMatrices[BoneIndex] = LocalMatrix;
     }
     
     // 2. 최종 스키닝 행렬 계산 (FBX SDK에서 가져온 역행렬 활용)
@@ -233,7 +234,7 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
-        FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentBoneMatrices[BoneIndex];
+        FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentGlobalBoneMatrices[BoneIndex];
         FinalBoneMatrices[BoneIndex] = FMatrix::Transpose(FinalBoneMatrices[BoneIndex]);
     }
     
