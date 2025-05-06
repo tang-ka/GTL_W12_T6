@@ -66,5 +66,7 @@ PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
     Output.Color = Input.Color;
     Output.UV = Input.UV;
 
+    Output.MaterialIndex = 0;
+
     return Output;
 }
