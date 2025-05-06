@@ -137,7 +137,7 @@ void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<
 
         UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
 
-        UpdateBone(Comp->GetSkeletalMesh());
+        UpdateBone(Comp);
 
         RenderSkeletalMesh(RenderData);
 
@@ -190,24 +190,21 @@ void FSkeletalMeshRenderPassBase::UpdateObjectConstant(const FMatrix& WorldMatri
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
-void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMesh* SkeletalMesh)
+void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* SkeletalMeshComponent)
 {
-    if (!SkeletalMesh || !SkeletalMesh->GetSkeleton())
+    if (!SkeletalMeshComponent ||
+        !SkeletalMeshComponent->GetSkeletalMesh() ||
+        !SkeletalMeshComponent->GetSkeletalMesh()->GetSkeleton())
     {
         return;
     }
 
     // Skeleton 정보 가져오기
+    const USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
     const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
     const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose;
+    const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms;
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
-    
-    // 역행렬이 설정되어 있는지 확인
-    if (RefSkeleton.InverseBindPoseMatrices.Num() != BoneNum)
-    {
-        UE_LOG(ELogLevel::Error, TEXT("역바인드 포즈 행렬이 제대로 설정되지 않았습니다"));
-        return;
-    }
 
     // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
     TArray<FMatrix> CurrentBoneMatrices;
@@ -215,8 +212,8 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMesh* SkeletalMesh)
 
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
-        // 현재 본의 로컬 변환 (여기서는 바인드 포즈 사용, 실제로는 애니메이션 포즈 사용)
-        FTransform CurrentTransform = BindPose[BoneIndex]; 
+        // 현재 본의 로컬 변환
+        FTransform CurrentTransform = CurrentPose[BoneIndex]; 
         
         // 부모 본의 영향을 적용하여 월드 변환 구성
         int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
@@ -236,9 +233,8 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMesh* SkeletalMesh)
     
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
-        // FBX SDK에서 가져온 역바인드 포즈 행렬과 현재 본 행렬 조합
-        // 중요! 이 곱셈 순서가 핵심입니다
-        FinalBoneMatrices[BoneIndex] = CurrentBoneMatrices[BoneIndex] * RefSkeleton.InverseBindPoseMatrices[BoneIndex];
+        FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentBoneMatrices[BoneIndex];
+        FinalBoneMatrices[BoneIndex] = FMatrix::Transpose(FinalBoneMatrices[BoneIndex]);
     }
     
     // Update

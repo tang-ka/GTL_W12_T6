@@ -1,6 +1,7 @@
 
 #include "SkeletalMeshActorTest.h"
 
+#include "Animation/AnimSequence.h"
 #include "Animation/Skeleton.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -22,7 +23,7 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     RootComponent = Root;
 
     MeshComp = AddComponent<USkeletalMeshComponent>(FName("SkeletalMeshComponent_0"));
-    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test1"));
     MeshComp->SetupAttachment(RootComponent);
 
     if (MeshComp->GetSkeletalMesh())
@@ -31,6 +32,8 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
         
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
+            MeshComp->BoneTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+            
             UStaticMeshComponent* Dot = AddComponent<UStaticMeshComponent>();
             Dot->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/SpherePrimitive.obj"));
             DotComponents.Add(Dot);
@@ -57,31 +60,22 @@ void ASkeletalMeshActorTest::Tick(float DeltaTime)
 
     ElapsedTime += DeltaTime;
 
-    if (MeshComp->GetSkeletalMesh())
+    if (MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
-        FReferenceSkeleton NewRefSkeleton = RefSkeleton;
 
-        for (int32 i = 0; i < 4; ++i)
+        int32 Key = static_cast<int32>(ElapsedTime * MeshComp->AnimSequence->FrameRate) % MeshComp->AnimSequence->NumFrames;
+        TMap<int32, FTransform> AnimBoneTransforms = MeshComp->AnimSequence->Anim[Key];
+
+        MeshComp->BoneTransforms = RefSkeleton.RawRefBonePose;
+        for (auto& [BoneIdx, LocalTransform] : AnimBoneTransforms)
         {
-            FRotator Rotation = NewRefSkeleton.RawRefBonePose[i].Rotation.Rotator();
-            NewRefSkeleton.RawRefBonePose[i].Rotation = FRotator(FMath::Sin(ElapsedTime * PI * 1.f) * 15.f, Rotation.Yaw, Rotation.Roll).Quaternion();
+            MeshComp->BoneTransforms[BoneIdx] = LocalTransform * RefSkeleton.RawRefBonePose[BoneIdx];
         }
-        MeshComp->GetSkeletalMesh()->GetSkeleton()->SetReferenceSkeleton(NewRefSkeleton);
         
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
-            int32 ParentIndex = RefSkeleton.RawRefBoneInfo[i].ParentIndex;
-            if (ParentIndex != INDEX_NONE)
-            {
-                DotComponents[i]->AttachToComponent(DotComponents[ParentIndex]);
-            }
-            else
-            {
-                DotComponents[i]->AttachToComponent(RootComponent);
-            }
-            
-            DotComponents[i]->SetRelativeTransform(RefSkeleton.RawRefBonePose[i]);
+            DotComponents[i]->SetRelativeTransform(MeshComp->BoneTransforms[i]);
             DotComponents[i]->SetComponentScale3D(FVector(1.f));
         }
     }

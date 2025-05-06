@@ -49,7 +49,7 @@ protected:
 
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
 
-    void UpdateBone(const USkeletalMesh* SkeletalMesh);
+    void UpdateBone(const USkeletalMeshComponent* SkeletalMeshComponent);
 
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;

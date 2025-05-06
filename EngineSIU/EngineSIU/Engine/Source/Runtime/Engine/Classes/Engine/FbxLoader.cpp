@@ -499,13 +499,18 @@ void FFbxLoader::BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSke
 
 void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex)
 {
+    if (!Node)
+    {
+        return;
+    }
+    
     TArray<FMeshBoneInfo>& RefBoneInfo = OutReferenceSkeleton.RawRefBoneInfo;
     TArray<FTransform>& RefBonePose = OutReferenceSkeleton.RawRefBonePose;
     TMap<FName, int32>& NameToIndexMap = OutReferenceSkeleton.RawNameToIndexMap;
+    TArray<FMatrix>& InverseBindPoseMatrices = OutReferenceSkeleton.InverseBindPoseMatrices;
     
-    // 현재 노드를 뼈대로 처리
     FName BoneName = FName(Node->GetName());
-    int32 CurrentIndex = OutReferenceSkeleton.RawRefBoneInfo.Num();
+    const int32 CurrentIndex = RefBoneInfo.Num();
     NameToIndexMap.Add(BoneName, CurrentIndex);
     
     // 뼈 정보 추가
@@ -515,6 +520,11 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     // 뼈 변환 정보 추가 (FBX 변환 매트릭스를 FTransform으로 변환)
     FTransform BoneTransform = ConvertFbxTransformToFTransform(Node);
     RefBonePose.Add(BoneTransform);
+
+    // 역 바인드 포즈
+    FbxAMatrix GlobalTransform = Node->EvaluateGlobalTransform();
+    FbxAMatrix InverseGlobalTransform = GlobalTransform.Inverse();
+    InverseBindPoseMatrices.Add(ConvertFbxMatrixToFMatrix(InverseGlobalTransform));
     
     // 자식 노드들을 재귀적으로 처리
     for (int i = 0; i < Node->GetChildCount(); i++)
@@ -633,13 +643,6 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* 
 
     std::unique_ptr<FSkeletalMeshRenderData> RenderData = std::make_unique<FSkeletalMeshRenderData>();
     RenderData->DisplayName = Node->GetName();
-
-    TArray<FMatrix> InverseBindPoseMatrices;
-    ExtractBindPoseMatrices(Mesh, Skeleton, InverseBindPoseMatrices);
-    
-    // 추출한 역행렬을 스켈레톤에 설정
-    FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
-    RefSkeleton.InverseBindPoseMatrices = InverseBindPoseMatrices;
     
     const FbxAMatrix LocalTransformMatrix = Node->EvaluateLocalTransform();
 
