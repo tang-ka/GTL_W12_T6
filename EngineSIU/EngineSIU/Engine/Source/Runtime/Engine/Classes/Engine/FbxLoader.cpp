@@ -817,6 +817,8 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes
     std::unique_ptr<FSkeletalMeshRenderData> RenderData = std::make_unique<FSkeletalMeshRenderData>();
     // RenderData->DisplayName = MeshNodes->GetName();
     
+    uint32 RunningIndex = 0;
+
     for (FbxNode* Node : MeshNodes)
     {
         FbxMesh* Mesh = Node->GetMesh();
@@ -890,11 +892,25 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes
             }
         }
 
+        TMap<int32, TArray<uint32>> TempMaterialIndices; //MaterialIndex별 인덱스 배열
+
         int VertexCounter = 0; // 폴리곤 정점 인덱스 (eByPolygonVertex 모드용)
 
         // 폴리곤(삼각형) 순회
         for (int32 i = 0; i < PolygonCount; ++i)
         {
+            int32 MaterialIndex = 0;
+            FbxGeometryElementMaterial* MaterialElement = Mesh->GetElementMaterial();
+            if (MaterialElement)
+            {
+                auto mode = MaterialElement->GetMappingMode();
+                if (mode == FbxGeometryElement::eByPolygon)
+                    MaterialIndex = MaterialElement->GetIndexArray().GetAt(i);
+                else if (mode == FbxGeometryElement::eAllSame)
+                    MaterialIndex = MaterialElement->GetIndexArray().GetAt(0);
+            }
+
+            uint32 PolyIndices[3];
             // 각 폴리곤(삼각형)의 정점 3개 순회
             for (int32 j = 0; j < 3; ++j)
             {
@@ -911,13 +927,15 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes
                 int UVIndex = (UVElement) ? (UVElement->GetMappingMode() == FbxLayerElement::eByPolygonVertex ? Mesh->GetTextureUVIndex(i, j) : ControlPointIndex) : -1;
                 int ColorIndex = (ColorElement) ? (ColorElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
                 
+                uint32 NewIndex;
+
                 // 정점 병합 키 생성
                 FVertexKey Key(ControlPointIndex, NormalIndex, TangentIndex, UVIndex, ColorIndex);
 
                 // 맵에서 키 검색
                 if (const uint32* Found = UniqueVertices.Find(Key))
                 {
-                    RenderData->Indices.Add(*Found);
+                    NewIndex = *Found;
                 }
                 else
                 {
@@ -982,16 +1000,47 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes
                     // 새로운 정점을 Vertices 배열에 추가
                     RenderData->Vertices.Add(NewVertex);
                     // 새 정점의 인덱스 계산
-                    uint32 NewIndex = static_cast<uint32>(RenderData->Vertices.Num() - 1);
-                    // 인덱스 버퍼에 새 인덱스 추가
-                    RenderData->Indices.Add(NewIndex);
+                    NewIndex = static_cast<uint32>(RenderData->Vertices.Num() - 1);
                     // 맵에 새 정점 정보 추가
                     UniqueVertices.Add(Key, NewIndex);
                 }
-
+                // 인덱스 버퍼에 새 인덱스 추가
+                RenderData->Indices.Add(NewIndex);
+                PolyIndices[j] = NewIndex;
                 VertexCounter++; // 다음 폴리곤 정점으로 이동
             } // End for each vertex in polygon
+
+            // 머티리얼별 인덱스 배열에 이 삼각형의 인덱스 3개 추가
+            TempMaterialIndices.FindOrAdd(MaterialIndex).Add(PolyIndices[0]);
+            TempMaterialIndices.FindOrAdd(MaterialIndex).Add(PolyIndices[1]);
+            TempMaterialIndices.FindOrAdd(MaterialIndex).Add(PolyIndices[2]);
         } // End for each polygon
+
+        FbxNode* OwnerNode = Mesh->GetNode();
+
+        for (auto& Pair : TempMaterialIndices)
+        {
+            int32 MatIdx = Pair.Key;
+            const TArray<uint32>& Indices = Pair.Value;
+
+            FMaterialSubset Subset;
+            Subset.MaterialIndex = MatIdx;
+            Subset.IndexStart = RunningIndex;
+            Subset.IndexCount = Indices.Num();
+
+            FString MaterialName;
+            if (OwnerNode && MatIdx < OwnerNode->GetMaterialCount())
+            {
+                FbxSurfaceMaterial* FbxMat = OwnerNode->GetMaterial(MatIdx);
+                if (FbxMat)
+                    MaterialName = FbxMat->GetName();
+            }
+            Subset.MaterialName = MaterialName;
+
+            RenderData->MaterialSubsets.Add(Subset);
+
+            RunningIndex += Indices.Num();
+        }
     }
     
     USkeletalMesh* SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
