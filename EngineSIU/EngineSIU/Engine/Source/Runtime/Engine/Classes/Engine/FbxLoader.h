@@ -40,13 +40,17 @@ private:
     // Begin Skeleton
     void ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult);
 
+    FbxPose* FindBindPose(FbxNode* SkeletonRoot);
+
+    void CollectSkeletonBoneNodes(FbxNode* Node, TArray<FbxNode*>& OutBoneNodes);
+    
     void FindSkeletonRootNodes(FbxNode* Node, TArray<FbxNode*>& OutSkeletonRoots);
 
     bool IsSkeletonRootNode(FbxNode* Node);
 
-    void BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton);
+    void BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton, FbxPose* BindPose);
 
-    void CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex);
+    void CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex, FbxPose* BindPose);
 
     FTransform ConvertFbxTransformToFTransform(FbxNode* Node) const;
     // End Skeleton
@@ -63,6 +67,6 @@ private:
     FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
     // End Mesh
 
-    // 좌표계 변환을 수행하는 헬퍼 메소드
+    // 좌표계 변환 메소드
     void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
 };

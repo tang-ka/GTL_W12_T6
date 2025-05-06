@@ -438,17 +438,88 @@ void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& Out
     // 스켈레톤 계층 구조를 찾기 위한 첫 번째 패스
     TArray<FbxNode*> SkeletonRoots;
     FindSkeletonRootNodes(RootNode, SkeletonRoots);
+
+    if (SkeletonRoots.IsEmpty())
+    {
+        return;
+    }
     
     // 각 스켈레톤 루트 노드에 대해 전체 스켈레톤 생성
     for (FbxNode* SkeletonRoot : SkeletonRoots)
     {
+        FbxPose* BindPose = FindBindPose(SkeletonRoot);
+        
         USkeleton* NewSkeleton = FObjectFactory::ConstructObject<USkeleton>(nullptr);
-        
-        // 스켈레톤 구조 구축
-        BuildSkeletonHierarchy(SkeletonRoot, NewSkeleton);
-        
-        // 결과에 추가
         OutResult.Skeletons.Add(NewSkeleton);
+
+        // 스켈레톤 구조 구축
+        BuildSkeletonHierarchy(SkeletonRoot, NewSkeleton, BindPose);
+    }
+}
+
+FbxPose* FFbxLoader::FindBindPose(FbxNode* SkeletonRoot)
+{
+    if (!Scene || !SkeletonRoot)
+    {
+        return nullptr;
+    }
+
+    // 스켈레톤에 속한 모든 본 노드를 수집
+    TArray<FbxNode*> SkeletonBones;
+    CollectSkeletonBoneNodes(SkeletonRoot, SkeletonBones);
+    
+    const int32 PoseCount = Scene->GetPoseCount();
+    for (int32 PoseIndex = 0; PoseIndex < PoseCount; PoseIndex++)
+    {
+        FbxPose* CurrentPose = Scene->GetPose(PoseIndex);
+        if (!CurrentPose || !CurrentPose->IsBindPose())
+        {
+            continue;
+        }
+            
+        // 이 바인드 포즈가 스켈레톤의 일부 본을 포함하는지 확인
+        bool bPoseContainsSomeBones = false;
+        int32 NodeCount = CurrentPose->GetCount();
+        
+        for (int32 NodeIndex = 0; NodeIndex < NodeCount; NodeIndex++)
+        {
+            FbxNode* Node = CurrentPose->GetNode(NodeIndex);
+            if (SkeletonBones.Contains(Node))
+            {
+                bPoseContainsSomeBones = true;
+                break;
+            }
+        }
+        
+        // 이 스켈레톤에 바인드 포즈가 적어도 하나의 본을 포함하면 반환
+        if (bPoseContainsSomeBones)
+        {
+            return CurrentPose;
+        }
+    }
+    
+    return nullptr; // 해당 스켈레톤에 관련된 바인드 포즈 없음
+}
+
+void FFbxLoader::CollectSkeletonBoneNodes(FbxNode* Node, TArray<FbxNode*>& OutBoneNodes)
+{
+    if (!Node)
+    {
+        return;
+    }
+    
+    // 본 노드인지 확인
+    if (Node->GetNodeAttribute() && 
+        Node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+    {
+        OutBoneNodes.Add(Node);
+    }
+    
+    // 자식 노드들에 대해 재귀적으로 처리
+    for (int32 ChildIndex = 0; ChildIndex < Node->GetChildCount(); ChildIndex++)
+    {
+        FbxNode* ChildNode = Node->GetChild(ChildIndex);
+        CollectSkeletonBoneNodes(ChildNode, OutBoneNodes);
     }
 }
 
@@ -488,16 +559,16 @@ bool FFbxLoader::IsSkeletonRootNode(FbxNode* Node)
     return false;
 }
 
-void FFbxLoader::BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton)
+void FFbxLoader::BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton, FbxPose* BindPose)
 {
     FReferenceSkeleton ReferenceSkeleton;
     
-    CollectBoneData(SkeletonRoot, ReferenceSkeleton, INDEX_NONE);
+    CollectBoneData(SkeletonRoot, ReferenceSkeleton, INDEX_NONE, BindPose);
 
     OutSkeleton->SetReferenceSkeleton(ReferenceSkeleton);
 }
 
-void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex)
+void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex, FbxPose* BindPose)
 {
     if (!Node)
     {
@@ -516,15 +587,109 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     // 뼈 정보 추가
     FMeshBoneInfo BoneInfo(BoneName, ParentIndex);
     RefBoneInfo.Add(BoneInfo);
-    
-    // 뼈 변환 정보 추가 (FBX 변환 매트릭스를 FTransform으로 변환)
-    FTransform BoneTransform = ConvertFbxTransformToFTransform(Node);
-    RefBonePose.Add(BoneTransform);
 
+    // 레퍼런스 포즈
+    FTransform BoneTransform;
+    int32 PoseNodeIndex = INDEX_NONE;
+    if (BindPose)
+    {
+        PoseNodeIndex = BindPose->Find(Node);
+    }
+    if (PoseNodeIndex != INDEX_NONE)
+    {
+        // 현재 노드의 글로벌 바인드 포즈 행렬 가져오기
+        const FbxMatrix& NodeMatrix = BindPose->GetMatrix(PoseNodeIndex);
+        FbxAMatrix NodeGlobalMatrix;
+    
+        // FbxMatrix를 FbxAMatrix로 변환
+        for (int32 r = 0; r < 4; ++r)
+        {
+            for (int32 c = 0; c < 4; ++c)
+            {
+                NodeGlobalMatrix[r][c] = NodeMatrix.Get(r, c);
+            }
+        }
+    
+        // 로컬 트랜스폼 계산
+        FbxAMatrix LocalMatrix;
+    
+        if (ParentIndex != INDEX_NONE)
+        {
+            // 부모 노드 찾기
+            FbxNode* ParentNode = Node->GetParent();
+            if (ParentNode)
+            {
+                // 부모 노드의 바인드 포즈 인덱스 찾기
+                int32 ParentPoseIndex = BindPose->Find(ParentNode);
+            
+                if (ParentPoseIndex != INDEX_NONE)
+                {
+                    // 부모 노드의 글로벌 바인드 포즈 행렬 가져오기
+                    FbxMatrix ParentNodeMatrix = BindPose->GetMatrix(ParentPoseIndex);
+                    FbxAMatrix ParentGlobalMatrix;
+                
+                    // FbxMatrix를 FbxAMatrix로 변환
+                    for (int r = 0; r < 4; ++r)
+                    {
+                        for (int c = 0; c < 4; ++c)
+                        {
+                            ParentGlobalMatrix[r][c] = ParentNodeMatrix.Get(r, c);
+                        }
+                    }
+                
+                    // 로컬 트랜스폼 계산: Local = Global * ParentGlobal^-1
+                    LocalMatrix = NodeGlobalMatrix * ParentGlobalMatrix.Inverse();
+                }
+                else
+                {
+                    // 부모의 바인드 포즈가 없으면 글로벌을 사용
+                    LocalMatrix = NodeGlobalMatrix;
+                }
+            }
+            else
+            {
+                // 부모 노드가 없으면 글로벌 사용
+                LocalMatrix = NodeGlobalMatrix;
+            }
+        }
+        else
+        {
+            // 루트 노드는 글로벌 = 로컬
+            LocalMatrix = NodeGlobalMatrix;
+        }
+    
+        // FbxAMatrix를 FTransform으로 변환
+        BoneTransform = FTransform(ConvertFbxMatrixToFMatrix(LocalMatrix));
+    }
+    else
+    {
+        // 현재 노드 변환 사용
+        BoneTransform = ConvertFbxTransformToFTransform(Node);
+    }
+    RefBonePose.Add(BoneTransform);
+    
     // 역 바인드 포즈
-    FbxAMatrix GlobalTransform = Node->EvaluateGlobalTransform();
-    FbxAMatrix InverseGlobalTransform = GlobalTransform.Inverse();
-    InverseBindPoseMatrices.Add(ConvertFbxMatrixToFMatrix(InverseGlobalTransform));
+    FbxAMatrix GlobalBindPoseMatrix;
+    if (PoseNodeIndex != INDEX_NONE)
+    {
+        FbxMatrix Matrix = BindPose->GetMatrix(PoseNodeIndex);
+
+        // FbxAMatrix로 요소 복사 (직접 캐스팅보다 안전)
+        for (int r = 0; r < 4; ++r)
+        {
+            for (int c = 0; c < 4; ++c)
+            {
+                GlobalBindPoseMatrix[r][c] = Matrix.Get(r, c);
+            }
+        }
+    }
+    else
+    {
+        GlobalBindPoseMatrix.SetIdentity();
+    }
+    FbxAMatrix InverseBindMatrix = GlobalBindPoseMatrix.Inverse();
+    FMatrix InverseBindPoseMatrix = ConvertFbxMatrixToFMatrix(InverseBindMatrix);
+    InverseBindPoseMatrices.Add(InverseBindPoseMatrix);
     
     // 자식 노드들을 재귀적으로 처리
     for (int i = 0; i < Node->GetChildCount(); i++)
@@ -534,7 +699,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
             ChildNode->GetNodeAttribute() &&
             ChildNode->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
         {
-            CollectBoneData(ChildNode, OutReferenceSkeleton, CurrentIndex);
+            CollectBoneData(ChildNode, OutReferenceSkeleton, CurrentIndex, BindPose);
         }
     }
 }
