@@ -114,6 +114,7 @@ struct PS_INPUT_SkeletalMesh
     float3 WorldNormal : TEXCOORD1;
     float4 WorldTangent : TEXCOORD2;
     float3 WorldPosition : TEXCOORD3;
+    nointerpolation uint MaterialIndex : MATERIAL_INDEX;
 };
 
 ////////

@@ -40,11 +40,8 @@ void UEditorEngine::Init()
         assert(AssetManager);
         AssetManager->InitAssetManager();
     }
+    // TODO: 필요할 때 활성화 하기
     // LoadLevel("Saved/AutoSaves.scene");
-
-#ifdef _DEBUG
-    AActor* SKActor = EditorWorld->SpawnActor<ASkeletalMeshActorTest>();
-#endif
 }
 
 void UEditorEngine::Release()

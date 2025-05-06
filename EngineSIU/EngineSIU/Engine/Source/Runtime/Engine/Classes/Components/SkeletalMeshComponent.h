@@ -13,12 +13,12 @@ public:
     virtual ~USkeletalMeshComponent() override;
 
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
-    void SetSkeletalMesh(USkeletalMesh* InSkeletalMesh) { SkeletalMesh = InSkeletalMesh; }
+    void SetSkeletalMesh(USkeletalMesh* InSkeletalMesh);
 
-    UAnimSequence* AnimSequence;
+    UAnimSequence* AnimSequence = nullptr;
 
     TArray<FTransform> BoneTransforms;
     
 private:
-    USkeletalMesh* SkeletalMesh;
+    USkeletalMesh* SkeletalMesh = nullptr;
 };

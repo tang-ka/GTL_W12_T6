@@ -26,14 +26,13 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
     MeshComp->SetupAttachment(RootComponent);
 
+    /*
     if (MeshComp->GetSkeletalMesh())
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
         
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
-            MeshComp->BoneTransforms.Add(RefSkeleton.RawRefBonePose[i]);
-            
             UStaticMeshComponent* Dot = AddComponent<UStaticMeshComponent>();
             Dot->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/SpherePrimitive.obj"));
             DotComponents.Add(Dot);
@@ -52,6 +51,7 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
             Dot->SetComponentScale3D(FVector(1.f));
         }
     }
+    */
 }
 
 void ASkeletalMeshActorTest::Tick(float DeltaTime)
@@ -60,7 +60,7 @@ void ASkeletalMeshActorTest::Tick(float DeltaTime)
 
     ElapsedTime += DeltaTime;
 
-    if ( MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
+    if (false && MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
 
@@ -72,11 +72,13 @@ void ASkeletalMeshActorTest::Tick(float DeltaTime)
         {
             MeshComp->BoneTransforms[BoneIdx] = LocalTransform * RefSkeleton.RawRefBonePose[BoneIdx];
         }
-        
+
+        /*
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
             DotComponents[i]->SetRelativeTransform(MeshComp->BoneTransforms[i]);
             DotComponents[i]->SetComponentScale3D(FVector(1.f));
         }
+        */
     }
 }

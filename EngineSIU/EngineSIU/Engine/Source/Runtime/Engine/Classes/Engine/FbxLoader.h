@@ -30,6 +30,10 @@ private:
     FbxImporter* Importer;
     FbxScene* Scene;
 
+    FWString FilePath;
+    FWString ObjectName;
+    FString DisplayName;
+
     // Begin Material
     void ProcessMaterials(FFbxLoadResult& OutResult);
 
@@ -61,7 +65,7 @@ private:
 
     void CollectMeshNodes(FbxNode* Node, const TArray<USkeleton*>& Skeletons, TMap<USkeleton*, TArray<FbxNode*>>& OutSkeletalMeshNodes , TArray<FbxNode*>& OutStaticMeshNodes);
 
-    USkeletalMesh* CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes, USkeleton* Skeleton);
+    USkeletalMesh* CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes, USkeleton* Skeleton, int32 GlobalMeshIdx);
 
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
 
