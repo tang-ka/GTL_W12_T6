@@ -1,9 +1,10 @@
-﻿#include "UnrealEd.h"
+#include "UnrealEd.h"
 #include "EditorPanel.h"
 
 #include "PropertyEditor/ControlEditorPanel.h"
 #include "PropertyEditor/OutlinerEditorPanel.h"
 #include "PropertyEditor/PropertyEditorPanel.h"
+#include "PropertyEditor/BoneHierarchyViewerPanel.h"
 
 void UnrealEd::Initialize()
 {
@@ -15,6 +16,10 @@ void UnrealEd::Initialize()
     
     auto PropertyPanel = std::make_shared<PropertyEditorPanel>();
     Panels["PropertyPanel"] = PropertyPanel;
+
+    // TODO : SkeletalViewe 전용 UI 분리
+    auto BoneHierarchyPanel = std::make_shared<BoneHierarchyViewerPanel>();
+    Panels["BoneHierarchyPaenl"] = BoneHierarchyPanel;
 }
 
 void UnrealEd::Render() const
