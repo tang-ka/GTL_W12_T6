@@ -18,5 +18,5 @@ public:
 
     int32 FrameRate = 30;
 
-    int32 NumFrames = 60;
+    int32 NumFrames = 240;
 };

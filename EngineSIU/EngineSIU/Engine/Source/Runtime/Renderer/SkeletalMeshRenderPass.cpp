@@ -9,7 +9,7 @@ void FSkeletalMeshRenderPass::CreateResource()
 {
     FSkeletalMeshRenderPassBase::CreateResource();
 
-    HRESULT hr = ShaderManager->AddPixelShader(L"SkeletalMeshPixelShader", L"Shaders/SkeletalMeshPixelShader.hlsl", "mainPS");
+    HRESULT hr = ShaderManager->AddPixelShader(L"SkeletalMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS");
     if (FAILED(hr))
     {
         return;
@@ -42,6 +42,21 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
     Graphics->DeviceContext->VSSetShaderResources(0, 1, &BoneSRV);
+
+    TArray<FString> PSBufferKeys = {
+        TEXT("FLightInfoBuffer"),
+        TEXT("FMaterialConstants"),
+        TEXT("FLitUnlitConstants"),
+        TEXT("FSubMeshConstants"),
+        TEXT("FTextureConstants"),
+    };
+
+    BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffer(TEXT("FDiffuseMultiplier"), 6, EShaderStage::Pixel);
+
+    BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
 }
 
 void FSkeletalMeshRenderPass::CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
