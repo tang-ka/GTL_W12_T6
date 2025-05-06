@@ -51,7 +51,7 @@ FTransform::FTransform(const FMatrix& InMatrix)
 
 FVector FTransform::TransformDirection(const FVector& V) const
 {
-    // 방향 벡터는 이동(Translation)의 영향을 받지 않고 회전과 크기 조정만 영향받음
+    // 방향 벡터는 이동(Translation)과 스케일(Scale)의 영향을 받지 않고 회전만 변환.
     return Rotation.RotateVector(V);
 }
 

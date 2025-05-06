@@ -4,6 +4,7 @@
 
 #include "HAL/PlatformType.h"
 #include "Container/Array.h"
+#include "Container/Map.h"
 
 struct FObjMaterialInfo;
 struct FReferenceSkeleton;
@@ -56,9 +57,11 @@ private:
     // End Skeleton
     
     // Begin Mesh
-    void ProcessMeshesWithSkeletons(FbxNode* Node, FFbxLoadResult& OutResult);
+    void ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult);
 
-    USkeletalMesh* CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* Skeleton);
+    void CollectMeshNodes(FbxNode* Node, const TArray<USkeleton*>& Skeletons, TMap<USkeleton*, TArray<FbxNode*>>& OutSkeletalMeshNodes , TArray<FbxNode*>& OutStaticMeshNodes);
+
+    USkeletalMesh* CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes, USkeleton* Skeleton);
 
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
 

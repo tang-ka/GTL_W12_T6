@@ -23,7 +23,7 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     RootComponent = Root;
 
     MeshComp = AddComponent<USkeletalMeshComponent>(FName("SkeletalMeshComponent_0"));
-    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test1"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
     MeshComp->SetupAttachment(RootComponent);
 
     if (MeshComp->GetSkeletalMesh())

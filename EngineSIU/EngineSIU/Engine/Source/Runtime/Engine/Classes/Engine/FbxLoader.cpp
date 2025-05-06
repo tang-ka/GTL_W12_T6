@@ -290,7 +290,7 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
 
     ProcessSkeletonHierarchy(RootNode, Result);
 
-    ProcessMeshesWithSkeletons(RootNode, Result);
+    ProcessMeshes(RootNode, Result);
     
     return Result;
 }
@@ -636,8 +636,8 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
                         }
                     }
                 
-                    // 로컬 트랜스폼 계산: Local = Global * ParentGlobal^-1
-                    LocalMatrix = NodeGlobalMatrix * ParentGlobalMatrix.Inverse();
+                    // 로컬 트랜스폼 계산: Local = ParentGlobal^-1 * Global (FBX SDK는 열 우선)
+                    LocalMatrix = ParentGlobalMatrix.Inverse() * NodeGlobalMatrix;
                 }
                 else
                 {
@@ -666,7 +666,6 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
         BoneTransform = ConvertFbxTransformToFTransform(Node);
     }
     RefBonePose.Add(BoneTransform);
-    //RefBonePose.Add(ConvertFbxTransformToFTransform(Node));
     
     // 역 바인드 포즈
     FbxAMatrix GlobalBindPoseMatrix;
@@ -690,7 +689,6 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     FbxAMatrix InverseBindMatrix = GlobalBindPoseMatrix.Inverse();
     FMatrix InverseBindPoseMatrix = ConvertFbxMatrixToFMatrix(InverseBindMatrix);
     InverseBindPoseMatrices.Add(InverseBindPoseMatrix);
-    //InverseBindPoseMatrices.Add(ConvertFbxMatrixToFMatrix(Node->EvaluateGlobalTransform().Inverse()));
     
     // 자식 노드들을 재귀적으로 처리
     for (int i = 0; i < Node->GetChildCount(); i++)
@@ -738,7 +736,28 @@ FTransform FFbxLoader::ConvertFbxTransformToFTransform(FbxNode* Node) const
     return FTransform(Rotation, Translation, Scale);
 }
 
-void FFbxLoader::ProcessMeshesWithSkeletons(FbxNode* Node, FFbxLoadResult& OutResult)
+void FFbxLoader::ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult)
+{
+    TMap<USkeleton*, TArray<FbxNode*>> SkeletalMeshNodes;
+    TArray<FbxNode*> StaticMeshNodes;
+    CollectMeshNodes(Node, OutResult.Skeletons, SkeletalMeshNodes, StaticMeshNodes);
+
+    for (auto& [Skeleton, MeshNodes] : SkeletalMeshNodes)
+    {
+        if (USkeletalMesh* SkeletalMesh = CreateSkeletalMeshFromNode(MeshNodes, Skeleton))
+        {
+            SkeletalMesh->SetSkeleton(Skeleton);
+            OutResult.SkeletalMeshes.Add(SkeletalMesh);
+        }
+    }
+
+    for (FbxNode* MeshNodes : StaticMeshNodes)
+    {
+        
+    }
+}
+
+void FFbxLoader::CollectMeshNodes(FbxNode* Node, const TArray<USkeleton*>& Skeletons, TMap<USkeleton*, TArray<FbxNode*>>& OutSkeletalMeshNodes, TArray<FbxNode*>& OutStaticMeshNodes)
 {
     if (Node && Node->GetNodeAttribute() && 
         Node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh)
@@ -760,217 +779,219 @@ void FFbxLoader::ProcessMeshesWithSkeletons(FbxNode* Node, FFbxLoadResult& OutRe
                 break;
             }
         }
-        
+
+        USkeleton* AssociatedSkeleton = nullptr;
         if (bHasSkin)
         {
             // 이 메시와 연결된 스켈레톤 찾기
-            USkeleton* AssociatedSkeleton = FindAssociatedSkeleton(Node, OutResult.Skeletons);
-            
-            if (AssociatedSkeleton)
-            {
-                // 스켈레탈 메시 생성 (스켈레톤 정보 전달)
-                USkeletalMesh* SkeletalMesh = CreateSkeletalMeshFromNode(Node, AssociatedSkeleton);
-                if (SkeletalMesh)
-                {
-                    SkeletalMesh->SetSkeleton(AssociatedSkeleton);
-                    OutResult.SkeletalMeshes.Add(SkeletalMesh);
-                }
-            }
+            AssociatedSkeleton = FindAssociatedSkeleton(Node, Skeletons);
+        }
+        
+        if (AssociatedSkeleton)
+        {
+            // 스켈레탈 메시
+            OutSkeletalMeshNodes.FindOrAdd(AssociatedSkeleton).Add(Node);
         }
         else
         {
-            // 스태틱 메시 처리 (기존 TraverseNodeForMesh 함수로 처리)
-            // 여기서는 생략
+            // 스태틱 메시
+            OutStaticMeshNodes.Add(Node);
         }
     }
     
     // 자식 노드 재귀 처리
     for (int i = 0; i < Node->GetChildCount(); i++)
     {
-        ProcessMeshesWithSkeletons(Node->GetChild(i), OutResult);
+        CollectMeshNodes(Node->GetChild(i), Skeletons, OutSkeletalMeshNodes, OutStaticMeshNodes);
     }
 }
 
-USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* Skeleton)
+USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes, USkeleton* Skeleton)
 {
-    FbxMesh* Mesh = Node->GetMesh();
-    if (!Mesh)
+    if (MeshNodes.IsEmpty())
     {
-        return nullptr;
-    }
-
-    // 레이어 요소 가져오기 (UV, Normal, Tangent, Color 등은 레이어에 저장됨)
-    // 보통 Layer 0을 사용
-    FbxLayer* BaseLayer = Mesh->GetLayer(0);
-    if (!BaseLayer)
-    {
-        OutputDebugStringA("Error: Mesh has no Layer 0.\n");
         return nullptr;
     }
 
     std::unique_ptr<FSkeletalMeshRenderData> RenderData = std::make_unique<FSkeletalMeshRenderData>();
-    RenderData->DisplayName = Node->GetName();
+    // RenderData->DisplayName = MeshNodes->GetName();
     
-    const FbxAMatrix LocalTransformMatrix = Node->EvaluateLocalTransform();
-
-    // 정점 데이터 추출 및 병합
-    const int32 PolygonCount = Mesh->GetPolygonCount(); // 삼각형 개수 (Triangulate 후)
-    const FbxVector4* ControlPoints = Mesh->GetControlPoints(); // 제어점 (정점 위치) 배열
-    const int32 ControlPointsCount = Mesh->GetControlPointsCount();
-
-    // 정점 병합을 위한 맵
-    TMap<FVertexKey, uint32> UniqueVertices;
-    RenderData->Vertices.Reserve(ControlPointsCount); // 대략적인 크기 예약 (정확하지 않음)
-    RenderData->Indices.Reserve(PolygonCount * 3);
-
-    const FbxLayerElementNormal* NormalElement = BaseLayer->GetNormals();
-    const FbxLayerElementTangent* TangentElement = BaseLayer->GetTangents();
-    const FbxLayerElementUV* UVElement = BaseLayer->GetUVs();
-    const FbxLayerElementVertexColor* ColorElement = BaseLayer->GetVertexColors();
-
-    // 컨트롤 포인트별 본·스킨 가중치 맵
-    TMap<int32, TArray<TPair<int32, double>>> SkinWeightMap;
-    for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++DeformerIdx)
+    for (FbxNode* Node : MeshNodes)
     {
-        FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIdx, FbxDeformer::eSkin));
-        for (int32 ClusterIdx = 0; ClusterIdx < Skin->GetClusterCount(); ++ClusterIdx)
+        FbxMesh* Mesh = Node->GetMesh();
+        if (!Mesh)
         {
-            FbxCluster* Cluster = Skin->GetCluster(ClusterIdx);
-            FbxNode* LinkNode = Cluster->GetLink();
-            if (!LinkNode)
-            {
-                continue;
-            }
-            
-            int32 BoneIndex = -1;
-            if (Skeleton)
-            {
-                BoneIndex = Skeleton->FindBoneIndex(LinkNode->GetName());
-            }
-            if (BoneIndex < 0)
-            {
-                continue;
-            }
-            
-            int ControlPointCount = Cluster->GetControlPointIndicesCount();
-            auto* ControlPointIndices = Cluster->GetControlPointIndices();
-            auto* ControlPointWeights = Cluster->GetControlPointWeights();
+            continue;
+        }
         
-            for (int ControlPointIdx = 0; ControlPointIdx < ControlPointCount; ++ControlPointIdx)
+        // 레이어 요소 가져오기 (UV, Normal, Tangent, Color 등은 레이어에 저장됨)
+        // 보통 Layer 0을 사용
+        FbxLayer* BaseLayer = Mesh->GetLayer(0);
+        if (!BaseLayer)
+        {
+            OutputDebugStringA("Error: Mesh has no Layer 0.\n");
+            return nullptr;
+        }
+        
+        const FbxAMatrix LocalTransformMatrix = Node->EvaluateLocalTransform();
+
+        // 정점 데이터 추출 및 병합
+        const int32 PolygonCount = Mesh->GetPolygonCount(); // 삼각형 개수 (Triangulate 후)
+        const FbxVector4* ControlPoints = Mesh->GetControlPoints(); // 제어점 (정점 위치) 배열
+        const int32 ControlPointsCount = Mesh->GetControlPointsCount();
+
+        // 정점 병합을 위한 맵
+        TMap<FVertexKey, uint32> UniqueVertices;
+
+        const FbxLayerElementNormal* NormalElement = BaseLayer->GetNormals();
+        const FbxLayerElementTangent* TangentElement = BaseLayer->GetTangents();
+        const FbxLayerElementUV* UVElement = BaseLayer->GetUVs();
+        const FbxLayerElementVertexColor* ColorElement = BaseLayer->GetVertexColors();
+
+        // 컨트롤 포인트별 본·스킨 가중치 맵
+        TMap<int32, TArray<TPair<int32, double>>> SkinWeightMap;
+        for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++DeformerIdx)
+        {
+            FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIdx, FbxDeformer::eSkin));
+            for (int32 ClusterIdx = 0; ClusterIdx < Skin->GetClusterCount(); ++ClusterIdx)
             {
-                int32 ControlPoint = ControlPointIndices[ControlPointIdx];
-                double Weight = ControlPointWeights[ControlPointIdx];
-            
-                if (Weight > 0.0)
+                FbxCluster* Cluster = Skin->GetCluster(ClusterIdx);
+                FbxNode* LinkNode = Cluster->GetLink();
+                if (!LinkNode)
                 {
-                    SkinWeightMap.FindOrAdd(ControlPoint).Add(TPair(BoneIndex, Weight));
+                    continue;
+                }
+                
+                int32 BoneIndex = -1;
+                if (Skeleton)
+                {
+                    BoneIndex = Skeleton->FindBoneIndex(LinkNode->GetName());
+                }
+                if (BoneIndex < 0)
+                {
+                    continue;
+                }
+                
+                int ControlPointCount = Cluster->GetControlPointIndicesCount();
+                auto* ControlPointIndices = Cluster->GetControlPointIndices();
+                auto* ControlPointWeights = Cluster->GetControlPointWeights();
+            
+                for (int ControlPointIdx = 0; ControlPointIdx < ControlPointCount; ++ControlPointIdx)
+                {
+                    int32 ControlPoint = ControlPointIndices[ControlPointIdx];
+                    double Weight = ControlPointWeights[ControlPointIdx];
+                
+                    if (Weight > 0.0)
+                    {
+                        SkinWeightMap.FindOrAdd(ControlPoint).Add(TPair(BoneIndex, Weight));
+                    }
                 }
             }
         }
-    }
 
-    int VertexCounter = 0; // 폴리곤 정점 인덱스 (eByPolygonVertex 모드용)
+        int VertexCounter = 0; // 폴리곤 정점 인덱스 (eByPolygonVertex 모드용)
 
-    // 폴리곤(삼각형) 순회
-    for (int32 i = 0; i < PolygonCount; ++i)
-    {
-        // 각 폴리곤(삼각형)의 정점 3개 순회
-        for (int32 j = 0; j < 3; ++j)
+        // 폴리곤(삼각형) 순회
+        for (int32 i = 0; i < PolygonCount; ++i)
         {
-            const int32 ControlPointIndex = Mesh->GetPolygonVertex(i, j);
-
-            FbxVector4 Position = ControlPoints[ControlPointIndex];
-            FbxVector4 Normal;
-            FbxVector4 Tangent;
-            FbxVector2 UV;
-            FbxColor Color;
-            
-            int NormalIndex = (NormalElement) ? (NormalElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
-            int TangentIndex = (TangentElement) ? (TangentElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
-            int UVIndex = (UVElement) ? (UVElement->GetMappingMode() == FbxLayerElement::eByPolygonVertex ? Mesh->GetTextureUVIndex(i, j) : ControlPointIndex) : -1;
-            int ColorIndex = (ColorElement) ? (ColorElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
-            
-            // 정점 병합 키 생성
-            FVertexKey Key(ControlPointIndex, NormalIndex, TangentIndex, UVIndex, ColorIndex);
-
-            // 맵에서 키 검색
-            if (const uint32* Found = UniqueVertices.Find(Key))
+            // 각 폴리곤(삼각형)의 정점 3개 순회
+            for (int32 j = 0; j < 3; ++j)
             {
-                RenderData->Indices.Add(*Found);
-            }
-            else
-            {
-                FSkeletalMeshVertex NewVertex;
+                const int32 ControlPointIndex = Mesh->GetPolygonVertex(i, j);
 
-                // Position
-                if (ControlPointIndex < ControlPointsCount)
-                {
-                    Position = LocalTransformMatrix.MultT(Position);
-                    SetVertexPosition(NewVertex, Position);
-                }
-
-                // Normal
-                if (NormalElement && GetVertexElementData(NormalElement, ControlPointIndex, VertexCounter, Normal))
-                {
-                    Normal = LocalTransformMatrix.Inverse().Transpose().MultT(Normal);
-                    SetVertexNormal(NewVertex, Normal);
-                }
-
-                // Tangent
-                if (TangentElement && GetVertexElementData(TangentElement, ControlPointIndex, VertexCounter, Tangent))
-                {
-                     SetVertexTangent(NewVertex, Tangent);
-                }
-
-                // UV
-                if(UVElement && GetVertexElementData(UVElement, ControlPointIndex, VertexCounter, UV))
-                {
-                    SetVertexUV(NewVertex, UV);
-                }
-
-                // Vertex Color
-                if (ColorElement && GetVertexElementData(ColorElement, ControlPointIndex, VertexCounter, Color))
-                {
-                     SetVertexColor(NewVertex, Color);
-                }
-
-                // 본 데이터 설정
-                auto& InfluenceList = SkinWeightMap[ControlPointIndex];
-                std::sort(InfluenceList.begin(), InfluenceList.end(),
-                    [](auto const& A, auto const& B)
-                    {
-                        return A.Value > B.Value; // Weight 기준 내림차순 정렬
-                    }
-                );
+                FbxVector4 Position = ControlPoints[ControlPointIndex];
+                FbxVector4 Normal;
+                FbxVector4 Tangent;
+                FbxVector2 UV;
+                FbxColor Color;
                 
-                double TotalWeight = 0.0;
-                for (int32 BoneIdx = 0; BoneIdx < 4 && BoneIdx < InfluenceList.Num(); ++BoneIdx)
+                int NormalIndex = (NormalElement) ? (NormalElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
+                int TangentIndex = (TangentElement) ? (TangentElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
+                int UVIndex = (UVElement) ? (UVElement->GetMappingMode() == FbxLayerElement::eByPolygonVertex ? Mesh->GetTextureUVIndex(i, j) : ControlPointIndex) : -1;
+                int ColorIndex = (ColorElement) ? (ColorElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
+                
+                // 정점 병합 키 생성
+                FVertexKey Key(ControlPointIndex, NormalIndex, TangentIndex, UVIndex, ColorIndex);
+
+                // 맵에서 키 검색
+                if (const uint32* Found = UniqueVertices.Find(Key))
                 {
-                    NewVertex.BoneIndices[BoneIdx] = InfluenceList[BoneIdx].Key;
-                    NewVertex.BoneWeights[BoneIdx] = static_cast<float>(InfluenceList[BoneIdx].Value);
-                    TotalWeight += InfluenceList[BoneIdx].Value;
+                    RenderData->Indices.Add(*Found);
                 }
-                if (TotalWeight > 0.0)
+                else
                 {
-                    for (int BoneIdx = 0; BoneIdx < 4; ++BoneIdx)
+                    FSkeletalMeshVertex NewVertex;
+
+                    // Position
+                    if (ControlPointIndex < ControlPointsCount)
                     {
-                        NewVertex.BoneWeights[BoneIdx] /= static_cast<float>(TotalWeight);
+                        Position = LocalTransformMatrix.MultT(Position);
+                        SetVertexPosition(NewVertex, Position);
                     }
+
+                    // Normal
+                    if (NormalElement && GetVertexElementData(NormalElement, ControlPointIndex, VertexCounter, Normal))
+                    {
+                        Normal = LocalTransformMatrix.Inverse().Transpose().MultT(Normal);
+                        SetVertexNormal(NewVertex, Normal);
+                    }
+
+                    // Tangent
+                    if (TangentElement && GetVertexElementData(TangentElement, ControlPointIndex, VertexCounter, Tangent))
+                    {
+                         SetVertexTangent(NewVertex, Tangent);
+                    }
+
+                    // UV
+                    if(UVElement && GetVertexElementData(UVElement, ControlPointIndex, VertexCounter, UV))
+                    {
+                        SetVertexUV(NewVertex, UV);
+                    }
+
+                    // Vertex Color
+                    if (ColorElement && GetVertexElementData(ColorElement, ControlPointIndex, VertexCounter, Color))
+                    {
+                         SetVertexColor(NewVertex, Color);
+                    }
+
+                    // 본 데이터 설정
+                    auto& InfluenceList = SkinWeightMap[ControlPointIndex];
+                    std::sort(InfluenceList.begin(), InfluenceList.end(),
+                        [](auto const& A, auto const& B)
+                        {
+                            return A.Value > B.Value; // Weight 기준 내림차순 정렬
+                        }
+                    );
+                    
+                    double TotalWeight = 0.0;
+                    for (int32 BoneIdx = 0; BoneIdx < 4 && BoneIdx < InfluenceList.Num(); ++BoneIdx)
+                    {
+                        NewVertex.BoneIndices[BoneIdx] = InfluenceList[BoneIdx].Key;
+                        NewVertex.BoneWeights[BoneIdx] = static_cast<float>(InfluenceList[BoneIdx].Value);
+                        TotalWeight += InfluenceList[BoneIdx].Value;
+                    }
+                    if (TotalWeight > 0.0)
+                    {
+                        for (int BoneIdx = 0; BoneIdx < 4; ++BoneIdx)
+                        {
+                            NewVertex.BoneWeights[BoneIdx] /= static_cast<float>(TotalWeight);
+                        }
+                    }
+
+                    // 새로운 정점을 Vertices 배열에 추가
+                    RenderData->Vertices.Add(NewVertex);
+                    // 새 정점의 인덱스 계산
+                    uint32 NewIndex = static_cast<uint32>(RenderData->Vertices.Num() - 1);
+                    // 인덱스 버퍼에 새 인덱스 추가
+                    RenderData->Indices.Add(NewIndex);
+                    // 맵에 새 정점 정보 추가
+                    UniqueVertices.Add(Key, NewIndex);
                 }
 
-                // 새로운 정점을 Vertices 배열에 추가
-                RenderData->Vertices.Add(NewVertex);
-                // 새 정점의 인덱스 계산
-                uint32 NewIndex = static_cast<uint32>(RenderData->Vertices.Num() - 1);
-                // 인덱스 버퍼에 새 인덱스 추가
-                RenderData->Indices.Add(NewIndex);
-                // 맵에 새 정점 정보 추가
-                UniqueVertices.Add(Key, NewIndex);
-            }
-
-            VertexCounter++; // 다음 폴리곤 정점으로 이동
-        } // End for each vertex in polygon
-    } // End for each polygon
+                VertexCounter++; // 다음 폴리곤 정점으로 이동
+            } // End for each vertex in polygon
+        } // End for each polygon
+    }
     
     USkeletalMesh* SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
     SkeletalMesh->SetRenderData(std::move(RenderData));
