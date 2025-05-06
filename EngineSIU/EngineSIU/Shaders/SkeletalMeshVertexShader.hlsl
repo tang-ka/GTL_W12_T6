@@ -53,7 +53,7 @@ PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
     Output.Position = mul(Output.Position, ViewMatrix);
     Output.Position = mul(Output.Position, ProjectionMatrix);
     
-    Output.WorldNormal = mul(SkinnedNormal, (float3x3)InverseTransposedWorld);
+    Output.WorldNormal = mul(normalize(SkinnedNormal), (float3x3)InverseTransposedWorld);
 
     // Begin Tangent
     float3 WorldTangent = mul(Input.Tangent.xyz, (float3x3)WorldMatrix);

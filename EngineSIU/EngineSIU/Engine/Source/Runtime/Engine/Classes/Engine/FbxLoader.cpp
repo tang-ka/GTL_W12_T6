@@ -600,7 +600,6 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
         // 현재 노드의 글로벌 바인드 포즈 행렬 가져오기
         const FbxMatrix& NodeMatrix = BindPose->GetMatrix(PoseNodeIndex);
         FbxAMatrix NodeGlobalMatrix;
-    
         // FbxMatrix를 FbxAMatrix로 변환
         for (int32 r = 0; r < 4; ++r)
         {
@@ -642,14 +641,14 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
                 }
                 else
                 {
-                    // 부모의 바인드 포즈가 없으면 글로벌을 사용
-                    LocalMatrix = NodeGlobalMatrix;
+                    // 부모의 바인드 포즈가 없으면 현재 노드의 로컬 트랜스폼 사용
+                    LocalMatrix = Node->EvaluateLocalTransform();
                 }
             }
             else
             {
-                // 부모 노드가 없으면 글로벌 사용
-                LocalMatrix = NodeGlobalMatrix;
+                // 부모 노드가 없으면 현재 노드의 로컬 트랜스폼 사용
+                LocalMatrix = Node->EvaluateLocalTransform();
             }
         }
         else
@@ -667,6 +666,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
         BoneTransform = ConvertFbxTransformToFTransform(Node);
     }
     RefBonePose.Add(BoneTransform);
+    //RefBonePose.Add(ConvertFbxTransformToFTransform(Node));
     
     // 역 바인드 포즈
     FbxAMatrix GlobalBindPoseMatrix;
@@ -690,6 +690,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     FbxAMatrix InverseBindMatrix = GlobalBindPoseMatrix.Inverse();
     FMatrix InverseBindPoseMatrix = ConvertFbxMatrixToFMatrix(InverseBindMatrix);
     InverseBindPoseMatrices.Add(InverseBindPoseMatrix);
+    //InverseBindPoseMatrices.Add(ConvertFbxMatrixToFMatrix(Node->EvaluateGlobalTransform().Inverse()));
     
     // 자식 노드들을 재귀적으로 처리
     for (int i = 0; i < Node->GetChildCount(); i++)
@@ -732,6 +733,7 @@ FTransform FFbxLoader::ConvertFbxTransformToFTransform(FbxNode* Node) const
         static_cast<float>(Q[2]),
         static_cast<float>(Q[3])
     );
+    Rotation.Normalize();
     
     return FTransform(Rotation, Translation, Scale);
 }
@@ -1119,7 +1121,6 @@ FMatrix FFbxLoader::ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const
         }
     }
     return Result;
-
 }
 
 void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)

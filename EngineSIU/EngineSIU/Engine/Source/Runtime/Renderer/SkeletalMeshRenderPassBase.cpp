@@ -202,12 +202,13 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     // Skeleton 정보 가져오기
     const USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
     const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
-    const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose;
-    const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms;
+    const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose; // 로컬
+    const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms; // 로컬
+    const TArray<FMatrix>& InverseBindPoseMatrices = RefSkeleton.InverseBindPoseMatrices; // 글로벌
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
     // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
-    TArray<FMatrix> CurrentBoneMatrices;
+    TArray<FMatrix> CurrentBoneMatrices; // 글로벌
     CurrentBoneMatrices.SetNum(BoneNum);
 
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
@@ -233,7 +234,7 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
-        FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentBoneMatrices[BoneIndex];
+        FinalBoneMatrices[BoneIndex] = CurrentBoneMatrices[BoneIndex] * InverseBindPoseMatrices[BoneIndex];
         FinalBoneMatrices[BoneIndex] = FMatrix::Transpose(FinalBoneMatrices[BoneIndex]);
     }
     
