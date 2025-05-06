@@ -5,6 +5,7 @@
 #include "HAL/PlatformType.h"
 #include "Container/Array.h"
 
+struct FObjMaterialInfo;
 struct FReferenceSkeleton;
 struct FTransform;
 struct FMeshBoneInfo;
@@ -27,6 +28,14 @@ private:
     FbxManager* Manager;
     FbxImporter* Importer;
     FbxScene* Scene;
+
+    // Begin Material
+    void ProcessMaterials(FFbxLoadResult& OutResult);
+
+    FObjMaterialInfo ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial);
+
+    void ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObjMaterialInfo& OutMaterialInfo);
+    // End Material
 
     // Begin Skeleton
     void ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult);

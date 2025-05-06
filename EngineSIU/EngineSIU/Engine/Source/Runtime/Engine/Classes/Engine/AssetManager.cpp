@@ -145,9 +145,10 @@ void UAssetManager::LoadContentFiles()
             for (int32 i = 0; i < Result.Skeletons.Num(); ++i)
             {
                 USkeleton* Skeleton = Result.Skeletons[i];
+                FString BaseAssetName = FileNameWithoutExt + "_Skeleton";
                 
                 FAssetInfo Info = AssetInfo;
-                Info.AssetName = i > 0 ? FName(FileNameWithoutExt + FString::FromInt(i)) : FName(FileNameWithoutExt);
+                Info.AssetName = i > 0 ? FName(BaseAssetName + FString::FromInt(i)) : FName(BaseAssetName);
                 Info.AssetType = EAssetType::Skeleton;
                 AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 
@@ -157,9 +158,10 @@ void UAssetManager::LoadContentFiles()
             for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
             {
                 USkeletalMesh* SkeletalMesh = Result.SkeletalMeshes[i];
+                FString BaseAssetName = FileNameWithoutExt;
                 
                 FAssetInfo Info = AssetInfo;
-                Info.AssetName = i > 0 ? FName(FileNameWithoutExt + FString::FromInt(i)) : FName(FileNameWithoutExt);
+                Info.AssetName = i > 0 ? FName(BaseAssetName + FString::FromInt(i)) : FName(BaseAssetName);
                 Info.AssetType = EAssetType::SkeletalMesh;
                 AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 
@@ -169,9 +171,10 @@ void UAssetManager::LoadContentFiles()
             for (int32 i = 0; i < Result.Materials.Num(); ++i)
             {
                 UMaterial* Material = Result.Materials[i];
+                FString BaseAssetName = Material->GetName();
                 
                 FAssetInfo Info = AssetInfo;
-                Info.AssetName = i > 0 ? FName(FileNameWithoutExt + FString::FromInt(i)) : FName(FileNameWithoutExt);
+                Info.AssetName = FName(BaseAssetName);
                 Info.AssetType = EAssetType::Material;
                 AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 

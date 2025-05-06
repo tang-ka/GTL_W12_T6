@@ -1,5 +1,6 @@
 
 #include "FbxLoader.h"
+#include "FbxLoader.h"
 
 #include <format>
 
@@ -285,11 +286,151 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
 
     PrintNodeAttribute(RootNode, 0);
 
+    ProcessMaterials(Result);
+
     ProcessSkeletonHierarchy(RootNode, Result);
 
     ProcessMeshesWithSkeletons(RootNode, Result);
     
     return Result;
+}
+
+void FFbxLoader::ProcessMaterials(FFbxLoadResult& OutResult)
+{
+    const int32 MaterialCount = Scene->GetMaterialCount();
+
+    for (int32 i = 0; i < MaterialCount; ++i)
+    {
+        FbxSurfaceMaterial* FbxMaterial = Scene->GetMaterial(i);
+        if (!FbxMaterial)
+        {
+            continue;
+        }
+
+        FObjMaterialInfo MaterialInfo = ExtractMaterialsFromFbx(FbxMaterial);
+
+        UMaterial* NewMaterial = FObjectFactory::ConstructObject<UMaterial>(nullptr, FbxMaterial->GetName());
+        NewMaterial->SetMaterialInfo(MaterialInfo);
+
+        OutResult.Materials.Add(NewMaterial);
+    }
+}
+
+FObjMaterialInfo FFbxLoader::ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial)
+{
+    FObjMaterialInfo MaterialInfo = {};
+    
+    if (!FbxMaterial)
+    {
+        return MaterialInfo;
+    }
+
+    MaterialInfo.MaterialName = FbxMaterial->GetName();
+
+    if (FbxMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId))
+    {
+        FbxSurfaceLambert* Lambert = static_cast<FbxSurfaceLambert*>(FbxMaterial);
+        
+        FbxDouble3 Diffuse = Lambert->Diffuse.Get();
+        MaterialInfo.DiffuseColor = FVector(
+            static_cast<float>(Diffuse[0]), 
+            static_cast<float>(Diffuse[1]), 
+            static_cast<float>(Diffuse[2])
+        );
+        
+        FbxDouble3 Ambient = Lambert->Ambient.Get();
+        MaterialInfo.AmbientColor = FVector(
+            static_cast<float>(Ambient[0]), 
+            static_cast<float>(Ambient[1]), 
+            static_cast<float>(Ambient[2])
+        );
+        
+        FbxDouble3 Emissive = Lambert->Emissive.Get();
+        MaterialInfo.EmissiveColor = FVector(
+            static_cast<float>(Emissive[0]), 
+            static_cast<float>(Emissive[1]), 
+            static_cast<float>(Emissive[2])
+        );
+        
+        // 투명도 처리
+        float Transparency = static_cast<float>(1.0 - Lambert->TransparencyFactor.Get());
+        MaterialInfo.Transparency = Transparency;
+        MaterialInfo.bTransparent = (Transparency < 1.0f);
+    }
+    
+    // Phong 머티리얼 추가 속성 (Lambert를 상속함)
+    if (FbxMaterial->GetClassId().Is(FbxSurfacePhong::ClassId))
+    {
+        FbxSurfacePhong* Phong = static_cast<FbxSurfacePhong*>(FbxMaterial);
+        
+        FbxDouble3 Specular = Phong->Specular.Get();
+        MaterialInfo.SpecularColor = FVector(
+            static_cast<float>(Specular[0]), 
+            static_cast<float>(Specular[1]), 
+            static_cast<float>(Specular[2])
+        );
+        
+        MaterialInfo.Shininess = static_cast<float>(Phong->Shininess.Get());
+        
+        MaterialInfo.IOR = static_cast<float>(Phong->ReflectionFactor.Get());
+
+        // Phong to MetallicRoughness
+        // from Unreal Engine MF_PhongToMetalRoughness
+        MaterialInfo.Metallic = (MaterialInfo.AmbientColor / 3.f).X;
+        MaterialInfo.Roughness = FMath::Clamp(FMath::Pow(2.f / (FMath::Clamp(MaterialInfo.Shininess, 2.f, 1000.f) + 2.f), 0.25f), 0.f, 1.f);
+    }
+
+    ExtractTextureInfoFromFbx(FbxMaterial, MaterialInfo);
+
+    return MaterialInfo;
+}
+
+void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObjMaterialInfo& OutMaterialInfo)
+{
+    if (!FbxMaterial)
+    {
+        return;
+    }
+
+    const char* TextureTypes[] = {
+        FbxSurfaceMaterial::sDiffuse,
+        FbxSurfaceMaterial::sSpecular,
+        FbxSurfaceMaterial::sNormalMap,
+        FbxSurfaceMaterial::sEmissive,
+        FbxSurfaceMaterial::sTransparencyFactor,
+        FbxSurfaceMaterial::sAmbient,
+        FbxSurfaceMaterial::sShininess
+    };
+
+    for (int i = 0; i < sizeof(TextureTypes) / sizeof(const char*); i++)
+    {
+        FbxProperty Property = FbxMaterial->FindProperty(TextureTypes[i]);
+        if (Property.IsValid())
+        {
+            int TextureCount = Property.GetSrcObjectCount<FbxTexture>();
+            for (int j = 0; j < TextureCount; j++)
+            {
+                FbxTexture* Texture = Property.GetSrcObject<FbxTexture>(j);
+                if (Texture)
+                {
+                    FbxFileTexture* FileTexture = FbxCast<FbxFileTexture>(Texture);
+                    if (FileTexture)
+                    {
+                        FTextureInfo TexInfo;
+                        TexInfo.TextureName = FileTexture->GetName();
+                        TexInfo.TexturePath = FString(FileTexture->GetFileName()).ToWideString();
+                        
+                        TexInfo.bIsSRGB = (i == 0 || i == 1 || i == 3 || i == 5);
+                        
+                        OutMaterialInfo.TextureInfos.Add(TexInfo);
+                        
+                        // 텍스처 플래그 설정
+                        OutMaterialInfo.TextureFlag |= (1 << i); // 해당 텍스처 타입 플래그 설정
+                    }
+                }
+            }
+        }
+    }
 }
 
 void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult)
@@ -491,6 +632,7 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(FbxNode* Node, USkeleton* 
     }
 
     std::unique_ptr<FSkeletalMeshRenderData> RenderData = std::make_unique<FSkeletalMeshRenderData>();
+    RenderData->DisplayName = Node->GetName();
 
     TArray<FMatrix> InverseBindPoseMatrices;
     ExtractBindPoseMatrices(Mesh, Skeleton, InverseBindPoseMatrices);
