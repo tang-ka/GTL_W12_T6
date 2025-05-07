@@ -420,7 +420,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::SameLine();
 
         FString PreviewName = FString("None");
-        if (USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh())
+        if (USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMeshAsset())
         {
             if (const FSkeletalMeshRenderData* RenderData = SkeletalMesh->GetRenderData())
             {
@@ -445,7 +445,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                     USkeletalMesh* SkeletalMesh = UAssetManager::Get().GetSkeletalMesh(FName(MeshName));
                     if (SkeletalMesh)
                     {
-                        SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
+                        SkeletalMeshComp->SetSkeletalMeshAsset(SkeletalMesh);
                     }
                 }
             }

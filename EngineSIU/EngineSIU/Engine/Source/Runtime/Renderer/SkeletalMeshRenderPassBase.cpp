@@ -120,12 +120,12 @@ void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<
 {
     for (USkeletalMeshComponent* Comp : SkeletalMeshComponents)
     {
-        if (!Comp || !Comp->GetSkeletalMesh())
+        if (!Comp || !Comp->GetSkeletalMeshAsset())
         {
             continue;
         }
 
-        const FSkeletalMeshRenderData* RenderData = Comp->GetSkeletalMesh()->GetRenderData();
+        const FSkeletalMeshRenderData* RenderData = Comp->GetSkeletalMeshAsset()->GetRenderData();
         if (RenderData == nullptr)
         {
             continue;
@@ -206,14 +206,14 @@ void FSkeletalMeshRenderPassBase::UpdateObjectConstant(const FMatrix& WorldMatri
 void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* SkeletalMeshComponent)
 {
     if (!SkeletalMeshComponent ||
-        !SkeletalMeshComponent->GetSkeletalMesh() ||
-        !SkeletalMeshComponent->GetSkeletalMesh()->GetSkeleton())
+        !SkeletalMeshComponent->GetSkeletalMeshAsset() ||
+        !SkeletalMeshComponent->GetSkeletalMeshAsset()->GetSkeleton())
     {
         return;
     }
 
     // Skeleton 정보 가져오기
-    const USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
+    const USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMeshAsset();
     const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
     const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose; // 로컬
     const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms; // 로컬
