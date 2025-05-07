@@ -8,6 +8,7 @@
 #include "Classes/Engine/AssetManager.h"
 #include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "UObject/UObjectIterator.h"
+#include <Animation/SkeletalMeshActor.h>
 
 namespace PrivateEditorSelection
 {
@@ -150,7 +151,7 @@ void UEditorEngine::StartPIE()
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
 }
 
-void UEditorEngine::StartSkeletalMeshViewer()
+void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
 {
     if (SkeletalMeshViewerWorld)
     {
@@ -166,6 +167,15 @@ void UEditorEngine::StartSkeletalMeshViewer()
     WorldContext.SetCurrentWorld(SkeletalMeshViewerWorld);
     ActiveWorld = SkeletalMeshViewerWorld;
     SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalViewer;
+
+    // 스켈레탈 액터 스폰
+    ASkeletalMeshActor* SkeletalActor = SkeletalMeshViewerWorld->SpawnActor<ASkeletalMeshActor>();
+    SkeletalActor->SetActorTickInEditor(true);
+    USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
+    SkeletalActor->SetRootComponent(MeshComp);
+    SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
+    SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
 }
 
 void UEditorEngine::BindEssentialObjects()

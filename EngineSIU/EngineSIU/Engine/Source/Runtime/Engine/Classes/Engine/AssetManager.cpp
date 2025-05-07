@@ -80,6 +80,11 @@ const TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistry()
     return AssetRegistry->PathNameToAssetInfo;
 }
 
+TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistryRef()
+{
+    return AssetRegistry->PathNameToAssetInfo;
+}
+
 USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name)
 {
     if (SkeletalMeshMap.Contains(Name))
@@ -107,6 +112,26 @@ UMaterial* UAssetManager::GetMaterial(const FName& Name)
     return nullptr;
 }
 
+void UAssetManager::AddAssetInfo(const FAssetInfo& Info)
+{
+    AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
+}
+
+void UAssetManager::AddSkeleton(const FName& Key, USkeleton* Skeleton)
+{
+    SkeletonMap.Add(Key, Skeleton);
+}
+
+void UAssetManager::AddSkeletalMesh(const FName& Key, USkeletalMesh* Mesh)
+{
+    SkeletalMeshMap.Add(Key, Mesh);
+}
+
+void UAssetManager::AddMaterial(const FName& Key, UMaterial* Material)
+{
+    MaterialMap.Add(Key, Material);
+}
+
 void UAssetManager::LoadContentFiles()
 {
     const std::string BasePathName = "Contents/";
@@ -132,16 +157,21 @@ void UAssetManager::LoadContentFiles()
         }
         else if (Entry.is_regular_file() && Entry.path().extension() == ".fbx")
         {
+            // TODO : ControlEditorPanel Viwer Open과 코드 중복 다수
+            // 경로, 이름 준비
             const FString FilePath = Entry.path().parent_path().string() + "/" + Entry.path().filename().string();
             const FString FileNameWithoutExt = Entry.path().stem().filename().string();
 
+            // FBX 로더로 파일 읽기
             FFbxLoader Loader;
             FFbxLoadResult Result = Loader.LoadFBX(FilePath);
 
+            // AssetInfo 기본 필드 세팅
             FAssetInfo AssetInfo = {};
             AssetInfo.PackagePath = FName(Entry.path().parent_path().wstring());
             AssetInfo.Size = static_cast<uint32>(std::filesystem::file_size(Entry.path()));
 
+            // 로드된 skeleton 등록
             for (int32 i = 0; i < Result.Skeletons.Num(); ++i)
             {
                 USkeleton* Skeleton = Result.Skeletons[i];
@@ -155,6 +185,8 @@ void UAssetManager::LoadContentFiles()
                 FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
                 SkeletonMap.Add(Key, Skeleton);
             }
+
+            // 로드된 SkeletalMesh 등록
             for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
             {
                 USkeletalMesh* SkeletalMesh = Result.SkeletalMeshes[i];
@@ -168,6 +200,8 @@ void UAssetManager::LoadContentFiles()
                 FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
                 SkeletalMeshMap.Add(Key, SkeletalMesh);
             }
+
+            // 로드된 머티리얼 등록
             for (int32 i = 0; i < Result.Materials.Num(); ++i)
             {
                 UMaterial* Material = Result.Materials[i];

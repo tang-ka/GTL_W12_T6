@@ -43,6 +43,8 @@
 #include "Contents/Actors/GoalPlatformActor.h"
 #include "Contents/Actors/TriggerBox.h"
 #include "Renderer/CompositingPass.h"
+#include <Engine/FbxLoader.h>
+#include "Engine/Classes/Engine/AssetManager.h"
 
 ControlEditorPanel::ControlEditorPanel()
 {
@@ -174,9 +176,93 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
             {
                 return;
             }
-            
-            UE_LOG(ELogLevel::Display, TEXT("PIE Button Clicked"));
-            Engine->StartSkeletalMeshViewer();
+            // TODO : AssetManager fbx 로드 부분과 코드 중복 다수
+            char const* lFilterPatterns[1] = { "*.fbx" };
+            const char* FileName = tinyfd_openFileDialog("Open FBX File", "", 1, lFilterPatterns, "(.fbx) file", 0);
+
+            if (FileName != nullptr)
+            {
+                // TODO : 
+                std::filesystem::path fpath(FileName);
+                if (!std::filesystem::exists(fpath)) {
+                    UE_LOG(ELogLevel::Warning, TEXT("Fbx does not exist"));
+                    return;
+                }
+
+                // 경로명 파일 명 분리
+                std::string nativeFullPath = fpath.string();
+                std::string nativePackagePath = fpath.parent_path().string();
+                std::string nativeNameNoExt = fpath.stem().string();
+
+                // FString 타입으로 변환
+                FString FilePath = FString(nativeFullPath);
+                FString PackagePathString = FString(nativePackagePath);
+                FString BaseName = FString(nativeNameNoExt);
+
+                // FBX 로드
+                FFbxLoader Loader;
+                FFbxLoadResult Result = Loader.LoadFBX(FilePath);
+
+                // 기본 AssetInfo 세팅
+                FAssetInfo AssetInfo;
+                AssetInfo.PackagePath = FName(*PackagePathString);
+                AssetInfo.Size = static_cast<uint32>(
+                    std::filesystem::file_size(fpath)
+                    );
+
+                FName SkeletalMeshName;
+                UAssetManager& AM = UAssetManager::Get();
+
+                // Skeleton들 등록
+                for (int32 i = 0; i < Result.Skeletons.Num(); ++i)
+                {
+                    FString SkeletonName = BaseName + TEXT("_Skeleton")
+                        + (i > 0 ? FString::FromInt(i) : TEXT(""));
+
+                    FName KeyName(*SkeletonName);
+
+                    FAssetInfo Info = AssetInfo;
+                    Info.AssetName = KeyName;
+                    Info.AssetType = EAssetType::Skeleton;
+                    
+                    AM.AddAssetInfo(Info);
+                    AM.AddSkeleton(KeyName, Result.Skeletons[i]);
+                }
+
+                // SkeletalMesh들 등록
+                for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
+                {
+                    FString MeshName = BaseName
+                        + (i > 0 ? FString::FromInt(i) : TEXT(""));
+                    FName KeyName(*MeshName);
+
+                    FAssetInfo Info = AssetInfo;
+                    // TODO : 한 fbx에 메시 여러개일 때 뷰어 실행 시 최종 하나만 보임.
+                    SkeletalMeshName = KeyName;
+                    Info.AssetName = KeyName;
+                    Info.AssetType = EAssetType::SkeletalMesh;
+                    AM.AddAssetInfo(Info);
+                    AM.AddSkeletalMesh(KeyName, Result.SkeletalMeshes[i]);
+                }
+
+                // Material들 등록
+                for (int32 i = 0; i < Result.Materials.Num(); ++i)
+                {
+                    UMaterial* Mat = Result.Materials[i];
+                    FString MatName = Mat->GetName();
+                    FName KeyName(*MatName);
+
+                    FAssetInfo Info = AssetInfo;
+                    Info.AssetName = KeyName;
+                    Info.AssetType = EAssetType::Material;
+                    AM.AddAssetInfo(Info);
+                    AM.AddMaterial(KeyName, Mat);
+                }
+
+                // 뷰어 실행
+                UE_LOG(ELogLevel::Display, TEXT("FBX loaded: %s"), *FilePath);
+                Engine->StartSkeletalMeshViewer(SkeletalMeshName);
+            }
         }
         
         ImGui::Separator();
@@ -213,28 +299,6 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
 
             ImGui::EndMenu();
         }
-
-        // FIXME : 스켈레탈 뷰어 Import 방식으로 변경
-        /*if (ImGui::BeginMenu("Skeletal Viewer"))
-        {
-            if (ImGui::MenuItem("(.fbx)"))
-            {
-                char const* lFilterPatterns[1] = { "*.fbx" };
-                const char* FileName = tinyfd_openFileDialog("Open FBX File", "", 1, lFilterPatterns, "(.fbx) file", 0);
-
-                if (FileName != nullptr)
-                {
-                    std::cout << FileName << '\n';
-
-                    if (FObjManager::CreateStaticMesh(FileName) == nullptr)
-                    {
-                        tinyfd_messageBox("Error", "파일을 불러올 수 없습니다.", "ok", "error", 1);
-                    }
-                }
-            }
-
-            ImGui::EndMenu();
-        }*/
 
         ImGui::Separator();
 
