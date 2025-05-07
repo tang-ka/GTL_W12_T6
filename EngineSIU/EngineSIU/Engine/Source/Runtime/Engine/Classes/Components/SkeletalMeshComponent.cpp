@@ -31,13 +31,35 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     {
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
-        int32 Key = static_cast<int32>(ElapsedTime * AnimSequence->FrameRate) % AnimSequence->NumFrames;
-        TMap<int32, FTransform> AnimBoneTransforms = AnimSequence->Anim[Key];
+        const int32 AnimationFrameRate = AnimSequence->FrameRate;
+
+        const float TargetKeyFrame = ElapsedTime * static_cast<float>(AnimSequence->FrameRate);
+        const int32 CurrentKey = static_cast<int32>(TargetKeyFrame) % AnimSequence->NumFrames;
+        const int32 NextKey = (CurrentKey + 1) % AnimSequence->NumFrames;
+        const float Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame)); // [0 ~ 1]
+        
+        TMap<int32, FTransform> CurrentFrameTransforms = AnimSequence->Anim[CurrentKey];
+        TMap<int32, FTransform> NextFrameTransforms = AnimSequence->Anim[NextKey];
 
         BoneTransforms = RefSkeleton.RawRefBonePose;
-        for (auto& [BoneIdx, LocalTransform] : AnimBoneTransforms)
+        for (auto& [BoneIdx, CurrentTransform] : CurrentFrameTransforms)
         {
-            BoneTransforms[BoneIdx] = LocalTransform * RefSkeleton.RawRefBonePose[BoneIdx];
+            // 다음 키프레임에 해당 본 데이터가 있는지 확인
+            if (NextFrameTransforms.Contains(BoneIdx))
+            {
+                FTransform NextTransform = NextFrameTransforms[BoneIdx];
+                // 두 트랜스폼 사이를 Alpha 비율로 선형 보간
+                FTransform InterpolatedTransform = FTransform::Identity;
+                InterpolatedTransform.Blend(CurrentTransform, NextTransform, Alpha);
+        
+                // 보간된 트랜스폼 적용
+                BoneTransforms[BoneIdx] = InterpolatedTransform * RefSkeleton.RawRefBonePose[BoneIdx];
+            }
+            else
+            {
+                // 다음 키프레임에 본 데이터가 없으면 현재 트랜스폼만 사용
+                BoneTransforms[BoneIdx] = CurrentTransform * RefSkeleton.RawRefBonePose[BoneIdx];
+            }
         }
     }
 }
