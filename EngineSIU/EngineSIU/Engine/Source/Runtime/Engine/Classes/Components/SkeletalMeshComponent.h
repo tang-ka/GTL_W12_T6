@@ -19,6 +19,8 @@ public:
     UAnimSequence* AnimSequence = nullptr;
 
     TArray<FTransform> BoneTransforms;
+
+    TArray<FTransform> BoneBindPoseTransforms; // 원본 BindPose에서 복사해온 Transform
     
 private:
     

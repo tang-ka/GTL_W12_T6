@@ -4,9 +4,12 @@
 #include "GizmoCircleComponent.h"
 #include "Actors/Player.h"
 #include "GizmoRectangleComponent.h"
+#include "ReferenceSkeleton.h"
+#include "Animation/Skeleton.h"
 #include "Engine/EditorEngine.h"
 #include "World/World.h"
 #include "Engine/FObjLoader.h"
+#include "Engine/SkeletalMesh.h"
 
 ATransformGizmo::ATransformGizmo()
 {
@@ -128,6 +131,22 @@ void ATransformGizmo::Tick(float DeltaTime)
             SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
         }
     }
+
+    if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+    {
+        USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(TargetComponent);
+        if (SkeletalMeshComp)
+        {
+            USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
+            if (SkeletalMesh)
+            {
+                const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
+
+            }
+        }
+    }
+    //int32 BoneIndex = Engine->SkeletalMeshViewerWorld->SelectBoneIndex;
+
 }
 
 void ATransformGizmo::Initialize(FEditorViewportClient* InViewport)

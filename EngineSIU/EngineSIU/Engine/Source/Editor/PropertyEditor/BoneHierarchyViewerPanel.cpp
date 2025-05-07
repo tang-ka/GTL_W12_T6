@@ -48,16 +48,31 @@ void BoneHierarchyViewerPanel::Render()
         if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer) {
 
             if (CopiedRefSkeleton == nullptr) {
-                CopyRefSkeleton();
+                CopyRefSkeleton(); // 선택된 액터/컴포넌트로부터 스켈레톤 정보 복사
             }
 
-            ImGui::Begin("Bone Name", nullptr, PanelFlags);
+            // CopiedRefSkeleton이 여전히 null이면 렌더링하지 않음
+            if (CopiedRefSkeleton == nullptr || CopiedRefSkeleton->RawRefBoneInfo.IsEmpty()) {
+                ImGui::Begin("Bone Hierarchy", nullptr, PanelFlags); // 창은 표시하되 내용은 비움
+                ImGui::Text("No skeleton selected or skeleton has no bones.");
+                ImGui::End();
+                return;
+            }
 
+            ImGui::Begin("Bone Hierarchy", nullptr, PanelFlags); // 창 이름 변경
+
+            // 검색 필터 추가 (선택 사항)
+            // static char BoneSearchText[128] = "";
+            // ImGui::InputText("Search", BoneSearchText, IM_ARRAYSIZE(BoneSearchText));
+            // FString SearchFilter(BoneSearchText);
+
+            // 루트 본부터 시작하여 트리 렌더링
             for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
             {
-                if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
+                if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE) // 루트 본인 경우
                 {
-                    RenderBoneTree(*CopiedRefSkeleton, i);
+                    // RenderBoneTree 호출 시 Engine 포인터 전달
+                    RenderBoneTree(*CopiedRefSkeleton, i, Engine /*, SearchFilter */);
                 }
             }
             ImGui::End();
@@ -113,10 +128,27 @@ void BoneHierarchyViewerPanel::CopyRefSkeleton()
     CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
 }
 
-void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex)
+void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine /*, const FString& SearchFilter */)
 {
     const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
     const FString& ShortBoneName = GetCleanBoneName(BoneInfo.Name.ToString());
+
+    // 검색 필터 적용 (선택 사항)
+    // if (!SearchFilter.IsEmpty() && !ShortBoneName.Contains(SearchFilter))
+    // {
+    //    // 자식도 검색해야 하므로, 현재 노드가 필터에 맞지 않아도 자식은 재귀 호출
+    //    bool bChildMatchesFilter = false;
+    //    for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+    //    {
+    //        if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == BoneIndex)
+    //        {
+    //            // 자식 중 하나라도 필터에 맞으면 현재 노드도 표시해야 할 수 있음 (복잡해짐)
+    //            // 간단하게는 현재 노드가 안 맞으면 그냥 건너뛰도록 할 수 있음
+    //        }
+    //    }
+    //    // 간단한 필터링: 현재 노드가 안 맞으면 그냥 숨김 (자식도 안 나옴)
+    //    // if (!ShortBoneName.Contains(SearchFilter)) return;
+    // }
 
     // 1) ImGui ID 충돌 방지
     ImGui::PushID(BoneIndex);
@@ -124,24 +156,54 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
     ImGui::Image((ImTextureID)BoneIconSRV, ImVec2(16, 16));  // 16×16 픽셀 크기
     ImGui::SameLine();
 
-    if (ImGui::TreeNodeEx(
-        *ShortBoneName,
-        ImGuiTreeNodeFlags_OpenOnArrow    // 화살표 클릭으로만 토글하려면
-        | ImGuiTreeNodeFlags_DefaultOpen  // 기본 열림
-    ))
+    ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+    // if (Engine->SkeletalMeshViewerWorld->SelectBoneIndex == BoneIndex) // 가상의 함수 호출
+    // {
+    //     NodeFlags |= ImGuiTreeNodeFlags_Selected; // 선택된 경우 Selected 플래그 추가
+    // }
+
+    // 자식이 없는 본은 리프 노드로 처리 (화살표 없음)
+    bool bHasChildren = false;
+    for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+    {
+        if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == BoneIndex)
+        {
+            bHasChildren = true;
+            break;
+        }
+    }
+    if (!bHasChildren)
+    {
+        NodeFlags |= ImGuiTreeNodeFlags_Leaf; // 자식 없으면 리프 노드
+        NodeFlags &= ~ImGuiTreeNodeFlags_OpenOnArrow; // 리프 노드는 화살표로 열 필요 없음
+    }
+
+    // ImGui::TreeNodeEx (본 이름, 플래그)
+    // 이름 부분만 클릭 가능하도록 하려면 ImGui::Selectable을 함께 사용하거나 커스텀 로직 필요
+    // 여기서는 TreeNodeEx 자체의 클릭 이벤트를 사용
+    bool bNodeOpen = ImGui::TreeNodeEx(*ShortBoneName, NodeFlags);
+
+    // --- 클릭 이벤트 처리 ---
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) // 왼쪽 마우스 버튼 클릭 시
+    {
+        // 엔진에 선택된 본 인덱스 설정 (가상의 함수 호출)
+        Engine->SkeletalMeshViewerWorld->SelectBoneIndex = (BoneIndex);
+    }
+
+    if (bNodeOpen) // 노드가 열려있다면
     {
         // 자식 본들 재귀적으로 처리
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
             if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == BoneIndex)
             {
-                RenderBoneTree(RefSkeleton, i); // 재귀
+                RenderBoneTree(RefSkeleton, i, Engine /*, SearchFilter */); // 재귀 호출 시 Engine 전달
             }
         }
-
-        ImGui::TreePop();
+        ImGui::TreePop(); // 트리 노드 닫기
     }
-    ImGui::PopID();
+
+    ImGui::PopID(); // ID 스택 복원
 }
 
 FString BoneHierarchyViewerPanel::GetCleanBoneName(const FString& InFullName)

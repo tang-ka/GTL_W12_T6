@@ -15,7 +15,8 @@ public:
     {
         return SkeletalMeshComponent;
     }
-    
+
+    int32 SelectBoneIndex = 0;
 
 private:
     USkeletalMeshComponent* SkeletalMeshComponent = nullptr;

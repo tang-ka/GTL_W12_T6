@@ -4,6 +4,7 @@
 #include "FObjLoader.h"
 #include "World/World.h"
 #include "Level.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
 #include "Contents/Actors/SkeletalMeshActorTest.h"
@@ -166,6 +167,18 @@ void UEditorEngine::StartSkeletalMeshViewer()
     WorldContext.SetCurrentWorld(SkeletalMeshViewerWorld);
     ActiveWorld = SkeletalMeshViewerWorld;
     SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalViewer;
+
+    // FIXME : 테스트용 SpawnActor, import 형식으로 변경 필요.
+    ASkeletalMeshActor* SkeletalActor = SkeletalMeshViewerWorld->SpawnActor<ASkeletalMeshActor>();
+    SkeletalActor->SetActorTickInEditor(true);
+    USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
+    SkeletalActor->SetRootComponent(MeshComp);
+    SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
+    SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    EditorEngine->SelectActor(SkeletalActor);
+    EditorEngine->SelectComponent(MeshComp);
 }
 
 void UEditorEngine::BindEssentialObjects()
@@ -225,6 +238,19 @@ void UEditorEngine::EndPIE()
 
 void UEditorEngine::EndSkeletalMeshViewer()
 {
+    if (SkeletalMeshViewerWorld)
+    {
+        this->ClearActorSelection();
+        WorldList.Remove(GetWorldContextFromWorld(SkeletalMeshViewerWorld));
+        SkeletalMeshViewerWorld->Release();
+        GUObjectArray.MarkRemoveObject(SkeletalMeshViewerWorld);
+        SkeletalMeshViewerWorld = nullptr;
+        
+        DeselectActor(GetSelectedActor());
+        DeselectComponent(GetSelectedComponent());
+    }
+    
+    ActiveWorld = EditorWorld;
 }
 
 FWorldContext& UEditorEngine::GetEditorWorldContext(/*bool bEnsureIsGWorld*/)

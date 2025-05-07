@@ -1,6 +1,8 @@
 #include "SkeletalViewerWorld.h"
 #include "Classes/Animation/SkeletalMeshActor.h"
 #include "Classes/Engine/AssetManager.h"
+#include "Engine/EditorEngine.h"
+
 USkeletalViewerWorld* USkeletalViewerWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, const FString& InWorldName)
 {
     USkeletalViewerWorld* NewWorld = FObjectFactory::ConstructObject<USkeletalViewerWorld>(InOuter);
@@ -9,14 +11,8 @@ USkeletalViewerWorld* USkeletalViewerWorld::CreateWorld(UObject* InOuter, const 
     NewWorld->InitializeNewWorld();
 
 
-    // FIXME : 테스트용 SpawnActor, import 형식으로 변경 필요.
-    ASkeletalMeshActor* SkeletalActor = NewWorld->SpawnActor<ASkeletalMeshActor>();
-    SkeletalActor->SetActorTickInEditor(true);
-    USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
-    SkeletalActor->SetRootComponent(MeshComp);
-    SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
-    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
-    NewWorld->SetSkeletalMeshComponent(MeshComp);
+
+    
     
     return NewWorld;
 }
