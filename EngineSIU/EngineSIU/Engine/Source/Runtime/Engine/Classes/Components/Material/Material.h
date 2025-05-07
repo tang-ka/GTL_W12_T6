@@ -11,8 +11,8 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
-    FObjMaterialInfo& GetMaterialInfo() { return MaterialInfo; }
-    void SetMaterialInfo(const FObjMaterialInfo& Info) { MaterialInfo = Info; }
+    FMaterialInfo& GetMaterialInfo() { return MaterialInfo; }
+    void SetMaterialInfo(const FMaterialInfo& Info) { MaterialInfo = Info; }
 
     // 색상 및 재질 속성 설정자
     void SetDiffuse(const FVector& InDiffuse) { MaterialInfo.DiffuseColor = InDiffuse; }
@@ -34,5 +34,5 @@ public:
     void SetTextureInfo(const TArray<FTextureInfo>& InTextureInfo) { MaterialInfo.TextureInfos = InTextureInfo; }
     
 private:
-    FObjMaterialInfo MaterialInfo;
+    FMaterialInfo MaterialInfo;
 };

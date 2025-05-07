@@ -397,6 +397,11 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
                 {
                     FString MeshName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
                     UStaticMesh* StaticMesh = FObjManager::GetStaticMesh(MeshName.ToWideString());
+                    if (!StaticMesh)
+                    {
+                        StaticMesh = UAssetManager::Get().GetStaticMesh(MeshName);
+                    }
+
                     if (StaticMesh)
                     {
                         StaticMeshComp->SetStaticMesh(StaticMesh);

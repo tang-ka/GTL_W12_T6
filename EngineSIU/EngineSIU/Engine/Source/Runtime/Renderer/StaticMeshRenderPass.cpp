@@ -28,6 +28,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Contents/Actors/Fish.h"
+#include "Engine/AssetManager.h"
 
 
 FStaticMeshRenderPass::FStaticMeshRenderPass()
@@ -235,7 +236,6 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     };
 
     BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
-    BufferManager->BindConstantBuffer(TEXT("FDiffuseMultiplier"), 6, EShaderStage::Pixel);
 
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
@@ -301,13 +301,17 @@ void FStaticMeshRenderPass::RenderPrimitive(FStaticMeshRenderData* RenderData, T
 
         BufferManager->UpdateConstantBuffer(TEXT("FSubMeshConstants"), SubMeshData);
 
-        if (OverrideMaterials[MaterialIndex] != nullptr)
+        if (!OverrideMaterials.IsEmpty() && OverrideMaterials.Num() >= MaterialIndex && OverrideMaterials[MaterialIndex] != nullptr)
         {
             MaterialUtils::UpdateMaterial(BufferManager, Graphics, OverrideMaterials[MaterialIndex]->GetMaterialInfo());
         }
-        else
+        else if (!Materials.IsEmpty() && Materials.Num() >= MaterialIndex && Materials[MaterialIndex] != nullptr)
         {
             MaterialUtils::UpdateMaterial(BufferManager, Graphics, Materials[MaterialIndex]->Material->GetMaterialInfo());
+        }
+        else if (UMaterial* Mat = UAssetManager::Get().GetMaterial(RenderData->MaterialSubsets[SubMeshIndex].MaterialName))
+        {
+            MaterialUtils::UpdateMaterial(BufferManager, Graphics, Mat->GetMaterialInfo());
         }
 
         uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;
@@ -369,20 +373,6 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
         const bool bIsSelected = (Engine && TargetComponent == Comp);
 
         UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
-
-#pragma region W08
-        FDiffuseMultiplier DM = {};
-        DM.DiffuseMultiplier = 0.f;
-        if (AFish* Fish = Cast<AFish>(Comp->GetOwner()))
-        {
-            if (!Fish->IsDead())
-            {
-                DM.DiffuseMultiplier = 1.f - Fish->GetHealthPercent();
-            }
-        }
-        DM.DiffuseOverrideColor = FVector(0.55f, 0.45f, 0.067f);
-        BufferManager->UpdateConstantBuffer(TEXT("FDiffuseMultiplier"), DM);
-#pragma endregion W08
 
         RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
 

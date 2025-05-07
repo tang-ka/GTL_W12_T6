@@ -101,7 +101,7 @@ struct FTextureInfo
     bool bIsSRGB;
 };
 
-struct FObjMaterialInfo
+struct FMaterialInfo
 {
     FString MaterialName;  // newmtl: Material Name.
 
@@ -504,11 +504,3 @@ struct FGammaConstants
     float GammaValue;
     FVector Padding;
 };
-
-#pragma region W08
-struct FDiffuseMultiplier
-{
-    float DiffuseMultiplier;
-    FVector DiffuseOverrideColor;
-};
-#pragma endregion

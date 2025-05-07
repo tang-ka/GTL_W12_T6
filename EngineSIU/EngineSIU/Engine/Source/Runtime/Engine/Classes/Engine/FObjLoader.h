@@ -17,7 +17,7 @@ struct FObjLoader
     static bool ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo);
 
     // Material Parsing (*.obj to MaterialInfo)
-    static bool ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutFStaticMesh);
+    static bool ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutStaticMeshRenderData);
 
     // Convert the Raw data to Cooked data (FStaticMeshRenderData)
     static bool ConvertToStaticMesh(const FObjInfo& RawData, FStaticMeshRenderData& OutStaticMesh);
@@ -41,7 +41,7 @@ public:
 
     static bool LoadStaticMeshFromBinary(const FWString& FilePath, FStaticMeshRenderData& OutStaticMesh);
 
-    static UMaterial* CreateMaterial(FObjMaterialInfo materialInfo);
+    static UMaterial* CreateMaterial(FMaterialInfo materialInfo);
 
     static TMap<FString, UMaterial*>& GetMaterials() { return MaterialMap; }
 

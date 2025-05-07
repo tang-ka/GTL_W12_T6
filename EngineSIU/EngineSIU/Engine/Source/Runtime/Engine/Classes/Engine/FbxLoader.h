@@ -8,7 +8,7 @@
 #include "Container/Map.h"
 
 struct FSkeletalMeshVertex;
-struct FObjMaterialInfo;
+struct FMaterialInfo;
 struct FReferenceSkeleton;
 struct FTransform;
 struct FMeshBoneInfo;
@@ -39,9 +39,9 @@ private:
     // Begin Material
     void ProcessMaterials(FFbxLoadResult& OutResult);
 
-    FObjMaterialInfo ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial);
+    FMaterialInfo ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial);
 
-    void ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObjMaterialInfo& OutMaterialInfo);
+    void ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FMaterialInfo& OutMaterialInfo);
     // End Material
 
     // Begin Skeleton

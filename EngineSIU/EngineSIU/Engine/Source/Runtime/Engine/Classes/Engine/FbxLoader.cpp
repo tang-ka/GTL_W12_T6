@@ -328,7 +328,7 @@ void FFbxLoader::ProcessMaterials(FFbxLoadResult& OutResult)
             continue;
         }
 
-        FObjMaterialInfo MaterialInfo = ExtractMaterialsFromFbx(FbxMaterial);
+        FMaterialInfo MaterialInfo = ExtractMaterialsFromFbx(FbxMaterial);
 
         UMaterial* NewMaterial = FObjectFactory::ConstructObject<UMaterial>(nullptr, FbxMaterial->GetName());
         NewMaterial->SetMaterialInfo(MaterialInfo);
@@ -337,9 +337,9 @@ void FFbxLoader::ProcessMaterials(FFbxLoadResult& OutResult)
     }
 }
 
-FObjMaterialInfo FFbxLoader::ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial)
+FMaterialInfo FFbxLoader::ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial)
 {
-    FObjMaterialInfo MaterialInfo = {};
+    FMaterialInfo MaterialInfo = {};
     
     if (!FbxMaterial)
     {
@@ -406,7 +406,7 @@ FObjMaterialInfo FFbxLoader::ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMate
     return MaterialInfo;
 }
 
-void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObjMaterialInfo& OutMaterialInfo)
+void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FMaterialInfo& OutMaterialInfo)
 {
     if (!FbxMaterial)
     {

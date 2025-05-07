@@ -33,6 +33,16 @@ UAssetManager::~UAssetManager()
     }
     SkeletalMeshMap.Empty();
 
+    for (auto& [Name, Object] : StaticMeshMap)
+    {
+        if (Object)
+        {
+            delete Object;
+            Object = nullptr;
+        }
+    }
+    StaticMeshMap.Empty();
+
     for (auto& [Name, Object] : MaterialMap)
     {
         if (Object)
@@ -85,6 +95,15 @@ USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name)
     if (SkeletalMeshMap.Contains(Name))
     {
         return SkeletalMeshMap[Name];
+    }
+    return nullptr;
+}
+
+UStaticMesh* UAssetManager::GetStaticMesh(const FName& Name)
+{
+    if (StaticMeshMap.Contains(Name))
+    {
+        return StaticMeshMap[Name];
     }
     return nullptr;
 }
@@ -167,6 +186,19 @@ void UAssetManager::LoadContentFiles()
 
                 FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
                 SkeletalMeshMap.Add(Key, SkeletalMesh);
+            }
+            for (int32 i = 0; i < Result.StaticMeshes.Num(); ++i)
+            {
+                UStaticMesh* StaticMesh = Result.StaticMeshes[i];
+                FString BaseAssetName = FileNameWithoutExt;
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = i > 0 ? FName(BaseAssetName + FString::FromInt(i)) : FName(BaseAssetName);
+                Info.AssetType = EAssetType::StaticMesh;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
+
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                StaticMeshMap.Add(Key, StaticMesh);
             }
             for (int32 i = 0; i < Result.Materials.Num(); ++i)
             {
