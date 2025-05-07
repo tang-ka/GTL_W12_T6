@@ -362,6 +362,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     RenderWorldScene(Viewport);
     RenderPostProcess(Viewport);
     RenderEditorOverlay(Viewport);
+    RenderSkeletalMeshViewerOverlay(Viewport);
 
     Graphics->DeviceContext->PSSetShaderResources(
         static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
@@ -498,6 +499,33 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
         QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
         LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
     }
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
+        GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
+    }
+
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+}
+
+void FRenderer::RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    const EViewModeIndex ViewMode = Viewport->GetViewMode();
+    
+    if (GEngine->ActiveWorld->WorldType != EWorldType::SkeletalMeshViewer)
+    {
+        return;
+    }
+    
+    // Render Editor Billboard
+    /**
+     * TODO: 에디터 전용 빌보드는 이런 방식 처럼 빌보드의 bool값을 바꿔서 렌더하기 보다는
+     *       빌보드가 나와야 하는 컴포넌트는 텍스처만 가지고있고, 쉐이더를 통해 쿼드를 생성하고
+     *       텍스처를 전달해서 렌더하는 방식이 더 좋음.
+     *       이렇게 하는 경우 필요없는 빌보드 컴포넌트가 아웃라이너에 나오지 않음.
+     */
+
     {
         QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
         QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)

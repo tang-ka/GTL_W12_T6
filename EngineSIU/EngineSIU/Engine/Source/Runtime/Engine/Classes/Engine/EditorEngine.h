@@ -23,11 +23,15 @@ public:
     void Release() override;
 
     UWorld* PIEWorld = nullptr;
+    UWorld* SkeletalMeshViewerWorld = nullptr;
     UWorld* EditorWorld = nullptr;
+    
 
     void StartPIE();
+    void StartSkeletalMeshViewer();
     void BindEssentialObjects();
     void EndPIE();
+    void EndSkeletalMeshViewer();
 
     // 주석은 UE에서 사용하던 매개변수.
     FWorldContext& GetEditorWorldContext(/*bool bEnsureIsGWorld = false*/);

@@ -162,6 +162,19 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
         }
 
         ImGui::Separator();
+        if (ImGui::Button("Open Viewer"))
+        {
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            if (!Engine)
+            {
+                return;
+            }
+            
+            UE_LOG(ELogLevel::Display, TEXT("PIE Button Clicked"));
+            Engine->StartSkeletalMeshViewer();
+        }
+        
+        ImGui::Separator();
 
         if (ImGui::Button("ImGui데모"))
         {
@@ -461,6 +474,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                 case OBJ_SKELETALMESH:
                     {
                         SpawnedActor = World->SpawnActor<AActor>();
+                        SpawnedActor->SetActorTickInEditor(true);
                         auto* MeshComp = SpawnedActor->AddComponent<USkeletalMeshComponent>();
                         SpawnedActor->SetRootComponent(MeshComp);
                         SpawnedActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));

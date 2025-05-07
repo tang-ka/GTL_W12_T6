@@ -53,7 +53,7 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
-    if (GEngine->ActiveWorld->WorldType == EWorldType::Editor)
+    if (GEngine->ActiveWorld->WorldType == EWorldType::Editor or GEngine->ActiveWorld->WorldType == EWorldType::SkeletalMeshViewer)
     {
         UpdateEditorCameraMovement(DeltaTime);
     }
