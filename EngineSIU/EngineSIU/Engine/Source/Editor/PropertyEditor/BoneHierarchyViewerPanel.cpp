@@ -25,18 +25,18 @@ void BoneHierarchyViewerPanel::Render()
 
     /* Pre Setup */
     float PanelWidth = (Width) * 0.2f - 6.0f;
-    float PanelHeight = (Height) * 0.65f;
+    float PanelHeight = (Height) * 0.3f;
 
     float PanelPosX = (Width) * 0.8f+5.0f;
-    float PanelPosY = (Height) * 0.3f + 15.0f;
+    float PanelPosY = 5.0f;
 
-    ImVec2 MinSize(140, 370);
-    ImVec2 MaxSize(FLT_MAX, 900);
+    ImVec2 MinSize(140, 100);
+    ImVec2 MaxSize(FLT_MAX, 500);
 
     /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
     /* Panel Position */
-    ImGui::SetNextWindowPos(ImVec2(10.f, 50.f), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY), ImGuiCond_Always);
 
     /* Panel Size */
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);

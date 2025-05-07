@@ -9,6 +9,7 @@
 #include "Classes/Engine/AssetManager.h"
 #include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "UObject/UObjectIterator.h"
+#include <Animation/SkeletalMeshActor.h>
 
 namespace PrivateEditorSelection
 {
@@ -151,7 +152,7 @@ void UEditorEngine::StartPIE()
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
 }
 
-void UEditorEngine::StartSkeletalMeshViewer()
+void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
 {
     if (SkeletalMeshViewerWorld)
     {
@@ -168,17 +169,14 @@ void UEditorEngine::StartSkeletalMeshViewer()
     ActiveWorld = SkeletalMeshViewerWorld;
     SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalViewer;
 
-    // FIXME : 테스트용 SpawnActor, import 형식으로 변경 필요.
+    // 스켈레탈 액터 스폰
     ASkeletalMeshActor* SkeletalActor = SkeletalMeshViewerWorld->SpawnActor<ASkeletalMeshActor>();
     SkeletalActor->SetActorTickInEditor(true);
     USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
     SkeletalActor->SetRootComponent(MeshComp);
     SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
-    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
     SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
-    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-    EditorEngine->SelectActor(SkeletalActor);
-    EditorEngine->SelectComponent(MeshComp);
 }
 
 void UEditorEngine::BindEssentialObjects()

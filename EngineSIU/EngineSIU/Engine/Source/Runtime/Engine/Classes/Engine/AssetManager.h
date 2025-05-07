@@ -60,10 +60,16 @@ public:
     void InitAssetManager();
 
     const TMap<FName, FAssetInfo>& GetAssetRegistry();
+    TMap<FName, FAssetInfo>& GetAssetRegistryRef();
 
     USkeletalMesh* GetSkeletalMesh(const FName& Name);
     USkeleton* GetSkeleton(const FName& Name);
     UMaterial* GetMaterial(const FName& Name);
+
+    void AddAssetInfo(const FAssetInfo& Info);
+    void AddSkeleton(const FName& Key, USkeleton* Skeleton);
+    void AddSkeletalMesh(const FName& Key, USkeletalMesh* Mesh);
+    void AddMaterial(const FName& Key, UMaterial* Material);
 
 private:
     void LoadContentFiles();

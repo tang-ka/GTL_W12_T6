@@ -19,7 +19,7 @@ public:
     FString GetSelectedBoneName() const;
 
 private:
-    float Width = 600, Height = 100;
+    float Width = 0, Height = 0;
     USkeletalMesh* SkeletalMesh;
 
     void LoadBoneIcon();
