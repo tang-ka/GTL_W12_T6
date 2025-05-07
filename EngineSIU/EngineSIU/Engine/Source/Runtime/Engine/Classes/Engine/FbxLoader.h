@@ -77,3 +77,8 @@ private:
     // 좌표계 변환 메소드
     void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
 };
+
+class FFbxManager {
+public:
+    static USkeletalMesh* LastPickSkeletalMesh;
+};

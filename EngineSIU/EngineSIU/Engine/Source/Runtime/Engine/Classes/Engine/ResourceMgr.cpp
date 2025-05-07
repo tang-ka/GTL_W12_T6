@@ -42,6 +42,8 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
     LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
     LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
+    LoadTextureFromFile(device->Device, L"Assets/Viewer/Bone_16x.PNG");
+    LoadTextureFromFile(device->Device, L"Assets/Viewer/BoneNonWeighted_16x.PNG");
 
 }
 

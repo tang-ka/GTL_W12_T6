@@ -13,8 +13,16 @@ public:
     void SetSkeletalMesh(USkeletalMesh* SMesh);
 
 private:
-    float Width = 300, Height = 100;
+    float Width = 600, Height = 100;
     USkeletalMesh* SkeletalMesh;
 
+    void LoadBoneIcon();
     void RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex);
+    
+    FString GetCleanBoneName(const FString& InFullName);
+
+    ID3D11ShaderResourceView* BoneIconSRV = nullptr;
+    ID3D11ShaderResourceView* NonWeightBoneIconSRV = nullptr;
+
+    
 };

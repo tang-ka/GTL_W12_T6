@@ -765,6 +765,7 @@ void FFbxLoader::ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult)
         {
             SkeletalMesh->SetSkeleton(Skeleton);
             OutResult.SkeletalMeshes.Add(SkeletalMesh);
+            FFbxManager::LastPickSkeletalMesh = SkeletalMesh;
         }
     }
 
@@ -1187,3 +1188,5 @@ void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
         OutputDebugStringA("Scene already uses the target coordinate system\n");
     }
 }
+
+USkeletalMesh* FFbxManager::LastPickSkeletalMesh = nullptr;

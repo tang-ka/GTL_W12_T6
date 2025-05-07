@@ -196,6 +196,27 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Skeletal Viewer"))
+        {
+            if (ImGui::MenuItem("(.fbx)"))
+            {
+                char const* lFilterPatterns[1] = { "*.fbx" };
+                const char* FileName = tinyfd_openFileDialog("Open FBX File", "", 1, lFilterPatterns, "(.fbx) file", 0);
+
+                if (FileName != nullptr)
+                {
+                    std::cout << FileName << '\n';
+
+                    if (FObjManager::CreateStaticMesh(FileName) == nullptr)
+                    {
+                        tinyfd_messageBox("Error", "파일을 불러올 수 없습니다.", "ok", "error", 1);
+                    }
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
         ImGui::Separator();
 
         if (ImGui::MenuItem("Quit"))
