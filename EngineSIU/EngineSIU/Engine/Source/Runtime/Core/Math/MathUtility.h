@@ -607,6 +607,6 @@ struct FMath
     }
 
     static FORCEINLINE bool IsFinite(float x) { return _finite(x); }
+    static FORCEINLINE bool IsInf(float x) { return !_finite(x); }
     static FORCEINLINE bool IsNaN(float A) { return _isnan(A); }
-    
 };

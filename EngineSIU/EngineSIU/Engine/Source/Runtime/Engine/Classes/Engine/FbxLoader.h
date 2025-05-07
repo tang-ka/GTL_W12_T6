@@ -6,6 +6,7 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 
+struct FSkeletalMeshVertex;
 struct FObjMaterialInfo;
 struct FReferenceSkeleton;
 struct FTransform;
@@ -65,8 +66,12 @@ private:
 
     void CollectMeshNodes(FbxNode* Node, const TArray<USkeleton*>& Skeletons, TMap<USkeleton*, TArray<FbxNode*>>& OutSkeletalMeshNodes , TArray<FbxNode*>& OutStaticMeshNodes);
 
-    USkeletalMesh* CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes, USkeleton* Skeleton, int32 GlobalMeshIdx);
+    USkeletalMesh* CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& MeshNodes, USkeleton* Skeleton, int32 GlobalMeshIdx);
 
+    void CalculateTangents(TArray<FSkeletalMeshVertex>& Vertices, const TArray<uint32>& Indices);
+
+    void CalculateTangent_Internal(FSkeletalMeshVertex& PivotVertex, const FSkeletalMeshVertex& Vertex1, const FSkeletalMeshVertex& Vertex2);
+    
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
 
     void ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const;

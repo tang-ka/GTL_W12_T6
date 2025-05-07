@@ -228,11 +228,15 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                     TargetComponent = PickedActor->GetRootComponent();
                 }
             }
-            FViewportCamera& ViewTransform = PerspectiveCamera;
-            ViewTransform.SetLocation(
-                // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
-                TargetComponent->GetComponentLocation() - (ViewTransform.GetForwardVector() * 10.0f)
-            );
+
+            if (TargetComponent)
+            {
+                FViewportCamera& ViewTransform = PerspectiveCamera;
+                ViewTransform.SetLocation(
+                    // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
+                    TargetComponent->GetComponentLocation() - (ViewTransform.GetForwardVector() * 10.0f)
+                );
+            }
             break;
         }
         case 'M':

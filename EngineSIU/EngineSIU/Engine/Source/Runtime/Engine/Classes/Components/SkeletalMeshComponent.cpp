@@ -27,7 +27,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
     ElapsedTime += DeltaTime;
 
-    if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
+    if (false && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
