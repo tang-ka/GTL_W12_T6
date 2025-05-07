@@ -84,11 +84,14 @@ public:
 
 public:
     double TimeSeconds;
+
+protected:
+    
+    FString WorldName = "DefaultWorld";
     
 private:
     AGameMode* GameMode = nullptr;
 
-    FString WorldName = "DefaultWorld";
 
     ULevel* ActiveLevel;
 

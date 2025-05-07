@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine.h"
 #include "Actors/Player.h"
+#include "World/SkeletalViewerWorld.h"
 
 /*
     Editor 모드에서 사용될 엔진.
@@ -23,7 +24,7 @@ public:
     void Release() override;
 
     UWorld* PIEWorld = nullptr;
-    UWorld* SkeletalMeshViewerWorld = nullptr;
+    USkeletalViewerWorld* SkeletalMeshViewerWorld = nullptr;
     UWorld* EditorWorld = nullptr;
     
 

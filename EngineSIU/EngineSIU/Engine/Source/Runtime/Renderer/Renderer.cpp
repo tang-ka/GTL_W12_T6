@@ -513,7 +513,7 @@ void FRenderer::RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorVie
     const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
     
-    if (GEngine->ActiveWorld->WorldType != EWorldType::SkeletalMeshViewer)
+    if (GEngine->ActiveWorld->WorldType != EWorldType::SkeletalViewer)
     {
         return;
     }
@@ -525,6 +525,18 @@ void FRenderer::RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorVie
      *       텍스처를 전달해서 렌더하는 방식이 더 좋음.
      *       이렇게 하는 경우 필요없는 빌보드 컴포넌트가 아웃라이너에 나오지 않음.
      */
+
+    
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
+        EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
+    }
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
+        LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
+    }
 
     {
         QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)

@@ -99,7 +99,7 @@ void UEditorEngine::Tick(float DeltaTime)
                 }
             }
         }
-        else if (WorldContext->WorldType == EWorldType::SkeletalMeshViewer)
+        else if (WorldContext->WorldType == EWorldType::SkeletalViewer)
         {
             if (UWorld* World = WorldContext->World())
             {
@@ -158,12 +158,14 @@ void UEditorEngine::StartSkeletalMeshViewer()
         return;
     }
     
-    FWorldContext& WorldContext = CreateNewWorldContext(EWorldType::SkeletalMeshViewer);
-    SkeletalMeshViewerWorld = UWorld::CreateWorld(this, EWorldType::SkeletalMeshViewer, FString("SkeletalMeshViewerWorld"));
+    FWorldContext& WorldContext = CreateNewWorldContext(EWorldType::SkeletalViewer);
+
+    
+    SkeletalMeshViewerWorld = USkeletalViewerWorld::CreateWorld(this, EWorldType::SkeletalViewer, FString("SkeletalMeshViewerWorld"));
 
     WorldContext.SetCurrentWorld(SkeletalMeshViewerWorld);
     ActiveWorld = SkeletalMeshViewerWorld;
-    SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalMeshViewer;
+    SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalViewer;
 }
 
 void UEditorEngine::BindEssentialObjects()
