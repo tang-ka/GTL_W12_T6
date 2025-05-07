@@ -31,7 +31,9 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     {
         ElapsedTime += DeltaTime;
     }
-
+    
+    BoneTransforms = BoneBindPoseTransforms;
+    
     if (bPlayAnimation && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
     {
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
@@ -47,7 +49,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         TMap<int32, FTransform> CurrentFrameTransforms = AnimSequence->Anim[CurrentKey];
         TMap<int32, FTransform> NextFrameTransforms = AnimSequence->Anim[NextKey];
 
-        BoneTransforms = RefSkeleton.RawRefBonePose;
         for (auto& [BoneIdx, CurrentTransform] : CurrentFrameTransforms)
         {
             // 다음 키프레임에 해당 본 데이터가 있는지 확인
@@ -59,12 +60,12 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                 InterpolatedTransform.Blend(CurrentTransform, NextTransform, Alpha);
         
                 // 보간된 트랜스폼 적용 (로컬 포즈 * 애니메이션 트랜스폼)
-                BoneTransforms[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx] * InterpolatedTransform;
+                BoneTransforms[BoneIdx] =BoneBindPoseTransforms[BoneIdx] * InterpolatedTransform;
             }
             else
             {
                 // 다음 키프레임에 본 데이터가 없으면 현재 트랜스폼만 사용
-                BoneTransforms[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx] * CurrentTransform;
+                BoneTransforms[BoneIdx] = BoneBindPoseTransforms[BoneIdx] * CurrentTransform;
             }
         }
     }
