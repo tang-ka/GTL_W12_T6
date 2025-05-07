@@ -36,7 +36,7 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
-    Graphics->DeviceContext->VSSetShaderResources(0, 1, &BoneSRV);
+    Graphics->DeviceContext->VSSetShaderResources(1, 1, &BoneSRV);
 
     TArray<FString> PSBufferKeys = {
         TEXT("FLightInfoBuffer"),
@@ -57,7 +57,7 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
 void FSkeletalMeshRenderPass::CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
-    Graphics->DeviceContext->VSSetShaderResources(0, 1, NullSRV);
+    Graphics->DeviceContext->VSSetShaderResources(1, 1, NullSRV);
     
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }

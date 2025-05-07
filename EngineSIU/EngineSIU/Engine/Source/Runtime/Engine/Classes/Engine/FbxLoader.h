@@ -76,4 +76,6 @@ private:
 
     // 좌표계 변환 메소드
     void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
+
+    bool CreateTextureFromFile(const FWString& Filename, bool bIsSRGB);
 };
