@@ -174,15 +174,12 @@ void FSkeletalMeshRenderPassBase::RenderSkeletalMesh(const FSkeletalMeshRenderDa
 
     for (int SubMeshIndex = 0; SubMeshIndex < RenderData->MaterialSubsets.Num(); SubMeshIndex++)
     {
-        BufferManager->UpdateConstantBuffer(TEXT("FSubMeshConstants"), 0);
-        BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Pixel);
-
         FName MaterialName = RenderData->MaterialSubsets[SubMeshIndex].MaterialName;
         FObjMaterialInfo materilinfo = UAssetManager::Get().GetMaterial(MaterialName)->GetMaterialInfo();
         MaterialUtils::UpdateMaterial(BufferManager, Graphics, materilinfo);
 
         uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;
-        uint32 IndexCount = RenderData->MaterialSubsets[SubMeshIndex].IndexCount;
+        uint32 IndexCount = RenderData->MaterialSubsets[SubMeshIndex].IndexCount; 
         Graphics->DeviceContext->DrawIndexed(IndexCount, StartIndex, 0);
     }
 }

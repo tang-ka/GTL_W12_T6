@@ -1,6 +1,5 @@
 
 #include "FbxLoader.h"
-#include "FbxLoader.h"
 
 #include <format>
 
@@ -10,6 +9,7 @@
 #include "Math/transform.h"
 #include "Animation/Skeleton.h"
 #include "SkeletalMesh.h"
+#include "Container/String.h"
 
 struct FVertexKey
 {
@@ -267,7 +267,7 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
     }
 
     ObjectName = InFilePath.ToWideString();
-    FilePath = InFilePath.ToWideString().substr(0, FilePath.find_last_of(L"\\/") + 1);
+    FilePath = InFilePath.ToWideString().substr(0, InFilePath.ToWideString().find_last_of(L"\\/") + 1);
     // ObjectName은 wstring 타입이므로, 이를 string으로 변환 (간단한 ASCII 변환의 경우)
     std::wstring wideName = ObjectName.substr(ObjectName.find_last_of(L"\\/") + 1);
     std::string fileName(wideName.begin(), wideName.end());
@@ -418,6 +418,7 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObj
         FbxSurfaceMaterial::sShininess
     };
 
+    OutMaterialInfo.TextureInfos.SetNum(sizeof(TextureTypes) / sizeof(const char*));
     for (int i = 0; i < sizeof(TextureTypes) / sizeof(const char*); i++)
     {
         FbxProperty Property = FbxMaterial->FindProperty(TextureTypes[i]);
@@ -434,11 +435,13 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObj
                     {
                         FTextureInfo TexInfo;
                         TexInfo.TextureName = FileTexture->GetName();
-                        TexInfo.TexturePath = FString(FileTexture->GetFileName()).ToWideString();
-                        
+                        TexInfo.TexturePath = FString(FilePath + FileTexture->GetRelativeFileName()).ToWideString();
                         TexInfo.bIsSRGB = (i == 0 || i == 1 || i == 3 || i == 5);
-                        
-                        OutMaterialInfo.TextureInfos.Add(TexInfo);
+
+                        if (CreateTextureFromFile(TexInfo.TexturePath, TexInfo.bIsSRGB))
+                        {
+                            OutMaterialInfo.TextureInfos[i] = TexInfo;
+                        }
                         
                         // 텍스처 플래그 설정
                         OutMaterialInfo.TextureFlag |= (1 << i); // 해당 텍스처 타입 플래그 설정
@@ -1235,4 +1238,21 @@ void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
     {
         OutputDebugStringA("Scene already uses the target coordinate system\n");
     }
+}
+
+bool FFbxLoader::CreateTextureFromFile(const FWString& Filename, bool bIsSRGB)
+{
+    if (FEngineLoop::ResourceManager.GetTexture(Filename))
+    {
+        return true;
+    }
+
+    HRESULT hr = FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, Filename.c_str(), bIsSRGB);
+
+    if (FAILED(hr))
+    {
+        return false;
+    }
+
+    return true;
 }
