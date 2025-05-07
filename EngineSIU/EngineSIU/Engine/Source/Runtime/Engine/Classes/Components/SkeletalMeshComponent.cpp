@@ -28,8 +28,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     USkinnedMeshComponent::TickComponent(DeltaTime);
 
     ElapsedTime += DeltaTime;
-
-    if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
+    if (IsAnimOn && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
@@ -109,4 +108,16 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
         // 결과 행렬 저장
         OutBoneMatrices[BoneIndex] = LocalMatrix;
     }
+}
+
+void USkeletalMeshComponent::SetAnimOn()
+{
+    IsAnimOn = true;
+}
+
+void USkeletalMeshComponent::SetAnimOff()
+{
+    IsAnimOn = false;
+    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+    BoneTransforms = RefSkeleton.RawRefBonePose;
 }

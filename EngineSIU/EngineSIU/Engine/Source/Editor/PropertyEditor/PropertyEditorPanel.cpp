@@ -463,6 +463,14 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         }
 
         ImGui::TreePop();
+
+        if (ImGui::Button("Animation On")) {
+            SkeletalMeshComp->SetAnimOn();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Animation Off")) {
+            SkeletalMeshComp->SetAnimOff();
+        }
     }
     ImGui::PopStyleColor();
 }

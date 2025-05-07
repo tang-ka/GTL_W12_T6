@@ -27,10 +27,14 @@ public:
 
     void GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const;
 
+    void SetAnimOn();
+    void SetAnimOff();
     
 private:
     
     USkeletalMesh* SkeletalMeshAsset = nullptr;
 
     float ElapsedTime = 0.f;
+
+    bool IsAnimOn = false;
 };
