@@ -40,6 +40,11 @@
 #include "imgui/imgui_curve.h"
 #include "Math/Transform.h"
 
+PropertyEditorPanel::PropertyEditorPanel()
+{
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE|EWorldTypeBitFlag::SkeletalViewer);
+}
+
 void PropertyEditorPanel::Render()
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);

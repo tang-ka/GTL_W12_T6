@@ -30,6 +30,7 @@ public:
     
     void AddLocation(const FVector& InAddValue);
     void AddRotation(const FRotator& InAddValue);
+    void AddRotation(const FQuat& InAddValue);
     void AddScale(const FVector& InAddValue);
 
     USceneComponent* GetAttachParent() const { return AttachParent; }

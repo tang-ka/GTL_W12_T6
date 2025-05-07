@@ -1,9 +1,8 @@
 #pragma once
 #include "SkinnedAsset.h"
-#include "Asset/StaticMeshAsset.h"
-
+#include "Asset/SkeletalMeshAsset.h" 
 class USkeleton;
-struct FSkeletalMeshRenderData;
+//struct FSkeletalMeshRenderData;
 
 class USkeletalMesh : public USkinnedAsset
 {
@@ -21,6 +20,7 @@ public:
 
     void SetSkeleton(USkeleton* InSkeleton) { Skeleton = InSkeleton; }
 
+  
 protected:
     std::unique_ptr<FSkeletalMeshRenderData> RenderData;
 

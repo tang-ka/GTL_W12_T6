@@ -3,8 +3,6 @@
 #include "UnrealEd/EditorViewportClient.h"
 class ViewportTypePanel : public IWindowToggleable
 {
-private:
-    ViewportTypePanel() = default;
 
 public:
     static ViewportTypePanel& GetInstance();

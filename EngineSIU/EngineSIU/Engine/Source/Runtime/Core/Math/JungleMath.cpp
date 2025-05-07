@@ -183,6 +183,11 @@ FVector JungleMath::FVectorRotate(FVector& origin, const FRotator& InRotation)
     return InRotation.Quaternion().RotateVector(origin);
 }
 
+FVector JungleMath::FVectorRotate(FVector& origin, const FQuat& InRotation)
+{
+    return InRotation.RotateVector(origin);
+}
+
 FMatrix JungleMath::CreateRotationMatrix(FVector rotation)
 {
     XMVECTOR quatX = XMQuaternionRotationAxis(XMVectorSet(1, 0, 0, 0), FMath::DegreesToRadians(rotation.X));

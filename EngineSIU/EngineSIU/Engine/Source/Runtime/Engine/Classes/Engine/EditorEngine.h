@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine.h"
 #include "Actors/Player.h"
+#include "World/SkeletalViewerWorld.h"
 
 /*
     Editor 모드에서 사용될 엔진.
@@ -23,11 +24,15 @@ public:
     void Release() override;
 
     UWorld* PIEWorld = nullptr;
+    USkeletalViewerWorld* SkeletalMeshViewerWorld = nullptr;
     UWorld* EditorWorld = nullptr;
+    
 
     void StartPIE();
+    void StartSkeletalMeshViewer(FName SkeletalMeshName);
     void BindEssentialObjects();
     void EndPIE();
+    void EndSkeletalMeshViewer();
 
     // 주석은 UE에서 사용하던 매개변수.
     FWorldContext& GetEditorWorldContext(/*bool bEnsureIsGWorld = false*/);

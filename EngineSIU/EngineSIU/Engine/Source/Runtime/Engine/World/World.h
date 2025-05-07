@@ -37,7 +37,7 @@ public:
     void InitializeLightScene();
     virtual UObject* Duplicate(UObject* InOuter) override;
 
-    void Tick(float DeltaTime);
+    virtual void Tick(float DeltaTime);
     void BeginPlay();
 
     void Release();
@@ -84,11 +84,14 @@ public:
 
 public:
     double TimeSeconds;
+
+protected:
+    
+    FString WorldName = "DefaultWorld";
     
 private:
     AGameMode* GameMode = nullptr;
 
-    FString WorldName = "DefaultWorld";
 
     ULevel* ActiveLevel;
 

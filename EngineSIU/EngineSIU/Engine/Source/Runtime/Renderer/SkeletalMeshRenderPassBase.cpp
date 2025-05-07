@@ -215,30 +215,33 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     // Skeleton 정보 가져오기
     const USkeletalMesh* SkeletalMesh = SkeletalMeshComponent->GetSkeletalMeshAsset();
     const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
-    const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms; // 로컬
+    //const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose; // 로컬
+    //const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms; // 로컬
+    //const TArray<FMatrix>& InverseBindPoseMatrices = RefSkeleton.InverseBindPoseMatrices; // 글로벌
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
     // 현재 애니메이션 본 행렬 계산
     TArray<FMatrix> CurrentGlobalBoneMatrices;
-    CurrentGlobalBoneMatrices.SetNum(BoneNum);
-
-    for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
-    {
-        // 현재 본의 로컬 변환
-        FTransform CurrentLocalTransform = CurrentPose[BoneIndex];
-        FMatrix LocalMatrix = CurrentLocalTransform.ToMatrixWithScale(); // FTransform -> FMatrix
-        
-        // 부모 본의 영향을 적용하여 월드 변환 구성
-        int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
-        if (ParentIndex != INDEX_NONE)
-        {
-            // 로컬 변환에 부모 월드 변환 적용
-            LocalMatrix = LocalMatrix * CurrentGlobalBoneMatrices[ParentIndex];
-        }
-        
-        // 결과 행렬 저장
-        CurrentGlobalBoneMatrices[BoneIndex] = LocalMatrix;
-    }
+    SkeletalMeshComponent->GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
+    // CurrentGlobalBoneMatrices.SetNum(BoneNum);
+    //
+    // for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
+    // {
+    //     // 현재 본의 로컬 변환
+    //     FTransform CurrentLocalTransform = CurrentPose[BoneIndex];
+    //     FMatrix LocalMatrix = CurrentLocalTransform.ToMatrixWithScale(); // FTransform -> FMatrix
+    //     
+    //     // 부모 본의 영향을 적용하여 월드 변환 구성
+    //     int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
+    //     if (ParentIndex != INDEX_NONE)
+    //     {
+    //         // 로컬 변환에 부모 월드 변환 적용
+    //         LocalMatrix = LocalMatrix * CurrentGlobalBoneMatrices[ParentIndex];
+    //     }
+    //     
+    //     // 결과 행렬 저장
+    //     CurrentGlobalBoneMatrices[BoneIndex] = LocalMatrix;
+    // }
     
     // 최종 스키닝 행렬 계산
     TArray<FMatrix> FinalBoneMatrices;

@@ -1658,6 +1658,7 @@
     <ClCompile Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Transform.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\BoneHierarchyViewerPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1691,6 +1692,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Axis.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Transform.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\BoneHierarchyViewerPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />

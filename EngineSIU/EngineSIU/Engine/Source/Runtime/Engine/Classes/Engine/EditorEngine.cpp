@@ -4,10 +4,12 @@
 #include "FObjLoader.h"
 #include "World/World.h"
 #include "Level.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
 #include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "UObject/UObjectIterator.h"
+#include <Animation/SkeletalMeshActor.h>
 
 namespace PrivateEditorSelection
 {
@@ -99,6 +101,26 @@ void UEditorEngine::Tick(float DeltaTime)
                 }
             }
         }
+        else if (WorldContext->WorldType == EWorldType::SkeletalViewer)
+        {
+            if (UWorld* World = WorldContext->World())
+            {
+                World->Tick(DeltaTime);
+                EditorPlayer->Tick(DeltaTime);
+                ULevel* Level = World->GetActiveLevel();
+                TArray CachedActors = Level->Actors;
+                if (Level)
+                {
+                    for (AActor* Actor : CachedActors)
+                    {
+                        if (Actor && Actor->IsActorTickInEditor())
+                        {
+                            Actor->Tick(DeltaTime);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -128,6 +150,33 @@ void UEditorEngine::StartPIE()
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
+}
+
+void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
+{
+    if (SkeletalMeshViewerWorld)
+    {
+        UE_LOG(ELogLevel::Warning, TEXT("SkeletalMeshViewerWorld already exists!"));
+        return;
+    }
+    
+    FWorldContext& WorldContext = CreateNewWorldContext(EWorldType::SkeletalViewer);
+
+    
+    SkeletalMeshViewerWorld = USkeletalViewerWorld::CreateWorld(this, EWorldType::SkeletalViewer, FString("SkeletalMeshViewerWorld"));
+
+    WorldContext.SetCurrentWorld(SkeletalMeshViewerWorld);
+    ActiveWorld = SkeletalMeshViewerWorld;
+    SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalViewer;
+
+    // 스켈레탈 액터 스폰
+    ASkeletalMeshActor* SkeletalActor = SkeletalMeshViewerWorld->SpawnActor<ASkeletalMeshActor>();
+    SkeletalActor->SetActorTickInEditor(true);
+    USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
+    SkeletalActor->SetRootComponent(MeshComp);
+    SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
+    SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
 }
 
 void UEditorEngine::BindEssentialObjects()
@@ -182,6 +231,23 @@ void UEditorEngine::EndPIE()
 
     Handler->OnPIEModeEnd();
     // 다시 EditorWorld로 돌아옴.
+    ActiveWorld = EditorWorld;
+}
+
+void UEditorEngine::EndSkeletalMeshViewer()
+{
+    if (SkeletalMeshViewerWorld)
+    {
+        this->ClearActorSelection();
+        WorldList.Remove(GetWorldContextFromWorld(SkeletalMeshViewerWorld));
+        SkeletalMeshViewerWorld->Release();
+        GUObjectArray.MarkRemoveObject(SkeletalMeshViewerWorld);
+        SkeletalMeshViewerWorld = nullptr;
+        
+        DeselectActor(GetSelectedActor());
+        DeselectComponent(GetSelectedComponent());
+    }
+    
     ActiveWorld = EditorWorld;
 }
 

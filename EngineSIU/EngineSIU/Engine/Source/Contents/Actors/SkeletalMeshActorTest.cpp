@@ -23,10 +23,10 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     RootComponent = Root;
 
     MeshComp = AddComponent<USkeletalMeshComponent>(FName("SkeletalMeshComponent_0"));
-    MeshComp->SetSkeletalMeshAsset(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
+    MeshComp->SetSkeletalMeshAsset(UAssetManager::Get().GetSkeletalMesh("Contents/FBX/Sharkry_Unreal"));
     MeshComp->SetupAttachment(RootComponent);
 
-    /*
+    
     if (MeshComp->GetSkeletalMesh())
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
@@ -51,23 +51,13 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
             Dot->SetComponentScale3D(FVector(1.f));
         }
     }
-    */
+    
 }
 
 void ASkeletalMeshActorTest::Tick(float DeltaTime)
 {
     AActor::Tick(DeltaTime);
 
-    /*
-    ElapsedTime += DeltaTime;
 
-    if (MeshComp->GetSkeletalMeshAsset() && MeshComp->GetSkeletalMeshAsset()->GetSkeleton() && MeshComp->AnimSequence)
-    {
-        for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
-        {
-            DotComponents[i]->SetRelativeTransform(MeshComp->BoneTransforms[i]);
-            DotComponents[i]->SetComponentScale3D(FVector(1.f));
-        }
-    }
-    */
+
 }

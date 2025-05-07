@@ -1,10 +1,11 @@
-﻿#include "UnrealEd.h"
+#include "UnrealEd.h"
 #include "EditorPanel.h"
 
 #include "PropertyEditor/ControlEditorPanel.h"
 #include "PropertyEditor/OutlinerEditorPanel.h"
 #include "PropertyEditor/PropertyEditorPanel.h"
-
+#include "PropertyEditor/BoneHierarchyViewerPanel.h"
+#include "World/World.h"
 void UnrealEd::Initialize()
 {
     auto ControlPanel = std::make_shared<ControlEditorPanel>();
@@ -15,13 +16,52 @@ void UnrealEd::Initialize()
     
     auto PropertyPanel = std::make_shared<PropertyEditorPanel>();
     Panels["PropertyPanel"] = PropertyPanel;
+
+    // TODO : SkeletalViewe 전용 UI 분리
+    auto BoneHierarchyPanel = std::make_shared<BoneHierarchyViewerPanel>();
+    Panels["BoneHierarchyPaenl"] = BoneHierarchyPanel;
 }
 
 void UnrealEd::Render() const
 {
+    EWorldTypeBitFlag currentMask;
+    switch (GEngine->ActiveWorld->WorldType)
+    {
+    case EWorldType::Game:
+        currentMask = EWorldTypeBitFlag::Game;
+        break;
+    case EWorldType::Editor:
+        currentMask = EWorldTypeBitFlag::Editor;
+        break;
+    case EWorldType::PIE:
+        currentMask = EWorldTypeBitFlag::PIE;
+        break;
+    case EWorldType::EditorPreview:
+        currentMask = EWorldTypeBitFlag::EditorPreview;
+        break;
+    case EWorldType::GamePreview:
+        currentMask = EWorldTypeBitFlag::GamePreview;
+        break;
+    case EWorldType::GameRPC:
+        currentMask = EWorldTypeBitFlag::GameRPC;
+        break;
+    case EWorldType::SkeletalViewer:
+        currentMask = EWorldTypeBitFlag::SkeletalViewer;
+        break;
+    case EWorldType::Inactive:
+        currentMask = EWorldTypeBitFlag::Inactive;
+        break;
+    default:
+        currentMask = EWorldTypeBitFlag::None;
+        break;
+        
+    }
     for (const auto& Panel : Panels)
     {
-        Panel.Value->Render();
+        if (HasFlag(Panel.Value->GetSupportedWorldTypes(), currentMask))
+        {
+            Panel.Value->Render();
+        }
     }
 }
 

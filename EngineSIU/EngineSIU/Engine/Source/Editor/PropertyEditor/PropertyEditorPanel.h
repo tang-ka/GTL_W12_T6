@@ -22,6 +22,7 @@ class UTextComponent;
 class UHeightFogComponent;
 class AEditorPlayer;
 class UStaticMeshComponent;
+class UMaterial;
 
 // 헬퍼 함수 예시
 template<typename Getter, typename Setter>
@@ -46,6 +47,8 @@ void DrawColorProperty(const char* Label, Getter Get, Setter Set)
 class PropertyEditorPanel : public UEditorPanel
 {
 public:
+    PropertyEditorPanel();
+
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 

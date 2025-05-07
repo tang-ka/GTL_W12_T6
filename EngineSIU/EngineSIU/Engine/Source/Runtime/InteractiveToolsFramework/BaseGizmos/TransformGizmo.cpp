@@ -4,9 +4,12 @@
 #include "GizmoCircleComponent.h"
 #include "Actors/Player.h"
 #include "GizmoRectangleComponent.h"
+#include "ReferenceSkeleton.h"
+#include "Animation/Skeleton.h"
 #include "Engine/EditorEngine.h"
 #include "World/World.h"
 #include "Engine/FObjLoader.h"
+#include "Engine/SkeletalMesh.h"
 
 ATransformGizmo::ATransformGizmo()
 {
@@ -85,8 +88,8 @@ void ATransformGizmo::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Editor 모드에서만 Tick.
-    if (GEngine->ActiveWorld->WorldType != EWorldType::Editor)
+    // Editor 모드에서만 Tick. SkeletalMeshViewer모드에서도 tick
+    if (GEngine->ActiveWorld->WorldType != EWorldType::Editor and GEngine->ActiveWorld->WorldType != EWorldType::SkeletalViewer)
     {
         return;
     }
@@ -127,7 +130,32 @@ void ATransformGizmo::Tick(float DeltaTime)
         {
             SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
         }
+
+        //본 부착용
+        if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+        {
+            USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(TargetComponent);
+            if (SkeletalMeshComp)
+            {
+                int BoneIndex = Engine->SkeletalMeshViewerWorld->SelectBoneIndex;
+                TArray<FMatrix> GlobalBoneMatrices;
+                SkeletalMeshComp->GetCurrentGlobalBoneMatrices(GlobalBoneMatrices);
+
+                FTransform GlobalBoneTransform = FTransform(GlobalBoneMatrices[BoneIndex]);
+
+                AddActorLocation(GlobalBoneTransform.Translation);
+                if (EditorPlayer->GetCoordMode() == ECoordMode::CDM_LOCAL || EditorPlayer->GetControlMode() == EControlMode::CM_SCALE)
+                {
+                    AddActorRotation(GlobalBoneTransform.Rotation);
+                }
+            
+            }
+        }
     }
+
+
+    //
+
 }
 
 void ATransformGizmo::Initialize(FEditorViewportClient* InViewport)

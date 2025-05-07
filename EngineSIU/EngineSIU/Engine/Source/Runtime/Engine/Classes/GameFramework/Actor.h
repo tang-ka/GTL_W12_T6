@@ -97,6 +97,11 @@ public:
     bool SetActorRotation(const FRotator& NewRotation);
     bool SetActorScale(const FVector& NewScale);
 
+    bool AddActorLocation(const FVector& DeltaLocation);
+    bool AddActorRotation(const FRotator& DeltaRotation);
+    bool AddActorRotation(const FQuat& DeltaRotation);
+    bool AddActorScale(const FVector& DeltaScale);
+
 protected:
     UPROPERTY
     (USceneComponent*, RootComponent, = nullptr)
