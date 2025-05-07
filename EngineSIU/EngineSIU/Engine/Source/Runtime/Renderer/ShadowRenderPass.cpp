@@ -16,6 +16,7 @@
 #include "UObject/Casts.h"
 #include "UObject/UObjectIterator.h"
 #include "Editor/PropertyEditor/ShowFlags.h"
+#include "Engine/AssetManager.h"
 
 class UEditorEngine;
 class UStaticMeshComponent;
@@ -223,13 +224,17 @@ void FShadowRenderPass::RenderPrimitive(FStaticMeshRenderData* RenderData, const
 
         BufferManager->UpdateConstantBuffer(TEXT("FSubMeshConstants"), SubMeshData);
 
-        if (OverrideMaterials[MaterialIndex] != nullptr)
+        if (!OverrideMaterials.IsEmpty() && OverrideMaterials.Num() >= MaterialIndex && OverrideMaterials[MaterialIndex] != nullptr)
         {
             MaterialUtils::UpdateMaterial(BufferManager, Graphics, OverrideMaterials[MaterialIndex]->GetMaterialInfo());
         }
-        else
+        else if (!Materials.IsEmpty() && Materials.Num() >= MaterialIndex && Materials[MaterialIndex] != nullptr)
         {
             MaterialUtils::UpdateMaterial(BufferManager, Graphics, Materials[MaterialIndex]->Material->GetMaterialInfo());
+        }
+        else if (UMaterial* Mat = UAssetManager::Get().GetMaterial(RenderData->MaterialSubsets[SubMeshIndex].MaterialName))
+        {
+            MaterialUtils::UpdateMaterial(BufferManager, Graphics, Mat->GetMaterialInfo());
         }
 
         uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;

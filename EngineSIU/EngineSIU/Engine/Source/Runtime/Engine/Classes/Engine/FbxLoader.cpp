@@ -1242,7 +1242,7 @@ UStaticMesh* FFbxLoader::CreateStaticMesh(FbxNode* MeshNode, int32 GlobalMeshIdx
         Subset.MaterialName = FilePath + MaterialName;
 
         RenderData->MaterialSubsets.Add(Subset);
-
+        RenderData->Indices + Indices;
         RunningIndex += Indices.Num();
     }
 
