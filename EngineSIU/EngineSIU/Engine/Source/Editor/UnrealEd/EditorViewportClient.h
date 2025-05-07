@@ -113,6 +113,7 @@ protected:
     int32 CameraSpeedSetting = 1;
     /** Camera speed scalar */
     float CameraSpeed = 1.0f;
+    float CameraSpeedMultiplier = 10.0f;
     float GridSize;
 
     void GetViewInfo(FMinimalViewInfo& OutViewInfo) const;

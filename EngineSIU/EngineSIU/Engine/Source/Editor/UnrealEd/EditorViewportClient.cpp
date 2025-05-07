@@ -71,32 +71,32 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 {
     if (PressedKeys.Contains(EKeys::A))
     {
-        CameraMoveRight(-100.f * DeltaTime);
+        CameraMoveRight(-CameraSpeedMultiplier * DeltaTime);
     }
 
     if (PressedKeys.Contains(EKeys::D))
     {
-        CameraMoveRight(100.f * DeltaTime);
+        CameraMoveRight(CameraSpeedMultiplier * DeltaTime);
     }
 
     if (PressedKeys.Contains(EKeys::W))
     {
-        CameraMoveForward(100.f * DeltaTime);
+        CameraMoveForward(CameraSpeedMultiplier * DeltaTime);
     }
 
     if (PressedKeys.Contains(EKeys::S))
     {
-        CameraMoveForward(-100.f * DeltaTime);
+        CameraMoveForward(-CameraSpeedMultiplier * DeltaTime);
     }
 
     if (PressedKeys.Contains(EKeys::E))
     {
-        CameraMoveUp(100.f * DeltaTime);
+        CameraMoveUp(CameraSpeedMultiplier * DeltaTime);
     }
 
     if (PressedKeys.Contains(EKeys::Q))
     {
-        CameraMoveUp(-100.f * DeltaTime);
+        CameraMoveUp(-CameraSpeedMultiplier * DeltaTime);
     }
 }
 
