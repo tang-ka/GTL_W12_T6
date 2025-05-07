@@ -218,7 +218,7 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     const TArray<FTransform>& CurrentPose = SkeletalMeshComponent->BoneTransforms; // 로컬
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
-    // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
+    // 현재 애니메이션 본 행렬 계산
     TArray<FMatrix> CurrentGlobalBoneMatrices;
     CurrentGlobalBoneMatrices.SetNum(BoneNum);
 
@@ -240,7 +240,7 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
         CurrentGlobalBoneMatrices[BoneIndex] = LocalMatrix;
     }
     
-    // 2. 최종 스키닝 행렬 계산 (FBX SDK에서 가져온 역행렬 활용)
+    // 최종 스키닝 행렬 계산
     TArray<FMatrix> FinalBoneMatrices;
     FinalBoneMatrices.SetNum(BoneNum);
     

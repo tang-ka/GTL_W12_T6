@@ -27,7 +27,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
     ElapsedTime += DeltaTime;
 
-    if (false && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
+    if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
@@ -53,13 +53,13 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                 FTransform InterpolatedTransform = FTransform::Identity;
                 InterpolatedTransform.Blend(CurrentTransform, NextTransform, Alpha);
         
-                // 보간된 트랜스폼 적용
-                BoneTransforms[BoneIdx] = InterpolatedTransform * RefSkeleton.RawRefBonePose[BoneIdx];
+                // 보간된 트랜스폼 적용 (로컬 포즈 * 애니메이션 트랜스폼)
+                BoneTransforms[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx] * InterpolatedTransform;
             }
             else
             {
                 // 다음 키프레임에 본 데이터가 없으면 현재 트랜스폼만 사용
-                BoneTransforms[BoneIdx] = CurrentTransform * RefSkeleton.RawRefBonePose[BoneIdx];
+                BoneTransforms[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx] * CurrentTransform;
             }
         }
     }
