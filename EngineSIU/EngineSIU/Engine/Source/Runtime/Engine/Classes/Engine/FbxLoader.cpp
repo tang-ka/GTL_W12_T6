@@ -1055,7 +1055,7 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNode(TArray<FbxNode*> MeshNodes
                 if (FbxMat)
                     MaterialName = FbxMat->GetName();
             }
-            Subset.MaterialName = MaterialName;
+            Subset.MaterialName = FilePath + MaterialName;
 
             RenderData->MaterialSubsets.Add(Subset);
 

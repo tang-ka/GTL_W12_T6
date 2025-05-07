@@ -178,7 +178,7 @@ void UAssetManager::LoadContentFiles()
                 Info.AssetType = EAssetType::Material;
                 AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
 
-                FString Key = /*Info.PackagePath.ToString() + "/" + */Info.AssetName.ToString();
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
                 MaterialMap.Add(Key, Material);
             }
         }
