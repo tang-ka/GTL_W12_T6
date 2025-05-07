@@ -79,24 +79,32 @@ void BoneHierarchyViewerPanel::Render()
         }
 
         float ExitPanelWidth = (Width) * 0.2f - 6.0f;
-        float ExitPanelHeight = (Height) * 0.05f;
+        float ExitPanelHeight = 30.0f;
 
         const float margin = 10.0f;
 
         float ExitPanelPosX = Width - ExitPanelWidth;
-        float ExitPanelPosY = Height - ExitPanelHeight;
+        float ExitPanelPosY = Height - ExitPanelHeight - 10;
 
-        //ImVec2 ExitMinSize(140, 100);
-        //ImVec2 ExitMaxSize(FLT_MAX, 500);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
         ImGui::SetNextWindowSize(ImVec2(ExitPanelWidth, ExitPanelHeight), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(ExitPanelPosX, ExitPanelPosY), ImGuiCond_Always);
-        ImGui::Begin("temp", nullptr, PanelFlags);
+        
+        constexpr ImGuiWindowFlags ExitPanelFlags =
+            ImGuiWindowFlags_NoResize
+            | ImGuiWindowFlags_NoMove
+            | ImGuiWindowFlags_NoTitleBar
+            | ImGuiWindowFlags_NoBackground
+            | ImGuiWindowFlags_NoScrollbar;
+
+        ImGui::Begin("Exit Viewer", nullptr, ExitPanelFlags);
         if (ImGui::Button("Exit Viewer", ImVec2(ExitPanelWidth, ExitPanelHeight))) {
             UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine);
             EdEngine->EndSkeletalMeshViewer();
         }
         ImGui::End();
- 
+        ImGui::PopStyleVar();
     }
  
 }
