@@ -1,7 +1,7 @@
 
 #include "ShaderRegisters.hlsl"
 
-StructuredBuffer<float4x4> BoneMatrices : register(t0);
+StructuredBuffer<float4x4> BoneMatrices : register(t1);
 
 PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
 {
