@@ -27,9 +27,9 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     MeshComp->SetupAttachment(RootComponent);
 
     
-    if (MeshComp->GetSkeletalMesh())
+    if (MeshComp->GetSkeletalMeshAsset())
     {
-        const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
+        const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
         
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
@@ -48,7 +48,7 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
             }
             
             Dot->SetRelativeTransform(RefSkeleton.RawRefBonePose[i]);
-            Dot->SetComponentScale3D(FVector(1.f));
+            Dot->SetWorldScale3D(FVector(1.f));
         }
     }
     

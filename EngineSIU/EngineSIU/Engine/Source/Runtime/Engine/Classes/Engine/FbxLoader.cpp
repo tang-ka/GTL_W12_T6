@@ -9,6 +9,7 @@
 #include "Math/transform.h"
 #include "Animation/Skeleton.h"
 #include "SkeletalMesh.h"
+#include "Asset/StaticMeshAsset.h"
 #include "Container/String.h"
 
 struct FVertexKey

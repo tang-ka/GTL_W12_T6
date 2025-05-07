@@ -21,34 +21,7 @@ USkeletalMeshComponent::~USkeletalMeshComponent()
     }
 }
 
-void USkeletalMeshComponent::TickComponent(float DeltaTime)
-{
-    USkinnedMeshComponent::TickComponent(DeltaTime);
-    BoneTransforms = BoneBindPoseTransforms;
-    ElapsedTime += DeltaTime;
-    
-    // if ( GetSkeletalMesh() && GetSkeletalMesh()->GetSkeleton() && AnimSequence)
-    // {
-    //     const FReferenceSkeleton& RefSkeleton = GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
-    //
-    //     int32 Key = static_cast<int32>(ElapsedTime * AnimSequence->FrameRate) % AnimSequence->NumFrames;
-    //     TMap<int32, FTransform> AnimBoneTransforms = AnimSequence->Anim[Key];
-    //
-    //     for (auto& [BoneIdx, LocalTransform] : AnimBoneTransforms)
-    //     {
-    //        BoneTransforms[BoneIdx] = LocalTransform * BoneBindPoseTransforms[BoneIdx];
-    //     }
-    //
-    //     /*
-    //     for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
-    //     {
-    //         DotComponents[i]->SetRelativeTransform(MeshComp->BoneTransforms[i]);
-    //         DotComponents[i]->SetComponentScale3D(FVector(1.f));
-    //     }
-    //     */
-    // }
 
-}
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
@@ -111,7 +84,7 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
 
 void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const
 {
-    const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
+    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
     const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose; // 로컬
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 

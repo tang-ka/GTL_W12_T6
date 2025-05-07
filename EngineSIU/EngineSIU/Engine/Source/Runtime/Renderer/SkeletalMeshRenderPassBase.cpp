@@ -175,7 +175,8 @@ void FSkeletalMeshRenderPassBase::RenderSkeletalMesh(const FSkeletalMeshRenderDa
     for (int SubMeshIndex = 0; SubMeshIndex < RenderData->MaterialSubsets.Num(); SubMeshIndex++)
     {
         FName MaterialName = RenderData->MaterialSubsets[SubMeshIndex].MaterialName;
-        FMaterialInfo materilinfo = UAssetManager::Get().GetMaterial(MaterialName)->GetMaterialInfo();
+        UMaterial* Material = UAssetManager::Get().GetMaterial(MaterialName);
+        FMaterialInfo materilinfo = Material->GetMaterialInfo();
         MaterialUtils::UpdateMaterial(BufferManager, Graphics, materilinfo);
 
         uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;

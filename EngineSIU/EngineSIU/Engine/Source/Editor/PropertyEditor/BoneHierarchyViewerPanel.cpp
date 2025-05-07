@@ -138,7 +138,7 @@ void BoneHierarchyViewerPanel::CopyRefSkeleton()
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     const FReferenceSkeleton& OrigRef = Engine->SkeletalMeshViewerWorld
-        ->GetSkeletalMeshComponent()->GetSkeletalMesh()
+        ->GetSkeletalMeshComponent()->GetSkeletalMeshAsset()
         ->GetSkeleton()->GetReferenceSkeleton();
 
     CopiedRefSkeleton = new FReferenceSkeleton();

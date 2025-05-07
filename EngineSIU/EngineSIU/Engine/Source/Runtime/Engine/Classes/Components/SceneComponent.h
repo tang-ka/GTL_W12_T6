@@ -55,6 +55,7 @@ public:
     void SetWorldLocation(const FVector& InLocation);
     void SetWorldRotation(const FRotator& InRotation);
     void SetWorldRotation(const FQuat& InQuat);
+    
     void SetWorldScale3D(const FVector& InScale);
     void SetWorldTransform(const FTransform& InTransform);
     

@@ -1,5 +1,6 @@
 #pragma once
 #include "SkinnedMeshComponent.h"
+#include "Engine/AssetManager.h"
 
 class UAnimSequence;
 class USkeletalMesh;
@@ -13,7 +14,6 @@ public:
     virtual ~USkeletalMeshComponent() override;
     void TickComponent(float DeltaTime) override;
 
-    virtual void TickComponent(float DeltaTime) override;
 
     USkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMeshAsset; }
 
@@ -30,7 +30,6 @@ public:
     
 private:
     
-    float ElapsedTime = 0.f;
     USkeletalMesh* SkeletalMeshAsset = nullptr;
 
     float ElapsedTime = 0.f;

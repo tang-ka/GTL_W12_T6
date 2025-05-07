@@ -175,7 +175,7 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
     USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
     SkeletalActor->SetRootComponent(MeshComp);
     SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
-    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
+    MeshComp->SetSkeletalMeshAsset(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
     SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
 }
 
