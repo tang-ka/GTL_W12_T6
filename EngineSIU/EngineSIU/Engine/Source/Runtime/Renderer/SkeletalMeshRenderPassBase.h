@@ -61,5 +61,5 @@ protected:
     ID3D11Buffer* BoneBuffer;
     ID3D11ShaderResourceView* BoneSRV;
 
-    const int32 MaxBoneNum = 256;
+    const int32 MaxBoneNum = 1024;
 };

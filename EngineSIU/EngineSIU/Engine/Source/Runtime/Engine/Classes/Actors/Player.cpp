@@ -353,6 +353,11 @@ void AEditorPlayer::PickedBoneControl()
         const float DeltaX = static_cast<float>(CurrentMousePos.x - m_LastMousePos.x);
         const float DeltaY = static_cast<float>(CurrentMousePos.y - m_LastMousePos.y);
 
+        if (DeltaX > 1.f)
+        {
+            int a = 0;
+        }
+
         USceneComponent* TargetComponent = Engine->GetSelectedComponent();
         if (!TargetComponent)
         {
