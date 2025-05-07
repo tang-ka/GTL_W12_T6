@@ -457,6 +457,11 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             ImGui::EndCombo();
         }
 
+        if (ImGui::Button("Toggle Animation"))
+        {
+            SkeletalMeshComp->bPlayAnimation ^= true;
+        }
+
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();

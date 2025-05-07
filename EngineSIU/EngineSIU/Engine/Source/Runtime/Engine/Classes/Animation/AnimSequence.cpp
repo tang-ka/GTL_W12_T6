@@ -64,7 +64,7 @@ UAnimSequence::UAnimSequence()
                 (FMath::Sin((static_cast<float>(i) / FrameRate) * PI * 2.f + 1.f) + 1.0f) * 2.f
             );
         Track.Add(0, TF);
-        
+
         Anim.Add(Track);
     }
 }

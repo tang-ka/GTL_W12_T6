@@ -21,6 +21,9 @@ public:
     UAnimSequence* AnimSequence = nullptr;
 
     TArray<FTransform> BoneTransforms;
+
+    // TODO: 임시 변수
+    bool bPlayAnimation = true;
     
 private:
     USkeletalMesh* SkeletalMeshAsset = nullptr;

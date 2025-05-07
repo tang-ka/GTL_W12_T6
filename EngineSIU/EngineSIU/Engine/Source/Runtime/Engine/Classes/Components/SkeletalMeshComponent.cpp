@@ -25,9 +25,12 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
     USkinnedMeshComponent::TickComponent(DeltaTime);
 
-    ElapsedTime += DeltaTime;
+    if (bPlayAnimation)
+    {
+        ElapsedTime += DeltaTime;
+    }
 
-    if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
+    if (bPlayAnimation && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton() && AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
@@ -62,6 +65,11 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                 BoneTransforms[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx] * CurrentTransform;
             }
         }
+    }
+    else
+    {
+        const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+        BoneTransforms = RefSkeleton.RawRefBonePose;
     }
 }
 
