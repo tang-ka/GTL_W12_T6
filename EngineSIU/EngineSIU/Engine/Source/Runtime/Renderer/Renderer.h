@@ -69,6 +69,7 @@ protected:
     void RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void EndRender();
     void ClearRenderArr() const;

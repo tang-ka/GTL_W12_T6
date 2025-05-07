@@ -99,6 +99,26 @@ void UEditorEngine::Tick(float DeltaTime)
                 }
             }
         }
+        else if (WorldContext->WorldType == EWorldType::SkeletalViewer)
+        {
+            if (UWorld* World = WorldContext->World())
+            {
+                World->Tick(DeltaTime);
+                EditorPlayer->Tick(DeltaTime);
+                ULevel* Level = World->GetActiveLevel();
+                TArray CachedActors = Level->Actors;
+                if (Level)
+                {
+                    for (AActor* Actor : CachedActors)
+                    {
+                        if (Actor && Actor->IsActorTickInEditor())
+                        {
+                            Actor->Tick(DeltaTime);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -128,6 +148,24 @@ void UEditorEngine::StartPIE()
     PIEWorld->BeginPlay();
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
+}
+
+void UEditorEngine::StartSkeletalMeshViewer()
+{
+    if (SkeletalMeshViewerWorld)
+    {
+        UE_LOG(ELogLevel::Warning, TEXT("SkeletalMeshViewerWorld already exists!"));
+        return;
+    }
+    
+    FWorldContext& WorldContext = CreateNewWorldContext(EWorldType::SkeletalViewer);
+
+    
+    SkeletalMeshViewerWorld = USkeletalViewerWorld::CreateWorld(this, EWorldType::SkeletalViewer, FString("SkeletalMeshViewerWorld"));
+
+    WorldContext.SetCurrentWorld(SkeletalMeshViewerWorld);
+    ActiveWorld = SkeletalMeshViewerWorld;
+    SkeletalMeshViewerWorld->WorldType = EWorldType::SkeletalViewer;
 }
 
 void UEditorEngine::BindEssentialObjects()
@@ -183,6 +221,10 @@ void UEditorEngine::EndPIE()
     Handler->OnPIEModeEnd();
     // 다시 EditorWorld로 돌아옴.
     ActiveWorld = EditorWorld;
+}
+
+void UEditorEngine::EndSkeletalMeshViewer()
+{
 }
 
 FWorldContext& UEditorEngine::GetEditorWorldContext(/*bool bEnsureIsGWorld*/)

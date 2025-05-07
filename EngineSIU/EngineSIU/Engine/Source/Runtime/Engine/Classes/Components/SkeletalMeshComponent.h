@@ -11,6 +11,7 @@ class USkeletalMeshComponent : public USkinnedMeshComponent
 public:
     USkeletalMeshComponent();
     virtual ~USkeletalMeshComponent() override;
+    void TickComponent(float DeltaTime) override;
 
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* InSkeletalMesh);
@@ -20,5 +21,7 @@ public:
     TArray<FTransform> BoneTransforms;
     
 private:
+    
+    float ElapsedTime = 0.f;
     USkeletalMesh* SkeletalMesh = nullptr;
 };

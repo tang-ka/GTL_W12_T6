@@ -23,10 +23,10 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     RootComponent = Root;
 
     MeshComp = AddComponent<USkeletalMeshComponent>(FName("SkeletalMeshComponent_0"));
-    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/test"));
+    MeshComp->SetSkeletalMesh(UAssetManager::Get().GetSkeletalMesh("Contents/FBX/Sharkry_Unreal"));
     MeshComp->SetupAttachment(RootComponent);
 
-    /*
+    
     if (MeshComp->GetSkeletalMesh())
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
@@ -51,34 +51,13 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
             Dot->SetComponentScale3D(FVector(1.f));
         }
     }
-    */
+    
 }
 
 void ASkeletalMeshActorTest::Tick(float DeltaTime)
 {
     AActor::Tick(DeltaTime);
 
-    ElapsedTime += DeltaTime;
 
-    if (false && MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
-    {
-        const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
 
-        int32 Key = static_cast<int32>(ElapsedTime * MeshComp->AnimSequence->FrameRate) % MeshComp->AnimSequence->NumFrames;
-        TMap<int32, FTransform> AnimBoneTransforms = MeshComp->AnimSequence->Anim[Key];
-
-        MeshComp->BoneTransforms = RefSkeleton.RawRefBonePose;
-        for (auto& [BoneIdx, LocalTransform] : AnimBoneTransforms)
-        {
-            MeshComp->BoneTransforms[BoneIdx] = LocalTransform * RefSkeleton.RawRefBonePose[BoneIdx];
-        }
-
-        /*
-        for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
-        {
-            DotComponents[i]->SetRelativeTransform(MeshComp->BoneTransforms[i]);
-            DotComponents[i]->SetComponentScale3D(FVector(1.f));
-        }
-        */
-    }
 }
