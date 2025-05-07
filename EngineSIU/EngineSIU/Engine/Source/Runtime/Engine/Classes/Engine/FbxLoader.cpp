@@ -1024,8 +1024,6 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& M
                     // 맵에 새 정점 정보 추가
                     UniqueVertices.Add(Key, NewIndex);
                 }
-                // 인덱스 버퍼에 새 인덱스 추가
-                RenderData->Indices.Add(NewIndex);
                 PolyIndices[j] = NewIndex;
                 VertexCounter++; // 다음 폴리곤 정점으로 이동
             } // End for each vertex in polygon
@@ -1058,7 +1056,7 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& M
             Subset.MaterialName = FilePath + MaterialName;
 
             RenderData->MaterialSubsets.Add(Subset);
-
+            RenderData->Indices + Indices;
             RunningIndex += Indices.Num();
         }
     }
