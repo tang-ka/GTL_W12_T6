@@ -27,12 +27,13 @@ public:
 
     void GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const;
 
-    // TODO: 임시 변수
-    bool bPlayAnimation = true;
+    void SetAnimationEnabled(bool bEnable);
     
 private:
     
     USkeletalMesh* SkeletalMeshAsset = nullptr;
 
     float ElapsedTime = 0.f;
+
+    bool bPlayAnimation = false;
 };
