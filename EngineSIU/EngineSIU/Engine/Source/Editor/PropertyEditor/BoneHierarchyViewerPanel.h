@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/EditorEngine.h"
 #include "GameFramework/Actor.h"
 #include "UnrealEd/EditorPanel.h"
 
@@ -24,7 +25,7 @@ private:
     void LoadBoneIcon();
     void CopyRefSkeleton();
 
-    void RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex);
+    void RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine);
     
     FString GetCleanBoneName(const FString& InFullName);
 

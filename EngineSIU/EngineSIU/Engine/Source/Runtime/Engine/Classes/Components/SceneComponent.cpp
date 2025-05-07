@@ -161,8 +161,14 @@ void USceneComponent::AddLocation(const FVector& InAddValue)
 
 void USceneComponent::AddRotation(const FRotator& InAddValue)
 {
-    RelativeRotation = RelativeRotation + InAddValue;
-    RelativeRotation.Normalize();
+    FQuat Quat = InAddValue.Quaternion()* RelativeRotation.Quaternion();
+    SetComponentRotation(Quat); 
+}
+
+void USceneComponent::AddRotation(const FQuat& InAddValue)
+{
+    FQuat Quat = InAddValue * RelativeRotation.Quaternion();
+    SetComponentRotation(Quat);
 }
 
 void USceneComponent::AddScale(const FVector& InAddValue)

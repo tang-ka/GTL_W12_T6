@@ -327,6 +327,42 @@ bool AActor::SetActorScale(const FVector& NewScale)
     return false;
 }
 
+bool AActor::AddActorLocation(const FVector& DeltaLocation)
+{
+    if (RootComponent)
+    {
+        RootComponent->AddLocation(DeltaLocation);
+        return true;
+    }
+}
+
+bool AActor::AddActorRotation(const FRotator& DeltaRotation)
+{
+    if (RootComponent)
+    {
+        RootComponent->AddRotation(DeltaRotation);
+        return true;
+    }
+}
+
+bool AActor::AddActorRotation(const FQuat& DeltaRotation)
+{
+    if (RootComponent)
+    {
+        RootComponent->AddRotation(DeltaRotation);
+        return true;
+    }
+}
+
+bool AActor::AddActorScale(const FVector& DeltaScale)
+{
+    if (RootComponent)
+    {
+        RootComponent->AddScale(DeltaScale);
+        return true;
+    }
+}
+
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)
 {
     bTickInEditor = InbInTickInEditor;

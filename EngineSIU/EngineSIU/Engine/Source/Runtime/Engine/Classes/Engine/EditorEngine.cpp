@@ -4,6 +4,7 @@
 #include "FObjLoader.h"
 #include "World/World.h"
 #include "Level.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Engine/AssetManager.h"
 #include "Contents/Actors/SkeletalMeshActorTest.h"
@@ -242,13 +243,12 @@ void UEditorEngine::EndSkeletalMeshViewer()
         SkeletalMeshViewerWorld->Release();
         GUObjectArray.MarkRemoveObject(SkeletalMeshViewerWorld);
         SkeletalMeshViewerWorld = nullptr;
-
+        
         DeselectActor(GetSelectedActor());
         DeselectComponent(GetSelectedComponent());
     }
-
+    
     ActiveWorld = EditorWorld;
-
 }
 
 FWorldContext& UEditorEngine::GetEditorWorldContext(/*bool bEnsureIsGWorld*/)
