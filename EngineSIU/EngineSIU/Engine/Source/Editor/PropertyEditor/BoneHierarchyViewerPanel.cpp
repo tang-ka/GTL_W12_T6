@@ -5,6 +5,11 @@
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
 #include "Engine/Classes/Engine/FbxLoader.h"
+BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
+{
+    SetSupportedWorldTypes(EWorldTypeBitFlag::SkeletalViewer);
+
+}
 void BoneHierarchyViewerPanel::Render()
 {
     
@@ -43,18 +48,7 @@ void BoneHierarchyViewerPanel::Render()
         if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer) {
 
             if (CopiedRefSkeleton == nullptr) {
-                if (Engine->SkeletalMeshViewerWorld
-                    ->GetSkeletalMeshComponent() != nullptr) {
-                    const FReferenceSkeleton& OrigRef = Engine->SkeletalMeshViewerWorld
-                        ->GetSkeletalMeshComponent()->GetSkeletalMesh()
-                        ->GetSkeleton()->GetReferenceSkeleton();
-
-                    CopiedRefSkeleton = new FReferenceSkeleton();
-                    CopiedRefSkeleton->RawRefBoneInfo = OrigRef.RawRefBoneInfo;
-                    CopiedRefSkeleton->RawRefBonePose = OrigRef.RawRefBonePose;
-                    CopiedRefSkeleton->InverseBindPoseMatrices = OrigRef.InverseBindPoseMatrices;
-                    CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
-                }
+                CopyRefSkeleton();
             }
 
             ImGui::Begin("Bone Name", nullptr, PanelFlags);
@@ -69,7 +63,7 @@ void BoneHierarchyViewerPanel::Render()
             ImGui::End();
         }
     }
-    
+ 
 }
 
 void BoneHierarchyViewerPanel::OnResize(HWND hWnd)
@@ -107,13 +101,16 @@ void BoneHierarchyViewerPanel::LoadBoneIcon()
 
 void BoneHierarchyViewerPanel::CopyRefSkeleton()
 {
-    /*const FReferenceSkeleton& OrigRef = 
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    const FReferenceSkeleton& OrigRef = Engine->SkeletalMeshViewerWorld
+        ->GetSkeletalMeshComponent()->GetSkeletalMesh()
+        ->GetSkeleton()->GetReferenceSkeleton();
 
     CopiedRefSkeleton = new FReferenceSkeleton();
     CopiedRefSkeleton->RawRefBoneInfo = OrigRef.RawRefBoneInfo;
     CopiedRefSkeleton->RawRefBonePose = OrigRef.RawRefBonePose;
     CopiedRefSkeleton->InverseBindPoseMatrices = OrigRef.InverseBindPoseMatrices;
-    CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;*/
+    CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
 }
 
 void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex)

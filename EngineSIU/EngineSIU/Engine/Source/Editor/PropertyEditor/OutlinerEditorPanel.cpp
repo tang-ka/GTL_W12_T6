@@ -4,6 +4,11 @@
 #include "Engine/EditorEngine.h"
 #include <functional>
 
+OutlinerEditorPanel::OutlinerEditorPanel()
+{
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor | EWorldTypeBitFlag::PIE );
+}
+
 void OutlinerEditorPanel::Render()
 {
     /* Pre Setup */

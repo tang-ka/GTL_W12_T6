@@ -44,6 +44,11 @@
 #include "Contents/Actors/TriggerBox.h"
 #include "Renderer/CompositingPass.h"
 
+ControlEditorPanel::ControlEditorPanel()
+{
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor | EWorldTypeBitFlag::PIE | EWorldTypeBitFlag::SkeletalViewer);
+}
+
 void ControlEditorPanel::Render()
 {
     /* Pre Setup */
@@ -209,7 +214,8 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Skeletal Viewer"))
+        // FIXME : 스켈레탈 뷰어 Import 방식으로 변경
+        /*if (ImGui::BeginMenu("Skeletal Viewer"))
         {
             if (ImGui::MenuItem("(.fbx)"))
             {
@@ -228,7 +234,7 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
             }
 
             ImGui::EndMenu();
-        }
+        }*/
 
         ImGui::Separator();
 

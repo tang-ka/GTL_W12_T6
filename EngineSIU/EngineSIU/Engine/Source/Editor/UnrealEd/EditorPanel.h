@@ -1,4 +1,5 @@
 #pragma once
+#include <World/WorldType.h>
 
 #ifndef __ICON_FONT_INDEX__
 
@@ -14,4 +15,10 @@ public:
     virtual ~UEditorPanel() = default;
     virtual void Render() = 0;
     virtual void OnResize(HWND hWnd) = 0;
+
+    void  SetSupportedWorldTypes(EWorldTypeBitFlag mask) { SupportedMask = mask; }
+    EWorldTypeBitFlag GetSupportedWorldTypes() const { return SupportedMask; }
+
+private:
+    EWorldTypeBitFlag SupportedMask = EWorldTypeBitFlag::None;
 };

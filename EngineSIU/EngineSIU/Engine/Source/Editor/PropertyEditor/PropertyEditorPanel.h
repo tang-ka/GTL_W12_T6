@@ -47,6 +47,8 @@ void DrawColorProperty(const char* Label, Getter Get, Setter Set)
 class PropertyEditorPanel : public UEditorPanel
 {
 public:
+    PropertyEditorPanel();
+
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 

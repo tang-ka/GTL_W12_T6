@@ -8,6 +8,8 @@ USkeletalViewerWorld* USkeletalViewerWorld::CreateWorld(UObject* InOuter, const 
     NewWorld->WorldType = InWorldType;
     NewWorld->InitializeNewWorld();
 
+
+    // FIXME : 테스트용 SpawnActor, import 형식으로 변경 필요.
     ASkeletalMeshActor* SkeletalActor = NewWorld->SpawnActor<ASkeletalMeshActor>();
     SkeletalActor->SetActorTickInEditor(true);
     USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();

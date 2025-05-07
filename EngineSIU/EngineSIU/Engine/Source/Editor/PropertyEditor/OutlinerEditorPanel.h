@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "Components/ActorComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
 class OutlinerEditorPanel : public UEditorPanel
 {
 public:
-    OutlinerEditorPanel() = default;
+    OutlinerEditorPanel();
 
 public:
     virtual void Render() override;

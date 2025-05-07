@@ -7,6 +7,8 @@ class FReferenceSkeleton;
 class BoneHierarchyViewerPanel : public UEditorPanel
 {
 public:
+    BoneHierarchyViewerPanel();
+
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
@@ -31,6 +33,6 @@ private:
 
     int32 SelectedBoneIndex = INDEX_NONE;
 
-    FReferenceSkeleton* CopiedRefSkeleton;
+    FReferenceSkeleton* CopiedRefSkeleton = nullptr;
 
 };
