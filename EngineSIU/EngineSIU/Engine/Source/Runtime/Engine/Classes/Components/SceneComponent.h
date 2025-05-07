@@ -51,11 +51,11 @@ public:
     FVector GetRelativeScale3D() const { return RelativeScale3D; }
     FTransform GetRelativeTransform() const;
 
-    void SetComponentLocation(const FVector& InLocation);
-    void SetComponentRotation(const FRotator& InRotation);
-    void SetComponentRotation(const FQuat& InQuat);
-    void SetComponentScale3D(const FVector& InScale);
-    void SetComponentTransform(const FTransform& InTransform);
+    void SetWorldLocation(const FVector& InLocation);
+    void SetWorldRotation(const FRotator& InRotation);
+    void SetWorldRotation(const FQuat& InQuat);
+    void SetWorldScale3D(const FVector& InScale);
+    void SetWorldTransform(const FTransform& InTransform);
     
     FVector GetComponentLocation() const;
     FRotator GetComponentRotation() const;

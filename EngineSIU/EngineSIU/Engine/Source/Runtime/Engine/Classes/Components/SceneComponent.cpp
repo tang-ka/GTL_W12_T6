@@ -201,7 +201,7 @@ FTransform USceneComponent::GetRelativeTransform() const
     return FTransform(RelativeRotation, RelativeLocation, RelativeScale3D);
 }
 
-void USceneComponent::SetComponentLocation(const FVector& InLocation)
+void USceneComponent::SetWorldLocation(const FVector& InLocation)
 {
     // TODO: 코드 최적화 방법 생각하기
     FMatrix NewRelativeMatrix = FMatrix::CreateTranslationMatrix(InLocation);
@@ -214,12 +214,12 @@ void USceneComponent::SetComponentLocation(const FVector& InLocation)
     RelativeLocation = NewRelativeLocation;
 }
 
-void USceneComponent::SetComponentRotation(const FRotator& InRotation)
+void USceneComponent::SetWorldRotation(const FRotator& InRotation)
 {
-    SetComponentRotation(InRotation.Quaternion());
+    SetWorldRotation(InRotation.Quaternion());
 }
 
-void USceneComponent::SetComponentRotation(const FQuat& InQuat)
+void USceneComponent::SetWorldRotation(const FQuat& InQuat)
 {
     // TODO: 코드 최적화 방법 생각하기
     FMatrix NewRelativeMatrix = InQuat.ToMatrix();
@@ -233,7 +233,7 @@ void USceneComponent::SetComponentRotation(const FQuat& InQuat)
     RelativeRotation.Normalize();   
 }
 
-void USceneComponent::SetComponentScale3D(const FVector& InScale)
+void USceneComponent::SetWorldScale3D(const FVector& InScale)
 {
     // TODO: 코드 최적화 방법 생각하기
     FMatrix NewRelativeMatrix = FMatrix::CreateScaleMatrix(InScale.X, InScale.Y, InScale.Z);
@@ -361,7 +361,7 @@ void USceneComponent::SetRelativeTransform(const FTransform& InTransform)
     UpdateOverlaps();
 }
 
-void USceneComponent::SetComponentTransform(const FTransform& InTransform)
+void USceneComponent::SetWorldTransform(const FTransform& InTransform)
 {
     // 월드 트랜스폼을 상대 트랜스폼으로 변환
     if (AttachParent)
@@ -431,8 +431,8 @@ bool USceneComponent::MoveComponentImpl(const FVector& Delta, const FQuat& NewRo
 
     if (!Delta.IsNearlyZero() || !NewRotation.Equals(GetComponentRotation().Quaternion()))
     {
-        SetComponentLocation(GetComponentLocation() + Delta);
-        SetComponentRotation(NewRotation);
+        SetWorldLocation(GetComponentLocation() + Delta);
+        SetWorldRotation(NewRotation);
 
         UpdateOverlaps();
     }

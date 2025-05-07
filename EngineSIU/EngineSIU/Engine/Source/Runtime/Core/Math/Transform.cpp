@@ -357,6 +357,7 @@ void FTransform::BlendFromIdentityAndAccumulate(FTransform& OutTransform, const 
 
 FTransform FTransform::operator*(const FTransform& Other) const 
 {
+    // 언리얼 엔진 방식의 트랜스폼 
     FTransform Result;
     Result.Scale3D = Scale3D * Other.Scale3D;
     Result.Rotation = Rotation * Other.Rotation;

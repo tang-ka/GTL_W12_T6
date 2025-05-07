@@ -72,8 +72,8 @@ void UCameraComponent::ProceedFInterp(float DeltaTime)
     
         FRotator TargetRotation = FRotator::MakeLookAtRotation(MoveLocation, Lookat);
     
-        SetComponentLocation(MoveLocation);
-        SetComponentRotation(TargetRotation);
+        SetWorldLocation(MoveLocation);
+        SetWorldRotation(TargetRotation);
     }
    
    

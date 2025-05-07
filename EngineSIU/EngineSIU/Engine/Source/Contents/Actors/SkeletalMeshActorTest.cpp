@@ -60,6 +60,7 @@ void ASkeletalMeshActorTest::Tick(float DeltaTime)
 
     ElapsedTime += DeltaTime;
 
+    // TODO: 이 코드는 애니메이션으로 이동
     if (MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
