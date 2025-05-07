@@ -435,16 +435,16 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FObj
                     {
                         FTextureInfo TexInfo;
                         TexInfo.TextureName = FileTexture->GetName();
-                        TexInfo.TexturePath = FString(FilePath + FileTexture->GetRelativeFileName()).ToWideString();
-                        TexInfo.bIsSRGB = (i == 0 || i == 1 || i == 3 || i == 5);
-
-                        if (CreateTextureFromFile(TexInfo.TexturePath, TexInfo.bIsSRGB))
+                        FWString TexturePath = FString(FilePath + FileTexture->GetRelativeFileName()).ToWideString();
+                        bool bIsSRGB = (i == 0 || i == 1 || i == 3 || i == 5);
+                        if (CreateTextureFromFile(TexturePath, bIsSRGB))
                         {
+                            TexInfo.TexturePath = TexturePath;
+                            TexInfo.bIsSRGB = bIsSRGB;
                             OutMaterialInfo.TextureInfos[i] = TexInfo;
+                            // 텍스처 플래그 설정
+                            OutMaterialInfo.TextureFlag |= (1 << i); // 해당 텍스처 타입 플래그 설정
                         }
-                        
-                        // 텍스처 플래그 설정
-                        OutMaterialInfo.TextureFlag |= (1 << i); // 해당 텍스처 타입 플래그 설정
                     }
                 }
             }
