@@ -37,7 +37,7 @@ public:
     void InitializeLightScene();
     virtual UObject* Duplicate(UObject* InOuter) override;
 
-    void Tick(float DeltaTime);
+    virtual void Tick(float DeltaTime);
     void BeginPlay();
 
     void Release();

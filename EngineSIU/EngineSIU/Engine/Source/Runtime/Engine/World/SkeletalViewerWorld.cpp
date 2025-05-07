@@ -9,10 +9,20 @@ USkeletalViewerWorld* USkeletalViewerWorld::CreateWorld(UObject* InOuter, const 
     NewWorld->WorldName = InWorldName;
     NewWorld->WorldType = InWorldType;
     NewWorld->InitializeNewWorld();
+    NewWorld->SelectBoneIndex = 0;
 
 
 
     
     
     return NewWorld;
+}
+
+void USkeletalViewerWorld::Tick(float DeltaTime)
+{
+    UWorld::Tick(DeltaTime);
+
+    //TODO: 임시로 SkeletalMeshComponent을 강제로 셀렉트 함
+    Cast<UEditorEngine>(GEngine)->SelectActor(SkeletalMeshComponent->GetOwner());
+    Cast<UEditorEngine>(GEngine)->SelectComponent(SkeletalMeshComponent);
 }

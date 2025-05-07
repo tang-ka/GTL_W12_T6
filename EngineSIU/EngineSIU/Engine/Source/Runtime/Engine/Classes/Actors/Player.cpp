@@ -55,10 +55,38 @@ void AEditorPlayer::Input()
             ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport, pickPosition);
             bool res = PickGizmo(pickPosition, ActiveViewport.get());
             if (!res) PickActor(pickPosition);
+            if (res)
+            {
+                UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+                if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+                if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Engine->GetSelectedComponent()))
+                {
+                    UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewport->GetPickedGizmoComponent());
+                    int BoneIndex = Engine->SkeletalMeshViewerWorld->SelectBoneIndex;
+                    TArray<FMatrix> GlobalBoneMatrices;
+                    SkeletalMeshComp->GetCurrentGlobalBoneMatrices(GlobalBoneMatrices);
+
+                    FTransform GlobalBoneTransform = FTransform(GlobalBoneMatrices[BoneIndex]);
+                    InitialBoneRotationForGizmo = GlobalBoneTransform.GetRotation();
+                }
+                //bIsGizmoDragging = true;
+                //GizmoDrag_InitialLocalXAxis = InitialBoneRotationForGizmo.RotateVector(FVector::ForwardVector); // 또는 (1,0,0) 등 FBX 기준 축
+                //GizmoDrag_InitialLocalYAxis = InitialBoneRotationForGizmo.RotateVector(FVector::RightVector);
+                //GizmoDrag_InitialLocalZAxis = InitialBoneRotationForGizmo.RotateVector(FVector::UpVector);
+            }
+            
         }
         else
         {
-            PickedObjControl();
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            if (Engine->ActiveWorld->WorldType == EWorldType::Editor)
+            {
+                PickedObjControl();
+            }
+            else if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+            {
+                PickedBoneControl();
+            }
         }
     }
     else
@@ -313,6 +341,70 @@ void AEditorPlayer::PickedObjControl()
     }
 }
 
+void AEditorPlayer::PickedBoneControl()
+{
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    FEditorViewportClient* ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient().get();
+    if (Engine && Engine->GetSelectedActor() && ActiveViewport->GetPickedGizmoComponent())
+    {
+        
+        POINT CurrentMousePos;
+        GetCursorPos(&CurrentMousePos);
+        const float DeltaX = static_cast<float>(CurrentMousePos.x - m_LastMousePos.x);
+        const float DeltaY = static_cast<float>(CurrentMousePos.y - m_LastMousePos.y);
+
+        USceneComponent* TargetComponent = Engine->GetSelectedComponent();
+        if (!TargetComponent)
+        {
+            if (AActor* SelectedActor = Engine->GetSelectedActor())
+            {
+                TargetComponent = SelectedActor->GetRootComponent();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(TargetComponent))
+        {
+            UGizmoBaseComponent* Gizmo = Cast<UGizmoBaseComponent>(ActiveViewport->GetPickedGizmoComponent());
+            int BoneIndex = Engine->SkeletalMeshViewerWorld->SelectBoneIndex;
+            TArray<FMatrix> GlobalBoneMatrices;
+            SkeletalMeshComp->GetCurrentGlobalBoneMatrices(GlobalBoneMatrices);
+
+            FTransform GlobalBoneTransform = FTransform(GlobalBoneMatrices[BoneIndex]);
+
+
+            switch (ControlMode)
+            {
+            case CM_TRANSLATION:
+                // ControlTranslation(TargetComponent, Gizmo, deltaX, deltaY);
+                    // SLevelEditor에 있음
+                        break;
+            case CM_SCALE:
+                {
+                    FVector ScaleDelta = ControlBoneScale(GlobalBoneTransform, Gizmo, DeltaX, DeltaY);
+                    SkeletalMeshComp->BoneBindPoseTransforms[BoneIndex].Scale3D += ScaleDelta;
+                }
+                break;
+            case CM_ROTATION:
+                {
+                    FQuat RotationDelta = ControlBoneRotation(GlobalBoneTransform, Gizmo, DeltaX, DeltaY);
+                    SkeletalMeshComp->BoneBindPoseTransforms[BoneIndex].Rotation = RotationDelta * SkeletalMeshComp->BoneBindPoseTransforms[BoneIndex].Rotation;
+                }
+                break;
+            default:
+                break;
+            }
+            // 본의 로컬 변환을 업데이트
+            //SkeletalMeshComp->BoneTransforms[BoneIndex] = GlobalBoneTransform;
+        }
+        
+        m_LastMousePos = CurrentMousePos;
+    }
+}
+
 void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY)
 {
     const auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
@@ -399,6 +491,124 @@ void AEditorPlayer::ControlScale(USceneComponent* Component, UGizmoBaseComponent
         FVector moveDir = CameraUp * -DeltaY * 0.05f;
         Component->AddScale(FVector(0.0f, 0.0f, moveDir.Z));
     }
+}
+FQuat AEditorPlayer::ControlBoneRotation(FTransform& BoneTransform, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY)
+{
+    const auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
+    const FViewportCamera* ViewTransform = ActiveViewport->GetViewportType() == LVT_Perspective
+                                                        ? &ActiveViewport->PerspectiveCamera
+                                                        : &ActiveViewport->OrthogonalCamera;
+
+    FVector CameraForward = ViewTransform->GetForwardVector().GetSafeNormal(); // 정규화
+    FVector CameraRight = ViewTransform->GetRightVector().GetSafeNormal();   // 정규화
+    FVector CameraUp = ViewTransform->GetUpVector().GetSafeNormal();         // 정규화
+
+    FQuat CurrentRotation = BoneTransform.GetRotation(); // 현재 회전은 여전히 필요 (결과 적용 시)
+    FQuat RotationDelta = FQuat::Identity;
+    float Sensitivity = 0.01f;
+
+    FVector AxisToRotateAround = FVector::ZeroVector;
+
+    if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleX)
+    {
+        if (CoordMode == CDM_LOCAL)
+        {
+            // AxisToRotateAround = GizmoDrag_InitialLocalXAxis; // 드래그 시작 시 저장된 로컬 축 사용
+             AxisToRotateAround = InitialBoneRotationForGizmo.RotateVector(FVector::ForwardVector); // 매번 초기 회전 기준으로 로컬축 계산
+        }
+        else // CDM_WORLD
+        {
+            AxisToRotateAround = FVector::ForwardVector; // 월드 X축
+        }
+    }
+    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleY)
+    {
+        if (CoordMode == CDM_LOCAL)
+        {
+            // AxisToRotateAround = GizmoDrag_InitialLocalYAxis;
+            AxisToRotateAround = InitialBoneRotationForGizmo.RotateVector(FVector::RightVector);
+        }
+        else // CDM_WORLD
+        {
+            AxisToRotateAround = FVector::RightVector; // 월드 Y축
+        }
+    }
+    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleZ)
+    {
+        if (CoordMode == CDM_LOCAL)
+        {
+            // AxisToRotateAround = GizmoDrag_InitialLocalZAxis;
+            AxisToRotateAround = InitialBoneRotationForGizmo.RotateVector(FVector::UpVector);
+        }
+        else // CDM_WORLD
+        {
+            AxisToRotateAround = FVector::UpVector; // 월드 Z축
+        }
+    }
+
+    if (!AxisToRotateAround.IsNearlyZero()) // 유효한 축이 설정되었는지 확인
+    {
+        AxisToRotateAround.Normalize();
+        float RotationAmount = 0.0f;
+
+        // --- RotationAmount 계산 로직 (이 부분은 여전히 개선 필요) ---
+        // 여기서는 매우 단순화된 예시: Gizmo 타입에 따라 DeltaX 또는 DeltaY 사용
+        if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleX) {
+            RotationAmount = DeltaY * Sensitivity;
+            // 화면 Y축 방향과 회전축(로컬X)의 관계에 따라 부호 조정 필요
+            // 예: if (FVector::DotProduct(CameraUp, AxisToRotateAround) < 0) RotationAmount *= -1.0f;
+        } else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleY) {
+            RotationAmount = DeltaX * Sensitivity;
+            // 화면 X축 방향과 회전축(로컬Y)의 관계에 따라 부호 조정 필요
+            // 예: if (FVector::DotProduct(CameraRight, AxisToRotateAround) > 0) RotationAmount *= -1.0f;
+        } else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleZ) {
+            // Z축(Roll)은 보통 DeltaX (또는 화면 중심 기준 각도 변화)
+            RotationAmount = DeltaX * Sensitivity;
+            // 카메라가 축을 어떻게 보는지에 따라 부호 조정 필요
+        }
+        // --- RotationAmount 계산 로직 끝 ---
+
+        RotationDelta = FQuat(AxisToRotateAround, RotationAmount);
+    }
+
+    // 반환된 RotationDelta는 호출부에서 다음과 같이 적용:
+    // BoneTransform.SetRotation(RotationDelta * BoneTransform.GetRotation());
+    // 또는 BoneTransform.ConcatenateRotation(RotationDelta); // UE에 이런 함수가 있다면
+    return RotationDelta;
+}
+
+FVector AEditorPlayer::ControlBoneScale(FTransform& BoneTransform, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY)
+{
+    const auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
+    const FViewportCamera* ViewTransform = ActiveViewport->GetViewportType() == LVT_Perspective
+                                                        ? &ActiveViewport->PerspectiveCamera
+                                                        : &ActiveViewport->OrthogonalCamera;
+    FVector CameraRight = ViewTransform->GetRightVector();
+    FVector CameraForward = ViewTransform->GetForwardVector();
+    FVector CameraUp = ViewTransform->GetUpVector();
+    FVector BoneScale;
+    
+    // 월드 좌표계에서 카메라 방향을 고려한 이동
+    if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ScaleX)
+    {
+        // 카메라의 오른쪽 방향을 X축 이동에 사용
+        FVector moveDir = CameraForward * DeltaX * 0.05f;
+        BoneScale = (FVector(moveDir.X, 0.0f, 0.0f));
+    }
+    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ScaleY)
+    {
+        // 카메라의 오른쪽 방향을 Y축 이동에 사용
+        FVector moveDir = CameraRight * DeltaX * 0.05f;
+        BoneScale =  (FVector(0.0f, moveDir.Y, 0.0f));
+    }
+    else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ScaleZ)
+    {
+        // 카메라의 위쪽 방향을 Z축 이동에 사용
+        FVector moveDir = CameraUp * -DeltaY * 0.05f;
+        BoneScale = (FVector(0.0f, 0.0f, moveDir.Z));
+    }
+    
+    return BoneScale;
 }
 
 UObject* APlayer::Duplicate(UObject* InOuter)

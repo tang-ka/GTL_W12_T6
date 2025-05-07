@@ -130,22 +130,31 @@ void ATransformGizmo::Tick(float DeltaTime)
         {
             SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
         }
-    }
 
-    if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
-    {
-        USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(TargetComponent);
-        if (SkeletalMeshComp)
+        //본 부착용
+        if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
         {
-            USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
-            if (SkeletalMesh)
+            USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(TargetComponent);
+            if (SkeletalMeshComp)
             {
-                const FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
+                int BoneIndex = Engine->SkeletalMeshViewerWorld->SelectBoneIndex;
+                TArray<FMatrix> GlobalBoneMatrices;
+                SkeletalMeshComp->GetCurrentGlobalBoneMatrices(GlobalBoneMatrices);
 
+                FTransform GlobalBoneTransform = FTransform(GlobalBoneMatrices[BoneIndex]);
+
+                AddActorLocation(GlobalBoneTransform.Translation);
+                if (EditorPlayer->GetCoordMode() == ECoordMode::CDM_LOCAL || EditorPlayer->GetControlMode() == EControlMode::CM_SCALE)
+                {
+                    AddActorRotation(GlobalBoneTransform.Rotation);
+                }
+            
             }
         }
     }
-    //int32 BoneIndex = Engine->SkeletalMeshViewerWorld->SelectBoneIndex;
+
+
+    //
 
 }
 

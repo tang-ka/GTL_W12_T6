@@ -20,6 +20,7 @@ public:
 
     void SetSkeleton(USkeleton* InSkeleton) { Skeleton = InSkeleton; }
 
+  
 protected:
     std::unique_ptr<FSkeletalMeshRenderData> RenderData;
 
