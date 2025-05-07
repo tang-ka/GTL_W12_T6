@@ -78,17 +78,6 @@ void BoneHierarchyViewerPanel::Render()
             ImGui::End();
         }
 
-        ImGui::Begin("Bone Name", nullptr, PanelFlags);
-
-        for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
-        {
-            if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
-            {
-                RenderBoneTree(*CopiedRefSkeleton, i);
-            }
-        }
-        ImGui::End();
-
         float ExitPanelWidth = (Width) * 0.2f - 6.0f;
         float ExitPanelHeight = (Height) * 0.05f;
 
