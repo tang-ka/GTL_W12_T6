@@ -12,8 +12,8 @@ class USkeletalMeshComponent : public USkinnedMeshComponent
 public:
     USkeletalMeshComponent();
     virtual ~USkeletalMeshComponent() override;
-    void TickComponent(float DeltaTime) override;
 
+    void TickComponent(float DeltaTime) override;
 
     USkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMeshAsset; }
 
@@ -27,6 +27,8 @@ public:
 
     void GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const;
 
+    // TODO: 임시 변수
+    bool bPlayAnimation = true;
     
 private:
     

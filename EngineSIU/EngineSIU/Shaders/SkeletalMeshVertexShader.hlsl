@@ -12,12 +12,12 @@ PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
     float3 SkinnedNormal = float3(0, 0, 0);
     
     // 가중치 합산
-    float totalWeight = 0.0f;
+    float TotalWeight = 0.0f;
     
     for (int i = 0; i < 4; ++i)
     {
         float Weight = Input.BoneWeights[i];
-        totalWeight += Weight;
+        TotalWeight += Weight;
         
         if (Weight > 0.0f)
         {
@@ -34,16 +34,16 @@ PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
     }
     
     // 가중치 예외 처리
-    if (totalWeight < 0.001f)
+    if (TotalWeight < 0.001f)
     {
         SkinnedPosition = float4(Input.Position, 1.0f);
         SkinnedNormal = Input.Normal;
     }
-    else if (abs(totalWeight - 1.0f) > 0.001f && totalWeight > 0.001f)
+    else if (abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
     {
         // 가중치 합이 1이 아닌 경우 정규화
-        SkinnedPosition /= totalWeight;
-        SkinnedNormal /= totalWeight;
+        SkinnedPosition /= TotalWeight;
+        SkinnedNormal /= TotalWeight;
     }
     
     Output.Position = SkinnedPosition;
