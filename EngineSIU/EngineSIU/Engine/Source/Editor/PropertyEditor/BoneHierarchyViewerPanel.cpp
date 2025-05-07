@@ -45,23 +45,40 @@ void BoneHierarchyViewerPanel::Render()
     
     
     if (Engine->ActiveWorld) {
-        if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer) {
-
-            if (CopiedRefSkeleton == nullptr) {
-                CopyRefSkeleton();
-            }
-
-            ImGui::Begin("Bone Name", nullptr, PanelFlags);
-
-            for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
-            {
-                if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
-                {
-                    RenderBoneTree(*CopiedRefSkeleton, i);
-                }
-            }
-            ImGui::End();
+        if (CopiedRefSkeleton == nullptr) {
+            CopyRefSkeleton();
         }
+
+        ImGui::Begin("Bone Name", nullptr, PanelFlags);
+
+        for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
+        {
+            if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
+            {
+                RenderBoneTree(*CopiedRefSkeleton, i);
+            }
+        }
+        ImGui::End();
+
+        float ExitPanelWidth = (Width) * 0.2f - 6.0f;
+        float ExitPanelHeight = (Height) * 0.05f;
+
+        const float margin = 10.0f;
+
+        float ExitPanelPosX = Width - ExitPanelWidth;
+        float ExitPanelPosY = Height - ExitPanelHeight;
+
+        //ImVec2 ExitMinSize(140, 100);
+        //ImVec2 ExitMaxSize(FLT_MAX, 500);
+        ImGui::SetNextWindowSize(ImVec2(ExitPanelWidth, ExitPanelHeight), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(ExitPanelPosX, ExitPanelPosY), ImGuiCond_Always);
+        ImGui::Begin("temp", nullptr, PanelFlags);
+        if (ImGui::Button("Exit Viewer", ImVec2(ExitPanelWidth, ExitPanelHeight))) {
+            UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine);
+            EdEngine->EndSkeletalMeshViewer();
+        }
+        ImGui::End();
+ 
     }
  
 }

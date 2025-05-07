@@ -235,6 +235,20 @@ void UEditorEngine::EndPIE()
 
 void UEditorEngine::EndSkeletalMeshViewer()
 {
+    if (SkeletalMeshViewerWorld)
+    {
+        this->ClearActorSelection();
+        WorldList.Remove(GetWorldContextFromWorld(SkeletalMeshViewerWorld));
+        SkeletalMeshViewerWorld->Release();
+        GUObjectArray.MarkRemoveObject(SkeletalMeshViewerWorld);
+        SkeletalMeshViewerWorld = nullptr;
+
+        DeselectActor(GetSelectedActor());
+        DeselectComponent(GetSelectedComponent());
+    }
+
+    ActiveWorld = EditorWorld;
+
 }
 
 FWorldContext& UEditorEngine::GetEditorWorldContext(/*bool bEnsureIsGWorld*/)
