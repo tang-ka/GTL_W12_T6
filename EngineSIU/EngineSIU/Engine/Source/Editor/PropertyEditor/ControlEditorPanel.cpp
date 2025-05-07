@@ -251,7 +251,9 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
                 {
                     UMaterial* Mat = Result.Materials[i];
                     FString MatName = Mat->GetName();
-                    FName KeyName(*MatName);
+
+                    FString MatFullName = PackagePathString + "\\" + MatName;
+                    FName KeyName(*MatFullName);
 
                     FAssetInfo Info = AssetInfo;
                     Info.AssetName = KeyName;
