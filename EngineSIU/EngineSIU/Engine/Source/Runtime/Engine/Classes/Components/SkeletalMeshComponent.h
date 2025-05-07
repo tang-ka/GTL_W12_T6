@@ -12,13 +12,18 @@ public:
     USkeletalMeshComponent();
     virtual ~USkeletalMeshComponent() override;
 
-    USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
-    void SetSkeletalMesh(USkeletalMesh* InSkeletalMesh);
+    virtual void TickComponent(float DeltaTime) override;
+
+    USkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMeshAsset; }
+
+    void SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshAsset);
 
     UAnimSequence* AnimSequence = nullptr;
 
     TArray<FTransform> BoneTransforms;
     
 private:
-    USkeletalMesh* SkeletalMesh = nullptr;
+    USkeletalMesh* SkeletalMeshAsset = nullptr;
+
+    float ElapsedTime = 0.f;
 };

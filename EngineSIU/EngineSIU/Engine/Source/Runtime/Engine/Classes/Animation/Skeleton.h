@@ -12,15 +12,11 @@ public:
     USkeleton() = default;
     virtual ~USkeleton() override = default;
 
-    FReferenceSkeleton GetReferenceSkeleton() const
-    {
-        return ReferenceSkeleton;
-    }
+    FReferenceSkeleton GetReferenceSkeleton() const;
 
-    FReferenceSkeleton& GetReferenceSkeleton()
-    {
-        return ReferenceSkeleton;
-    }
+    const FReferenceSkeleton& GetReferenceSkeleton();
+
+    const TArray<FTransform>& GetReferencePose() const;
 
     void SetReferenceSkeleton(const FReferenceSkeleton& InReferenceSkeleton)
     {
