@@ -1,6 +1,8 @@
 #pragma once
 #include "SkeletalMeshRenderPassBase.h"
 
+enum class EViewModeIndex : uint8;
+
 class FSkeletalMeshRenderPass : public FSkeletalMeshRenderPassBase
 {
 protected:
@@ -12,4 +14,7 @@ protected:
 
     virtual void CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
+    void ChangeViewMode(EViewModeIndex ViewMode);
+
+    void UpdateLitUnlitConstant(int32 IsLit) const;
 };
