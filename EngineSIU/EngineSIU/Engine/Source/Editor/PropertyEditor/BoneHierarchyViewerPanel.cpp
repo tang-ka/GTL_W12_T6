@@ -7,13 +7,15 @@
 #include "Engine/Classes/Engine/FbxLoader.h"
 void BoneHierarchyViewerPanel::Render()
 {
-    if (BoneIconSRV == nullptr || NonWeightBoneIconSRV == nullptr) {
-        LoadBoneIcon();
-    }
+    
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
     {
         return;
+    }
+
+    if (BoneIconSRV == nullptr || NonWeightBoneIconSRV == nullptr) {
+        LoadBoneIcon();
     }
 
     /* Pre Setup */
@@ -35,20 +37,37 @@ void BoneHierarchyViewerPanel::Render()
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
     constexpr ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar;
-    if (FFbxManager::LastPickSkeletalMesh != nullptr) {
-        const FReferenceSkeleton& RefSkeleton = FFbxManager::LastPickSkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
-        const TArray<FMeshBoneInfo>& BoneInfos = RefSkeleton.RawRefBoneInfo;
+    
+    
+    if (Engine->ActiveWorld) {
+        if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer) {
 
-        ImGui::Begin("Bone Name", nullptr, PanelFlags);
+            if (CopiedRefSkeleton == nullptr) {
+                if (Engine->SkeletalMeshViewerWorld
+                    ->GetSkeletalMeshComponent() != nullptr) {
+                    const FReferenceSkeleton& OrigRef = Engine->SkeletalMeshViewerWorld
+                        ->GetSkeletalMeshComponent()->GetSkeletalMesh()
+                        ->GetSkeleton()->GetReferenceSkeleton();
 
-        for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
-        {
-            if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
-            {
-                RenderBoneTree(RefSkeleton, i);
+                    CopiedRefSkeleton = new FReferenceSkeleton();
+                    CopiedRefSkeleton->RawRefBoneInfo = OrigRef.RawRefBoneInfo;
+                    CopiedRefSkeleton->RawRefBonePose = OrigRef.RawRefBonePose;
+                    CopiedRefSkeleton->InverseBindPoseMatrices = OrigRef.InverseBindPoseMatrices;
+                    CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
+                }
             }
+
+            ImGui::Begin("Bone Name", nullptr, PanelFlags);
+
+            for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
+            {
+                if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
+                {
+                    RenderBoneTree(*CopiedRefSkeleton, i);
+                }
+            }
+            ImGui::End();
         }
-        ImGui::End();
     }
     
 }
@@ -66,6 +85,19 @@ void BoneHierarchyViewerPanel::SetSkeletalMesh(USkeletalMesh* SMesh)
     SkeletalMesh = SMesh;
 }
 
+int32 BoneHierarchyViewerPanel::GetSelectedBoneIndex() const
+{
+    return SelectedBoneIndex;
+}
+
+FString BoneHierarchyViewerPanel::GetSelectedBoneName() const
+{
+    if (SelectedBoneIndex == INDEX_NONE || !SkeletalMesh)
+        return TEXT("");
+    const auto& RefSkel = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
+    return RefSkel.RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
+}
+
 void BoneHierarchyViewerPanel::LoadBoneIcon()
 {
     BoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/Bone_16x.PNG")->TextureSRV;
@@ -73,9 +105,20 @@ void BoneHierarchyViewerPanel::LoadBoneIcon()
 
 }
 
+void BoneHierarchyViewerPanel::CopyRefSkeleton()
+{
+    /*const FReferenceSkeleton& OrigRef = 
+
+    CopiedRefSkeleton = new FReferenceSkeleton();
+    CopiedRefSkeleton->RawRefBoneInfo = OrigRef.RawRefBoneInfo;
+    CopiedRefSkeleton->RawRefBonePose = OrigRef.RawRefBonePose;
+    CopiedRefSkeleton->InverseBindPoseMatrices = OrigRef.InverseBindPoseMatrices;
+    CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;*/
+}
+
 void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex)
 {
-    const FMeshBoneInfo& BoneInfo = RefSkeleton.RawRefBoneInfo[BoneIndex];
+    const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
     const FString& ShortBoneName = GetCleanBoneName(BoneInfo.Name.ToString());
 
     // 1) ImGui ID 충돌 방지
