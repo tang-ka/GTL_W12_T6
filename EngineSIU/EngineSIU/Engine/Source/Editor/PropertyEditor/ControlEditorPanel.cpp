@@ -41,6 +41,7 @@
 #include "Contents/Actors/ItemActor.h"
 #include "Contents/Actors/PlatformActor.h"
 #include "Contents/Actors/GoalPlatformActor.h"
+#include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "Contents/Actors/TriggerBox.h"
 #include "Renderer/CompositingPass.h"
 
@@ -460,9 +461,9 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     break;
                 case OBJ_SKELETALMESH:
                     {
-                        SpawnedActor = World->SpawnActor<AActor>();
-                        auto* MeshComp = SpawnedActor->AddComponent<USkeletalMeshComponent>();
-                        SpawnedActor->SetRootComponent(MeshComp);
+                        SpawnedActor = World->SpawnActor<ASkeletalMeshActorTest>();
+                        //auto* MeshComp = SpawnedActor->AddComponent<USkeletalMeshComponent>();
+                        //SpawnedActor->SetRootComponent(MeshComp);
                         SpawnedActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
                     }
                     break;

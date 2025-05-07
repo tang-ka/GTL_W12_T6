@@ -60,7 +60,7 @@ void ASkeletalMeshActorTest::Tick(float DeltaTime)
 
     ElapsedTime += DeltaTime;
 
-    if (false && MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
+    if (MeshComp->GetSkeletalMesh() && MeshComp->GetSkeletalMesh()->GetSkeleton() && MeshComp->AnimSequence)
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMesh()->GetSkeleton()->GetReferenceSkeleton();
 
