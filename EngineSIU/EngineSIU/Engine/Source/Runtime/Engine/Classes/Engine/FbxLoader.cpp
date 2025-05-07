@@ -61,7 +61,8 @@ namespace std
 }
 
 // 헬퍼 함수: FbxVector4를 FSkeletalMeshVertex의 XYZ로 변환 (좌표계 변환 포함)
-inline void SetVertexPosition(FSkeletalMeshVertex& Vertex, const FbxVector4& Pos)
+template<typename T>
+void SetVertexPosition(T& Vertex, const FbxVector4& Pos)
 {
     Vertex.X = static_cast<float>(Pos[0]);
     Vertex.Y = static_cast<float>(Pos[1]);
@@ -69,7 +70,8 @@ inline void SetVertexPosition(FSkeletalMeshVertex& Vertex, const FbxVector4& Pos
 }
 
 // 헬퍼 함수: FbxVector4를 FSkeletalMeshVertex의 Normal XYZ로 변환 (좌표계 변환 포함)
-inline void SetVertexNormal(FSkeletalMeshVertex& Vertex, const FbxVector4& Normal)
+template<typename T>
+void SetVertexNormal(T& Vertex, const FbxVector4& Normal)
 {
     Vertex.NormalX = static_cast<float>(Normal[0]);
     Vertex.NormalY = static_cast<float>(Normal[1]);
@@ -77,7 +79,8 @@ inline void SetVertexNormal(FSkeletalMeshVertex& Vertex, const FbxVector4& Norma
 }
 
 // 헬퍼 함수: FbxVector4를 FSkeletalMeshVertex의 Tangent XYZW로 변환 (좌표계 변환 포함)
-inline void SetVertexTangent(FSkeletalMeshVertex& Vertex, const FbxVector4& Tangent)
+template<typename T>
+void SetVertexTangent(T& Vertex, const FbxVector4& Tangent)
 {
     Vertex.TangentX = static_cast<float>(Tangent[0]);
     Vertex.TangentY = static_cast<float>(Tangent[1]);
@@ -86,7 +89,8 @@ inline void SetVertexTangent(FSkeletalMeshVertex& Vertex, const FbxVector4& Tang
 }
 
 // 헬퍼 함수: FbxColor를 FSkeletalMeshVertex의 RGBA로 변환
-inline void SetVertexColor(FSkeletalMeshVertex& Vertex, const FbxColor& Color)
+template<typename T>
+void SetVertexColor(T& Vertex, const FbxColor& Color)
 {
     Vertex.R = static_cast<float>(Color.mRed);
     Vertex.G = static_cast<float>(Color.mGreen);
@@ -95,7 +99,8 @@ inline void SetVertexColor(FSkeletalMeshVertex& Vertex, const FbxColor& Color)
 }
 
 // 헬퍼 함수: FbxVector2를 FSkeletalMeshVertex의 UV로 변환 (좌표계 변환 포함)
-inline void SetVertexUV(FSkeletalMeshVertex& Vertex, const FbxVector2& UV)
+template<typename T>
+void SetVertexUV(T& Vertex, const FbxVector2& UV)
 {
     Vertex.U = static_cast<float>(UV[0]);
     Vertex.V = 1.0f - static_cast<float>(UV[1]); // V 좌표는 보통 뒤집힘 (DirectX 스타일)
@@ -771,9 +776,12 @@ void FFbxLoader::ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult)
         }
     }
 
-    for (FbxNode* MeshNodes : StaticMeshNodes)
+    for (FbxNode* MeshNode : StaticMeshNodes)
     {
-        // TODO: 구현
+        if (UStaticMesh* StaticMesh = CreateStaticMesh(MeshNode, OutResult.StaticMeshes.Num()))
+        {
+            OutResult.StaticMeshes.Add(StaticMesh);
+        }
     }
 }
 
@@ -1071,110 +1079,181 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& M
     return SkeletalMesh;
 }
 
-void FFbxLoader::CalculateTangents(TArray<FSkeletalMeshVertex>& Vertices, const TArray<uint32>& Indices)
+UStaticMesh* FFbxLoader::CreateStaticMesh(FbxNode* MeshNode, int32 GlobalMeshIdx)
 {
-    // 탄젠트 초기화
-    for (FSkeletalMeshVertex& Vertex : Vertices)
+    if (!MeshNode)
     {
-        Vertex.TangentX = 0.0f;
-        Vertex.TangentY = 0.0f;
-        Vertex.TangentZ = 0.0f;
-        Vertex.TangentW = 0.0f;
+        return nullptr;
+    }
+    
+    FbxMesh* Mesh = MeshNode->GetMesh();
+    if (!Mesh)
+    {
+        return nullptr;
     }
 
-    // 각 삼각형마다 탄젠트 계산
-    for (int32 i = 0; i < Indices.Num(); i += 3)
-    {
-        FSkeletalMeshVertex& V0 = Vertices[static_cast<int32>(Indices[i])];
-        FSkeletalMeshVertex& V1 = Vertices[static_cast<int32>(Indices[i + 1])];
-        FSkeletalMeshVertex& V2 = Vertices[static_cast<int32>(Indices[i + 2])];
-        
-        CalculateTangent_Internal(V0, V1, V2);
-        CalculateTangent_Internal(V1, V2, V0);
-        CalculateTangent_Internal(V2, V0, V1);
-    }
+    FStaticMeshRenderData* RenderData = new FStaticMeshRenderData();
+    RenderData->DisplayName = GlobalMeshIdx == 0 ? DisplayName : DisplayName + FString::FromInt(GlobalMeshIdx);
+    RenderData->ObjectName = (FilePath + RenderData->DisplayName).ToWideString();
+    
+    uint32 RunningIndex = 0;
 
-    // 각 정점의 탄젠트 정규화
-    for (FSkeletalMeshVertex& Vertex : Vertices)
+    // 레이어 요소 가져오기 (UV, Normal, Tangent, Color 등은 레이어에 저장됨)
+    // 보통 Layer 0을 사용
+    FbxLayer* BaseLayer = Mesh->GetLayer(0);
+    if (!BaseLayer)
     {
-        FVector Tangent(Vertex.TangentX, Vertex.TangentY, Vertex.TangentZ);
-        if (!Tangent.IsNearlyZero())
+        OutputDebugStringA("Error: Mesh has no Layer 0.\n");
+        return nullptr;
+    }
+    
+    const FbxAMatrix LocalTransformMatrix = MeshNode->EvaluateLocalTransform();
+
+    // 정점 데이터 추출 및 병합
+    const int32 PolygonCount = Mesh->GetPolygonCount(); // 삼각형 개수 (Triangulate 후)
+    const FbxVector4* ControlPoints = Mesh->GetControlPoints(); // 제어점 (정점 위치) 배열
+    const int32 ControlPointsCount = Mesh->GetControlPointsCount();
+
+    // 정점 병합을 위한 맵
+    TMap<FVertexKey, uint32> UniqueVertices;
+
+    const FbxLayerElementNormal* NormalElement = BaseLayer->GetNormals();
+    const FbxLayerElementTangent* TangentElement = BaseLayer->GetTangents();
+    const FbxLayerElementUV* UVElement = BaseLayer->GetUVs();
+    const FbxLayerElementVertexColor* ColorElement = BaseLayer->GetVertexColors();
+
+    TMap<int32, TArray<uint32>> TempMaterialIndices; //MaterialIndex별 인덱스 배열
+
+    int VertexCounter = 0; // 폴리곤 정점 인덱스 (eByPolygonVertex 모드용)
+
+    // 폴리곤(삼각형) 순회
+    for (int32 i = 0; i < PolygonCount; ++i)
+    {
+        int32 MaterialIndex = 0;
+        FbxGeometryElementMaterial* MaterialElement = Mesh->GetElementMaterial();
+        if (MaterialElement)
         {
-            Tangent.Normalize();
+            auto mode = MaterialElement->GetMappingMode();
+            if (mode == FbxGeometryElement::eByPolygon)
+                MaterialIndex = MaterialElement->GetIndexArray().GetAt(i);
+            else if (mode == FbxGeometryElement::eAllSame)
+                MaterialIndex = MaterialElement->GetIndexArray().GetAt(0);
         }
-        else
+
+        uint32 PolyIndices[3];
+        // 각 폴리곤(삼각형)의 정점 3개 순회
+        for (int32 j = 0; j < 3; ++j)
         {
-            // 탄젠트를 계산할 수 없는 경우 기본값 설정
-            FVector Normal(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
-            FVector Arbitrary = FMath::Abs(Normal.Z) < 0.99f ? FVector(0, 0, 1) : FVector(1, 0, 0);
-            Tangent = FVector::CrossProduct(Normal, Arbitrary).GetSafeNormal();
-        }
-        
-        Vertex.TangentX = Tangent.X;
-        Vertex.TangentY = Tangent.Y;
-        Vertex.TangentZ = Tangent.Z;
-    }
-}
+            const int32 ControlPointIndex = Mesh->GetPolygonVertex(i, j);
 
-void FFbxLoader::CalculateTangent_Internal(FSkeletalMeshVertex& PivotVertex, const FSkeletalMeshVertex& Vertex1, const FSkeletalMeshVertex& Vertex2)
-{
-    const float s1 = Vertex1.U - PivotVertex.U;
-    const float t1 = Vertex1.V - PivotVertex.V;
-    const float s2 = Vertex2.U - PivotVertex.U;
-    const float t2 = Vertex2.V - PivotVertex.V;
-    const float E1x = Vertex1.X - PivotVertex.X;
-    const float E1y = Vertex1.Y - PivotVertex.Y;
-    const float E1z = Vertex1.Z - PivotVertex.Z;
-    const float E2x = Vertex2.X - PivotVertex.X;
-    const float E2y = Vertex2.Y - PivotVertex.Y;
-    const float E2z = Vertex2.Z - PivotVertex.Z;
+            FbxVector4 Position = ControlPoints[ControlPointIndex];
+            FbxVector4 Normal;
+            FbxVector4 Tangent;
+            FbxVector2 UV;
+            FbxColor Color;
+            
+            int NormalIndex = (NormalElement) ? (NormalElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
+            int TangentIndex = (TangentElement) ? (TangentElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
+            int UVIndex = (UVElement) ? (UVElement->GetMappingMode() == FbxLayerElement::eByPolygonVertex ? Mesh->GetTextureUVIndex(i, j) : ControlPointIndex) : -1;
+            int ColorIndex = (ColorElement) ? (ColorElement->GetMappingMode() == FbxLayerElement::eByControlPoint ? ControlPointIndex : VertexCounter) : -1;
+            
+            uint32 NewIndex;
 
-    const float Denominator = s1 * t2 - s2 * t1;
-    FVector Tangent(1, 0, 0);
-    FVector BiTangent(0, 1, 0);
-    FVector Normal(PivotVertex.NormalX, PivotVertex.NormalY, PivotVertex.NormalZ);
-    
-    if (FMath::Abs(Denominator) > SMALL_NUMBER)
+            // 정점 병합 키 생성
+            FVertexKey Key(ControlPointIndex, NormalIndex, TangentIndex, UVIndex, ColorIndex);
+
+            // 맵에서 키 검색
+            if (const uint32* Found = UniqueVertices.Find(Key))
+            {
+                NewIndex = *Found;
+            }
+            else
+            {
+                FStaticMeshVertex NewVertex;
+
+                // Position
+                if (ControlPointIndex < ControlPointsCount)
+                {
+                    Position = LocalTransformMatrix.MultT(Position);
+                    SetVertexPosition(NewVertex, Position);
+                }
+
+                // Normal
+                if (NormalElement && GetVertexElementData(NormalElement, ControlPointIndex, VertexCounter, Normal))
+                {
+                    Normal = LocalTransformMatrix.Inverse().Transpose().MultT(Normal);
+                    SetVertexNormal(NewVertex, Normal);
+                }
+
+                // Tangent
+                if (TangentElement && GetVertexElementData(TangentElement, ControlPointIndex, VertexCounter, Tangent))
+                {
+                     SetVertexTangent(NewVertex, Tangent);
+                }
+
+                // UV
+                if(UVElement && GetVertexElementData(UVElement, ControlPointIndex, VertexCounter, UV))
+                {
+                    SetVertexUV(NewVertex, UV);
+                }
+
+                // Vertex Color
+                if (ColorElement && GetVertexElementData(ColorElement, ControlPointIndex, VertexCounter, Color))
+                {
+                     SetVertexColor(NewVertex, Color);
+                }
+                
+                // 새로운 정점을 Vertices 배열에 추가
+                RenderData->Vertices.Add(NewVertex);
+                // 새 정점의 인덱스 계산
+                NewIndex = static_cast<uint32>(RenderData->Vertices.Num() - 1);
+                // 맵에 새 정점 정보 추가
+                UniqueVertices.Add(Key, NewIndex);
+            }
+            // 인덱스 버퍼에 새 인덱스 추가
+            RenderData->Indices.Add(NewIndex);
+            PolyIndices[j] = NewIndex;
+            VertexCounter++; // 다음 폴리곤 정점으로 이동
+        } // End for each vertex in polygon
+
+        // 머티리얼별 인덱스 배열에 이 삼각형의 인덱스 3개 추가
+        TempMaterialIndices.FindOrAdd(MaterialIndex).Add(PolyIndices[0]);
+        TempMaterialIndices.FindOrAdd(MaterialIndex).Add(PolyIndices[1]);
+        TempMaterialIndices.FindOrAdd(MaterialIndex).Add(PolyIndices[2]);
+    } // End for each polygon
+
+    FbxNode* OwnerNode = Mesh->GetNode();
+
+    for (auto& Pair : TempMaterialIndices)
     {
-        // 정상적인 계산 진행
-        const float f = 1.f / Denominator;
-        
-        const float Tx = f * (t2 * E1x - t1 * E2x);
-        const float Ty = f * (t2 * E1y - t1 * E2y);
-        const float Tz = f * (t2 * E1z - t1 * E2z);
-        Tangent = FVector(Tx, Ty, Tz).GetSafeNormal();
+        int32 MatIdx = Pair.Key;
+        const TArray<uint32>& Indices = Pair.Value;
 
-        const float Bx = f * (-s2 * E1x + s1 * E2x);
-        const float By = f * (-s2 * E1y + s1 * E2y);
-        const float Bz = f * (-s2 * E1z + s1 * E2z);
-        BiTangent = FVector(Bx, By, Bz).GetSafeNormal();
-    }
-    else
-    {
-        // 대체 탄젠트 계산 방법
-        // 방법 1: 다른 방향에서 탄젠트 계산 시도
-        FVector Edge1(E1x, E1y, E1z);
-        FVector Edge2(E2x, E2y, E2z);
-    
-        // 기하학적 접근: 두 에지 사이의 각도 이등분선 사용
-        Tangent = (Edge1.GetSafeNormal() + Edge2.GetSafeNormal()).GetSafeNormal();
-    
-        // 만약 두 에지가 평행하거나 반대 방향이면 다른 방법 사용
-        if (Tangent.IsNearlyZero())
+        FMaterialSubset Subset;
+        Subset.MaterialIndex = MatIdx;
+        Subset.IndexStart = RunningIndex;
+        Subset.IndexCount = Indices.Num();
+
+        FString MaterialName;
+        if (OwnerNode && MatIdx < OwnerNode->GetMaterialCount())
         {
-            // TODO: 기본 축 방향 중 하나 선택 (메시의 주 방향에 따라 선택)
-            Tangent = FVector(1.0f, 0.0f, 0.0f);
+            FbxSurfaceMaterial* FbxMat = OwnerNode->GetMaterial(MatIdx);
+            if (FbxMat)
+                MaterialName = FbxMat->GetName();
         }
+        Subset.MaterialName = FilePath + MaterialName;
+
+        RenderData->MaterialSubsets.Add(Subset);
+
+        RunningIndex += Indices.Num();
     }
 
-    Tangent = (Tangent - Normal * FVector::DotProduct(Normal, Tangent)).GetSafeNormal();
+    CalculateTangents(RenderData->Vertices, RenderData->Indices);
     
-    const float Sign = (FVector::DotProduct(FVector::CrossProduct(Normal, Tangent), BiTangent) < 0.f) ? -1.f : 1.f;
+    UStaticMesh* StaticMesh = FObjectFactory::ConstructObject<UStaticMesh>(nullptr);
+    StaticMesh->SetData(RenderData);
 
-    PivotVertex.TangentX = Tangent.X;
-    PivotVertex.TangentY = Tangent.Y;
-    PivotVertex.TangentZ = Tangent.Z;
-    PivotVertex.TangentW = Sign;
+    return StaticMesh;
 }
 
 USkeleton* FFbxLoader::FindAssociatedSkeleton(FbxNode* MeshNode, const TArray<USkeleton*>& Skeletons)
