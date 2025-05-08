@@ -15,6 +15,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 
 
+class IRenderPass;
 class FSkeletalMeshRenderPass;
 class FLightHeatMapRenderPass;
 class FPostProcessCompositingPass;
@@ -62,7 +63,7 @@ public:
     void RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const; // TODO: 추후 RenderSlate로 변경해야함
 
 protected:
-    void BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    void BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void PrepareRender(FViewportResource* ViewportResource) const;
     void PrepareRenderPass() const;
@@ -71,7 +72,7 @@ protected:
     void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
-    void EndRender();
+    void EndRender() const;
     void ClearRenderArr() const;
     
     //==========================================================================
@@ -117,7 +118,24 @@ public:
     FPostProcessCompositingPass* PostProcessCompositingPass = nullptr;
     
     FSlateRenderPass* SlateRenderPass = nullptr;
+
+private:
+    template <typename RenderPassType>
+        requires std::derived_from<RenderPassType, IRenderPass>
+    RenderPassType* AddRenderPass();
+
+private:
+    TArray<IRenderPass*> RenderPasses;
 };
+
+
+template <typename RenderPassType> requires std::derived_from<RenderPassType, IRenderPass>
+RenderPassType* FRenderer::AddRenderPass()
+{
+    RenderPassType* RenderPass = new RenderPassType();
+    RenderPasses.Add(RenderPass);
+    return RenderPass;
+}
 
 template<typename T>
 inline ID3D11Buffer* FRenderer::CreateImmutableVertexBuffer(const FString& key, const TArray<T>& Vertices)
