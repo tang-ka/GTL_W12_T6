@@ -59,6 +59,7 @@ private:
 
     using SizeType = FDefaultAllocator<ElementType>::SizeType;
 
+
     BaseStringType PrivateString;
 
 	friend struct std::hash<FString>;
@@ -191,6 +192,8 @@ public:
         ElementType CharToFind, ESearchCase::Type SearchCase = ESearchCase::IgnoreCase,
         ESearchDir::Type SearchDir = ESearchDir::FromStart, int32 StartPosition = 0
     ) const;
+
+    bool FindChar(ElementType InChar, int32& Index) const;
 
     /**
      * 문자열의 지정된 부분 문자열을 반환합니다.
