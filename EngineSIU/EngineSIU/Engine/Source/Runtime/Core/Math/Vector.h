@@ -104,7 +104,7 @@ public:
     explicit FVector(float Scalar) : X(Scalar), Y(Scalar), Z(Scalar) {}
 
     explicit FVector(const FRotator& InRotator);
-    explicit FVector(const FVector4& Vector4);
+    explicit FVector(const FVector4& InVector4);
 
     // Vector(0, 0, 0)
     static const FVector ZeroVector;
@@ -159,8 +159,8 @@ public:
     /** Dot Product */
     float operator|(const FVector& Other) const;
     float Dot(const FVector& Other) const;
-    bool ContainsNaN() const;
     static float DotProduct(const FVector& A, const FVector& B);
+    bool ContainsNaN() const;
 
     /** Cross Product */
     FVector operator^(const FVector& Other) const;
@@ -198,7 +198,7 @@ public:
 
     static inline FVector GetAbs(const FVector& v)
     {
-         return FVector(abs(v.X), abs(v.Y), abs(v.Z));
+         return FVector{abs(v.X), abs(v.Y), abs(v.Z)};
     }
 public:
     bool Equals(const FVector& V, float Tolerance = KINDA_SMALL_NUMBER) const;
@@ -344,6 +344,14 @@ inline FVector FVector::operator*(float Scalar) const
     return {X * Scalar, Y * Scalar, Z * Scalar};
 }
 
+inline FVector& FVector::operator*=(const FVector& Other)
+{
+    X = Other.X;
+    Y = Other.Y;
+    Z = Other.Z;
+    return *this;
+}
+
 inline FVector& FVector::operator*=(float Scalar)
 {
     X *= Scalar; Y *= Scalar; Z *= Scalar;
@@ -406,6 +414,13 @@ inline const float& FVector::operator[](int Index) const
 {
     assert(0 <= Index && Index <= 2);
     return reinterpret_cast<const float*>(this)[Index];
+}
+
+inline bool FVector::ContainsNaN() const
+{
+    return (!FMath::IsFinite(X) || 
+            !FMath::IsFinite(Y) ||
+            !FMath::IsFinite(Z));
 }
 
 inline bool FVector::Equals(const FVector& V, float Tolerance) const
