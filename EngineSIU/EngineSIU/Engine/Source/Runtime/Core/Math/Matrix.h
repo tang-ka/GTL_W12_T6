@@ -1,14 +1,8 @@
 #pragma once
-#include "Serialization/Archive.h"
 #include "Axis.h"
-
-struct FVector;
-struct FVector4;
-struct FRotator;
-struct FQuat;
-
-#include "Vector.h"
-#include "Vector4.h"
+#include "MathFwd.h"
+#include "MathUtility.h"
+#include "Serialization/Archive.h"
 
 // 4x4 행렬 연산
 struct alignas(16) FMatrix
@@ -26,6 +20,7 @@ public:
     FMatrix operator+(const FMatrix& Other) const;
     FMatrix operator-(const FMatrix& Other) const;
     FMatrix operator*(const FMatrix& Other) const;
+    FMatrix& operator*=(const FMatrix& Other);
     FMatrix operator*(float Scalar) const;
     FMatrix operator/(float Scalar) const;
     float* operator[](int row);
@@ -41,19 +36,16 @@ public:
     // 유틸리티 함수
     static FMatrix Transpose(const FMatrix& Mat);
     static FMatrix Inverse(const FMatrix& Mat);
-    static FMatrix CreateRotationMatrix(float roll, float pitch, float yaw);
-    static FMatrix CreateScaleMatrix(float scaleX, float scaleY, float scaleZ);
-    static FVector TransformVector(const FVector& v, const FMatrix& m);
-    static FVector4 TransformVector(const FVector4& v, const FMatrix& m);
-    static FMatrix CreateTranslationMatrix(const FVector& position);
+    static FMatrix CreateTranslationMatrix(const FVector& V);
+    static FMatrix CreateRotationMatrix(const FRotator& R);
+    static FMatrix CreateRotationMatrix(const FQuat& Q);
+    static FMatrix CreateScaleMatrix(const FVector& V);
+
+    static FVector TransformVector(const FVector& V, const FMatrix& M);
+    static FVector4 TransformVector(const FVector4& V, const FMatrix& M);
 
     FVector4 TransformFVector4(const FVector4& vector) const;
     FVector TransformPosition(const FVector& vector) const;
-
-    static FMatrix GetScaleMatrix(const FVector& InScale);
-    static FMatrix GetTranslationMatrix(const FVector& InPosition);
-    static FMatrix GetRotationMatrix(const FRotator& InRotation);
-    static FMatrix GetRotationMatrix(const FQuat& InRotation);
 
     FQuat ToQuat() const;
 

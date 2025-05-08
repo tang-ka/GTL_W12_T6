@@ -1065,7 +1065,7 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& M
             Subset.MaterialName = FilePath + MaterialName;
 
             RenderData->MaterialSubsets.Add(Subset);
-            RenderData->Indices + Indices;
+            RenderData->Indices += Indices;
             RunningIndex += Indices.Num();
         }
     }
@@ -1241,7 +1241,7 @@ UStaticMesh* FFbxLoader::CreateStaticMesh(FbxNode* MeshNode, int32 GlobalMeshIdx
         Subset.MaterialName = FilePath + MaterialName;
 
         RenderData->MaterialSubsets.Add(Subset);
-        RenderData->Indices + Indices;
+        RenderData->Indices += Indices;
         RunningIndex += Indices.Num();
     }
 

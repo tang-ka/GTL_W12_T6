@@ -2,6 +2,7 @@
 
 #include "Matrix.h"
 #include "Axis.h"
+#include "Vector4.h"
 
 const FTransform FTransform::Identity = FTransform();
 
@@ -283,12 +284,12 @@ FVector4 FTransform::TransformFVector4(const FVector4& V) const
     if (V.W == 0.0f)
     {
         // 방향 벡터 (W=0)이면 이동 성분은 적용하지 않음
-        return FVector4(Rotation.RotateVector(Scale3D * FVector(V)), 0.0f);
+        return FVector4{Rotation.RotateVector(Scale3D * FVector(V)), 0.0f};
     }
     else
     {
         // 위치 벡터 (W=1)이면 이동 성분도 적용
-        return FVector4(TransformPosition(FVector(V)), V.W);
+        return FVector4{TransformPosition(FVector(V)), V.W};
     }
 }
 
@@ -298,12 +299,12 @@ FVector4 FTransform::TransformFVector4NoScale(const FVector4& V) const
     if (V.W == 0.0f)
     {
         // 방향 벡터 (W=0)
-        return FVector4(Rotation.RotateVector(FVector(V)), 0.0f);
+        return FVector4{Rotation.RotateVector(FVector(V)), 0.0f};
     }
     else
     {
         // 위치 벡터 (W=1)
-        return FVector4(Rotation.RotateVector(FVector(V)) + Translation, V.W);
+        return FVector4{Rotation.RotateVector(FVector(V)) + Translation, V.W};
     }
 }
 
@@ -326,11 +327,11 @@ void FTransform::RemoveScaling(float Tolerance)
 FVector FTransform::GetSafeScaleReciprocal(const FVector& InScale, float Tolerance) const
 {
     // 0에 가까운 스케일 값의 역수를 안전하게 계산 (0 나누기 방지)
-    return FVector(
+    return FVector{
         FMath::Abs(InScale.X) <= Tolerance ? 0.0f : 1.0f / InScale.X,
         FMath::Abs(InScale.Y) <= Tolerance ? 0.0f : 1.0f / InScale.Y,
         FMath::Abs(InScale.Z) <= Tolerance ? 0.0f : 1.0f / InScale.Z
-    );
+    };
 }
 
 void FTransform::BlendFromIdentityAndAccumulate(FTransform& OutTransform, const FTransform& InTransform, float Alpha)

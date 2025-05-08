@@ -59,6 +59,7 @@ private:
 
     using SizeType = FDefaultAllocator<ElementType>::SizeType;
 
+
     BaseStringType PrivateString;
 
 	friend struct std::hash<FString>;
@@ -192,6 +193,8 @@ public:
         ESearchDir::Type SearchDir = ESearchDir::FromStart, int32 StartPosition = 0
     ) const;
 
+    bool FindChar(ElementType InChar, int32& Index) const;
+
     /**
      * 문자열의 지정된 부분 문자열을 반환합니다.
      * @param Start 부분 문자열의 시작 인덱스.
@@ -232,6 +235,13 @@ public:
 
     FORCEINLINE FString& operator+=(const FString& SubStr);
     FORCEINLINE friend FString operator+(const FString& Lhs, const FString& Rhs);
+
+    // FString과 FString을 위한 operator/
+    friend FString operator/(const FString& Lhs, const FString& Rhs);
+
+    // FString과 C-스타일 문자열(TCHAR*)을 위한 operator/
+    friend FString operator/(const FString& Lhs, const ElementType* Rhs);
+    friend FString operator/(const ElementType* Lhs, const FString& Rhs);
 
     FORCEINLINE bool operator==(const FString& Rhs) const;
     FORCEINLINE bool operator==(const ElementType* Rhs) const;

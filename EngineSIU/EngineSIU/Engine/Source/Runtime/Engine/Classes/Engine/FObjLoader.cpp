@@ -318,7 +318,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
 
         if (Token == "map_Kd")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Diffuse);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Diffuse);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -333,7 +333,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Bump")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Normal);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Normal);
             
             std::string Option;
             while (LineStream >> Option)
@@ -360,7 +360,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Ks")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Specular);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Specular);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -375,7 +375,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Ns")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Shininess);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Shininess);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -390,7 +390,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Ka")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Ambient);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Ambient);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -405,7 +405,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Ke")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Emissive);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Emissive);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -420,7 +420,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Pm")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Metallic);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Metallic);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -435,7 +435,7 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
         }
         if (Token == "map_Pr")
         {
-            const uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Roughness);
+            constexpr uint32 SlotIdx = static_cast<uint32>(EMaterialTextureSlots::MTS_Roughness);
             
             LineStream >> Line;
             OutStaticMeshRenderData.Materials[MaterialIndex].TextureInfos[SlotIdx].TextureName = Line;
@@ -887,7 +887,7 @@ bool FObjManager::LoadStaticMeshFromBinary(const FWString& FilePath, FStaticMesh
     return true;
 }
 
-UMaterial* FObjManager::CreateMaterial(FMaterialInfo materialInfo)
+UMaterial* FObjManager::CreateMaterial(const FMaterialInfo& materialInfo)
 {
     if (MaterialMap[materialInfo.MaterialName] != nullptr)
         return MaterialMap[materialInfo.MaterialName];
@@ -898,7 +898,7 @@ UMaterial* FObjManager::CreateMaterial(FMaterialInfo materialInfo)
     return newMaterial;
 }
 
-UMaterial* FObjManager::GetMaterial(FString name)
+UMaterial* FObjManager::GetMaterial(const FString& name)
 {
     return MaterialMap[name];
 }
@@ -922,7 +922,7 @@ UStaticMesh* FObjManager::CreateStaticMesh(const FString& filePath)
     return StaticMesh;
 }
 
-UStaticMesh* FObjManager::GetStaticMesh(FWString name)
+UStaticMesh* FObjManager::GetStaticMesh(const FWString& name)
 {
     return StaticMeshMap[name];
 }
