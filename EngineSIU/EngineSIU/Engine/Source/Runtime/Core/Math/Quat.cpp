@@ -49,32 +49,32 @@ FQuat::FQuat(const FMatrix& M)
     {
         const float S = FMath::Sqrt(Trace + 1.0f) * 2.0f; // S=4*qw
         W = 0.25f * S;
-        X = (M.M[2][1] - M.M[1][2]) / S;
-        Y = (M.M[0][2] - M.M[2][0]) / S;
-        Z = (M.M[1][0] - M.M[0][1]) / S;
+        X = (M.M[1][2] - M.M[2][1]) / S;
+        Y = (M.M[2][0] - M.M[0][2]) / S;
+        Z = (M.M[0][1] - M.M[1][0]) / S;
     }
     else if ((M.M[0][0] > M.M[1][1]) && (M.M[0][0] > M.M[2][2])) // M.M[0][0] is largest
     {
         const float S = FMath::Sqrt(1.0f + M.M[0][0] - M.M[1][1] - M.M[2][2]) * 2.0f; // S=4*qx
-        W = (M.M[2][1] - M.M[1][2]) / S;
+        W = (M.M[1][2] - M.M[2][1]) / S;
         X = 0.25f * S;
-        Y = (M.M[0][1] + M.M[1][0]) / S;
-        Z = (M.M[0][2] + M.M[2][0]) / S;
+        Y = (M.M[1][0] + M.M[0][1]) / S;
+        Z = (M.M[2][0] + M.M[0][2]) / S;
     }
     else if (M.M[1][1] > M.M[2][2]) // M.M[1][1] is largest
     {
         const float S = FMath::Sqrt(1.0f + M.M[1][1] - M.M[0][0] - M.M[2][2]) * 2.0f; // S=4*qy
-        W = (M.M[0][2] - M.M[2][0]) / S;
-        X = (M.M[0][1] + M.M[1][0]) / S;
+        W = (M.M[2][0] - M.M[0][2]) / S;
+        X = (M.M[1][0] + M.M[0][1]) / S;
         Y = 0.25f * S;
-        Z = (M.M[1][2] + M.M[2][1]) / S;
+        Z = (M.M[2][1] + M.M[1][2]) / S;
     }
     else // M.M[2][2] is largest
     {
         const float S = FMath::Sqrt(1.0f + M.M[2][2] - M.M[0][0] - M.M[1][1]) * 2.0f; // S=4*qz
-        W = (M.M[1][0] - M.M[0][1]) / S;
-        X = (M.M[0][2] + M.M[2][0]) / S;
-        Y = (M.M[1][2] + M.M[2][1]) / S;
+        W = (M.M[0][1] - M.M[1][0]) / S;
+        X = (M.M[2][0] + M.M[0][2]) / S;
+        Y = (M.M[2][1] + M.M[1][2]) / S;
         Z = 0.25f * S;
     }
 }
