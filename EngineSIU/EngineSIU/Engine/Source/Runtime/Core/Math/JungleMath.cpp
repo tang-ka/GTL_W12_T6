@@ -20,10 +20,10 @@ FMatrix JungleMath::CreateModelMatrix(FVector translation, FVector rotation, FVe
 {
     FMatrix Translation = FMatrix::CreateTranslationMatrix(translation);
 
-    FMatrix Rotation = FMatrix::CreateRotationMatrix(rotation.X, rotation.Y, rotation.Z);
+    FMatrix Rotation = FMatrix::CreateRotationMatrix(FRotator{rotation.Y, rotation.Z, rotation.X});
     //FMatrix Rotation = JungleMath::EulerToQuaternion(rotation).ToMatrix();
 
-    FMatrix Scale = FMatrix::CreateScaleMatrix(scale.X, scale.Y, scale.Z);
+    FMatrix Scale = FMatrix::CreateScaleMatrix(scale);
     return Scale * Rotation * Translation;
 }
 
@@ -31,7 +31,7 @@ FMatrix JungleMath::CreateModelMatrix(FVector translation, FQuat rotation, FVect
 {
     FMatrix Translation = FMatrix::CreateTranslationMatrix(translation);
     FMatrix Rotation = rotation.ToMatrix();
-    FMatrix Scale = FMatrix::CreateScaleMatrix(scale.X, scale.Y, scale.Z);
+    FMatrix Scale = FMatrix::CreateScaleMatrix(scale);
     return Scale * Rotation * Translation;
 }
 FMatrix JungleMath::CreateViewMatrix(FVector eye, FVector target, FVector up)
