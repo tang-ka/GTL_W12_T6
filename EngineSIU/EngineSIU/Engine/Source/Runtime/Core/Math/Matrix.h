@@ -1,14 +1,8 @@
 #pragma once
-#include "Serialization/Archive.h"
 #include "Axis.h"
-
-struct FVector;
-struct FVector4;
-struct FRotator;
-struct FQuat;
-
-#include "Vector.h"
-#include "Vector4.h"
+#include "MathFwd.h"
+#include "MathUtility.h"
+#include "Serialization/Archive.h"
 
 // 4x4 행렬 연산
 struct alignas(16) FMatrix
@@ -26,6 +20,7 @@ public:
     FMatrix operator+(const FMatrix& Other) const;
     FMatrix operator-(const FMatrix& Other) const;
     FMatrix operator*(const FMatrix& Other) const;
+    FMatrix& operator*=(const FMatrix& Other);
     FMatrix operator*(float Scalar) const;
     FMatrix operator/(float Scalar) const;
     float* operator[](int row);

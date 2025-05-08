@@ -1,13 +1,13 @@
 ﻿#include "Matrix.h"
 
+#include <cmath>
 #include "MathSSE.h"
 #include "MathUtility.h"
-#include "Vector.h"
-#include "Vector4.h"
 #include "Quat.h"
 #include "Rotator.h"
+#include "Vector.h"
+#include "Vector4.h"
 #include "HAL/PlatformType.h"
-#include <cmath>
 
 
 // 단위 행렬 정의
@@ -19,32 +19,50 @@ const FMatrix FMatrix::Identity = { {
 } };
 
 // 행렬 덧셈
-FMatrix FMatrix::operator+(const FMatrix& Other) const {
+FMatrix FMatrix::operator+(const FMatrix& Other) const
+{
     FMatrix Result;
     for (int32 i = 0; i < 4; i++)
+    {
         for (int32 j = 0; j < 4; j++)
+        {
             Result.M[i][j] = M[i][j] + Other.M[i][j];
+        }
+    }
     return Result;
 }
 
 // 행렬 뺄셈
-FMatrix FMatrix::operator-(const FMatrix& Other) const {
+FMatrix FMatrix::operator-(const FMatrix& Other) const
+{
     FMatrix Result;
     for (int32 i = 0; i < 4; i++)
+    {
         for (int32 j = 0; j < 4; j++)
+        {
             Result.M[i][j] = M[i][j] - Other.M[i][j];
+        }
+    }
     return Result;
 }
 
 // 행렬 곱셈
-FMatrix FMatrix::operator*(const FMatrix& Other) const {
+FMatrix FMatrix::operator*(const FMatrix& Other) const
+{
     FMatrix Result = {};
     SSE::VectorMatrixMultiply(&Result, this, &Other);
     return Result;
 }
 
+FMatrix& FMatrix::operator*=(const FMatrix& Other)
+{
+    SSE::VectorMatrixMultiply(this, this, &Other);
+    return *this;
+}
+
 // 스칼라 곱셈
-FMatrix FMatrix::operator*(float Scalar) const {
+FMatrix FMatrix::operator*(float Scalar) const
+{
     FMatrix Result;
     for (int32 i = 0; i < 4; ++i)
     {
@@ -57,15 +75,21 @@ FMatrix FMatrix::operator*(float Scalar) const {
 }
 
 // 스칼라 나눗셈
-FMatrix FMatrix::operator/(float Scalar) const {
+FMatrix FMatrix::operator/(float Scalar) const
+{
     FMatrix Result;
     for (int32 i = 0; i < 4; i++)
+    {
         for (int32 j = 0; j < 4; j++)
+        {
             Result.M[i][j] = M[i][j] / Scalar;
+        }
+    }
     return Result;
 }
 
-float* FMatrix::operator[](int row) {
+float* FMatrix::operator[](int row)
+{
     return M[row];
 }
 
@@ -130,7 +154,7 @@ FVector FMatrix::ExtractScaling(float Tolerance)
 
 FVector FMatrix::GetOrigin() const
 {
-    return FVector(M[3][0], M[3][1], M[3][2]);
+    return FVector{M[3][0], M[3][1], M[3][2]};
 }
 
 float FMatrix::Determinant() const
@@ -172,13 +196,13 @@ FVector FMatrix::GetScaledAxis(EAxis::Type InAxis) const
     switch (InAxis)
     {
     case EAxis::X:
-        return FVector(M[0][0], M[0][1], M[0][2]);
+        return FVector{M[0][0], M[0][1], M[0][2]};
 
     case EAxis::Y:
-        return FVector(M[1][0], M[1][1], M[1][2]);
+        return FVector{M[1][0], M[1][1], M[1][2]};
 
     case EAxis::Z:
-        return FVector(M[2][0], M[2][1], M[2][2]);
+        return FVector{M[2][0], M[2][1], M[2][2]};
 
     default:
         return FVector::ZeroVector;
@@ -186,11 +210,16 @@ FVector FMatrix::GetScaledAxis(EAxis::Type InAxis) const
 }
 
 // 전치 행렬
-FMatrix FMatrix::Transpose(const FMatrix& Mat) {
+FMatrix FMatrix::Transpose(const FMatrix& Mat)
+{
     FMatrix Result;
     for (int32 i = 0; i < 4; i++)
-        for (int32 j = 0; j < 4; j++)
-            Result.M[i][j] = Mat.M[j][i];
+    {
+            Result.M[i][0] = Mat.M[0][i];
+            Result.M[i][1] = Mat.M[1][i];
+            Result.M[i][2] = Mat.M[2][i];
+            Result.M[i][3] = Mat.M[3][i];
+    }
     return Result;
 }
 
@@ -222,13 +251,13 @@ FMatrix FMatrix::Inverse(const FMatrix& Mat)
     Det[3] = Mat[0][1] * Tmp[3][0] - Mat[1][1] * Tmp[3][1] + Mat[2][1] * Tmp[3][2];
 
     const float Determinant = Mat[0][0] * Det[0] - Mat[1][0] * Det[1] + Mat[2][0] * Det[2] - Mat[3][0] * Det[3];
-    
-    if ( Determinant == 0.0f || !std::isfinite(Determinant) )
+
+    if (Determinant == 0.0f || !std::isfinite(Determinant))
     {
         return Identity;
     }
 
-    const float    RDet = 1.0f / Determinant;
+    const float RDet = 1.0f / Determinant;
 
     Result[0][0] = RDet * Det[0];
     Result[0][1] = -RDet * Det[1];
@@ -245,38 +274,38 @@ FMatrix FMatrix::Inverse(const FMatrix& Mat)
     );
     Result[2][1] = -RDet * (
         Mat[0][0] * (Mat[2][1] * Mat[3][3] - Mat[2][3] * Mat[3][1]) -
-    	Mat[2][0] * (Mat[0][1] * Mat[3][3] - Mat[0][3] * Mat[3][1]) +
-		Mat[3][0] * (Mat[0][1] * Mat[2][3] - Mat[0][3] * Mat[2][1])
+        Mat[2][0] * (Mat[0][1] * Mat[3][3] - Mat[0][3] * Mat[3][1]) +
+        Mat[3][0] * (Mat[0][1] * Mat[2][3] - Mat[0][3] * Mat[2][1])
     );
-	Result[2][2] = RDet * (
-		Mat[0][0] * (Mat[1][1] * Mat[3][3] - Mat[1][3] * Mat[3][1]) -
-		Mat[1][0] * (Mat[0][1] * Mat[3][3] - Mat[0][3] * Mat[3][1]) +
-		Mat[3][0] * (Mat[0][1] * Mat[1][3] - Mat[0][3] * Mat[1][1])
+    Result[2][2] = RDet * (
+        Mat[0][0] * (Mat[1][1] * Mat[3][3] - Mat[1][3] * Mat[3][1]) -
+        Mat[1][0] * (Mat[0][1] * Mat[3][3] - Mat[0][3] * Mat[3][1]) +
+        Mat[3][0] * (Mat[0][1] * Mat[1][3] - Mat[0][3] * Mat[1][1])
     );
-	Result[2][3] = -RDet * (
-		Mat[0][0] * (Mat[1][1] * Mat[2][3] - Mat[1][3] * Mat[2][1]) -
-		Mat[1][0] * (Mat[0][1] * Mat[2][3] - Mat[0][3] * Mat[2][1]) +
-		Mat[2][0] * (Mat[0][1] * Mat[1][3] - Mat[0][3] * Mat[1][1])
+    Result[2][3] = -RDet * (
+        Mat[0][0] * (Mat[1][1] * Mat[2][3] - Mat[1][3] * Mat[2][1]) -
+        Mat[1][0] * (Mat[0][1] * Mat[2][3] - Mat[0][3] * Mat[2][1]) +
+        Mat[2][0] * (Mat[0][1] * Mat[1][3] - Mat[0][3] * Mat[1][1])
     );
-	Result[3][0] = -RDet * (
-		Mat[1][0] * (Mat[2][1] * Mat[3][2] - Mat[2][2] * Mat[3][1]) -
-		Mat[2][0] * (Mat[1][1] * Mat[3][2] - Mat[1][2] * Mat[3][1]) +
-		Mat[3][0] * (Mat[1][1] * Mat[2][2] - Mat[1][2] * Mat[2][1])
+    Result[3][0] = -RDet * (
+        Mat[1][0] * (Mat[2][1] * Mat[3][2] - Mat[2][2] * Mat[3][1]) -
+        Mat[2][0] * (Mat[1][1] * Mat[3][2] - Mat[1][2] * Mat[3][1]) +
+        Mat[3][0] * (Mat[1][1] * Mat[2][2] - Mat[1][2] * Mat[2][1])
     );
-	Result[3][1] = RDet * (
-		Mat[0][0] * (Mat[2][1] * Mat[3][2] - Mat[2][2] * Mat[3][1]) -
-		Mat[2][0] * (Mat[0][1] * Mat[3][2] - Mat[0][2] * Mat[3][1]) +
-		Mat[3][0] * (Mat[0][1] * Mat[2][2] - Mat[0][2] * Mat[2][1])
+    Result[3][1] = RDet * (
+        Mat[0][0] * (Mat[2][1] * Mat[3][2] - Mat[2][2] * Mat[3][1]) -
+        Mat[2][0] * (Mat[0][1] * Mat[3][2] - Mat[0][2] * Mat[3][1]) +
+        Mat[3][0] * (Mat[0][1] * Mat[2][2] - Mat[0][2] * Mat[2][1])
     );
-	Result[3][2] = -RDet * (
-		Mat[0][0] * (Mat[1][1] * Mat[3][2] - Mat[1][2] * Mat[3][1]) -
-		Mat[1][0] * (Mat[0][1] * Mat[3][2] - Mat[0][2] * Mat[3][1]) +
-		Mat[3][0] * (Mat[0][1] * Mat[1][2] - Mat[0][2] * Mat[1][1])
+    Result[3][2] = -RDet * (
+        Mat[0][0] * (Mat[1][1] * Mat[3][2] - Mat[1][2] * Mat[3][1]) -
+        Mat[1][0] * (Mat[0][1] * Mat[3][2] - Mat[0][2] * Mat[3][1]) +
+        Mat[3][0] * (Mat[0][1] * Mat[1][2] - Mat[0][2] * Mat[1][1])
     );
-	Result[3][3] = RDet * (
-		Mat[0][0] * (Mat[1][1] * Mat[2][2] - Mat[1][2] * Mat[2][1]) -
-		Mat[1][0] * (Mat[0][1] * Mat[2][2] - Mat[0][2] * Mat[2][1]) +
-		Mat[2][0] * (Mat[0][1] * Mat[1][2] - Mat[0][2] * Mat[1][1])
+    Result[3][3] = RDet * (
+        Mat[0][0] * (Mat[1][1] * Mat[2][2] - Mat[1][2] * Mat[2][1]) -
+        Mat[1][0] * (Mat[0][1] * Mat[2][2] - Mat[0][2] * Mat[2][1]) +
+        Mat[2][0] * (Mat[0][1] * Mat[1][2] - Mat[0][2] * Mat[1][1])
     );
 
     return Result;
@@ -317,7 +346,7 @@ FMatrix FMatrix::CreateRotationMatrix(float roll, float pitch, float yaw)
     } };
 
     // DirectX 표준 순서: Z(Yaw) → Y(Pitch) → X(Roll)  
-    return rotationX * rotationY * rotationZ;  // 이렇게 하면  오른쪽 부터 적용됨
+    return rotationX * rotationY * rotationZ; // 이렇게 하면  오른쪽 부터 적용됨
 }
 
 
@@ -367,12 +396,12 @@ FVector4 FMatrix::TransformVector(const FVector4& v, const FMatrix& m)
 
 FVector4 FMatrix::TransformFVector4(const FVector4& vector) const
 {
-    return FVector4(
+    return FVector4{
         M[0][0] * vector.X + M[1][0] * vector.Y + M[2][0] * vector.Z + M[3][0] * vector.W,
         M[0][1] * vector.X + M[1][1] * vector.Y + M[2][1] * vector.Z + M[3][1] * vector.W,
         M[0][2] * vector.X + M[1][2] * vector.Y + M[2][2] * vector.Z + M[3][2] * vector.W,
         M[0][3] * vector.X + M[1][3] * vector.Y + M[2][3] * vector.Z + M[3][3] * vector.W
-    );
+    };
 }
 
 FVector FMatrix::TransformPosition(const FVector& vector) const
@@ -408,7 +437,7 @@ FMatrix FMatrix::GetRotationMatrix(const FQuat& InRotation)
     const float xx = QuatX * QuatX;
     float yy = QuatY * QuatY;
     float zz = QuatZ * QuatZ;
-    
+
     const float xy = QuatX * QuatY;
     float xz = QuatX * QuatZ;
     float yz = QuatY * QuatZ;
@@ -444,7 +473,7 @@ FMatrix FMatrix::GetRotationMatrix(const FQuat& InRotation)
 
 FQuat FMatrix::ToQuat() const
 {
-    return FQuat(*this);
+    return FQuat{*this};
 }
 
 FVector FMatrix::GetScaleVector(float Tolerance) const
@@ -470,7 +499,7 @@ FVector FMatrix::GetScaleVector(float Tolerance) const
 
 FVector FMatrix::GetTranslationVector() const
 {
-    return FVector(M[3][0], M[3][1], M[3][2]);
+    return FVector{M[3][0], M[3][1], M[3][2]};
 }
 
 FMatrix FMatrix::GetMatrixWithoutScale(float Tolerance) const
