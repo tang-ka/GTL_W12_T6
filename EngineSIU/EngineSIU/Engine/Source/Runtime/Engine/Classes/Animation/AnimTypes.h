@@ -1,0 +1,35 @@
+#pragma once
+#include "Container/Array.h"
+#include "UObject/NameTypes.h"
+
+struct FQuat;
+struct FVector;
+
+struct FAnimNotifyEvent
+{
+    
+};
+
+struct FAnimNotifyTrack
+{
+    
+};
+
+struct FRawAnimSequenceTrack
+{
+    TArray<FVector> PosKeys;
+
+    TArray<FQuat> RotKeys;
+
+    TArray<FVector> ScaleKeys;
+};
+
+// From Unreal Engine IAnimationDataMode.h
+struct FBoneAnimationTrack
+{
+    FRawAnimSequenceTrack InternalTrackData;
+
+    int32 BoneTreeIndex = INDEX_NONE;
+
+    FName Name;
+};

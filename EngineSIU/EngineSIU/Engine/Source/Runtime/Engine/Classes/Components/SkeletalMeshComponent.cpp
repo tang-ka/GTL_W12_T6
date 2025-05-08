@@ -39,7 +39,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
         const int32 AnimationFrameRate = AnimSequence->FrameRate;
-        const int32 AnimationLength = AnimSequence->NumFrames;
+        const int32 AnimationLength = AnimSequence->NumberOfFrames;
 
         const float TargetKeyFrame = ElapsedTime * static_cast<float>(AnimationFrameRate);
         const int32 CurrentKey = static_cast<int32>(TargetKeyFrame) % AnimationLength;

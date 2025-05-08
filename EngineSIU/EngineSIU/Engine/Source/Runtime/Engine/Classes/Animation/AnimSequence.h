@@ -1,22 +1,27 @@
 #pragma once
-#include "UObject/Object.h"
+#include "AnimSequenceBase.h"
 #include "UObject/ObjectMacros.h"
 
 struct FTransform;
+struct FBoneAnimationTrack;
 
-// TODO: 임시로 만든 클래스
-class UAnimSequence : public UObject
+class UAnimSequence : public UAnimSequenceBase
 {
-    DECLARE_CLASS(UAnimSequence, UObject)
+    DECLARE_CLASS(UAnimSequence, UAnimSequenceBase)
 
 public:
     UAnimSequence();
     virtual ~UAnimSequence() override = default;
 
-    // TODO: 맵의 key는 int가 아니라 fname이어야 함.
-    TArray<TMap<int32, FTransform>> Anim;
+    // All individual bone animation tracks
+    TArray<FBoneAnimationTrack> BoneAnimationTracks;
 
+    // Rate at which the animated data is sampled
     int32 FrameRate = 30;
 
-    int32 NumFrames = 240;
+    // Total number of sampled animated frames
+    int32 NumberOfFrames = 240;
+
+    // Total number of sampled animated keys
+    int32 NumberOfKeys;
 };
