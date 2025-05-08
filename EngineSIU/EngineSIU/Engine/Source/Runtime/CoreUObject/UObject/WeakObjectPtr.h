@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <concepts>
-
 #include "ObjectUtils.h"
 #include "HAL/PlatformType.h"
 
@@ -11,7 +9,6 @@
  * @note TWeakObjectPtr의 소멸자가 호출이 되어도 Object는 따로 삭제를 하지 않습니다.
  */
 template <typename T>
-    requires std::derived_from<T, UObject>
 struct TWeakObjectPtr
 {
 public:
