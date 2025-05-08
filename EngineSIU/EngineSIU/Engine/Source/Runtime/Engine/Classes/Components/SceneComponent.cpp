@@ -47,8 +47,7 @@ void USceneComponent::GetProperties(TMap<FString, FString>& OutProperties) const
 void USceneComponent::SetProperties(const TMap<FString, FString>& InProperties)
 {
     Super::SetProperties(InProperties);
-    const FString* TempStr = nullptr;
-    TempStr = InProperties.Find(TEXT("RelativeLocation"));
+    const FString* TempStr = InProperties.Find(TEXT("RelativeLocation"));
     if (TempStr)
     {
         RelativeLocation.InitFromString(*TempStr);
@@ -204,7 +203,7 @@ void USceneComponent::AttachToComponent(USceneComponent* InParent)
 
 FTransform USceneComponent::GetRelativeTransform() const
 {
-    return FTransform(RelativeRotation, RelativeLocation, RelativeScale3D);
+    return FTransform{RelativeRotation, RelativeLocation, RelativeScale3D};
 }
 
 void USceneComponent::SetWorldLocation(const FVector& InLocation)
@@ -242,10 +241,10 @@ void USceneComponent::SetWorldRotation(const FQuat& InQuat)
 void USceneComponent::SetWorldScale3D(const FVector& InScale)
 {
     // TODO: 코드 최적화 방법 생각하기
-    FMatrix NewRelativeMatrix = FMatrix::CreateScaleMatrix(InScale.X, InScale.Y, InScale.Z);
+    FMatrix NewRelativeMatrix = FMatrix::CreateScaleMatrix(InScale);
     if (AttachParent)
     {
-        FMatrix ParentMatrix = FMatrix::GetScaleMatrix(AttachParent->RelativeScale3D);
+        FMatrix ParentMatrix = FMatrix::CreateScaleMatrix(AttachParent->RelativeScale3D);
         NewRelativeMatrix = NewRelativeMatrix * FMatrix::Inverse(ParentMatrix);
     }
     FVector NewRelativeScale = NewRelativeMatrix.GetScaleVector();
@@ -271,22 +270,26 @@ FVector USceneComponent::GetComponentScale3D() const
 
 FTransform USceneComponent::GetComponentTransform() const
 {
-    return FTransform(GetComponentRotation(), GetComponentLocation(), GetComponentScale3D());
+    return FTransform{
+        GetComponentRotation(),
+        GetComponentLocation(),
+        GetComponentScale3D()
+    };
 }
 
 FMatrix USceneComponent::GetScaleMatrix() const
 {
-    return FMatrix::GetScaleMatrix(RelativeScale3D);
+    return FMatrix::CreateScaleMatrix(RelativeScale3D);
 }
 
 FMatrix USceneComponent::GetRotationMatrix() const
 {
-    return FMatrix::GetRotationMatrix(RelativeRotation);
+    return FMatrix::CreateRotationMatrix(RelativeRotation);
 }
 
 FMatrix USceneComponent::GetTranslationMatrix() const
 {
-    return FMatrix::GetTranslationMatrix(RelativeLocation);
+    return FMatrix::CreateTranslationMatrix(RelativeLocation);
 }
 
 FMatrix USceneComponent::GetWorldMatrix() const

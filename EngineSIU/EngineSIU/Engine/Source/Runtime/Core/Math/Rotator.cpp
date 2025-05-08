@@ -156,7 +156,7 @@ FVector FRotator::RotateVector(const FVector& Vec) const
 
 FMatrix FRotator::ToMatrix() const
 {
-    return FMatrix::GetRotationMatrix(*this);
+    return FMatrix::CreateRotationMatrix(*this);
 }
 
 FRotator FRotator::MakeLookAtRotation(const FVector& From, const FVector& To)
