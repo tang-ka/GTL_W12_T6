@@ -84,6 +84,10 @@ public:
     [[nodiscard]] float SizeSquared() const { return SquaredLength(); }
     [[nodiscard]] float Length() const { return FMath::Sqrt(SquaredLength()); }
     [[nodiscard]] float Size() const { return Length(); }
+    [[nodiscard]] bool Equals(const FVector2D& Other, float Tolerance = KINDA_SMALL_NUMBER) const
+    {
+        return FMath::Abs(X - Other.X) <= Tolerance && FMath::Abs(Y - Other.Y) <= Tolerance;
+    }
 };
 
 // 3D 벡터
@@ -100,7 +104,6 @@ public:
     explicit FVector(float Scalar) : X(Scalar), Y(Scalar), Z(Scalar) {}
 
     explicit FVector(const FRotator& InRotator);
-    explicit FVector(const FVector4& Vector4);
 
     // Vector(0, 0, 0)
     static const FVector ZeroVector;
@@ -155,7 +158,6 @@ public:
     /** Dot Product */
     float operator|(const FVector& Other) const;
     float Dot(const FVector& Other) const;
-    bool ContainsNaN() const;
     static float DotProduct(const FVector& A, const FVector& B);
 
     /** Cross Product */
@@ -174,7 +176,6 @@ public:
     FVector operator*(const FVector& Other) const;
     FVector operator*(float Scalar) const;
     FVector& operator*=(float Scalar);
-    FVector& operator*=(const FVector& Other);
 
     FVector operator/(const FVector& Other) const;
     FVector operator/(float Scalar) const;
