@@ -217,6 +217,7 @@ int32 FString::Find(
                 // 경계 검사: i + j 가 StrLen을 넘지 않도록 확인 (특히 FromEnd 검색 시 중요)
                 // 이 로직에서는 외부에서 시작/종료 인덱스를 잘 설정하여 불필요할 수 있으나, 안전하게 추가 가능
                 // if (i + j >= StrLen) { Found = false; break; }
+
                 if (!CompareFunc(StrPtr[i + j], SubStrPtr[j]))
                 {
                     Found = false;
@@ -249,7 +250,7 @@ int32 FString::Find(
         // 시작 위치가 음수면 검색 불가
         if (MaxStartIndex < 0)
         {
-            return INDEX_NONE;
+             return INDEX_NONE;
         }
 
         // 검색 범위: [MaxStartIndex, -1) 즉, MaxStartIndex 부터 0 까지 역방향 검색
@@ -304,6 +305,17 @@ int32 FString::FindChar(
     }
 
     return INDEX_NONE;
+}
+
+bool FString::FindChar(ElementType InChar, int32& Index) const
+{
+    const int32 IndexFound = FindChar(InChar);
+    if (IndexFound != INDEX_NONE)
+    {
+        Index = IndexFound;
+        return true;
+    }
+    return false;
 }
 
 void FString::Reserve(int32 CharacterCount)
@@ -413,7 +425,7 @@ FString FString::Left(int32 Count) const
 
     // Use std::basic_string::substr
     // substr(pos, count) - starting from pos 0
-    BaseStringType Sub = PrivateString.substr(0, static_cast<size_t>(Count));
+    BaseStringType Sub = PrivateString.substr(0, Count);
     return FString{std::move(Sub)};
 }
 
@@ -428,7 +440,7 @@ bool FString::RemoveFromStart(const FString& InPrefix, ESearchCase::Type SearchC
     }
 
     // Check if the string actually starts with the prefix
-    bool bStartsWithPrefix = false;
+    bool bStartsWithPrefix;
     if (SearchCase == ESearchCase::CaseSensitive)
     {
         // Use std::basic_string::compare for case-sensitive comparison
