@@ -88,6 +88,8 @@ private:
     void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
 
     bool CreateTextureFromFile(const FWString& Filename, bool bIsSRGB);
+
+    void ComputeBoundingBox(const TArray<FSkeletalMeshVertex>& InVertices, FVector& OutMinVector, FVector& OutMaxVector);
 };
 
 template <typename T>

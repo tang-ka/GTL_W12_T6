@@ -29,6 +29,8 @@ public:
 
     void SetAnimationEnabled(bool bEnable);
     
+    virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
+
 private:
     
     USkeletalMesh* SkeletalMeshAsset = nullptr;
