@@ -7,19 +7,19 @@
  * @return 문자열화 된 타입
  */
 template <typename T>
-constexpr std::string_view GetTypeName()
+constexpr std::string GetTypeName()
 {
 #if defined(__clang__)
     constexpr std::string_view Signature = __PRETTY_FUNCTION__;
-    constexpr std::string_view Prefix = "std::string_view GetTypeName() [T = ";
+    constexpr std::string_view Prefix = "std::string GetTypeName() [T = ";
     constexpr std::string_view Suffix = "]";
 #elif defined(__GNUC__)
     constexpr std::string_view Signature = __PRETTY_FUNCTION__;
-    constexpr std::string_view Prefix = "constexpr std::string_view GetTypeName() [with T = ";
+    constexpr std::string_view Prefix = "constexpr std::string GetTypeName() [with T = ";
     constexpr std::string_view Suffix = "]";
 #elif defined(_MSC_VER)
     constexpr std::string_view Signature = __FUNCSIG__;
-    constexpr std::string_view Prefix = "class std::basic_string_view<char,struct std::char_traits<char> > __cdecl GetTypeName<";
+    constexpr std::string_view Prefix = "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl GetTypeName<";
     constexpr std::string_view Suffix = ">(void)";
 #else
     return "__UnknownType__";
@@ -35,11 +35,10 @@ constexpr std::string_view GetTypeName()
     {
         if (Ret.starts_with(TypePrefix))
         {
-            return Ret.substr(TypePrefix.size());
+            const std::string_view TypeName = Ret.substr(TypePrefix.size());
+            return std::string{TypeName.data(), TypeName.size()};
         }
     }
-    return Ret;
-#else
-    return Ret;
 #endif
+    return std::string{Ret.data(), Ret.size()};
 }
