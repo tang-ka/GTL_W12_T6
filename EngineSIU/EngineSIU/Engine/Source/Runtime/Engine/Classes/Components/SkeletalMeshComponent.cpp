@@ -123,7 +123,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                     SkinnedPosition = FVector(Vertex.X, Vertex.Y, Vertex.Z);
                     SkinnedNormal = FVector(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
                 }
-                else if (abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
+                else if (FMath::Abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
                 {
                     // 가중치 합이 1이 아닌 경우 정규화
                     SkinnedPosition /= TotalWeight;
