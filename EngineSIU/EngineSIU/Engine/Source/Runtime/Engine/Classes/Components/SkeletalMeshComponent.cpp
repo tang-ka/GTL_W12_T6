@@ -6,6 +6,8 @@
 #include "Animation/Skeleton.h"
 #include "Engine/SkeletalMesh.h"
 
+bool USkeletalMeshComponent::bCPUSkinning = true;
+
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
     AnimSequence = new UAnimSequence();
@@ -143,7 +145,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshAsset)
 {
     SkeletalMeshAsset = InSkeletalMeshAsset;
-    AABB = FBoundingBox(SkeletalMeshAsset->GetRenderData()->BoundingBoxMin, SkeletalMeshAsset->GetRenderData()->BoundingBoxMax);
+    AABB = FBoundingBox(InSkeletalMeshAsset->GetRenderData()->BoundingBoxMin, SkeletalMeshAsset->GetRenderData()->BoundingBoxMax);
     
     BoneTransforms.Empty();
     BoneBindPoseTransforms.Empty();
@@ -201,6 +203,10 @@ void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
             const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
             BoneTransforms = RefSkeleton.RawRefBonePose;
         }
+        CPURenderData->Vertices = SkeletalMeshAsset->GetRenderData()->Vertices;
+        CPURenderData->Indices = SkeletalMeshAsset->GetRenderData()->Indices;
+        CPURenderData->ObjectName = SkeletalMeshAsset->GetRenderData()->ObjectName;
+        CPURenderData->MaterialSubsets = SkeletalMeshAsset->GetRenderData()->MaterialSubsets;
     }
 }
 
@@ -265,4 +271,14 @@ int USkeletalMeshComponent::CheckRayIntersection(const FVector& InRayOrigin, con
 const FSkeletalMeshRenderData* USkeletalMeshComponent::GetCPURenderData() const
 {
     return CPURenderData.get();
+}
+
+void USkeletalMeshComponent::SetCPUSkinning(bool flag)
+{
+    bCPUSkinning = flag;
+}
+
+bool USkeletalMeshComponent::GetCPUSkinning()
+{
+    return bCPUSkinning;
 }

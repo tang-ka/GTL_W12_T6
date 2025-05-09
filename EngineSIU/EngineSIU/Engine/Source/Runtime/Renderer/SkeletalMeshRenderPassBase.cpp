@@ -124,9 +124,7 @@ void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<
         {
             continue;
         }
-        
-        //const FSkeletalMeshRenderData* RenderData = Comp->GetSkeletalMeshAsset()->GetRenderData();
-        const FSkeletalMeshRenderData* RenderData = Comp->GetCPURenderData();
+        const FSkeletalMeshRenderData* RenderData = Comp->GetCPUSkinning() ? Comp->GetCPURenderData() : Comp->GetSkeletalMeshAsset()->GetRenderData();
         if (RenderData == nullptr)
         {
             continue;
@@ -156,12 +154,23 @@ void FSkeletalMeshRenderPassBase::RenderSkeletalMesh(const FSkeletalMeshRenderDa
     UINT Stride = sizeof(FSkeletalMeshVertex);
     UINT Offset = 0;
 
+    FCPUSkinningConstants CPUSkinningData;
+    CPUSkinningData.bCPUSKinning = USkeletalMeshComponent::GetCPUSkinning();
+    BufferManager->UpdateConstantBuffer(TEXT("FCPUSkinningConstants"), CPUSkinningData);
+    
     FVertexInfo VertexInfo;
-    BufferManager->CreateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
-    BufferManager->UpdateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices);
+    if (CPUSkinningData.bCPUSKinning)
+    {
+        BufferManager->CreateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
+        BufferManager->UpdateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices);
+    }
+    else
+    {
+        BufferManager->CreateVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
+    }
     
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &Stride, &Offset);
-
+    
     FIndexInfo IndexInfo;
     BufferManager->CreateIndexBuffer(RenderData->ObjectName, RenderData->Indices, IndexInfo);
     if (IndexInfo.IndexBuffer)
@@ -210,7 +219,8 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
 {
     if (!SkeletalMeshComponent ||
         !SkeletalMeshComponent->GetSkeletalMeshAsset() ||
-        !SkeletalMeshComponent->GetSkeletalMeshAsset()->GetSkeleton())
+        !SkeletalMeshComponent->GetSkeletalMeshAsset()->GetSkeleton() ||
+        SkeletalMeshComponent->GetCPUSkinning())
     {
         return;
     }

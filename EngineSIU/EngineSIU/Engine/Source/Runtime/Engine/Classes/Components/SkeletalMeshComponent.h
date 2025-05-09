@@ -34,6 +34,10 @@ public:
 
     const FSkeletalMeshRenderData* GetCPURenderData() const;
 
+    static void SetCPUSkinning(bool flag);
+
+    static bool GetCPUSkinning();
+    
 private:
     
     USkeletalMesh* SkeletalMeshAsset = nullptr;
@@ -42,7 +46,7 @@ private:
 
     bool bPlayAnimation = false;
 
-    bool bCPUSkinning = true;
-
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;
+
+    static bool bCPUSkinning;
 };

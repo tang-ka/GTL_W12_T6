@@ -504,3 +504,9 @@ struct FGammaConstants
     float GammaValue;
     FVector Padding;
 };
+
+struct FCPUSkinningConstants
+{
+    int bCPUSKinning;
+    FVector Padding;
+};
