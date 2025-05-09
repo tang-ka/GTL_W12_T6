@@ -36,26 +36,11 @@ bool FVector2D::InitFromString(const FString& InSourceString)
     return bSuccessful;
 }
 
-FVector::FVector(const FVector4& Vector4)
+FVector::FVector(const FVector4& InVector4)
+    : X(InVector4.X)
+    , Y(InVector4.Y)
+    , Z(InVector4.Z)
 {
-    X = Vector4.X;
-    Y = Vector4.Y;
-    Z = Vector4.Z;
-}
-
-bool FVector::ContainsNaN() const
-{
-    return (!FMath::IsFinite(X) || 
-            !FMath::IsFinite(Y) ||
-            !FMath::IsFinite(Z));
-}
-
-FVector& FVector::operator*=(const FVector& Other)
-{
-    X = Other.X;
-    Y = Other.Y;
-    Z = Other.Z;
-    return *this;
 }
 
 FString FVector::ToString() const

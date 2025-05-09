@@ -1,5 +1,4 @@
 #pragma once
-#include "MathUtility.h"
 #include "Quat.h"
 #include "Vector.h"
 #include "Container/String.h"
