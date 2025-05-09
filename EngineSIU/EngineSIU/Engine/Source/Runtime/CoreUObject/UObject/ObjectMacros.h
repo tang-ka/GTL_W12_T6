@@ -15,14 +15,14 @@ private: \
     TClass& operator=(const TClass&) = delete; \
     TClass(TClass&&) = delete; \
     TClass& operator=(TClass&&) = delete; \
-    inline static struct TClass##_StaticClassRegistrar_ \
+    inline static struct TClass##_StaticClassRegistrar_PRIVATE \
     { \
-        TClass##_StaticClassRegistrar_() \
+        TClass##_StaticClassRegistrar_PRIVATE() \
         { \
             UClass::GetClassMap().Add(#TClass, ThisClass::StaticClass()); \
             AddClassToChildListMap(ThisClass::StaticClass()); \
         } \
-    } TClass##_StaticClassRegistrar_{}; \
+    } TClass##_StaticClassRegistrar_PRIVATE{}; \
 public: \
     using Super = TSuperClass; \
     using ThisClass = TClass;
@@ -78,13 +78,13 @@ public: \
  */
 #define UPROPERTY(Type, VarName, ...) \
     Type VarName FIRST_ARG(__VA_ARGS__); \
-    inline static struct VarName##_PropRegistrar \
+    inline static struct VarName##_PropRegistrar_PRIVATE \
     { \
-        VarName##_PropRegistrar() \
+        VarName##_PropRegistrar_PRIVATE() \
         { \
             constexpr int64 Offset = offsetof(ThisClass, VarName); \
             ThisClass::StaticClass()->RegisterProperty( \
                 { #VarName, sizeof(Type), Offset } \
             ); \
         } \
-    } VarName##_PropRegistrar_{};
+    } VarName##_PropRegistrar_PRIVATE{};
