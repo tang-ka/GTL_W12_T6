@@ -219,23 +219,53 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
         {
         case 'F':
         {
-            const UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-            USceneComponent* TargetComponent = Engine->GetSelectedComponent();
-            if (!TargetComponent)
-            {
-                if (const AActor* PickedActor = Engine->GetSelectedActor())
-                {
-                    TargetComponent = PickedActor->GetRootComponent();
-                }
-            }
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+            AActor* SelectedActor = Engine->GetSelectedActor();
 
-            if (TargetComponent)
+            USceneComponent* TargetComponent = nullptr;
+
+            if (SelectedComponent != nullptr)
             {
-                FViewportCamera& ViewTransform = PerspectiveCamera;
-                ViewTransform.SetLocation(
-                    // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
-                    TargetComponent->GetComponentLocation() - (ViewTransform.GetForwardVector() * 10.0f)
-                );
+                TargetComponent = SelectedComponent;
+            }
+            else if (SelectedActor != nullptr)
+            {
+                TargetComponent = SelectedActor->GetRootComponent();
+            }
+            if (TargetComponent != nullptr)
+            {
+                if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(TargetComponent))
+                {
+                    FViewportCamera& ViewTransform = PerspectiveCamera;
+                    float FOV = ViewFOV;
+
+                    // 로컬 바운딩 박스
+                    FBoundingBox Box = Primitive->GetBoundingBox();
+                    FVector LocalCenter = (Box.MinLocation + Box.MaxLocation) * 0.5f;
+                    FVector LocalExtents = (Box.MaxLocation - Box.MinLocation) * 0.5f;
+                    float Radius = LocalExtents.Length();
+
+
+                    FMatrix ComponentToWorld = Primitive->GetWorldMatrix();
+                    FVector WorldCenter = ComponentToWorld.TransformPosition(LocalCenter);
+
+                    // FOV 기반 거리 계산
+                    float VerticalFOV = FMath::DegreesToRadians(FOV);
+                    float Distance = Radius / FMath::Tan(VerticalFOV * 0.5f);
+
+                    // 카메라 위치 설정
+                    ViewTransform.SetLocation(WorldCenter - ViewTransform.GetForwardVector() * Distance);
+                }
+
+                 else
+                {
+                    FViewportCamera& ViewTransform = PerspectiveCamera;
+                    ViewTransform.SetLocation(
+                        // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
+                        TargetComponent->GetComponentLocation() - (ViewTransform.GetForwardVector() * 10.0f)
+                    );
+                }
             }
             break;
         }

@@ -92,6 +92,7 @@ void FStatOverlay::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height)
     }
 
     ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
     ImGui::End();
 }
 
