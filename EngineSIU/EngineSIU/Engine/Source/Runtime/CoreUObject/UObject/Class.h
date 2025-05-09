@@ -32,11 +32,13 @@ public:
         static TMap<FName, UClass*> ClassMap;
         return ClassMap;
     }
+
     static UClass* FindClass(const FName& ClassName)
     {
-        auto It = GetClassMap().Find(ClassName);
-        if (It)
+        if (UClass** It = GetClassMap().Find(ClassName))
+        {
             return *It;
+        }
         return nullptr;
     }
 
@@ -76,7 +78,6 @@ public:
 
 protected:
     virtual UObject* CreateDefaultObject();
-
 
 public:
     ClassConstructorType ClassCTOR;
