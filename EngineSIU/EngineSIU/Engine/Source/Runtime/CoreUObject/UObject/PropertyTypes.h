@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "magic_enum/magic_enum.hpp"
+
 
 enum class EPropertyType : uint8
 {
@@ -69,6 +71,13 @@ enum class EPropertyFlags : uint32  // NOLINT(performance-enum-size)
     LuaBindable     = 1 << 2,    // Lua에 자동으로 바인딩
     HiddenInEditor  = 1 << 3,    // 에디터(ImGui)에 표시하지 않음
     // ... 필요한 다른 플래그들 (예: SaveGame, Replicated 등)
+};
+
+// magic_enum에서 EPropertyFlags를 사용하기 위함
+template <>
+struct magic_enum::customize::enum_range<EPropertyFlags>
+{
+    static constexpr bool is_flags = true;
 };
 
 // 비트 플래그 연산을 위한 헬퍼 함수들
