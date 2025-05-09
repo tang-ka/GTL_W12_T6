@@ -235,25 +235,30 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
             }
             if (TargetComponent != nullptr)
             {
-                // if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(TargetComponent))
-                // {
-                //     FViewportCamera& ViewTransform = PerspectiveCamera;
-                //     float FOV = ViewFOV;
-                //
-                //     // AABB 중심 및 크기
-                //     FBoundingBox Box = Primitive->GetBoundingBox();
-                //     FVector Center = (Box.MinLocation + Box.MaxLocation) * 0.5f;
-                //     FVector Extents = (Box.MaxLocation - Box.MinLocation) * 0.5f;
-                //     float Radius = Extents.Length();
-                //
-                //     // FOV 기반 카메라 거리 계산
-                //     float VerticalFOV = FMath::DegreesToRadians(FOV);
-                //     float Distance = Radius / FMath::Tan(VerticalFOV * 0.5f);
-                //
-                //     // 위치 이동
-                //     ViewTransform.SetLocation(Center - ViewTransform.GetForwardVector() * Distance);
-                // }
-                // To-DO : Skeletalmesh component에 AABB 계산하면 복구할것
+                if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(TargetComponent))
+                {
+                    FViewportCamera& ViewTransform = PerspectiveCamera;
+                    float FOV = ViewFOV;
+
+                    // 로컬 바운딩 박스
+                    FBoundingBox Box = Primitive->GetBoundingBox();
+                    FVector LocalCenter = (Box.MinLocation + Box.MaxLocation) * 0.5f;
+                    FVector LocalExtents = (Box.MaxLocation - Box.MinLocation) * 0.5f;
+                    float Radius = LocalExtents.Length();
+
+
+                    FMatrix ComponentToWorld = Primitive->GetWorldMatrix();
+                    FVector WorldCenter = ComponentToWorld.TransformPosition(LocalCenter);
+
+                    // FOV 기반 거리 계산
+                    float VerticalFOV = FMath::DegreesToRadians(FOV);
+                    float Distance = Radius / FMath::Tan(VerticalFOV * 0.5f);
+
+                    // 카메라 위치 설정
+                    ViewTransform.SetLocation(WorldCenter - ViewTransform.GetForwardVector() * Distance);
+                }
+
+                 else
                 {
                     FViewportCamera& ViewTransform = PerspectiveCamera;
                     ViewTransform.SetLocation(
