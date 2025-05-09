@@ -4,8 +4,13 @@
 #include "UObject/ObjectFactory.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include "Developer/AnimDataController/AnimDataController.h"
+#include "Animation/AnimTypes.h"
 
 UAnimSequenceBase::UAnimSequenceBase()
+    : RateScale(1.f)
+    , bLoop(true)
+    , DataModel(nullptr)
+    , Controller(nullptr)
 {
     CreateModel();
     GetController();
@@ -28,7 +33,11 @@ UAnimSequenceBase::~UAnimSequenceBase()
 
 float UAnimSequenceBase::GetPlayLength() const
 {
-    return SequenceLength;
+    if (DataModel)
+    {
+        return static_cast<float>(DataModel->GetPlayLength());   
+    }
+    return 0.f;
 }
 
 UAnimDataModel* UAnimSequenceBase::GetDataModel() const

@@ -7,6 +7,7 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 
+class UAnimationAsset;
 struct FSkeletalMeshVertex;
 struct FMaterialInfo;
 struct FReferenceSkeleton;
@@ -37,7 +38,7 @@ private:
     FString DisplayName;
 
     // Begin Material
-    void ProcessMaterials(FFbxLoadResult& OutResult);
+    void ProcessMaterials(TArray<UMaterial*>& OutMaterials);
 
     FMaterialInfo ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial);
 
@@ -45,7 +46,7 @@ private:
     // End Material
 
     // Begin Skeleton
-    void ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult);
+    void ProcessSkeletonHierarchy(FbxNode* RootNode, TArray<USkeleton*>& OutSkeletons);
 
     FbxPose* FindBindPose(FbxNode* SkeletonRoot);
 
@@ -81,7 +82,19 @@ private:
     // End Mesh
 
     // Begin Animation
-    void ProcessAnimations(FFbxLoadResult& OutResult);
+    void ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, const TArray<USkeleton*>& Skeletons);
+
+    void CollectAnimationNodeNames(FbxNode* Node, FbxAnimLayer* AnimLayer, TSet<FString>& OutAnimationNodeNames);
+
+    bool NodeHasAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer);
+
+    USkeleton* FindSkeletonForAnimation(FbxAnimStack* AnimStack, FbxAnimLayer* AnimLayer, const TArray<USkeleton*>& Skeletons);
+
+    void BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneNodeMap);
+
+    void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer,
+        FbxTime Start, FbxTime End, int32 NumFrames,
+        TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales);
     // End Animation
 
     // 좌표계 변환 메소드

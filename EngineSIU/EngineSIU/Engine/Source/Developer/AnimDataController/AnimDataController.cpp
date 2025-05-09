@@ -5,6 +5,7 @@
 #include "Animation/Skeleton.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include "Misc/FrameTime.h"
+#include "Math/MathUtility.h"
 
 void UAnimDataController::SetModel(UAnimDataModel* InModel)
 {

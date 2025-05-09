@@ -3,6 +3,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class UAnimationAsset;
 class USkeleton;
 class USkeletalMesh;
 
@@ -37,7 +38,7 @@ struct FFbxLoadResult
     TArray<USkeletalMesh*> SkeletalMeshes;
     TArray<UStaticMesh*> StaticMeshes;
     TArray<UMaterial*> Materials;
-    // TArray<UAnimation*> Animations;
+    TArray<UAnimationAsset*> Animations;
 };
 
 class UAssetManager : public UObject
@@ -68,11 +69,14 @@ public:
     UStaticMesh* GetStaticMesh(const FName& Name);
     USkeleton* GetSkeleton(const FName& Name);
     UMaterial* GetMaterial(const FName& Name);
+    UAnimationAsset* GetAnimation(const FName& Name);
 
     void AddAssetInfo(const FAssetInfo& Info);
     void AddSkeleton(const FName& Key, USkeleton* Skeleton);
-    void AddSkeletalMesh(const FName& Key, USkeletalMesh* Mesh);
+    void AddSkeletalMesh(const FName& Key, USkeletalMesh* SkeletalMesh);
     void AddMaterial(const FName& Key, UMaterial* Material);
+    void AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh);
+    void AddAnimation(const FName& Key, UAnimationAsset* Animation);
 
 private:
     void LoadContentFiles();
@@ -81,5 +85,5 @@ private:
     inline static TMap<FName, USkeletalMesh*> SkeletalMeshMap;
     inline static TMap<FName, UStaticMesh*> StaticMeshMap;
     inline static TMap<FName, UMaterial*> MaterialMap;
-    // inline static TMap<FName, UAnimation*> AnimationMap;
+    inline static TMap<FName, UAnimationAsset*> AnimationMap;
 };

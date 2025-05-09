@@ -1,6 +1,7 @@
 ﻿#include "AnimDataModel.h"
 
 #include "Animation/AnimationAsset.h"
+#include "Animation/AnimSequence.h"
 #include "Animation/AnimTypes.h"
 #include "Container/Array.h"
 #include "Developer/AnimDataController/AnimDataController.h"

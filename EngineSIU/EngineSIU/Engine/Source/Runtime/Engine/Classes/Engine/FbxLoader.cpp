@@ -9,8 +9,11 @@
 #include "Math/transform.h"
 #include "Animation/Skeleton.h"
 #include "SkeletalMesh.h"
+#include "Animation/AnimSequence.h"
 #include "Asset/StaticMeshAsset.h"
 #include "Container/String.h"
+#include "Container/Set.h"
+#include "Developer/AnimDataController/AnimDataController.h"
 
 struct FVertexKey
 {
@@ -308,18 +311,18 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
 
     PrintNodeAttribute(RootNode, 0);
 
-    ProcessMaterials(Result);
+    ProcessMaterials(Result.Materials);
 
-    ProcessSkeletonHierarchy(RootNode, Result);
+    ProcessSkeletonHierarchy(RootNode, Result.Skeletons);
 
     ProcessMeshes(RootNode, Result);
 
-    ProcessAnimations(Result);
+    ProcessAnimations(Result.Animations, Result.Skeletons);
     
     return Result;
 }
 
-void FFbxLoader::ProcessMaterials(FFbxLoadResult& OutResult)
+void FFbxLoader::ProcessMaterials(TArray<UMaterial*>& OutMaterials)
 {
     const int32 MaterialCount = Scene->GetMaterialCount();
 
@@ -336,7 +339,7 @@ void FFbxLoader::ProcessMaterials(FFbxLoadResult& OutResult)
         UMaterial* NewMaterial = FObjectFactory::ConstructObject<UMaterial>(nullptr, FbxMaterial->GetName());
         NewMaterial->SetMaterialInfo(MaterialInfo);
 
-        OutResult.Materials.Add(NewMaterial);
+        OutMaterials.Add(NewMaterial);
     }
 }
 
@@ -460,7 +463,7 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FMat
     }
 }
 
-void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult)
+void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, TArray<USkeleton*>& OutSkeletons)
 {
     // 스켈레톤 계층 구조를 찾기 위한 첫 번째 패스
     TArray<FbxNode*> SkeletonRoots;
@@ -477,7 +480,7 @@ void FFbxLoader::ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& Out
         FbxPose* BindPose = FindBindPose(SkeletonRoot);
         
         USkeleton* NewSkeleton = FObjectFactory::ConstructObject<USkeleton>(nullptr);
-        OutResult.Skeletons.Add(NewSkeleton);
+        OutSkeletons.Add(NewSkeleton);
 
         // 스켈레톤 구조 구축
         BuildSkeletonHierarchy(SkeletonRoot, NewSkeleton, BindPose);
@@ -1205,7 +1208,9 @@ UStaticMesh* FFbxLoader::CreateStaticMesh(FbxNode* MeshNode, int32 GlobalMeshIdx
         {
             FbxSurfaceMaterial* FbxMat = OwnerNode->GetMaterial(MatIdx);
             if (FbxMat)
+            {
                 MaterialName = FbxMat->GetName();
+            }
         }
         Subset.MaterialName = FilePath + MaterialName;
 
@@ -1354,7 +1359,7 @@ void FFbxLoader::ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* S
     }
 }
 
-void FFbxLoader::ProcessAnimations(FFbxLoadResult& OutResult)
+void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, const TArray<USkeleton*>& Skeletons)
 {
     // 씬에서 애니메이션 스택 수 가져오기
     int32 AnimStackCount = Scene->GetSrcObjectCount<FbxAnimStack>();
@@ -1363,42 +1368,114 @@ void FFbxLoader::ProcessAnimations(FFbxLoadResult& OutResult)
     {
         // 애니메이션 스택 가져오기
         FbxAnimStack* AnimStack = Scene->GetSrcObject<FbxAnimStack>(StackIndex);
-        FString AnimStackName = AnimStack->GetName();
+        if (!AnimStack)
+        {
+            continue;
+        }
         
-        // 애니메이션 레이어 가져오기
         FbxAnimLayer* AnimLayer = AnimStack->GetMember<FbxAnimLayer>(0);
+        if (!AnimLayer)
+        {
+            continue;
+        }
+        
+        FString AnimStackName = AnimStack->GetName();
         
         // 애니메이션 시간 범위 설정
         FbxTimeSpan TimeSpan = AnimStack->GetLocalTimeSpan();
         FbxTime Start = TimeSpan.GetStart();
         FbxTime End = TimeSpan.GetStop();
+
+        float FrameRate = static_cast<float>(FbxTime::GetFrameRate(Scene->GetGlobalSettings().GetTimeMode()));
         
         // 애니메이션 길이 계산 (초 단위)
         float Duration = static_cast<float>(End.GetSecondDouble() - Start.GetSecondDouble());
         
-        // 이 부분에서 애니메이션 정보를 저장할 구조체나 클래스가 필요
-        // 여기서는 예시로 FAnimationData라는 구조체가 있다고 가정
-        FAnimationData AnimData;
-        AnimData.Name = AnimStackName;
-        AnimData.Duration = Duration;
-        
-        // 본 애니메이션 추출
-        for (int32 SkeletonIndex = 0; SkeletonIndex < OutResult.Skeletons.Num(); ++SkeletonIndex)
+        // 이 애니메이션이 속한 스켈레톤 찾기
+        USkeleton* TargetSkeleton = FindSkeletonForAnimation(AnimStack, AnimLayer, Skeletons);
+        if (!TargetSkeleton)
         {
-            USkeleton* Skeleton = OutResult.Skeletons[SkeletonIndex];
-            
-            // 스켈레톤의 본들을 순회하며 애니메이션 데이터 추출
-            // 이 부분은 본 계층 구조를 순회해야 함
-            
-            // 최종 결과에 애니메이션 데이터 추가
-            OutResult.Animations.Add(AnimData);
+            continue;
         }
+        
+        // 애니메이션 시퀀스 생성
+        UAnimSequence* AnimSequence = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
+        AnimSequence->SetSkeleton(TargetSkeleton);
+        
+        // 애니메이션 데이터모델 가져오기
+        UAnimDataController& Controller = AnimSequence->GetController();
+        
+        // 애니메이션 프레임 수 계산 및 설정
+        int32 NumFrames = FMath::CeilToInt(Duration * FrameRate);
+        Controller.SetNumberOfFrames(NumFrames);
+        
+        // 스켈레톤에 속한 본들에 대해 애니메이션 추출
+        const FReferenceSkeleton& RefSkeleton = TargetSkeleton->GetReferenceSkeleton();
+        FbxNode* RootNode = Scene->GetRootNode();
+        
+        // 본 노드 맵 구축 (본 이름 -> FBX 노드)
+        TMap<FName, FbxNode*> BoneNodeMap;
+        BuildBoneNodeMap(RootNode, BoneNodeMap);
+        
+        // 각 본에 대한 애니메이션 추출
+        for (int32 BoneIndex = 0; BoneIndex < RefSkeleton.GetRawBoneNum(); ++BoneIndex)
+        {
+            FName BoneName = RefSkeleton.GetBoneName(BoneIndex);
+            if (!BoneNodeMap.Contains(BoneName))
+            {
+                continue;
+            }
+            
+            FbxNode* BoneNode = BoneNodeMap[BoneName];
+            if (BoneNode && NodeHasAnimation(BoneNode, AnimLayer))
+            {
+                // 본 트랙 추가 및 키프레임 데이터 생성
+                int32 TrackIndex = Controller.AddBoneTrack(BoneName);
+                if (TrackIndex != INDEX_NONE)
+                {
+                    TArray<FVector> Positions;
+                    TArray<FQuat> Rotations;
+                    TArray<FVector> Scales;
+                    
+                    // 본 애니메이션 키프레임 추출
+                    ExtractBoneAnimation(BoneNode, AnimLayer, Start, End, NumFrames, Positions, Rotations, Scales);
+                    
+                    // 본 트랙에 키프레임 데이터 설정
+                    Controller.SetBoneTrackKeys(BoneName, Positions, Rotations, Scales);
+                }
+            }
+        }
+        
+        OutAnimations.Add(AnimSequence);
     }
 }
 
-void FFbxLoader::ExtractNodeAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer, FAnimationData& OutAnimData, float FrameRate)
+void FFbxLoader::CollectAnimationNodeNames(FbxNode* Node, FbxAnimLayer* AnimLayer, TSet<FString>& OutAnimationNodeNames)
 {
-    // 변환(위치, 회전, 크기) 애니메이션 커브 가져오기
+    if (!Node)
+    {
+        return;
+    }
+
+    if (NodeHasAnimation(Node, AnimLayer))
+    {
+        OutAnimationNodeNames.Add(Node->GetName());
+    }
+
+    for (int32 ChildIndex = 0; ChildIndex < Node->GetChildCount(); ++ChildIndex)
+    {
+        CollectAnimationNodeNames(Node->GetChild(ChildIndex), AnimLayer, OutAnimationNodeNames);
+    }
+}
+
+bool FFbxLoader::NodeHasAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer)
+{
+    if (!Node || !AnimLayer)
+    {
+        return false;
+    }
+    
+    // 위치, 회전, 크기 애니메이션 커브 확인
     FbxAnimCurve* TranslationX = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
     FbxAnimCurve* TranslationY = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
     FbxAnimCurve* TranslationZ = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
@@ -1411,76 +1488,197 @@ void FFbxLoader::ExtractNodeAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer, FA
     FbxAnimCurve* ScaleY = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
     FbxAnimCurve* ScaleZ = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
     
-    // 키프레임 개수 확인
-    int KeyCount = 0;
-    if (TranslationX) KeyCount = FMath::Max(KeyCount, TranslationX->KeyGetCount());
-    if (TranslationY) KeyCount = FMath::Max(KeyCount, TranslationY->KeyGetCount());
-    if (TranslationZ) KeyCount = FMath::Max(KeyCount, TranslationZ->KeyGetCount());
-    
-    if (RotationX) KeyCount = FMath::Max(KeyCount, RotationX->KeyGetCount());
-    if (RotationY) KeyCount = FMath::Max(KeyCount, RotationY->KeyGetCount());
-    if (RotationZ) KeyCount = FMath::Max(KeyCount, RotationZ->KeyGetCount());
-    
-    if (ScaleX) KeyCount = FMath::Max(KeyCount, ScaleX->KeyGetCount());
-    if (ScaleY) KeyCount = FMath::Max(KeyCount, ScaleY->KeyGetCount());
-    if (ScaleZ) KeyCount = FMath::Max(KeyCount, ScaleZ->KeyGetCount());
-    
-    // 노드 애니메이션 데이터 만들기
-    FNodeAnimationData NodeAnim;
-    NodeAnim.NodeName = Node->GetName();
-    
-    // 각 키프레임 시간에 변환 값 가져오기
-    for (int KeyIndex = 0; KeyIndex < KeyCount; KeyIndex++)
+    // 하나라도 애니메이션 커브가 있고 키가 있으면 애니메이션이 있는 것으로 간주
+    return (TranslationX && TranslationX->KeyGetCount() > 0) ||
+           (TranslationY && TranslationY->KeyGetCount() > 0) ||
+           (TranslationZ && TranslationZ->KeyGetCount() > 0) ||
+           (RotationX && RotationX->KeyGetCount() > 0) ||
+           (RotationY && RotationY->KeyGetCount() > 0) ||
+           (RotationZ && RotationZ->KeyGetCount() > 0) ||
+           (ScaleX && ScaleX->KeyGetCount() > 0) ||
+           (ScaleY && ScaleY->KeyGetCount() > 0) ||
+           (ScaleZ && ScaleZ->KeyGetCount() > 0);
+}
+
+USkeleton* FFbxLoader::FindSkeletonForAnimation(FbxAnimStack* AnimStack, FbxAnimLayer* AnimLayer, const TArray<USkeleton*>& Skeletons)
+{
+    if (!AnimStack || !AnimLayer || Skeletons.Num() == 0)
     {
-        float Time = 0.0f;
-        
-        // 각 커브에서 시간과 값 가져오기
-        // 여기서는 간단하게 처리했지만 실제로는 더 복잡할 수 있음
-        
-        // 키프레임 데이터 저장
-        FKeyFrame KeyFrame;
-        KeyFrame.Time = Time;
-        
-        // Translation
-        if (TranslationX && TranslationY && TranslationZ)
-        {
-            KeyFrame.Translation = FVector(
-                TranslationX->Evaluate(FbxTime(Time * FrameRate)),
-                TranslationY->Evaluate(FbxTime(Time * FrameRate)),
-                TranslationZ->Evaluate(FbxTime(Time * FrameRate))
-            );
-        }
-        
-        // Rotation (오일러 각도를 쿼터니언으로 변환)
-        if (RotationX && RotationY && RotationZ)
-        {
-            FVector Euler(
-                RotationX->Evaluate(FbxTime(Time * FrameRate)),
-                RotationY->Evaluate(FbxTime(Time * FrameRate)),
-                RotationZ->Evaluate(FbxTime(Time * FrameRate))
-            );
-            KeyFrame.Rotation = FQuat::MakeFromEuler(Euler * PI / 180.0f); // 각도를 라디안으로 변환
-        }
-        
-        // Scale
-        if (ScaleX && ScaleY && ScaleZ)
-        {
-            KeyFrame.Scale = FVector(
-                ScaleX->Evaluate(FbxTime(Time * FrameRate)),
-                ScaleY->Evaluate(FbxTime(Time * FrameRate)),
-                ScaleZ->Evaluate(FbxTime(Time * FrameRate))
-            );
-        }
-        
-        NodeAnim.KeyFrames.Add(KeyFrame);
+        return nullptr;
     }
     
-    OutAnimData.NodeAnimations.Add(NodeAnim);
+    // 애니메이션이 있는 본 노드 수집
+    TSet<FString> AnimatedBoneNames;
+    FbxNode* RootNode = Scene->GetRootNode();
     
-    // 자식 노드에 대해서도 동일한 처리 진행
-    for (int32 ChildIndex = 0; ChildIndex < Node->GetChildCount(); ChildIndex++)
+    CollectAnimationNodeNames(RootNode, AnimLayer, AnimatedBoneNames);
+    
+    if (AnimatedBoneNames.Num() == 0)
     {
-        ExtractNodeAnimation(Node->GetChild(ChildIndex), AnimLayer, OutAnimData, FrameRate);
+        return nullptr;
+    }
+    
+    // 가장 많은 본을 공유하는 스켈레톤 찾기
+    USkeleton* BestMatch = nullptr;
+    int32 MaxSharedBones = 0;
+    
+    for (USkeleton* Skeleton : Skeletons)
+    {
+        int32 SharedBones = 0;
+        
+        // 현재 스켈레톤의 모든 본 이름 확인
+        const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
+        for (int32 BoneIndex = 0; BoneIndex < RefSkeleton.GetRawBoneNum(); ++BoneIndex)
+        {
+            FName BoneName = RefSkeleton.GetBoneName(BoneIndex);
+            if (AnimatedBoneNames.Contains(BoneName.ToString()))
+            {
+                SharedBones++;
+            }
+        }
+        
+        // 일치 비율 계산 (스켈레톤의 본 수에 대한 비율)
+        float MatchRatio = static_cast<float>(SharedBones) / static_cast<float>(RefSkeleton.GetRawBoneNum());
+        
+        // 최소 50% 이상 일치하고, 지금까지 발견된 최대 일치 본 수보다 많으면 업데이트
+        if (MatchRatio >= 0.5f && SharedBones > MaxSharedBones)
+        {
+            MaxSharedBones = SharedBones;
+            BestMatch = Skeleton;
+        }
+    }
+    
+    return BestMatch;
+}
+
+void FFbxLoader::BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneNodeMap)
+{
+    if (!Node)
+    {
+        return;
+    }
+    
+    // 스켈레톤 노드만 맵에 추가 (필요에 따라 조건 수정)
+    FbxNodeAttribute* Attribute = Node->GetNodeAttribute();
+    if (Attribute && Attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+    {
+        OutBoneNodeMap.Add(Node->GetName(), Node);
+    }
+    
+    // 자식 노드들도 처리
+    for (int32 ChildIndex = 0; ChildIndex < Node->GetChildCount(); ++ChildIndex)
+    {
+        BuildBoneNodeMap(Node->GetChild(ChildIndex), OutBoneNodeMap);
+    }
+}
+
+void FFbxLoader::ExtractBoneAnimation(
+    FbxNode* BoneNode, FbxAnimLayer* AnimLayer, 
+    FbxTime Start, FbxTime End, int32 NumFrames,
+    TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales)
+{
+    // 배열 초기화
+    OutPositions.Empty(NumFrames);
+    OutRotations.Empty(NumFrames);
+    OutScales.Empty(NumFrames);
+    
+    // 프레임 간격 계산
+    FbxTime FrameTime;
+    double FrameInterval = (End.GetSecondDouble() - Start.GetSecondDouble()) / (NumFrames - 1);
+    FrameTime.SetSecondDouble(FrameInterval);
+    
+    // 변환 애니메이션 커브 가져오기
+    FbxAnimCurve* TranslationX = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* TranslationY = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* TranslationZ = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    
+    FbxAnimCurve* RotationX = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* RotationY = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* RotationZ = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    
+    FbxAnimCurve* ScaleX = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* ScaleY = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* ScaleZ = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    
+    // 애니메이션 있는지 확인
+    bool HasAnimation = (TranslationX && TranslationX->KeyGetCount() > 0) ||
+                        (TranslationY && TranslationY->KeyGetCount() > 0) ||
+                        (TranslationZ && TranslationZ->KeyGetCount() > 0) ||
+                        (RotationX && RotationX->KeyGetCount() > 0) ||
+                        (RotationY && RotationY->KeyGetCount() > 0) ||
+                        (RotationZ && RotationZ->KeyGetCount() > 0) ||
+                        (ScaleX && ScaleX->KeyGetCount() > 0) ||
+                        (ScaleY && ScaleY->KeyGetCount() > 0) ||
+                        (ScaleZ && ScaleZ->KeyGetCount() > 0);
+    
+    // 각 프레임에 대해 변환 값 샘플링
+    for (int32 FrameIndex = 0; FrameIndex < NumFrames; FrameIndex++)
+    {
+        FbxTime CurrentTime = Start + FrameTime * FrameIndex;
+        
+        // 특정 시간의 노드 전역 변환 행렬 가져오기
+        FbxAMatrix NodeGlobalTransform = BoneNode->EvaluateGlobalTransform(CurrentTime);
+        
+        // 행렬에서 위치, 회전, 크기 추출
+        FbxVector4 Translation = NodeGlobalTransform.GetT();
+        FbxQuaternion Rotation = NodeGlobalTransform.GetQ();
+        FbxVector4 Scale = NodeGlobalTransform.GetS();
+        
+        // 엔진 좌표계로 변환하여 키프레임 배열에 추가
+        OutPositions.Add(FVector(
+            static_cast<float>(Translation[0]),
+            static_cast<float>(Translation[1]),
+            static_cast<float>(Translation[2])
+        ));
+        
+        OutRotations.Add(FQuat(
+            static_cast<float>(Rotation[0]),
+            static_cast<float>(Rotation[1]),
+            static_cast<float>(Rotation[2]),
+            static_cast<float>(Rotation[3])
+        ));
+        
+        OutScales.Add(FVector(
+            static_cast<float>(Scale[0]),
+            static_cast<float>(Scale[1]),
+            static_cast<float>(Scale[2])
+        ));
+    }
+    
+    // 애니메이션이 없는 경우 기본값으로 설정
+    if (!HasAnimation && NumFrames > 0)
+    {
+        // 기본 위치, 회전, 크기 값 가져오기
+        FbxVector4 DefaultTranslation = BoneNode->LclTranslation.Get();
+        FbxVector4 DefaultRotation = BoneNode->LclRotation.Get();
+        FbxVector4 DefaultScale = BoneNode->LclScaling.Get();
+        
+        FVector Position(
+            static_cast<float>(DefaultTranslation[0]),
+            static_cast<float>(DefaultTranslation[1]),
+            static_cast<float>(DefaultTranslation[2])
+        );
+        
+        // 오일러 각도를 쿼터니언으로 변환
+        FQuat Rotation = FQuat::MakeFromEuler(FVector(
+            static_cast<float>(DefaultRotation[0]),
+            static_cast<float>(DefaultRotation[1]),
+            static_cast<float>(DefaultRotation[2])
+        ));
+        
+        FVector Scale(
+            static_cast<float>(DefaultScale[0]),
+            static_cast<float>(DefaultScale[1]),
+            static_cast<float>(DefaultScale[2])
+        );
+        
+        // 모든 프레임에 동일한 값 설정
+        for (int32 FrameIndex = 0; FrameIndex < NumFrames; FrameIndex++)
+        {
+            OutPositions[FrameIndex] = Position;
+            OutRotations[FrameIndex] = Rotation;
+            OutScales[FrameIndex] = Scale;
+        }
     }
 }
 

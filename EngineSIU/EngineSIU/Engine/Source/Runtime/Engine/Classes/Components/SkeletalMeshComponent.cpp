@@ -3,13 +3,15 @@
 
 #include "ReferenceSkeleton.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimTypes.h"
 #include "Animation/Skeleton.h"
+#include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
+#include "Misc/FrameTime.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
-    AnimSequence = new UAnimSequence();
 }
 
 USkeletalMeshComponent::~USkeletalMeshComponent()
@@ -21,8 +23,6 @@ USkeletalMeshComponent::~USkeletalMeshComponent()
     }
 }
 
-
-
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
     USkinnedMeshComponent::TickComponent(DeltaTime);
@@ -32,41 +32,28 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         ElapsedTime += DeltaTime;
     }
     
-    BoneTransforms = BoneBindPoseTransforms;
+    BonePoseTransforms = RefBonePoseTransforms;
     
     if (bPlayAnimation && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
     {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+
+        const int32 FrameRate = DataModel->GetFrameRate();
+        const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
+
+        const float TargetKeyFrame = ElapsedTime * static_cast<float>(FrameRate);
+        const int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % NumberOfFrames;
+        const float Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame)); // [0 ~ 1]
+
+        FFrameTime FrameTime(CurrentFrame, Alpha);
+        
         const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
-        const int32 AnimationFrameRate = AnimSequence->FrameRate;
-        const int32 AnimationLength = AnimSequence->NumberOfFrames;
-
-        const float TargetKeyFrame = ElapsedTime * static_cast<float>(AnimationFrameRate);
-        const int32 CurrentKey = static_cast<int32>(TargetKeyFrame) % AnimationLength;
-        const int32 NextKey = (CurrentKey + 1) % AnimationLength;
-        const float Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame)); // [0 ~ 1]
-        
-        TMap<int32, FTransform> CurrentFrameTransforms = AnimSequence->Anim[CurrentKey];
-        TMap<int32, FTransform> NextFrameTransforms = AnimSequence->Anim[NextKey];
-
-        for (auto& [BoneIdx, CurrentTransform] : CurrentFrameTransforms)
+        // TODO: 인덱스 말고 맵을 통해 FName으로 포즈 계산
+        for (int32 BoneIdx = 0; BoneIdx < RefSkeleton.RawRefBoneInfo.Num(); ++BoneIdx)
         {
-            // 다음 키프레임에 해당 본 데이터가 있는지 확인
-            if (NextFrameTransforms.Contains(BoneIdx))
-            {
-                FTransform NextTransform = NextFrameTransforms[BoneIdx];
-                // 두 트랜스폼 사이를 Alpha 비율로 선형 보간
-                FTransform InterpolatedTransform = FTransform::Identity;
-                InterpolatedTransform.Blend(CurrentTransform, NextTransform, Alpha);
-        
-                // 보간된 트랜스폼 적용 (로컬 포즈 * 애니메이션 트랜스폼)
-                BoneTransforms[BoneIdx] =BoneBindPoseTransforms[BoneIdx] * InterpolatedTransform;
-            }
-            else
-            {
-                // 다음 키프레임에 본 데이터가 없으면 현재 트랜스폼만 사용
-                BoneTransforms[BoneIdx] = BoneBindPoseTransforms[BoneIdx] * CurrentTransform;
-            }
+            FName BoneName = RefSkeleton.RawRefBoneInfo[BoneIdx].Name;
+            BonePoseTransforms[BoneIdx] = DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
         }
     }
 }
@@ -75,14 +62,14 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
 {
     SkeletalMeshAsset = InSkeletalMeshAsset;
 
-    BoneTransforms.Empty();
-    BoneBindPoseTransforms.Empty();
+    BonePoseTransforms.Empty();
+    RefBonePoseTransforms.Empty();
     
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
     for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
     {
-        BoneTransforms.Add(RefSkeleton.RawRefBonePose[i]);
-        BoneBindPoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+        BonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+        RefBonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
     }
 }
 
@@ -98,7 +85,7 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
         // 현재 본의 로컬 변환
-        FTransform CurrentLocalTransform = BoneTransforms[BoneIndex];
+        FTransform CurrentLocalTransform = BonePoseTransforms[BoneIndex];
         FMatrix LocalMatrix = CurrentLocalTransform.ToMatrixWithScale(); // FTransform -> FMatrix
         
         // 부모 본의 영향을 적용하여 월드 변환 구성
@@ -116,6 +103,12 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
 
 void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
 {
+    if (!AnimSequence)
+    {
+        bPlayAnimation = false;
+        return;
+    }
+    
     bPlayAnimation = bEnable;
 
     if (!bPlayAnimation)
@@ -123,7 +116,7 @@ void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
         if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
         {
             const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-            BoneTransforms = RefSkeleton.RawRefBonePose;
+            BonePoseTransforms = RefSkeleton.RawRefBonePose;
         }
     }
 }

@@ -124,8 +124,18 @@ public:
     template <typename Predicate>
     ElementType* FindByPredicate(Predicate Pred)
     {
+        /*
         for (ElementType* Data = GetData(), DataEnd = Data + Num(); Data != DataEnd; ++Data)
         {
+            if (std::invoke(Pred, *Data))
+            {
+                return Data;
+            }
+        }
+        */
+        for (int32 i = 0; i < Num(); ++i)
+        {
+            ElementType* Data = &ContainerPrivate[i];
             if (std::invoke(Pred, *Data))
             {
                 return Data;

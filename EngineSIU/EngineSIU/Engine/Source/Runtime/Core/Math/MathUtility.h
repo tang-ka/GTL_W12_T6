@@ -610,12 +610,12 @@ struct FMath
     static FORCEINLINE bool IsInf(float x) { return !_finite(x); }
     static FORCEINLINE bool IsNaN(float A) { return _isnan(A); }
 
-    static FORCEINLINE int32 TruncToInt(float F);
-    static FORCEINLINE int64 TruncToInt(double F);
-    static FORCEINLINE int32 FloorToInt(float F);
-    static FORCEINLINE int64 FloorToInt(double F);
-    static FORCEINLINE int32 RoundToInt(float F);
-    static FORCEINLINE int64 RoundToInt(double F);
+    static FORCEINLINE int32 TruncToInt(float F) { return static_cast<int32>(std::trunc(F)); }
+    static FORCEINLINE int64 TruncToInt(double F) { return static_cast<int64>(std::trunc(F)); }
+    static FORCEINLINE int32 FloorToInt(float F) { return static_cast<int32>(std::floor(F)); }
+    static FORCEINLINE int64 FloorToInt(double F) { return static_cast<int64>(std::floor(F)); }
+    static FORCEINLINE int32 RoundToInt(float F) { return static_cast<int32>(std::round(F)); }
+    static FORCEINLINE int64 RoundToInt(double F) { return static_cast<int64>(std::round(F)); }
     
     static FORCEINLINE float Frac(float Value)
     {

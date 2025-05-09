@@ -23,8 +23,6 @@ public:
     bool bLoop;
 
 protected:
-    float SequenceLength;
-
     UAnimDataModel* DataModel;
 
     UAnimDataController* Controller;

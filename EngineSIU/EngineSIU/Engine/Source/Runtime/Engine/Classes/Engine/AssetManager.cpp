@@ -131,6 +131,15 @@ UMaterial* UAssetManager::GetMaterial(const FName& Name)
     return nullptr;
 }
 
+UAnimationAsset* UAssetManager::GetAnimation(const FName& Name)
+{
+    if (AnimationMap.Contains(Name))
+    {
+        return AnimationMap[Name];
+    }
+    return nullptr;
+}
+
 void UAssetManager::AddAssetInfo(const FAssetInfo& Info)
 {
     AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
@@ -141,14 +150,24 @@ void UAssetManager::AddSkeleton(const FName& Key, USkeleton* Skeleton)
     SkeletonMap.Add(Key, Skeleton);
 }
 
-void UAssetManager::AddSkeletalMesh(const FName& Key, USkeletalMesh* Mesh)
+void UAssetManager::AddSkeletalMesh(const FName& Key, USkeletalMesh* SkeletalMesh)
 {
-    SkeletalMeshMap.Add(Key, Mesh);
+    SkeletalMeshMap.Add(Key, SkeletalMesh);
 }
 
 void UAssetManager::AddMaterial(const FName& Key, UMaterial* Material)
 {
     MaterialMap.Add(Key, Material);
+}
+
+void UAssetManager::AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh)
+{
+    StaticMeshMap.Add(Key, StaticMesh);
+}
+
+void UAssetManager::AddAnimation(const FName& Key, UAnimationAsset* Animation)
+{
+    AnimationMap.Add(Key, Animation);
 }
 
 void UAssetManager::LoadContentFiles()
