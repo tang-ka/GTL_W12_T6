@@ -1,6 +1,7 @@
 #pragma once
 #include "SkinnedMeshComponent.h"
 #include "Engine/AssetManager.h"
+#include "Engine/Asset/SkeletalMeshAsset.h"
 
 class UAnimSequence;
 class USkeletalMesh;
@@ -31,6 +32,8 @@ public:
     
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
 
+    const FSkeletalMeshRenderData* GetCPURenderData() const;
+
 private:
     
     USkeletalMesh* SkeletalMeshAsset = nullptr;
@@ -38,4 +41,8 @@ private:
     float ElapsedTime = 0.f;
 
     bool bPlayAnimation = false;
+
+    bool bCPUSkinning = true;
+
+    std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;
 };

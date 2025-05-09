@@ -5,11 +5,11 @@
 #include "Animation/AnimSequence.h"
 #include "Animation/Skeleton.h"
 #include "Engine/SkeletalMesh.h"
-#include "Engine/Asset/SkeletalMeshAsset.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
     AnimSequence = new UAnimSequence();
+    CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
 
 USkeletalMeshComponent::~USkeletalMeshComponent()
@@ -68,6 +68,75 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                 BoneTransforms[BoneIdx] = BoneBindPoseTransforms[BoneIdx] * CurrentTransform;
             }
         }
+
+        if (bCPUSkinning)
+        {
+            TArray<FMatrix> CurrentGlobalBoneMatrices;
+            GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
+            const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
+            
+            // 최종 스키닝 행렬 계산
+            TArray<FMatrix> FinalBoneMatrices;
+            FinalBoneMatrices.SetNum(BoneNum);
+    
+            for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
+            {
+                FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentGlobalBoneMatrices[BoneIndex];
+            }
+            
+            const FSkeletalMeshRenderData* RenderData = SkeletalMeshAsset->GetRenderData();
+            
+            for (int i = 0; i < RenderData->Vertices.Num(); i++)
+            {
+                FSkeletalMeshVertex Vertex = RenderData->Vertices[i];
+                // 가중치 합산
+                float TotalWeight = 0.0f;
+
+                FVector SkinnedPosition = FVector(0.0f, 0.0f, 0.0f);
+                FVector SkinnedNormal = FVector(0.0f, 0.0f, 0.0f);
+                
+                for (int j = 0; j < 4; ++j)
+                {
+                    float Weight = Vertex.BoneWeights[j];
+                    TotalWeight += Weight;
+        
+                    if (Weight > 0.0f)
+                    {
+                        uint32 BoneIdx = Vertex.BoneIndices[j];
+                        
+                        // 본 행렬 적용 (BoneMatrices는 이미 최종 스키닝 행렬)
+                        // FBX SDK에서 가져온 역바인드 포즈 행렬이 이미 포함됨
+                        FVector pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
+                        FVector4 norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
+                        FVector norm(norm4.X, norm4.Y, norm4.Z);
+                        
+                        SkinnedPosition += pos * Weight;
+                        SkinnedNormal += norm * Weight;
+                    }
+                }
+
+                // 가중치 예외 처리
+                if (TotalWeight < 0.001f)
+                {
+                    SkinnedPosition = FVector(Vertex.X, Vertex.Y, Vertex.Z);
+                    SkinnedNormal = FVector(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
+                }
+                else if (abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
+                {
+                    // 가중치 합이 1이 아닌 경우 정규화
+                    SkinnedPosition /= TotalWeight;
+                    SkinnedNormal /= TotalWeight;
+                }
+
+                CPURenderData->Vertices[i].X = SkinnedPosition.X;
+                CPURenderData->Vertices[i].Y = SkinnedPosition.Y;
+                CPURenderData->Vertices[i].Z = SkinnedPosition.Z;
+                CPURenderData->Vertices[i].NormalX = SkinnedNormal.X;
+                CPURenderData->Vertices[i].NormalY = SkinnedNormal.Y;
+                CPURenderData->Vertices[i].NormalZ = SkinnedNormal.Z;
+            }
+        }
+        
     }
 }
 
@@ -85,6 +154,11 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
         BoneTransforms.Add(RefSkeleton.RawRefBonePose[i]);
         BoneBindPoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
     }
+    
+    CPURenderData->Vertices = InSkeletalMeshAsset->GetRenderData()->Vertices;
+    CPURenderData->Indices = InSkeletalMeshAsset->GetRenderData()->Indices;
+    CPURenderData->ObjectName = InSkeletalMeshAsset->GetRenderData()->ObjectName;
+    CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
 }
 
 void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const
@@ -186,4 +260,9 @@ int USkeletalMeshComponent::CheckRayIntersection(const FVector& InRayOrigin, con
 
     }
     return IntersectionNum;
+}
+
+const FSkeletalMeshRenderData* USkeletalMeshComponent::GetCPURenderData() const
+{
+    return CPURenderData.get();
 }

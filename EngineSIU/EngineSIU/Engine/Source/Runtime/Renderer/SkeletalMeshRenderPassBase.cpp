@@ -124,8 +124,9 @@ void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<
         {
             continue;
         }
-
-        const FSkeletalMeshRenderData* RenderData = Comp->GetSkeletalMeshAsset()->GetRenderData();
+        
+        //const FSkeletalMeshRenderData* RenderData = Comp->GetSkeletalMeshAsset()->GetRenderData();
+        const FSkeletalMeshRenderData* RenderData = Comp->GetCPURenderData();
         if (RenderData == nullptr)
         {
             continue;
@@ -156,8 +157,9 @@ void FSkeletalMeshRenderPassBase::RenderSkeletalMesh(const FSkeletalMeshRenderDa
     UINT Offset = 0;
 
     FVertexInfo VertexInfo;
-    BufferManager->CreateVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
-
+    BufferManager->CreateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
+    BufferManager->UpdateDynamicVertexBuffer(RenderData->ObjectName, RenderData->Vertices);
+    
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &Stride, &Offset);
 
     FIndexInfo IndexInfo;
