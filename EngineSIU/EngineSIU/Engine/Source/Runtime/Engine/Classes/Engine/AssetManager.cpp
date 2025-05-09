@@ -6,6 +6,7 @@
 #include "FbxLoader.h"
 #include "Animation/Skeleton.h"
 #include "SkeletalMesh.h"
+#include "Animation/AnimationAsset.h"
 #include "Components/Material/Material.h"
 #include "Engine/FObjLoader.h"
 #include "UObject/Casts.h"
@@ -223,7 +224,6 @@ void UAssetManager::LoadContentFiles()
                 FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
                 SkeletonMap.Add(Key, Skeleton);
             }
-
             // 로드된 SkeletalMesh 등록
             for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
             {
@@ -263,6 +263,19 @@ void UAssetManager::LoadContentFiles()
 
                 FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
                 MaterialMap.Add(Key, Material);
+            }
+            for (int32 i = 0; i < Result.Animations.Num(); ++i)
+            {
+                UAnimationAsset* Animation = Result.Animations[i];
+                FString BaseAssetName = Animation->GetName();
+                
+                FAssetInfo Info = AssetInfo;
+                Info.AssetName = FName(BaseAssetName);
+                Info.AssetType = EAssetType::Animation;
+                AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);
+
+                FString Key = Info.PackagePath.ToString() + "/" + Info.AssetName.ToString();
+                AnimationMap.Add(Key, Animation);
             }
         }
     }

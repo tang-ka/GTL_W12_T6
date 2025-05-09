@@ -54,6 +54,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         {
             FName BoneName = RefSkeleton.RawRefBoneInfo[BoneIdx].Name;
             BonePoseTransforms[BoneIdx] = DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
+            // BonePoseTransforms[BoneIdx].Scale3D = FVector::OneVector;
         }
     }
 }

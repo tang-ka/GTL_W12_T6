@@ -71,7 +71,6 @@ private:
     void RenderForSpotLightComponent(USpotLightComponent* SpotLightComponent) const;
 
     void RenderForLightCommon(ULightComponentBase* LightComponent) const;
-
     
     void RenderForProjectileMovementComponent(UProjectileMovementComponent* ProjectileComp) const;
     void RenderForTextComponent(UTextComponent* TextComponent) const;

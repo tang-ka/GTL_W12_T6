@@ -1399,11 +1399,13 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
         }
         
         // 애니메이션 시퀀스 생성
-        UAnimSequence* AnimSequence = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
+        UAnimSequence* AnimSequence = FObjectFactory::ConstructObject<UAnimSequence>(nullptr, FName(AnimStackName));
         AnimSequence->SetSkeleton(TargetSkeleton);
         
         // 애니메이션 데이터모델 가져오기
         UAnimDataController& Controller = AnimSequence->GetController();
+        Controller.SetFrameRate(static_cast<int32>(FrameRate));
+        Controller.SetPlayLength(Duration);
         
         // 애니메이션 프레임 수 계산 및 설정
         int32 NumFrames = FMath::CeilToInt(Duration * FrameRate);

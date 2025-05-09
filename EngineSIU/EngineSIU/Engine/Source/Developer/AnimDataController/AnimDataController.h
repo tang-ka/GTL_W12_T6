@@ -26,7 +26,9 @@ public:
     virtual void UpdateWithSkeleton(USkeleton* TargetSkeleton);
 
     int32 ConvertSecondsToFrameNumber(double Seconds) const;
-    
+
+    void SetFrameRate(int32 FrameRate);
+
 private:
     UAnimDataModel* Model;
 };

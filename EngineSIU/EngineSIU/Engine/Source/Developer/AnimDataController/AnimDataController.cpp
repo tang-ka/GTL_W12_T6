@@ -229,6 +229,7 @@ void UAnimDataController::UpdateWithSkeleton(USkeleton* TargetSkeleton)
 
 inline FFrameTime AsFrameTime(int32 FrameRate, double TimeInSeconds)
 {
+    // TODO: 계산 식 수정해야 함.
     const int32 Numerator = 60000;
     const int32 Denominator = 1;
     
@@ -254,4 +255,9 @@ int32 UAnimDataController::ConvertSecondsToFrameNumber(double Seconds) const
     const FFrameTime FrameTime = AsFrameTime(ModelFrameRate, Seconds);
 
     return FrameTime.GetFrame();
+}
+
+void UAnimDataController::SetFrameRate(int32 FrameRate)
+{
+    Model->FrameRate = FrameRate;
 }
