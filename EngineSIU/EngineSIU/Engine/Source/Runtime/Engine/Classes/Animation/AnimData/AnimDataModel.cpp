@@ -1,7 +1,11 @@
 ﻿#include "AnimDataModel.h"
 
+#include "Animation/AnimationAsset.h"
 #include "Animation/AnimTypes.h"
 #include "Container/Array.h"
+#include "Math/Transform.h"
+#include "Misc/FrameTime.h"
+#include "UObject/Casts.h"
 
 UAnimDataModel::UAnimDataModel()
     : BoneAnimationTracks()
@@ -72,9 +76,114 @@ bool UAnimDataModel::IsValidBoneTrackIndex(int32 TrackIndex) const
     return BoneAnimationTracks.IsValidIndex(TrackIndex);
 }
 
-int32 UAnimDataModel::GetFrameRate() const
+FTransform UAnimDataModel::EvaluateBoneTrackTransform(FName TrackName, const FFrameTime& FrameTime, const EAnimInterpolationType& Interpolation) const
 {
-    return FrameRate;
+    const float Alpha = Interpolation == EAnimInterpolationType::Step ? FMath::RoundToFloat(FrameTime.GetSubFrame()) : FrameTime.GetSubFrame();
+
+    if (FMath::IsNearlyEqual(Alpha, 1.0f))
+    {
+        return GetBoneTrackTransform(TrackName, FrameTime.CeilToFrame());
+    }
+    else if (FMath::IsNearlyZero(Alpha))
+    {
+        return GetBoneTrackTransform(TrackName, FrameTime.FloorToFrame());
+    }
+	
+    const FTransform From = GetBoneTrackTransform(TrackName, FrameTime.FloorToFrame());
+    const FTransform To = GetBoneTrackTransform(TrackName, FrameTime.CeilToFrame());
+
+    FTransform Blend;
+    Blend.Blend(From, To, Alpha);
+    return Blend;
+}
+
+FTransform UAnimDataModel::GetBoneTrackTransform(FName TrackName, const int32& FrameNumber) const
+{
+    const FBoneAnimationTrack* Track = GetBoneAnimationTracks().FindByPredicate([TrackName](const FBoneAnimationTrack& Track)
+    {
+        return Track.Name == TrackName;
+    });
+
+    if (Track)
+    {
+        const int32 KeyIndex = FrameNumber;
+        if (Track->InternalTrackData.PosKeys.IsValidIndex(KeyIndex) &&
+            Track->InternalTrackData.RotKeys.IsValidIndex(KeyIndex) &&
+            Track->InternalTrackData.ScaleKeys.IsValidIndex(KeyIndex))
+        {
+            return FTransform(FQuat(Track->InternalTrackData.RotKeys[KeyIndex]),
+                            FVector(Track->InternalTrackData.PosKeys[KeyIndex]),
+                            FVector(Track->InternalTrackData.ScaleKeys[KeyIndex])
+            );
+        }
+    }
+
+    return FTransform::Identity;
+}
+
+void UAnimDataModel::GetBoneTrackTransforms(FName TrackName, const TArray<int32>& FrameNumbers, TArray<FTransform>& OutTransforms) const
+{
+    const FBoneAnimationTrack* Track = GetBoneAnimationTracks().FindByPredicate([TrackName](const FBoneAnimationTrack& Track)
+    {
+        return Track.Name == TrackName;
+    });
+
+    OutTransforms.SetNum(FrameNumbers.Num());
+
+    if (Track)
+    {
+        for (int32 EntryIndex = 0; EntryIndex < FrameNumbers.Num(); ++EntryIndex)
+        {
+            OutTransforms[EntryIndex] = GetBoneTrackTransform(TrackName, FrameNumbers[EntryIndex]);
+        }
+    }
+}
+
+void UAnimDataModel::GetBoneTrackTransforms(FName TrackName, TArray<FTransform>& OutTransforms) const
+{
+    const FBoneAnimationTrack* Track = GetBoneAnimationTracks().FindByPredicate([TrackName](const FBoneAnimationTrack& Track)
+    {
+        return Track.Name == TrackName;
+    });
+	
+    OutTransforms.SetNum(NumberOfKeys);
+
+    if (Track)
+    {
+        for (int32 KeyIndex = 0; KeyIndex < NumberOfKeys; ++KeyIndex)
+        {
+            OutTransforms[KeyIndex] = GetBoneTrackTransform(TrackName, KeyIndex);
+        }
+    }
+}
+
+void UAnimDataModel::GetBoneTracksTransform(const TArray<FName>& TrackNames, const int32& FrameNumber, TArray<FTransform>& OutTransforms) const
+{
+    OutTransforms.SetNum(TrackNames.Num());
+    for (int32 EntryIndex = 0; EntryIndex < TrackNames.Num(); ++EntryIndex)
+    {
+        OutTransforms[EntryIndex] = GetBoneTrackTransform(TrackNames[EntryIndex], FrameNumber);
+    }
+}
+
+int32 UAnimDataModel::GetNumBoneTracks() const
+{
+    return BoneAnimationTracks.Num();
+}
+
+void UAnimDataModel::GetBoneTrackNames(TArray<FName>& OutNames) const
+{
+    OutNames.Empty();
+    
+    for (const FBoneAnimationTrack& Track : BoneAnimationTracks)
+    {
+        OutNames.Add(Track.Name);
+    }
+}
+
+double UAnimDataModel::GetPlayLength() const
+{
+    return NumberOfFrames * FrameRate;
 }
 
 int32 UAnimDataModel::GetNumberOfFrames() const
@@ -85,4 +194,30 @@ int32 UAnimDataModel::GetNumberOfFrames() const
 int32 UAnimDataModel::GetNumberOfKeys() const
 {
     return NumberOfKeys;
+}
+
+int32 UAnimDataModel::GetFrameRate() const
+{
+    return FrameRate;
+}
+
+UAnimSequence* UAnimDataModel::GetAnimationSequence() const
+{
+    if (UAnimSequence* AnimationSequence = Cast<UAnimSequence>(GetOuter()))
+    {
+        return AnimationSequence;
+    }
+    return nullptr;
+}
+
+USkeleton* UAnimDataModel::GetSkeleton() const
+{
+    if (const UAnimationAsset* AnimationAsset = Cast<const UAnimationAsset>(GetOuter()))
+    {
+        if (USkeleton* Skeleton = AnimationAsset->GetSkeleton())
+        {
+            return Skeleton;
+        }
+    }
+    return nullptr;
 }

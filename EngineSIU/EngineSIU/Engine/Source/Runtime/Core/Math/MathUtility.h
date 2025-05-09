@@ -609,4 +609,21 @@ struct FMath
     static FORCEINLINE bool IsFinite(float x) { return _finite(x); }
     static FORCEINLINE bool IsInf(float x) { return !_finite(x); }
     static FORCEINLINE bool IsNaN(float A) { return _isnan(A); }
+
+    static FORCEINLINE int32 TruncToInt(float F);
+    static FORCEINLINE int64 TruncToInt(double F);
+    static FORCEINLINE int32 FloorToInt(float F);
+    static FORCEINLINE int64 FloorToInt(double F);
+    static FORCEINLINE int32 RoundToInt(float F);
+    static FORCEINLINE int64 RoundToInt(double F);
+    
+    static FORCEINLINE float Frac(float Value)
+    {
+        return Value - FloorToFloat(Value);
+    }
+
+    static FORCEINLINE double Frac(double Value)
+    {
+        return Value - FloorToDouble(Value);
+    }
 };

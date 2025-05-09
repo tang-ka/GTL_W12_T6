@@ -10,8 +10,8 @@ class UAnimSequenceBase : public UAnimationAsset
     DECLARE_CLASS(UAnimSequenceBase, UAnimationAsset)
 
 public:
-    UAnimSequenceBase() = default;
-    virtual ~UAnimSequenceBase() override = default;
+    UAnimSequenceBase();
+    virtual ~UAnimSequenceBase() override;
 
     TArray<FAnimNotifyEvent> Notifies;
 
@@ -30,4 +30,7 @@ public:
     virtual float GetPlayLength() const override;
 
     UAnimDataModel* GetDataModel() const;
+
+private:
+    void CreateModel();
 };

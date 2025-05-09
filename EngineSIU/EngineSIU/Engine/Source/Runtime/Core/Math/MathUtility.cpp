@@ -225,3 +225,33 @@ FQuat FMath::QInterpTo(const FQuat& Current, const FQuat& Target, float DeltaTim
 
 	return FQuat::Slerp(Current, Target, FMath::Clamp<float>(InterpSpeed * DeltaTime, 0.f, 1.f));
 }
+
+int32 FMath::TruncToInt(float F)
+{
+    return static_cast<int32>(std::trunc(F));
+}
+
+int64 FMath::TruncToInt(double F)
+{
+    return static_cast<int64>(std::trunc(F));
+}
+
+int32 FMath::FloorToInt(float F)
+{
+    return static_cast<int32>(std::floor(F));
+}
+
+int64 FMath::FloorToInt(double F)
+{
+    return static_cast<int64>(std::floor(F));
+}
+
+int32 FMath::RoundToInt(float F)
+{
+    return static_cast<int32>(std::round(F));
+}
+
+int64 FMath::RoundToInt(double F)
+{
+    return static_cast<int64>(std::round(F));
+}

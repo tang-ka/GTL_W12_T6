@@ -33,3 +33,12 @@ struct FBoneAnimationTrack
 
     FName Name;
 };
+
+enum class EAnimInterpolationType : uint8
+{
+    /** Linear interpolation when looking up values between keys. */
+    Linear,
+
+    /** Step interpolation when looking up values between keys. */
+    Step,
+};
