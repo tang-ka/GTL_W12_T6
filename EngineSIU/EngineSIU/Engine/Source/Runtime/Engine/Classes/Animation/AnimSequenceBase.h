@@ -1,6 +1,7 @@
 #pragma once
 #include "AnimationAsset.h"
 
+class UAnimDataController;
 class UAnimDataModel;
 struct FAnimNotifyEvent;
 struct FAnimNotifyTrack;
@@ -26,10 +27,14 @@ protected:
 
     UAnimDataModel* DataModel;
 
+    UAnimDataController* Controller;
+
 public:
     virtual float GetPlayLength() const override;
 
     UAnimDataModel* GetDataModel() const;
+
+    UAnimDataController& GetController();
 
 private:
     void CreateModel();

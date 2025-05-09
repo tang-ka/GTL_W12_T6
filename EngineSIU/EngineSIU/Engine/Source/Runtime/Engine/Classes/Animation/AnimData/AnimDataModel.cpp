@@ -3,9 +3,11 @@
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimTypes.h"
 #include "Container/Array.h"
+#include "Developer/AnimDataController/AnimDataController.h"
 #include "Math/Transform.h"
 #include "Misc/FrameTime.h"
 #include "UObject/Casts.h"
+#include "UObject/ObjectFactory.h"
 
 UAnimDataModel::UAnimDataModel()
     : BoneAnimationTracks()
@@ -210,6 +212,13 @@ UAnimSequence* UAnimDataModel::GetAnimationSequence() const
     return nullptr;
 }
 
+UAnimDataController* UAnimDataModel::GetController()
+{
+    UAnimDataController* Controller = FObjectFactory::ConstructObject<UAnimDataController>(GetOuter());
+    Controller->SetModel(this);
+    return Controller;
+}
+
 USkeleton* UAnimDataModel::GetSkeleton() const
 {
     if (const UAnimationAsset* AnimationAsset = Cast<const UAnimationAsset>(GetOuter()))
@@ -220,4 +229,12 @@ USkeleton* UAnimDataModel::GetSkeleton() const
         }
     }
     return nullptr;
+}
+
+FBoneAnimationTrack* UAnimDataModel::FindMutableBoneTrackByName(FName Name)
+{
+    return BoneAnimationTracks.FindByPredicate([Name](const FBoneAnimationTrack& Track)
+    {
+        return Track.Name == Name;
+    });
 }

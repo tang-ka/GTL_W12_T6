@@ -89,7 +89,6 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
 void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const
 {
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-    const TArray<FTransform>& BindPose = RefSkeleton.RawRefBonePose; // 로컬
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
     // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)

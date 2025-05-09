@@ -5,6 +5,8 @@
 struct FQuat;
 struct FVector;
 
+#define MAX_ANIMATION_TRACKS 65535
+
 struct FAnimNotifyEvent
 {
     

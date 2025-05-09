@@ -9,6 +9,7 @@ class UAnimSequence;
 struct FBoneAnimationTrack;
 class USkeleton;
 struct FTransform;
+class UAnimDataController;
 
 class UAnimDataModel : public UObject
 {
@@ -43,10 +44,12 @@ public:
     virtual int32 GetFrameRate() const;
 
     virtual UAnimSequence* GetAnimationSequence() const;
+
+    virtual UAnimDataController* GetController();
     // End IAnimationDataModel
     
     USkeleton* GetSkeleton() const;
-    
+
 private:
     // All individual bone animation tracks
     TArray<FBoneAnimationTrack> BoneAnimationTracks;
@@ -59,4 +62,8 @@ private:
 
     // Total number of sampled animated keys
     int32 NumberOfKeys;
+
+    FBoneAnimationTrack* FindMutableBoneTrackByName(FName Name);
+    
+    friend class UAnimDataController;
 };
