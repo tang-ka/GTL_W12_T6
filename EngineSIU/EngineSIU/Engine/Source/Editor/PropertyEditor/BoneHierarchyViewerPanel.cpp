@@ -1,14 +1,16 @@
 #include "BoneHierarchyViewerPanel.h"
-//#include <ImGui/imgui.h>
 #include "Engine/EditorEngine.h"
 #include <ReferenceSkeleton.h>
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
 #include "Engine/Classes/Engine/FbxLoader.h"
+#include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
+#include "Engine/Classes/Components/SkeletalMeshComponent.h""
+#include "Engine/Classes/Animation/AnimSequence.h"
+
 BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
 {
     SetSupportedWorldTypes(EWorldTypeBitFlag::SkeletalViewer);
-
 }
 void BoneHierarchyViewerPanel::Render()
 {
@@ -77,7 +79,11 @@ void BoneHierarchyViewerPanel::Render()
             }
             ImGui::End();
         }
-
+        
+        if (CopiedRefSkeleton) {
+            RenderAnimationSequence(*CopiedRefSkeleton, Engine);
+        }
+        
         float ExitPanelWidth = (Width) * 0.2f - 6.0f;
         float ExitPanelHeight = 30.0f;
 
@@ -154,6 +160,8 @@ void BoneHierarchyViewerPanel::CopyRefSkeleton()
     CopiedRefSkeleton->RawRefBonePose = OrigRef.RawRefBonePose;
     CopiedRefSkeleton->InverseBindPoseMatrices = OrigRef.InverseBindPoseMatrices;
     CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
+
+    RefSkeletalMeshComponent = Engine->SkeletalMeshViewerWorld->GetSkeletalMeshComponent();
 }
 
 void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine /*, const FString& SearchFilter */)
@@ -230,9 +238,55 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
         }
         ImGui::TreePop(); // 트리 노드 닫기
     }
-
     ImGui::PopID(); // ID 스택 복원
 }
+
+void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
+{
+    if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->AnimSequence)
+        return;
+
+    const int32 FrameRate = RefSkeletalMeshComponent->AnimSequence->FrameRate;
+    const int32 NumFrames = RefSkeletalMeshComponent->AnimSequence->NumFrames;
+    static bool transformOpen = false;
+    
+    int32 StartFrame = 0;
+    int32 EndFrame = NumFrames - 1;
+
+    // 현재 재생 중인 키프레임
+    int32 CurrentFrame = RefSkeletalMeshComponent->GetCurrentKey();
+   
+    PreviousFrame = CurrentFrame;
+    
+
+    ImGui::SetNextWindowSize(ImVec2(400, 180), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Animation Sequence Timeline"))
+    {
+        if (ImGui::BeginNeoSequencer("Sequencer", &CurrentFrame, &StartFrame, &EndFrame))
+        {
+            if(ImGui::BeginNeoGroup("Transform",&transformOpen)) {
+                std::vector<ImGui::FrameIndexType> keys = {0, 10, 24};
+                if(ImGui::BeginNeoTimeline("Position", keys )) {
+                    ImGui::EndNeoTimeLine();
+                }
+                ImGui::EndNeoGroup();
+            }
+            ImGui::EndNeoSequencer();
+        }
+        
+        if (CurrentFrame != PreviousFrame)
+        {
+            float ElapsedTime = static_cast<float>(CurrentFrame) / static_cast<float>(FrameRate);
+            RefSkeletalMeshComponent->SetElapsedTime(ElapsedTime);
+            RefSkeletalMeshComponent->SetCurrentKey(CurrentFrame);
+            PreviousFrame = CurrentFrame;
+        }
+    }
+    ImGui::End();
+}
+
+
+
 
 FString BoneHierarchyViewerPanel::GetCleanBoneName(const FString& InFullName)
 {

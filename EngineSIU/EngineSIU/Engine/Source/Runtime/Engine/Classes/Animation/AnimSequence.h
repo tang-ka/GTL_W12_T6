@@ -17,6 +17,5 @@ public:
     TArray<TMap<int32, FTransform>> Anim;
 
     int32 FrameRate = 30;
-
     int32 NumFrames = 240;
 };
