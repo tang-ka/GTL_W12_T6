@@ -29,6 +29,7 @@ public:
     void GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const;
 
     void SetAnimationEnabled(bool bEnable);
+    bool bIsAnimationEnabled() const { return bPlayAnimation; }
     
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
 
@@ -38,12 +39,20 @@ public:
 
     static bool GetCPUSkinning();
     
-private:
+    float GetElapsedTime() const{ return ElapsedTime; }
+    float GetTargetKeyFrame() const { return TargetKeyFrame; }
+    int GetCurrentKey() const { return CurrentKey; }
+
+    void SetCurrentKey(int InCurrentKey) { CurrentKey = InCurrentKey; }
+
+    void SetElapsedTime(float InSeconds) { ElapsedTime = InSeconds; }
     
+private:
     USkeletalMesh* SkeletalMeshAsset = nullptr;
-
     float ElapsedTime = 0.f;
-
+    float TargetKeyFrame = 0.f;
+    float Alpha = 0.f;
+    int32 CurrentKey = 0.f;
     bool bPlayAnimation = false;
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;

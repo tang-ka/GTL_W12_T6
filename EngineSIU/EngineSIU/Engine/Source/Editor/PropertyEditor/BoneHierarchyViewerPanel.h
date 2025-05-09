@@ -5,6 +5,7 @@
 
 class USkeletalMesh;
 class FReferenceSkeleton;
+class USkeletalMeshComponent;
 class BoneHierarchyViewerPanel : public UEditorPanel
 {
 public:
@@ -26,6 +27,8 @@ private:
     void CopyRefSkeleton();
 
     void RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine);
+
+    void RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine); // 
     
     FString GetCleanBoneName(const FString& InFullName);
 
@@ -35,5 +38,7 @@ private:
     int32 SelectedBoneIndex = INDEX_NONE;
 
     FReferenceSkeleton* CopiedRefSkeleton = nullptr;
-
+    USkeletalMeshComponent* RefSkeletalMeshComponent = nullptr;
+    
+    int32 PreviousFrame = 0;
 };
