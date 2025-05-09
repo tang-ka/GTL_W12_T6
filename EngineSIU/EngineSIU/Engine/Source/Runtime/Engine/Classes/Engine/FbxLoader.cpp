@@ -702,16 +702,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     FbxAMatrix GlobalBindPoseMatrix;
     if (PoseNodeIndex != INDEX_NONE)
     {
-        FbxMatrix Matrix = BindPose->GetMatrix(PoseNodeIndex);
-
-        // FbxAMatrix로 요소 복사 (직접 캐스팅보다 안전)
-        for (int r = 0; r < 4; ++r)
-        {
-            for (int c = 0; c < 4; ++c)
-            {
-                GlobalBindPoseMatrix[r][c] = Matrix.Get(r, c);
-            }
-        }
+        GlobalBindPoseMatrix = ConvertFbxMatrixToFbxAMatrix(BindPose->GetMatrix(PoseNodeIndex));
     }
     else
     {
@@ -1408,7 +1399,7 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
         Controller.SetPlayLength(Duration);
         
         // 애니메이션 프레임 수 계산 및 설정
-        int32 NumFrames = FMath::CeilToInt(Duration * FrameRate);
+        int32 NumFrames = FMath::FloorToInt(Duration * FrameRate);
         Controller.SetNumberOfFrames(NumFrames);
         
         // 스켈레톤에 속한 본들에 대해 애니메이션 추출
@@ -1612,74 +1603,158 @@ void FFbxLoader::ExtractBoneAnimation(
                         (ScaleX && ScaleX->KeyGetCount() > 0) ||
                         (ScaleY && ScaleY->KeyGetCount() > 0) ||
                         (ScaleZ && ScaleZ->KeyGetCount() > 0);
+
+    // 바인드 포즈 찾기
+    FbxPose* BindPose = FindBindPose(BoneNode);
+    int32 PoseNodeIndex = BindPose ? BindPose->Find(BoneNode) : -1;
+    
+    // 바인드 포즈 행렬 가져오기
+    FbxAMatrix BindPoseMatrix;
+    
+    if (BindPose && PoseNodeIndex >= 0)
+    {
+        // 바인드 포즈에서 행렬 가져오기
+        BindPoseMatrix = ConvertFbxMatrixToFbxAMatrix(BindPose->GetMatrix(PoseNodeIndex));
+    }
+    else
+    {
+        // 바인드 포즈가 없는 경우 노드의 기본 변환 사용
+        BindPoseMatrix.SetT(BoneNode->LclTranslation.Get());
+        BindPoseMatrix.SetR(BoneNode->LclRotation.Get());
+        BindPoseMatrix.SetS(BoneNode->LclScaling.Get());
+    }
+
+    // 부모의 바인드 포즈 행렬 가져오기
+    FbxPose* ParentBindPose = FindBindPose(BoneNode->GetParent());
+    int32 ParentPoseNodeIndex = ParentBindPose ? ParentBindPose->Find(BoneNode->GetParent()) : -1;
+
+    FbxAMatrix ParentBindPoseMatrix;
+
+    if (ParentBindPose && ParentPoseNodeIndex >= 0)
+    {
+        ParentBindPoseMatrix = ConvertFbxMatrixToFbxAMatrix(ParentBindPose->GetMatrix(ParentPoseNodeIndex));
+    }
+    else
+    {
+        ParentBindPoseMatrix.SetT(BoneNode->GetParent()->LclTranslation.Get());
+        ParentBindPoseMatrix.SetR(BoneNode->GetParent()->LclRotation.Get());
+        ParentBindPoseMatrix.SetS(BoneNode->GetParent()->LclScaling.Get());
+    }
+
+    // 로컬 바인드 포즈
+    FbxAMatrix LocalBindPoseMatrix = ParentBindPoseMatrix.Inverse() * BindPoseMatrix;
+
+    // 바인드 포즈 행렬에서 위치, 회전, 스케일 추출
+    FbxVector4 BindPoseTranslation = LocalBindPoseMatrix.GetT();
+    FbxVector4 BindPoseScale = LocalBindPoseMatrix.GetS();
+    FbxQuaternion BindPoseRotationQuat = LocalBindPoseMatrix.GetQ();
+    FbxQuaternion BindInverseQuat = BindPoseRotationQuat;
+    BindInverseQuat.Inverse();
     
     // 각 프레임에 대해 변환 값 샘플링
     for (int32 FrameIndex = 0; FrameIndex < NumFrames; FrameIndex++)
     {
         FbxTime CurrentTime = Start + FrameTime * FrameIndex;
         
-        // 특정 시간의 노드 전역 변환 행렬 가져오기
-        FbxAMatrix NodeGlobalTransform = BoneNode->EvaluateGlobalTransform(CurrentTime);
+        // 로컬 트랜스폼 값 추출
+        FbxVector4 Translation;
+        FbxVector4 Rotation;
+        FbxVector4 Scale;
         
-        // 행렬에서 위치, 회전, 크기 추출
-        FbxVector4 Translation = NodeGlobalTransform.GetT();
-        FbxQuaternion Rotation = NodeGlobalTransform.GetQ();
-        FbxVector4 Scale = NodeGlobalTransform.GetS();
+        // 커브에서 직접 값을 읽거나 노드의 기본 로컬 값 사용
+        if (TranslationX || TranslationY || TranslationZ)
+        {
+            // 각 축의 값을 커브에서 평가하거나 기본값 사용
+            Translation[0] = TranslationX ? TranslationX->Evaluate(CurrentTime) : BoneNode->LclTranslation.Get()[0];
+            Translation[1] = TranslationY ? TranslationY->Evaluate(CurrentTime) : BoneNode->LclTranslation.Get()[1];
+            Translation[2] = TranslationZ ? TranslationZ->Evaluate(CurrentTime) : BoneNode->LclTranslation.Get()[2];
+            Translation[3] = 0.0;
+        }
+        else
+        {
+            Translation = BoneNode->LclTranslation.Get();
+        }
         
-        // 엔진 좌표계로 변환하여 키프레임 배열에 추가
-        OutPositions.Add(FVector(
-            static_cast<float>(Translation[0]),
-            static_cast<float>(Translation[1]),
-            static_cast<float>(Translation[2])
-        ));
+        if (RotationX || RotationY || RotationZ)
+        {
+            // 각 축의 값을 커브에서 평가하거나 기본값 사용
+            Rotation[0] = RotationX ? RotationX->Evaluate(CurrentTime) : BoneNode->LclRotation.Get()[0];
+            Rotation[1] = RotationY ? RotationY->Evaluate(CurrentTime) : BoneNode->LclRotation.Get()[1];
+            Rotation[2] = RotationZ ? RotationZ->Evaluate(CurrentTime) : BoneNode->LclRotation.Get()[2];
+            Rotation[3] = 0.0;
+        }
+        else
+        {
+            Rotation = BoneNode->LclRotation.Get();
+        }
         
-        OutRotations.Add(FQuat(
-            static_cast<float>(Rotation[0]),
-            static_cast<float>(Rotation[1]),
-            static_cast<float>(Rotation[2]),
-            static_cast<float>(Rotation[3])
-        ));
+        if (ScaleX || ScaleY || ScaleZ)
+        {
+            // 각 축의 값을 커브에서 평가하거나 기본값 사용
+            Scale[0] = ScaleX ? ScaleX->Evaluate(CurrentTime) : BoneNode->LclScaling.Get()[0];
+            Scale[1] = ScaleY ? ScaleY->Evaluate(CurrentTime) : BoneNode->LclScaling.Get()[1];
+            Scale[2] = ScaleZ ? ScaleZ->Evaluate(CurrentTime) : BoneNode->LclScaling.Get()[2];
+            Scale[3] = 0.0;
+        }
+        else
+        {
+            Scale = BoneNode->LclScaling.Get();
+        }
         
-        OutScales.Add(FVector(
-            static_cast<float>(Scale[0]),
-            static_cast<float>(Scale[1]),
-            static_cast<float>(Scale[2])
-        ));
+        // 현재 프레임의 로컬 변환 행렬 생성
+        FbxAMatrix CurrentFrameMatrix;
+        CurrentFrameMatrix.SetT(Translation);
+        CurrentFrameMatrix.SetR(Rotation);
+        CurrentFrameMatrix.SetS(Scale);
+        
+        // 현재 행렬에서 회전 쿼터니언 추출
+        FbxQuaternion CurrentRotationQuat = CurrentFrameMatrix.GetQ();
+        
+        // 바인드 포즈와의 오프셋 계산
+        // 위치 오프셋: 현재 위치 - 바인드 포즈 위치
+        FVector PositionOffset(
+            static_cast<float>(Translation[0] - BindPoseTranslation[0]),
+            static_cast<float>(Translation[1] - BindPoseTranslation[1]),
+            static_cast<float>(Translation[2] - BindPoseTranslation[2])
+        );
+        
+        // 회전 오프셋: 바인드 포즈의 역회전 * 현재 회전
+        FbxQuaternion RotationOffset = BindInverseQuat * CurrentRotationQuat;
+        
+        FQuat RotationOffsetQuat(
+            static_cast<float>(RotationOffset[0]),
+            static_cast<float>(RotationOffset[1]),
+            static_cast<float>(RotationOffset[2]),
+            static_cast<float>(RotationOffset[3])
+        );
+        
+        // 스케일 오프셋: 현재 스케일 / 바인드 포즈 스케일 (요소별 나눗셈)
+        FVector ScaleOffset(
+            static_cast<float>(Scale[0] / BindPoseScale[0]),
+            static_cast<float>(Scale[1] / BindPoseScale[1]),
+            static_cast<float>(Scale[2] / BindPoseScale[2])
+        );
+        
+        // 계산된 오프셋 값을 결과 배열에 추가
+        OutPositions.Add(PositionOffset);
+        OutRotations.Add(RotationOffsetQuat);
+        OutScales.Add(ScaleOffset);
     }
     
     // 애니메이션이 없는 경우 기본값으로 설정
     if (!HasAnimation && NumFrames > 0)
     {
-        // 기본 위치, 회전, 크기 값 가져오기
-        FbxVector4 DefaultTranslation = BoneNode->LclTranslation.Get();
-        FbxVector4 DefaultRotation = BoneNode->LclRotation.Get();
-        FbxVector4 DefaultScale = BoneNode->LclScaling.Get();
-        
-        FVector Position(
-            static_cast<float>(DefaultTranslation[0]),
-            static_cast<float>(DefaultTranslation[1]),
-            static_cast<float>(DefaultTranslation[2])
-        );
-        
-        // 오일러 각도를 쿼터니언으로 변환
-        FQuat Rotation = FQuat::MakeFromEuler(FVector(
-            static_cast<float>(DefaultRotation[0]),
-            static_cast<float>(DefaultRotation[1]),
-            static_cast<float>(DefaultRotation[2])
-        ));
-        
-        FVector Scale(
-            static_cast<float>(DefaultScale[0]),
-            static_cast<float>(DefaultScale[1]),
-            static_cast<float>(DefaultScale[2])
-        );
+        // 로컬 오프셋 기본값: 0 이동, 항등 회전, 1:1 스케일 (변화 없음)
+        FVector ZeroPosition(0.0f, 0.0f, 0.0f);
+        FQuat IdentityRotation(0.0f, 0.0f, 0.0f, 1.0f);
+        FVector UnitScale(1.0f, 1.0f, 1.0f);
         
         // 모든 프레임에 동일한 값 설정
         for (int32 FrameIndex = 0; FrameIndex < NumFrames; FrameIndex++)
         {
-            OutPositions[FrameIndex] = Position;
-            OutRotations[FrameIndex] = Rotation;
-            OutScales[FrameIndex] = Scale;
+            OutPositions[FrameIndex] = ZeroPosition;
+            OutRotations[FrameIndex] = IdentityRotation;
+            OutScales[FrameIndex] = UnitScale;
         }
     }
 }
@@ -1768,6 +1843,19 @@ FMatrix FFbxLoader::ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const
         for (int j = 0; j < 4; ++j)
         {
             Result.M[i][j] = static_cast<float>(FbxMatrix.Get(i, j));
+        }
+    }
+    return Result;
+}
+
+FbxAMatrix FFbxLoader::ConvertFbxMatrixToFbxAMatrix(const FbxMatrix& Matrix) const
+{
+    FbxAMatrix Result;
+    for (int r = 0; r < 4; ++r)
+    {
+        for (int c = 0; c < 4; ++c)
+        {
+            Result[r][c] = Matrix.Get(r, c);
         }
     }
     return Result;

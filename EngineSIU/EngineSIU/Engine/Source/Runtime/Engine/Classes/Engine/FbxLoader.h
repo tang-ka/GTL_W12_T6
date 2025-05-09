@@ -105,6 +105,8 @@ private:
     FTransform ConvertFbxTransformToFTransform(FbxNode* Node) const;
     
     FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
+
+    FbxAMatrix ConvertFbxMatrixToFbxAMatrix(const FbxMatrix& Matrix) const;
 };
 
 template <typename T>
