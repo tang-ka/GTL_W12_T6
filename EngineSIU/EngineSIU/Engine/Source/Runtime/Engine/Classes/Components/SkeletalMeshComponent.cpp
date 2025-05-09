@@ -43,10 +43,10 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         const int32 AnimationFrameRate = AnimSequence->FrameRate;
         const int32 AnimationLength = AnimSequence->NumFrames;
 
-        const float TargetKeyFrame = ElapsedTime * static_cast<float>(AnimationFrameRate);
-        const int32 CurrentKey = static_cast<int32>(TargetKeyFrame) % AnimationLength;
+        TargetKeyFrame = ElapsedTime * static_cast<float>(AnimationFrameRate);
+        CurrentKey = static_cast<int32>(TargetKeyFrame) % AnimationLength;
         const int32 NextKey = (CurrentKey + 1) % AnimationLength;
-        const float Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame)); // [0 ~ 1]
+         Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame)); // [0 ~ 1]
         
         TMap<int32, FTransform> CurrentFrameTransforms = AnimSequence->Anim[CurrentKey];
         TMap<int32, FTransform> NextFrameTransforms = AnimSequence->Anim[NextKey];
