@@ -313,6 +313,8 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
     ProcessSkeletonHierarchy(RootNode, Result);
 
     ProcessMeshes(RootNode, Result);
+
+    ProcessAnimations(Result);
     
     return Result;
 }
@@ -727,39 +729,6 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
             CollectBoneData(ChildNode, OutReferenceSkeleton, CurrentIndex, BindPose);
         }
     }
-}
-
-FTransform FFbxLoader::ConvertFbxTransformToFTransform(FbxNode* Node) const
-{
-    FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
-
-    // FBX 행렬에서 스케일, 회전, 위치 추출
-    FbxVector4 T = LocalMatrix.GetT();
-    FbxVector4 S = LocalMatrix.GetS();
-    FbxQuaternion Q = LocalMatrix.GetQ();
-    
-    // 언리얼 엔진 형식으로 변환
-    FVector Translation(
-        static_cast<float>(T[0]),
-        static_cast<float>(T[1]),
-        static_cast<float>(T[2])
-    );
-    
-    FVector Scale(
-        static_cast<float>(S[0]),
-        static_cast<float>(S[1]),
-        static_cast<float>(S[2])
-    );
-    
-    FQuat Rotation(
-        static_cast<float>(Q[0]),
-        static_cast<float>(Q[1]),
-        static_cast<float>(Q[2]),
-        static_cast<float>(Q[3])
-    );
-    Rotation.Normalize();
-    
-    return FTransform(Rotation, Translation, Scale);
 }
 
 void FFbxLoader::ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult)
@@ -1385,17 +1354,134 @@ void FFbxLoader::ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* S
     }
 }
 
-FMatrix FFbxLoader::ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const
+void FFbxLoader::ProcessAnimations(FFbxLoadResult& OutResult)
 {
-    FMatrix Result;
-    for (int i = 0; i < 4; ++i)
+    // 씬에서 애니메이션 스택 수 가져오기
+    int32 AnimStackCount = Scene->GetSrcObjectCount<FbxAnimStack>();
+    
+    for (int32 StackIndex = 0; StackIndex < AnimStackCount; StackIndex++)
     {
-        for (int j = 0; j < 4; ++j)
+        // 애니메이션 스택 가져오기
+        FbxAnimStack* AnimStack = Scene->GetSrcObject<FbxAnimStack>(StackIndex);
+        FString AnimStackName = AnimStack->GetName();
+        
+        // 애니메이션 레이어 가져오기
+        FbxAnimLayer* AnimLayer = AnimStack->GetMember<FbxAnimLayer>(0);
+        
+        // 애니메이션 시간 범위 설정
+        FbxTimeSpan TimeSpan = AnimStack->GetLocalTimeSpan();
+        FbxTime Start = TimeSpan.GetStart();
+        FbxTime End = TimeSpan.GetStop();
+        
+        // 애니메이션 길이 계산 (초 단위)
+        float Duration = static_cast<float>(End.GetSecondDouble() - Start.GetSecondDouble());
+        
+        // 이 부분에서 애니메이션 정보를 저장할 구조체나 클래스가 필요
+        // 여기서는 예시로 FAnimationData라는 구조체가 있다고 가정
+        FAnimationData AnimData;
+        AnimData.Name = AnimStackName;
+        AnimData.Duration = Duration;
+        
+        // 본 애니메이션 추출
+        for (int32 SkeletonIndex = 0; SkeletonIndex < OutResult.Skeletons.Num(); ++SkeletonIndex)
         {
-            Result.M[i][j] = static_cast<float>(FbxMatrix.Get(i, j));
+            USkeleton* Skeleton = OutResult.Skeletons[SkeletonIndex];
+            
+            // 스켈레톤의 본들을 순회하며 애니메이션 데이터 추출
+            // 이 부분은 본 계층 구조를 순회해야 함
+            
+            // 최종 결과에 애니메이션 데이터 추가
+            OutResult.Animations.Add(AnimData);
         }
     }
-    return Result;
+}
+
+void FFbxLoader::ExtractNodeAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer, FAnimationData& OutAnimData, float FrameRate)
+{
+    // 변환(위치, 회전, 크기) 애니메이션 커브 가져오기
+    FbxAnimCurve* TranslationX = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* TranslationY = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* TranslationZ = Node->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    
+    FbxAnimCurve* RotationX = Node->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* RotationY = Node->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* RotationZ = Node->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    
+    FbxAnimCurve* ScaleX = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* ScaleY = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* ScaleZ = Node->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    
+    // 키프레임 개수 확인
+    int KeyCount = 0;
+    if (TranslationX) KeyCount = FMath::Max(KeyCount, TranslationX->KeyGetCount());
+    if (TranslationY) KeyCount = FMath::Max(KeyCount, TranslationY->KeyGetCount());
+    if (TranslationZ) KeyCount = FMath::Max(KeyCount, TranslationZ->KeyGetCount());
+    
+    if (RotationX) KeyCount = FMath::Max(KeyCount, RotationX->KeyGetCount());
+    if (RotationY) KeyCount = FMath::Max(KeyCount, RotationY->KeyGetCount());
+    if (RotationZ) KeyCount = FMath::Max(KeyCount, RotationZ->KeyGetCount());
+    
+    if (ScaleX) KeyCount = FMath::Max(KeyCount, ScaleX->KeyGetCount());
+    if (ScaleY) KeyCount = FMath::Max(KeyCount, ScaleY->KeyGetCount());
+    if (ScaleZ) KeyCount = FMath::Max(KeyCount, ScaleZ->KeyGetCount());
+    
+    // 노드 애니메이션 데이터 만들기
+    FNodeAnimationData NodeAnim;
+    NodeAnim.NodeName = Node->GetName();
+    
+    // 각 키프레임 시간에 변환 값 가져오기
+    for (int KeyIndex = 0; KeyIndex < KeyCount; KeyIndex++)
+    {
+        float Time = 0.0f;
+        
+        // 각 커브에서 시간과 값 가져오기
+        // 여기서는 간단하게 처리했지만 실제로는 더 복잡할 수 있음
+        
+        // 키프레임 데이터 저장
+        FKeyFrame KeyFrame;
+        KeyFrame.Time = Time;
+        
+        // Translation
+        if (TranslationX && TranslationY && TranslationZ)
+        {
+            KeyFrame.Translation = FVector(
+                TranslationX->Evaluate(FbxTime(Time * FrameRate)),
+                TranslationY->Evaluate(FbxTime(Time * FrameRate)),
+                TranslationZ->Evaluate(FbxTime(Time * FrameRate))
+            );
+        }
+        
+        // Rotation (오일러 각도를 쿼터니언으로 변환)
+        if (RotationX && RotationY && RotationZ)
+        {
+            FVector Euler(
+                RotationX->Evaluate(FbxTime(Time * FrameRate)),
+                RotationY->Evaluate(FbxTime(Time * FrameRate)),
+                RotationZ->Evaluate(FbxTime(Time * FrameRate))
+            );
+            KeyFrame.Rotation = FQuat::MakeFromEuler(Euler * PI / 180.0f); // 각도를 라디안으로 변환
+        }
+        
+        // Scale
+        if (ScaleX && ScaleY && ScaleZ)
+        {
+            KeyFrame.Scale = FVector(
+                ScaleX->Evaluate(FbxTime(Time * FrameRate)),
+                ScaleY->Evaluate(FbxTime(Time * FrameRate)),
+                ScaleZ->Evaluate(FbxTime(Time * FrameRate))
+            );
+        }
+        
+        NodeAnim.KeyFrames.Add(KeyFrame);
+    }
+    
+    OutAnimData.NodeAnimations.Add(NodeAnim);
+    
+    // 자식 노드에 대해서도 동일한 처리 진행
+    for (int32 ChildIndex = 0; ChildIndex < Node->GetChildCount(); ChildIndex++)
+    {
+        ExtractNodeAnimation(Node->GetChild(ChildIndex), AnimLayer, OutAnimData, FrameRate);
+    }
 }
 
 void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
@@ -1439,4 +1525,50 @@ bool FFbxLoader::CreateTextureFromFile(const FWString& Filename, bool bIsSRGB)
     }
 
     return true;
+}
+
+FTransform FFbxLoader::ConvertFbxTransformToFTransform(FbxNode* Node) const
+{
+    FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
+
+    // FBX 행렬에서 스케일, 회전, 위치 추출
+    FbxVector4 T = LocalMatrix.GetT();
+    FbxVector4 S = LocalMatrix.GetS();
+    FbxQuaternion Q = LocalMatrix.GetQ();
+    
+    // 언리얼 엔진 형식으로 변환
+    FVector Translation(
+        static_cast<float>(T[0]),
+        static_cast<float>(T[1]),
+        static_cast<float>(T[2])
+    );
+    
+    FVector Scale(
+        static_cast<float>(S[0]),
+        static_cast<float>(S[1]),
+        static_cast<float>(S[2])
+    );
+    
+    FQuat Rotation(
+        static_cast<float>(Q[0]),
+        static_cast<float>(Q[1]),
+        static_cast<float>(Q[2]),
+        static_cast<float>(Q[3])
+    );
+    Rotation.Normalize();
+    
+    return FTransform(Rotation, Translation, Scale);
+}
+
+FMatrix FFbxLoader::ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const
+{
+    FMatrix Result;
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            Result.M[i][j] = static_cast<float>(FbxMatrix.Get(i, j));
+        }
+    }
+    return Result;
 }

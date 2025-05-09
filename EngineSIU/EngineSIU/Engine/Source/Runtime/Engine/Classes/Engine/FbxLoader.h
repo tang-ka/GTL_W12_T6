@@ -58,8 +58,6 @@ private:
     void BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton, FbxPose* BindPose);
 
     void CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex, FbxPose* BindPose);
-
-    FTransform ConvertFbxTransformToFTransform(FbxNode* Node) const;
     // End Skeleton
     
     // Begin Mesh
@@ -80,14 +78,20 @@ private:
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
 
     void ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const;
-    
-    FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
     // End Mesh
+
+    // Begin Animation
+    void ProcessAnimations(FFbxLoadResult& OutResult);
+    // End Animation
 
     // 좌표계 변환 메소드
     void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
 
     bool CreateTextureFromFile(const FWString& Filename, bool bIsSRGB);
+    
+    FTransform ConvertFbxTransformToFTransform(FbxNode* Node) const;
+    
+    FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
 };
 
 template <typename T>
