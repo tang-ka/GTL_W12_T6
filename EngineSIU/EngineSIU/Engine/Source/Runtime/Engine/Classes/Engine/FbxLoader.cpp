@@ -1399,7 +1399,7 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
         Controller.SetPlayLength(Duration);
         
         // 애니메이션 프레임 수 계산 및 설정
-        int32 NumFrames = FMath::FloorToInt(Duration * FrameRate);
+        const int32 NumFrames = FMath::CeilToInt(Duration * FrameRate);
         Controller.SetNumberOfFrames(NumFrames);
         
         // 스켈레톤에 속한 본들에 대해 애니메이션 추출
@@ -1420,22 +1420,46 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
             }
             
             FbxNode* BoneNode = BoneNodeMap[BoneName];
-            if (BoneNode && NodeHasAnimation(BoneNode, AnimLayer))
+            if (BoneNode)
             {
-                // 본 트랙 추가 및 키프레임 데이터 생성
                 int32 TrackIndex = Controller.AddBoneTrack(BoneName);
-                if (TrackIndex != INDEX_NONE)
+                if (TrackIndex == INDEX_NONE)
                 {
-                    TArray<FVector> Positions;
-                    TArray<FQuat> Rotations;
-                    TArray<FVector> Scales;
-                    
+                    continue;
+                }
+
+                TArray<FVector> Positions;
+                TArray<FQuat> Rotations;
+                TArray<FVector> Scales;
+                
+                if (NodeHasAnimation(BoneNode, AnimLayer))
+                {
                     // 본 애니메이션 키프레임 추출
                     ExtractBoneAnimation(BoneNode, AnimLayer, Start, End, NumFrames, Positions, Rotations, Scales);
-                    
-                    // 본 트랙에 키프레임 데이터 설정
-                    Controller.SetBoneTrackKeys(BoneName, Positions, Rotations, Scales);
                 }
+                else
+                {
+                    Positions.SetNum(NumFrames);
+                    for (FVector& Position : Positions)
+                    {
+                        Position = FVector::ZeroVector;
+                    }
+                    
+                    Rotations.SetNum(NumFrames);
+                    for (FQuat& Rotation : Rotations)
+                    {
+                        Rotation = FQuat::Identity;
+                    }
+                    
+                    Scales.SetNum(NumFrames);
+                    for (FVector& Scale : Scales)
+                    {
+                        Scale = FVector::OneVector;
+                    }
+                }
+                
+                // 본 트랙에 키프레임 데이터 설정
+                Controller.SetBoneTrackKeys(BoneName, Positions, Rotations, Scales);
             }
         }
         
@@ -1534,7 +1558,8 @@ USkeleton* FFbxLoader::FindSkeletonForAnimation(FbxAnimStack* AnimStack, FbxAnim
         float MatchRatio = static_cast<float>(SharedBones) / static_cast<float>(RefSkeleton.GetRawBoneNum());
         
         // 최소 50% 이상 일치하고, 지금까지 발견된 최대 일치 본 수보다 많으면 업데이트
-        if (MatchRatio >= 0.5f && SharedBones > MaxSharedBones)
+        // if (MatchRatio >= 0.5f && SharedBones > MaxSharedBones)
+        if (SharedBones > MaxSharedBones)
         {
             MaxSharedBones = SharedBones;
             BestMatch = Skeleton;
