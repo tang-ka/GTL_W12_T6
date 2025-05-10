@@ -36,6 +36,23 @@ UClass* UClass::FindClass(const FName& ClassName)
     return nullptr;
 }
 
+void UClass::ResolvePendingProperties()
+{
+    for (FProperty* Prop : GetUnresolvedProperties())
+    {
+        if (Prop->Type == EPropertyType::UnresolvedPointer)
+        {
+            
+        }
+    }
+}
+
+TArray<FProperty*> UClass::GetUnresolvedProperties()
+{
+    static TArray<FProperty*> UnresolvedProperties;
+    return UnresolvedProperties;
+}
+
 bool UClass::IsChildOf(const UClass* SomeBase) const
 {
     assert(this);
@@ -61,7 +78,7 @@ UObject* UClass::GetDefaultObject() const
     return ClassDefaultObject;
 }
 
-void UClass::RegisterProperty(const FProperty& Prop)
+void UClass::RegisterProperty(FProperty* Prop)
 {
     Properties.Add(Prop);
 }
@@ -75,10 +92,10 @@ void UClass::SerializeBin(FArchive& Ar, void* Data)
     }
 
     // 이 클래스의 프로퍼티들 직렬화
-    for (const FProperty& Prop : Properties)
+    for (const FProperty* Prop : Properties)
     {
-        void* PropData = static_cast<uint8*>(Data) + Prop.Offset;
-        Ar.Serialize(PropData, Prop.Size);
+        void* PropData = static_cast<uint8*>(Data) + Prop->Offset;
+        Ar.Serialize(PropData, Prop->Size);
     }
 }
 

@@ -3,6 +3,7 @@
 #pragma once
 #include "Class.h"
 #include "UObjectHash.h"
+#include "Templates/TypeUtilities.h"
 
 // name을 문자열화 해주는 매크로
 #define INLINE_STRINGIFY(name) #name
@@ -84,7 +85,7 @@ public: \
         { \
             constexpr int64 Offset = offsetof(ThisClass, VarName); \
             ThisClass::StaticClass()->RegisterProperty( \
-                { #VarName, sizeof(Type), Offset } \
+                new FProperty{ #VarName, sizeof(Type), Offset } \
             ); \
         } \
     } VarName##_PropRegistrar_PRIVATE{};

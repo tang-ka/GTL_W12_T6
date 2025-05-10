@@ -63,13 +63,13 @@ public:
         requires std::derived_from<T, UObject>
     T* GetDefaultObject() const;
 
-    const TArray<FProperty>& GetProperties() const { return Properties; }
+    const TArray<FProperty*>& GetProperties() const { return Properties; }
 
     /**
      * UClass에 Property를 추가합니다
      * @param Prop 추가할 Property
      */
-    void RegisterProperty(const FProperty& Prop);
+    void RegisterProperty(FProperty* Prop);
 
     /** 바이너리 직렬화 함수 */
     void SerializeBin(FArchive& Ar, void* Data);
@@ -87,7 +87,7 @@ private:
     UClass* SuperClass = nullptr;
     UObject* ClassDefaultObject = nullptr;
 
-    TArray<FProperty> Properties;
+    TArray<FProperty*> Properties;
 };
 
 template <typename T>
