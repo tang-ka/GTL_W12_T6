@@ -33,6 +33,8 @@ private:
     FbxImporter* Importer;
     FbxScene* Scene;
 
+    FbxAxisSystem OriginalAxisSystem;
+
     FWString FilePath;
     FWString ObjectName;
     FString DisplayName;
@@ -96,7 +98,7 @@ private:
     // End Animation
 
     // 좌표계 변환 메소드
-    void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
+    void ConvertSceneToLeftHandedZUpXForward();
 
     bool CreateTextureFromFile(const FWString& Filename, bool bIsSRGB);
     

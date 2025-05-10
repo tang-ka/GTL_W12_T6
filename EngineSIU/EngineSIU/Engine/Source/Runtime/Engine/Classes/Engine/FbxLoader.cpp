@@ -291,7 +291,7 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
         DisplayName = fileName;
     }
 
-    ConvertSceneToLeftHandedZUpXForward(Scene);
+    ConvertSceneToLeftHandedZUpXForward();
 
     const FbxGlobalSettings& GlobalSettings = Scene->GetGlobalSettings();
     FbxSystemUnit SystemUnit = GlobalSettings.GetSystemUnit();
@@ -316,7 +316,7 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
     ProcessSkeletonHierarchy(RootNode, Result.Skeletons);
 
     ProcessMeshes(RootNode, Result);
-
+    
     ProcessAnimations(Result.Animations, Result.Skeletons);
     
     return Result;
@@ -1311,7 +1311,8 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
         {
             continue;
         }
-        
+
+        Scene->SetCurrentAnimationStack(AnimStack);
         FString AnimStackName = AnimStack->GetName();
         
         // 애니메이션 시간 범위 설정
@@ -1557,8 +1558,6 @@ void FFbxLoader::ExtractBoneAnimation(
     FbxAnimCurve* TranslationZ = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
     
     FbxAnimCurveNode* RotNode = BoneNode->LclRotation.GetCurveNode(AnimLayer, true);
-    FbxAnimCurveFilterUnroll UnrollFilter;
-    UnrollFilter.Apply(*RotNode);
     
     FbxAnimCurve* RotationX = RotNode->GetCurve(0);
     FbxAnimCurve* RotationY = RotNode->GetCurve(1);
@@ -1665,51 +1664,22 @@ void FFbxLoader::ExtractBoneAnimation(
         {
             Scale = BoneNode->LclScaling.Get();
         }
-        
-        // 현재 프레임의 로컬 변환 행렬 생성
-        FbxAMatrix CurrentFrameMatrix;
-        CurrentFrameMatrix.SetT(Translation);
-        CurrentFrameMatrix.SetR(Rotation);
-        CurrentFrameMatrix.SetS(Scale);
 
-        // 현재 행렬에서 회전 쿼터니언 추출
-        FbxQuaternion CurrentRotationQuat = CurrentFrameMatrix.GetQ();
-        CurrentRotationQuat.Normalize();
-        
-        // 바인드 포즈와의 오프셋 계산
-        // 위치 오프셋: 현재 위치 - 바인드 포즈 위치
-        FVector PositionOffset(
-            static_cast<float>(Translation[0] - BindPoseTranslation[0]),
-            static_cast<float>(Translation[1] - BindPoseTranslation[1]),
-            static_cast<float>(Translation[2] - BindPoseTranslation[2])
-        );
-        
-        // 회전 오프셋: 바인드 포즈의 역회전 * 현재 회전
-        FbxQuaternion RotationOffset = BindInverseQuat * CurrentRotationQuat;
-        
-        FQuat RotationOffsetQuat(
-            static_cast<float>(RotationOffset[0]),
-            static_cast<float>(RotationOffset[1]),
-            static_cast<float>(RotationOffset[2]),
-            static_cast<float>(RotationOffset[3])
-        );
-        RotationOffsetQuat.Normalize();
-        
-        // 스케일 오프셋: 현재 스케일 / 바인드 포즈 스케일 (요소별 나눗셈)
-        FVector ScaleOffset(
-            static_cast<float>(Scale[0] / BindPoseScale[0]),
-            static_cast<float>(Scale[1] / BindPoseScale[1]),
-            static_cast<float>(Scale[2] / BindPoseScale[2])
-        );
-        
-        // 계산된 오프셋 값을 결과 배열에 추가
-        OutPositions.Add(PositionOffset);
-        OutRotations.Add(RotationOffsetQuat);
-        OutScales.Add(ScaleOffset);
+        // 애니메이션이 적용된 노드의 로컬 트랜스폼을 가져와서 평가
+        FbxAMatrix LocalTransform = BoneNode->EvaluateLocalTransform(CurrentTime);
+
+        FbxAMatrix LocalOffsetMatrix = LocalBindPoseMatrix.Inverse() * LocalTransform;
+        FbxQuaternion LocalRotationQuat = LocalOffsetMatrix.GetQ();
+        FbxVector4 LocalTranslation = LocalOffsetMatrix.GetT();
+        FbxVector4 LocalScale = LocalOffsetMatrix.GetS();
+
+        OutPositions.Add(FVector(LocalTranslation[0], LocalTranslation[1], LocalTranslation[2]));
+        OutRotations.Add(FQuat(LocalRotationQuat[0], LocalRotationQuat[1], LocalRotationQuat[2], LocalRotationQuat[3]));
+        OutScales.Add(FVector(LocalScale[0], LocalScale[1], LocalScale[2]));
     }
 }
 
-void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
+void FFbxLoader::ConvertSceneToLeftHandedZUpXForward()
 {
     if (!Scene)
     {
@@ -1717,14 +1687,14 @@ void FFbxLoader::ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene)
     }
     
     // 현재 장면의 좌표계를 가져옴
-    FbxAxisSystem SceneAxisSystem = Scene->GetGlobalSettings().GetAxisSystem();
+    OriginalAxisSystem = Scene->GetGlobalSettings().GetAxisSystem();
     
     // 왼손 좌표계, Z-up, X-forward 좌표계 정의
     // X-forward는 ParityOdd와 함께 설정하여 X축이 앞쪽을 향하게 함
     FbxAxisSystem TargetAxisSystem(FbxAxisSystem::eZAxis, FbxAxisSystem::eParityEven, FbxAxisSystem::eLeftHanded);
     
     // 현재 좌표계와 목표 좌표계가 다른 경우에만 변환
-    if (SceneAxisSystem != TargetAxisSystem)
+    if (OriginalAxisSystem != TargetAxisSystem)
     {
         OutputDebugStringA("Converting coordinate system to Left-Handed Z-Up X-Forward\n");
         TargetAxisSystem.DeepConvertScene(Scene);
