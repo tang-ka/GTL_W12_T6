@@ -426,17 +426,18 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FMat
         FbxSurfaceMaterial::sEmissive,
         FbxSurfaceMaterial::sTransparencyFactor,
         FbxSurfaceMaterial::sAmbient,
-        FbxSurfaceMaterial::sShininess
+        FbxSurfaceMaterial::sShininess,
+        FbxSurfaceMaterial::sReflectionFactor,
     };
 
-    OutMaterialInfo.TextureInfos.SetNum(sizeof(TextureTypes) / sizeof(const char*));
-    for (int i = 0; i < sizeof(TextureTypes) / sizeof(const char*); i++)
+    OutMaterialInfo.TextureInfos.SetNum(static_cast<int32>(EMaterialTextureSlots::MTS_MAX));
+    for (int32 i = 0; i < sizeof(TextureTypes) / sizeof(const char*); i++)
     {
         FbxProperty Property = FbxMaterial->FindProperty(TextureTypes[i]);
         if (Property.IsValid())
         {
-            int TextureCount = Property.GetSrcObjectCount<FbxTexture>();
-            for (int j = 0; j < TextureCount; j++)
+            int32 TextureCount = Property.GetSrcObjectCount<FbxTexture>();
+            for (int32 j = 0; j < TextureCount; j++)
             {
                 FbxTexture* Texture = Property.GetSrcObject<FbxTexture>(j);
                 if (Texture)
@@ -455,6 +456,12 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FMat
                             OutMaterialInfo.TextureInfos[i] = TexInfo;
                             // 텍스처 플래그 설정
                             OutMaterialInfo.TextureFlag |= (1 << i); // 해당 텍스처 타입 플래그 설정
+
+                            if (i == 6) // [Blender] Shininess 맵의 경우 PBR의 Roughness에 대응 됨.
+                            {
+                                OutMaterialInfo.TextureInfos[8] = TexInfo;
+                                OutMaterialInfo.TextureFlag |= (1 << 8);
+                            }
                         }
                     }
                 }

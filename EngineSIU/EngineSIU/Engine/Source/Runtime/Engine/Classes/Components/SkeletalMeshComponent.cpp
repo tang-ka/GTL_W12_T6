@@ -86,7 +86,6 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
-    // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
     OutBoneMatrices.Empty();
     OutBoneMatrices.SetNum(BoneNum);
 
