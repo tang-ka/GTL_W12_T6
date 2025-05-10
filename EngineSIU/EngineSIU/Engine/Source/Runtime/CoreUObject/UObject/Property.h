@@ -42,7 +42,7 @@ struct FProperty
 
 public:
     /** ImGui에 각 프로퍼티에 맞는 UI를 띄웁니다. */
-    virtual void DisplayInImGui(UObject* ObjectPtr) const;
+    virtual void DisplayInImGui(UObject* Object) const;
 
     /** 런타임에 타입 정보를 검사하고 업데이트 합니다. */
     virtual void Resolve(); // TODO: 자식 FProperty 만들면 사용
@@ -134,5 +134,176 @@ struct FNumericProperty : public FProperty
 
 struct FInt8Property : public FNumericProperty
 {
+    FInt8Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int8, InSize, InOffset, InFlags)
+    {
+    }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FInt16Property : public FNumericProperty
+{
+    FInt16Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int16, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FInt32Property : public FNumericProperty
+{
+    FInt32Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int32, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FInt64Property : public FNumericProperty
+{
+    FInt64Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int64, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FUInt8Property : public FNumericProperty
+{
+    FUInt8Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt8, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FUInt16Property : public FNumericProperty
+{
+    FUInt16Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt16, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FUInt32Property : public FNumericProperty
+{
+    FUInt32Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt32, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FUInt64Property : public FNumericProperty
+{
+    FUInt64Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt64, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FFloatProperty : public FNumericProperty
+{
+    FFloatProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Float, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FDoubleProperty : public FNumericProperty
+{
+    FDoubleProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Double, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FBoolProperty : public FProperty
+{
+    FBoolProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Bool, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
 };
