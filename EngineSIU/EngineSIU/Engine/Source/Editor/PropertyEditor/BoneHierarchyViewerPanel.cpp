@@ -1,11 +1,13 @@
 #include "BoneHierarchyViewerPanel.h"
 #include "Engine/EditorEngine.h"
 #include <ReferenceSkeleton.h>
+
+#include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
 #include "Engine/Classes/Engine/FbxLoader.h"
 #include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
-#include "Engine/Classes/Components/SkeletalMeshComponent.h""
+#include "Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Engine/Classes/Animation/AnimSequence.h"
 
 BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
@@ -243,11 +245,11 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
 
 void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
 {
-    if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->AnimSequence)
+    if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->GetAnimation())
         return;
 
-    const int32 FrameRate = RefSkeletalMeshComponent->AnimSequence->FrameRate;
-    const int32 NumFrames = RefSkeletalMeshComponent->AnimSequence->NumFrames;
+    const int32 FrameRate = RefSkeletalMeshComponent->GetAnimation()->GetDataModel()->GetFrameRate();
+    const int32 NumFrames = RefSkeletalMeshComponent->GetAnimation()->GetDataModel()->GetNumberOfFrames();
     static bool transformOpen = false;
     
     int32 StartFrame = 0;
