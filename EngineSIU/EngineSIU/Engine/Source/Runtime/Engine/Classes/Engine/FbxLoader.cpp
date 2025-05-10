@@ -696,6 +696,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
         // 현재 노드 변환 사용
         BoneTransform = ConvertFbxTransformToFTransform(Node);
     }
+    BoneTransform.NormalizeRotation();
     RefBonePose.Add(BoneTransform);
     
     // 역 바인드 포즈
@@ -1291,65 +1292,6 @@ USkeleton* FFbxLoader::FindAssociatedSkeleton(FbxNode* MeshNode, const TArray<US
     return BestMatch;
 }
 
-void FFbxLoader::ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const
-{
-    if (!Mesh || !Skeleton)
-    {
-        return;
-    }
-    
-    const FReferenceSkeleton& RefSkeleton = Skeleton->GetReferenceSkeleton();
-    const int32 BoneCount = RefSkeleton.RawRefBoneInfo.Num();
-    
-    // 역행렬 배열 초기화 (단위 행렬로)
-    OutInverseBindPoseMatrices.SetNum(BoneCount);
-    for (int32 i = 0; i < BoneCount; ++i)
-    {
-        OutInverseBindPoseMatrices[i] = FMatrix::Identity;
-    }
-    
-    // 모든 스킨 디포머 순회
-    for (int32 DeformerIdx = 0; DeformerIdx < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++DeformerIdx)
-    {
-        FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIdx, FbxDeformer::eSkin));
-        if (!Skin)
-        {
-            continue;
-        }
-        
-        // 모든 클러스터(본) 순회
-        for (int32 ClusterIdx = 0; ClusterIdx < Skin->GetClusterCount(); ++ClusterIdx)
-        {
-            FbxCluster* Cluster = Skin->GetCluster(ClusterIdx);
-            if (!Cluster || !Cluster->GetLink())
-            {
-                continue;
-            }
-            
-            // 본 인덱스 찾기
-            FName BoneName(Cluster->GetLink()->GetName());
-            int32 BoneIndex = RefSkeleton.FindBoneIndex(BoneName);
-            if (BoneIndex == INDEX_NONE)
-            {
-                continue;
-            }
-            
-            // 바인드 포즈 행렬 가져오기
-            FbxAMatrix TransformMatrix;      // 메시의 월드 변환
-            FbxAMatrix TransformLinkMatrix;  // 본의 월드 변환
-            Cluster->GetTransformMatrix(TransformMatrix);
-            Cluster->GetTransformLinkMatrix(TransformLinkMatrix);
-            
-            // 스키닝 행렬 계산 (오프셋 행렬)
-            // 메시 로컬 공간의 정점을 본 로컬 공간으로 변환하는 행렬
-            FbxAMatrix OffsetMatrix = TransformLinkMatrix.Inverse() * TransformMatrix;
-            
-            // FBX 행렬을 FMatrix로 변환하여 저장
-            OutInverseBindPoseMatrices[BoneIndex] = ConvertFbxMatrixToFMatrix(OffsetMatrix);
-        }
-    }
-}
-
 void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, const TArray<USkeleton*>& Skeletons)
 {
     // 씬에서 애니메이션 스택 수 가져오기
@@ -1404,6 +1346,8 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
         
         // 스켈레톤에 속한 본들에 대해 애니메이션 추출
         const FReferenceSkeleton& RefSkeleton = TargetSkeleton->GetReferenceSkeleton();
+        const TArray<FTransform>& RefBoneTransforms = RefSkeleton.GetRawRefBonePose();
+        
         FbxNode* RootNode = Scene->GetRootNode();
         
         // 본 노드 맵 구축 (본 이름 -> FBX 노드)
@@ -1418,6 +1362,8 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
             {
                 continue;
             }
+
+            const FTransform& RefBoneTransform = RefBoneTransforms[BoneIndex];
             
             FbxNode* BoneNode = BoneNodeMap[BoneName];
             if (BoneNode)
@@ -1435,7 +1381,7 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
                 if (NodeHasAnimation(BoneNode, AnimLayer))
                 {
                     // 본 애니메이션 키프레임 추출
-                    ExtractBoneAnimation(BoneNode, AnimLayer, Start, End, NumFrames, Positions, Rotations, Scales);
+                    ExtractBoneAnimation(BoneNode, AnimLayer, RefBoneTransform, Start, End, NumFrames, Positions, Rotations, Scales);
                 }
                 else
                 {
@@ -1591,7 +1537,7 @@ void FFbxLoader::BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneN
 }
 
 void FFbxLoader::ExtractBoneAnimation(
-    FbxNode* BoneNode, FbxAnimLayer* AnimLayer, 
+    FbxNode* BoneNode, FbxAnimLayer* AnimLayer, const FTransform& RefBoneTransform,
     FbxTime Start, FbxTime End, int32 NumFrames,
     TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales)
 {
@@ -1610,24 +1556,17 @@ void FFbxLoader::ExtractBoneAnimation(
     FbxAnimCurve* TranslationY = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
     FbxAnimCurve* TranslationZ = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
     
-    FbxAnimCurve* RotationX = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-    FbxAnimCurve* RotationY = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-    FbxAnimCurve* RotationZ = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    FbxAnimCurveNode* RotNode = BoneNode->LclRotation.GetCurveNode(AnimLayer, true);
+    FbxAnimCurveFilterUnroll UnrollFilter;
+    UnrollFilter.Apply(*RotNode);
+    
+    FbxAnimCurve* RotationX = RotNode->GetCurve(0);
+    FbxAnimCurve* RotationY = RotNode->GetCurve(1);
+    FbxAnimCurve* RotationZ = RotNode->GetCurve(2);
     
     FbxAnimCurve* ScaleX = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
     FbxAnimCurve* ScaleY = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
     FbxAnimCurve* ScaleZ = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-    
-    // 애니메이션 있는지 확인
-    bool HasAnimation = (TranslationX && TranslationX->KeyGetCount() > 0) ||
-                        (TranslationY && TranslationY->KeyGetCount() > 0) ||
-                        (TranslationZ && TranslationZ->KeyGetCount() > 0) ||
-                        (RotationX && RotationX->KeyGetCount() > 0) ||
-                        (RotationY && RotationY->KeyGetCount() > 0) ||
-                        (RotationZ && RotationZ->KeyGetCount() > 0) ||
-                        (ScaleX && ScaleX->KeyGetCount() > 0) ||
-                        (ScaleY && ScaleY->KeyGetCount() > 0) ||
-                        (ScaleZ && ScaleZ->KeyGetCount() > 0);
 
     // 바인드 포즈 찾기
     FbxPose* BindPose = FindBindPose(BoneNode);
@@ -1674,7 +1613,8 @@ void FFbxLoader::ExtractBoneAnimation(
     FbxVector4 BindPoseScale = LocalBindPoseMatrix.GetS();
     FbxQuaternion BindPoseRotationQuat = LocalBindPoseMatrix.GetQ();
     FbxQuaternion BindInverseQuat = BindPoseRotationQuat;
-    BindInverseQuat.Inverse();
+    BindInverseQuat.Normalize();
+    BindInverseQuat.Conjugate();
     
     // 각 프레임에 대해 변환 값 샘플링
     for (int32 FrameIndex = 0; FrameIndex < NumFrames; FrameIndex++)
@@ -1731,9 +1671,10 @@ void FFbxLoader::ExtractBoneAnimation(
         CurrentFrameMatrix.SetT(Translation);
         CurrentFrameMatrix.SetR(Rotation);
         CurrentFrameMatrix.SetS(Scale);
-        
+
         // 현재 행렬에서 회전 쿼터니언 추출
         FbxQuaternion CurrentRotationQuat = CurrentFrameMatrix.GetQ();
+        CurrentRotationQuat.Normalize();
         
         // 바인드 포즈와의 오프셋 계산
         // 위치 오프셋: 현재 위치 - 바인드 포즈 위치
@@ -1752,6 +1693,7 @@ void FFbxLoader::ExtractBoneAnimation(
             static_cast<float>(RotationOffset[2]),
             static_cast<float>(RotationOffset[3])
         );
+        RotationOffsetQuat.Normalize();
         
         // 스케일 오프셋: 현재 스케일 / 바인드 포즈 스케일 (요소별 나눗셈)
         FVector ScaleOffset(
@@ -1764,23 +1706,6 @@ void FFbxLoader::ExtractBoneAnimation(
         OutPositions.Add(PositionOffset);
         OutRotations.Add(RotationOffsetQuat);
         OutScales.Add(ScaleOffset);
-    }
-    
-    // 애니메이션이 없는 경우 기본값으로 설정
-    if (!HasAnimation && NumFrames > 0)
-    {
-        // 로컬 오프셋 기본값: 0 이동, 항등 회전, 1:1 스케일 (변화 없음)
-        FVector ZeroPosition(0.0f, 0.0f, 0.0f);
-        FQuat IdentityRotation(0.0f, 0.0f, 0.0f, 1.0f);
-        FVector UnitScale(1.0f, 1.0f, 1.0f);
-        
-        // 모든 프레임에 동일한 값 설정
-        for (int32 FrameIndex = 0; FrameIndex < NumFrames; FrameIndex++)
-        {
-            OutPositions[FrameIndex] = ZeroPosition;
-            OutRotations[FrameIndex] = IdentityRotation;
-            OutScales[FrameIndex] = UnitScale;
-        }
     }
 }
 
@@ -1875,7 +1800,15 @@ FMatrix FFbxLoader::ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const
 
 FbxAMatrix FFbxLoader::ConvertFbxMatrixToFbxAMatrix(const FbxMatrix& Matrix) const
 {
+    FbxVector4    T, S, Shear;
+    FbxQuaternion Q;
+    double        Sign;
+    Matrix.GetElements(T, Q, Shear, S, Sign);   // GetElements(translation, quaternion, shearing, scale, sign)
+
     FbxAMatrix Result;
+    Result.SetTQS(T, Q, S);
+    return Result;
+    
     for (int r = 0; r < 4; ++r)
     {
         for (int c = 0; c < 4; ++c)

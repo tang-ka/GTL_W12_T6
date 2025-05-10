@@ -77,8 +77,6 @@ private:
     void CalculateTangent_Internal(T& PivotVertex, const T& Vertex1, const T& Vertex2);
     
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
-
-    void ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const;
     // End Mesh
 
     // Begin Animation
@@ -92,7 +90,7 @@ private:
 
     void BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneNodeMap);
 
-    void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer,
+    void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, const FTransform& RefBoneTransform,
         FbxTime Start, FbxTime End, int32 NumFrames,
         TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales);
     // End Animation

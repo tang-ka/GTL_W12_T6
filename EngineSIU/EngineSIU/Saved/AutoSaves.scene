@@ -2,20 +2,36 @@
     "Actors": [
         {
             "ActorClass": "AActor",
-            "ActorID": "AActor_142",
-            "ActorLabel": "OBJ_SKELETALMESH_142",
+            "ActorID": "AActor_145",
+            "ActorLabel": "OBJ_SKELETALMESH_145",
             "ActorTickInEditor": "true",
             "Components": [
                 {
+                    "ComponentClass": "USceneComponent",
+                    "ComponentID": "USceneComponent_146",
+                    "Properties": {
+                        "AttachParentID": "USkeletalMeshComponent_147",
+                        "ComponentClass": "USceneComponent",
+                        "ComponentName": "USceneComponent_146",
+                        "ComponentOwner": "AActor_145",
+                        "ComponentOwnerClass": "AActor",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
+                    }
+                },
+                {
                     "ComponentClass": "USkeletalMeshComponent",
-                    "ComponentID": "USkeletalMeshComponent_144",
+                    "ComponentID": "USkeletalMeshComponent_147",
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
                         "AttachParentID": "nullptr",
                         "ComponentClass": "USkeletalMeshComponent",
-                        "ComponentName": "USkeletalMeshComponent_144",
-                        "ComponentOwner": "AActor_142",
+                        "ComponentName": "USkeletalMeshComponent_147",
+                        "ComponentOwner": "AActor_145",
                         "ComponentOwnerClass": "AActor",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
@@ -24,25 +40,9 @@
                         "bIsActive": "true",
                         "m_Type": ""
                     }
-                },
-                {
-                    "ComponentClass": "USceneComponent",
-                    "ComponentID": "USceneComponent_143",
-                    "Properties": {
-                        "AttachParentID": "USkeletalMeshComponent_144",
-                        "ComponentClass": "USceneComponent",
-                        "ComponentName": "USceneComponent_143",
-                        "ComponentOwner": "AActor_142",
-                        "ComponentOwnerClass": "AActor",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
-                    }
                 }
             ],
-            "RootComponentID": "USkeletalMeshComponent_144"
+            "RootComponentID": "USkeletalMeshComponent_147"
         }
     ],
     "NextUUID": 0,

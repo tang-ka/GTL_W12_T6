@@ -42,7 +42,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
 
         const float TargetKeyFrame = ElapsedTime * static_cast<float>(FrameRate);
-        const int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (NumberOfFrames - 1); // TODO: 임시로 -1
+        const int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (NumberOfFrames - 1);
         const float Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame)); // [0 ~ 1]
 
         FFrameTime FrameTime(CurrentFrame, Alpha);
@@ -55,8 +55,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             FName BoneName = RefSkeleton.RawRefBoneInfo[BoneIdx].Name;
             FTransform RefBoneTransform = RefBonePoseTransforms[BoneIdx];
             BonePoseTransforms[BoneIdx] = RefBoneTransform * DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
-            //BonePoseTransforms[BoneIdx] = DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear) * RefBoneTransform;
-            // BonePoseTransforms[BoneIdx].Scale3D = FVector::OneVector;
         }
     }
 }
