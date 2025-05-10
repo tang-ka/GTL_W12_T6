@@ -7,6 +7,7 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 
+class UAnimationAsset;
 struct FSkeletalMeshVertex;
 struct FMaterialInfo;
 struct FReferenceSkeleton;
@@ -32,12 +33,14 @@ private:
     FbxImporter* Importer;
     FbxScene* Scene;
 
+    FbxAxisSystem OriginalAxisSystem;
+
     FWString FilePath;
     FWString ObjectName;
     FString DisplayName;
 
     // Begin Material
-    void ProcessMaterials(FFbxLoadResult& OutResult);
+    void ProcessMaterials(TArray<UMaterial*>& OutMaterials);
 
     FMaterialInfo ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMaterial);
 
@@ -45,7 +48,7 @@ private:
     // End Material
 
     // Begin Skeleton
-    void ProcessSkeletonHierarchy(FbxNode* RootNode, FFbxLoadResult& OutResult);
+    void ProcessSkeletonHierarchy(FbxNode* RootNode, TArray<USkeleton*>& OutSkeletons);
 
     FbxPose* FindBindPose(FbxNode* SkeletonRoot);
 
@@ -58,8 +61,6 @@ private:
     void BuildSkeletonHierarchy(FbxNode* SkeletonRoot, USkeleton* OutSkeleton, FbxPose* BindPose);
 
     void CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReferenceSkeleton, int32 ParentIndex, FbxPose* BindPose);
-
-    FTransform ConvertFbxTransformToFTransform(FbxNode* Node) const;
     // End Skeleton
     
     // Begin Mesh
@@ -78,16 +79,33 @@ private:
     void CalculateTangent_Internal(T& PivotVertex, const T& Vertex1, const T& Vertex2);
     
     USkeleton* FindAssociatedSkeleton(FbxNode* Node, const TArray<USkeleton*>& Skeletons);
-
-    void ExtractBindPoseMatrices(const FbxMesh* Mesh, const USkeleton* Skeleton, TArray<FMatrix>& OutInverseBindPoseMatrices) const;
-    
-    FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
     // End Mesh
 
+    // Begin Animation
+    void ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, const TArray<USkeleton*>& Skeletons);
+
+    void CollectAnimationNodeNames(FbxNode* Node, FbxAnimLayer* AnimLayer, TSet<FString>& OutAnimationNodeNames);
+
+    bool NodeHasAnimation(FbxNode* Node, FbxAnimLayer* AnimLayer);
+
+    USkeleton* FindSkeletonForAnimation(FbxAnimStack* AnimStack, FbxAnimLayer* AnimLayer, const TArray<USkeleton*>& Skeletons);
+
+    void BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneNodeMap);
+
+    void ExtractBoneAnimation(FbxNode* BoneNode, FbxTime Start, FbxTime End, int32 NumFrames,
+        TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales);
+    // End Animation
+
     // 좌표계 변환 메소드
-    void ConvertSceneToLeftHandedZUpXForward(FbxScene* Scene);
+    void ConvertSceneToLeftHandedZUpXForward();
 
     bool CreateTextureFromFile(const FWString& Filename, bool bIsSRGB);
+    
+    FTransform ConvertFbxTransformToFTransform(FbxNode* Node) const;
+    
+    FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
+
+    FbxAMatrix ConvertFbxMatrixToFbxAMatrix(const FbxMatrix& Matrix) const;
 
     void ComputeBoundingBox(const TArray<FSkeletalMeshVertex>& InVertices, FVector& OutMinVector, FVector& OutMaxVector);
 };

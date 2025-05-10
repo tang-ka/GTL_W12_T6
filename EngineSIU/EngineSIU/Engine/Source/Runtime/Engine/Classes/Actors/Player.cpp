@@ -390,13 +390,13 @@ void AEditorPlayer::PickedBoneControl()
             case CM_SCALE:
                 {
                     FVector ScaleDelta = ControlBoneScale(GlobalBoneTransform, Gizmo, DeltaX, DeltaY);
-                    SkeletalMeshComp->BoneBindPoseTransforms[BoneIndex].Scale3D += ScaleDelta;
+                    SkeletalMeshComp->RefBonePoseTransforms[BoneIndex].Scale3D += ScaleDelta;
                 }
                 break;
             case CM_ROTATION:
                 {
                     FQuat RotationDelta = ControlBoneRotation(GlobalBoneTransform, Gizmo, DeltaX, DeltaY);
-                    SkeletalMeshComp->BoneBindPoseTransforms[BoneIndex].Rotation = RotationDelta * SkeletalMeshComp->BoneBindPoseTransforms[BoneIndex].Rotation;
+                    SkeletalMeshComp->RefBonePoseTransforms[BoneIndex].Rotation = RotationDelta * SkeletalMeshComp->RefBonePoseTransforms[BoneIndex].Rotation;
                 }
                 break;
             default:
