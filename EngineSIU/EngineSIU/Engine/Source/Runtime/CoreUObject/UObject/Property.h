@@ -113,6 +113,9 @@ private:
         return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(Object) + Offset);
     }
 
+private:
+    friend struct FPropertyUIHelper;
+
 public:
     UClass* OwnerClass;
 
