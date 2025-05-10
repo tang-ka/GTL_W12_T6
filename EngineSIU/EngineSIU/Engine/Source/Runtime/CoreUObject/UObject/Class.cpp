@@ -21,6 +21,18 @@ UClass::UClass(
     NamePrivate = InClassName;
 }
 
+UClass::~UClass()
+{
+    for (const FProperty* Prop : Properties)
+    {
+        delete Prop;
+    }
+    Properties.Empty();
+
+    delete ClassDefaultObject;
+    ClassDefaultObject = nullptr;
+}
+
 TMap<FName, UClass*>& UClass::GetClassMap()
 {
     static TMap<FName, UClass*> ClassMap;
@@ -42,12 +54,29 @@ void UClass::ResolvePendingProperties()
     {
         if (Prop->Type == EPropertyType::UnresolvedPointer)
         {
-            
+            // TODO: 자식 FProperty 만들면 Prop->Resolve()로 사용
+            if (std::holds_alternative<FName>(Prop->TypeSpecificData))
+            {
+                const FName& TypeName = std::get<FName>(Prop->TypeSpecificData);
+                if (UClass** FoundClass = GetClassMap().Find(TypeName))
+                {
+                    UClass* Class = *FoundClass;
+                    if (Class->IsChildOf(UObject::StaticClass()))
+                    {
+                        Prop->Type = EPropertyType::Object;
+                        Prop->TypeSpecificData = Class;
+                        continue;
+                    }
+                }
+            }
         }
+        Prop->Type = EPropertyType::Unknown;
+        UE_LOG(ELogLevel::Error, "Unknown Property Type : %s", Prop->Name);
     }
+    GetUnresolvedProperties().Empty();
 }
 
-TArray<FProperty*> UClass::GetUnresolvedProperties()
+TArray<FProperty*>& UClass::GetUnresolvedProperties()
 {
     static TArray<FProperty*> UnresolvedProperties;
     return UnresolvedProperties;
@@ -80,6 +109,16 @@ UObject* UClass::GetDefaultObject() const
 
 void UClass::RegisterProperty(FProperty* Prop)
 {
+    if (Prop->Type == EPropertyType::UnresolvedPointer)
+    {
+        // 왠지 모르겠지만 TArray(std::vector)를 사용하면 Debug모드에서 Iterator검사를 하게 되는데,
+        // 이때 검사할 때 잘못된 Iterator를 역참조해서 프로그램이 터짐, 근데 또 Release에서는 검사를 안하니 잘 동작함.
+        // 이유를 찾아보니 static 변수 초기화 순서 문제일 가능성이 있음.
+        // 컴파일러마다 다를 수 있지만, UnresolvedProperties가 다른 static 변수보다 늦게 초기화가 되면,
+        // 이터레이터 추적을 위한 내부 프록시 객체(_Mypair._Myval2._Myproxy)가 제대로 설정되지 않은 상태일 수 있기때문에 문제가 생길 수 있음
+        // TQueue도 마찬가지, TQueue는 Iterator검사는 안하지만, UnresolvedProperties가 가장 늦게 초기화 되는경우, 기존에 데이터가 없어지는 문제가 생겼음
+        GetUnresolvedProperties().Add(Prop);
+    }
     Properties.Add(Prop);
 }
 

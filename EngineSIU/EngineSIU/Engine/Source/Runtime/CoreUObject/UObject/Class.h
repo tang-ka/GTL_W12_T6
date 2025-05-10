@@ -21,6 +21,8 @@ public:
         ClassConstructorType InCTOR
     );
 
+    virtual ~UClass() override;
+
     // 복사 & 이동 생성자 제거
     UClass(const UClass&) = delete;
     UClass& operator=(const UClass&) = delete;
@@ -31,15 +33,14 @@ public:
     static TMap<FName, UClass*>& GetClassMap();
     static UClass* FindClass(const FName& ClassName);
 
-    static UClass* FindClass(const FName& ClassName)
-    {
-        if (UClass** It = GetClassMap().Find(ClassName))
-        {
-            return *It;
-        }
-        return nullptr;
-    }
+    /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 런타임에 검사합니다. */
+    static void ResolvePendingProperties();
 
+private:
+    /** 컴파일 타임에 알 수 없는 프로퍼티 목록들 */
+    static TArray<FProperty*>& GetUnresolvedProperties();
+
+public:
     uint32 GetClassSize() const { return ClassSize; }
     uint32 GetClassAlignment() const { return ClassAlignment; }
 
