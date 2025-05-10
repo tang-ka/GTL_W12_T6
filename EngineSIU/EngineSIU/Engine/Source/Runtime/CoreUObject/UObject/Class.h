@@ -27,11 +27,9 @@ public:
     UClass(UClass&&) = delete;
     UClass& operator=(UClass&&) = delete;
 
-    static TMap<FName, UClass*>& GetClassMap()
-    {
-        static TMap<FName, UClass*> ClassMap;
-        return ClassMap;
-    }
+public:
+    static TMap<FName, UClass*>& GetClassMap();
+    static UClass* FindClass(const FName& ClassName);
 
     static UClass* FindClass(const FName& ClassName)
     {

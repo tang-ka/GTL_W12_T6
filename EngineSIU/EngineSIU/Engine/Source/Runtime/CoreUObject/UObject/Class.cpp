@@ -21,6 +21,21 @@ UClass::UClass(
     NamePrivate = InClassName;
 }
 
+TMap<FName, UClass*>& UClass::GetClassMap()
+{
+    static TMap<FName, UClass*> ClassMap;
+    return ClassMap;
+}
+
+UClass* UClass::FindClass(const FName& ClassName)
+{
+    if (UClass** It = GetClassMap().Find(ClassName))
+    {
+        return *It;
+    }
+    return nullptr;
+}
+
 bool UClass::IsChildOf(const UClass* SomeBase) const
 {
     assert(this);
