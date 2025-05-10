@@ -85,7 +85,7 @@ TArray<FProperty*>& UClass::GetUnresolvedProperties()
 bool UClass::IsChildOf(const UClass* SomeBase) const
 {
     assert(this);
-    if (!SomeBase) return false;
+    if (!SomeBase) { return false; }
 
     // Super의 Super를 반복하면서 
     for (const UClass* TempClass = this; TempClass; TempClass=TempClass->GetSuperClass())

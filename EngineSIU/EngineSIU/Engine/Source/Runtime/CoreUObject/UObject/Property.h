@@ -117,21 +117,22 @@ public:
 };
 
 
-// struct FNumericProperty : public FProperty
-// {
-//     FNumericProperty(const char* InName, int32 InSize, int32 InOffset)
-//         : FProperty(InName, InSize, InOffset)
-//     {}
-// };
-//
-// struct FInt8Property : public FNumericProperty
-// {
-//     FInt8Property(const char* InName, int32 InSize, int32 InOffset)
-//         : FNumericProperty(InName, InSize, InOffset)
-//     {}
-//
-//     virtual void Serialize(void* Data) const override
-//     {
-//         
-//     }
-// };
+struct FNumericProperty : public FProperty
+{
+    FNumericProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        EPropertyType InType,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, InType, InSize, InOffset, InFlags)
+    {
+    }
+};
+
+struct FInt8Property : public FNumericProperty
+{
+
+};
