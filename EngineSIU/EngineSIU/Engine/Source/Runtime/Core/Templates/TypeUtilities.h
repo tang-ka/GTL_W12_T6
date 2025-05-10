@@ -338,3 +338,133 @@ constexpr std::string_view GetTypeName(bool bIsNameOnly = true)
     return "__UnknownType__";
 #endif
 }
+
+#pragma region GetTypeName Test Cases
+#if false  // NOLINT(readability-avoid-unconditional-preprocessor-if)
+enum class MyEnum {};
+inline void RunTypeNameTests()
+{
+    std::cout << std::boolalpha; // bool 값을 "true" 또는 "false"로 출력
+
+    std::cout << "--- GetTypeName Test Cases ---" << std::endl;
+
+    // 헬퍼 함수: 테스트 결과를 출력
+    auto PrintTestResult = [](const char* testName, std::string_view expected, std::string_view actualTrue, std::string_view actualFalse)
+    {
+        std::cout << "\nTest: " << testName << std::endl;
+        bool passed = (actualTrue == expected);
+        assert(passed);
+        std::cout << "  bIsNameOnly = true: " << (passed ? "PASSED" : "FAILED") << std::endl;
+        std::cout << "    Expected: \"" << expected << "\"" << std::endl;
+        std::cout << "    Actual  : \"" << actualTrue << "\"" << std::endl;
+        std::cout << "  bIsNameOnly = false (Raw Signature View for MSVC/etc.):" << std::endl;
+        std::cout << "    Actual  : \"" << actualFalse << "\"" << std::endl;
+    };
+
+    // 케이스 1: <MyEnum ****** * ** >
+    // C++ 타입으로 해석: MyEnum********* (9개의 포인터)
+    // bIsNameOnly = true 시 기대 결과: "MyEnum"
+    {
+        using TestType1 = MyEnum*********; // 9개의 '*'
+        PrintTestResult("MyEnum*********", "MyEnum", GetTypeName<TestType1>(true), GetTypeName<TestType1>(false));
+    }
+
+    // 케이스 2: <volatile const volatile const MyEnum ** * ** const volatile>
+    // C++ 타입으로 해석: const volatile MyEnum***** const volatile
+    // (C++에서 'volatile const volatile const MyEnum'은 'const volatile MyEnum'과 동일)
+    // ('** * **'는 5개의 포인터로 해석: *****)
+    // bIsNameOnly = true 시 기대 결과: "MyEnum"
+    {
+        using TestType2 = const volatile MyEnum***** const volatile;
+        PrintTestResult("const volatile MyEnum***** const volatile", "MyEnum", GetTypeName<TestType2>(true), GetTypeName<TestType2>(false));
+    }
+
+    // === 추가적인 일반 테스트 케이스 ===
+
+    PrintTestResult("int", "int", GetTypeName<int>(true), GetTypeName<int>(false));
+    PrintTestResult("const int", "int", GetTypeName<const int>(true), GetTypeName<const int>(false));
+    PrintTestResult("volatile int", "int", GetTypeName<volatile int>(true), GetTypeName<volatile int>(false));
+    PrintTestResult("const volatile int", "int", GetTypeName<const volatile int>(true), GetTypeName<const volatile int>(false));
+
+    PrintTestResult("int*", "int", GetTypeName<int*>(true), GetTypeName<int*>(false));
+    PrintTestResult("const int*", "int", GetTypeName<const int*>(true), GetTypeName<const int*>(false)); // int가 const, 포인터는 아님
+    PrintTestResult("int* const", "int", GetTypeName<int* const>(true), GetTypeName<int* const>(false)); // 포인터가 const
+    PrintTestResult("int* volatile", "int", GetTypeName<int* volatile>(true), GetTypeName<int* volatile>(false));
+    PrintTestResult("int* const volatile", "int", GetTypeName<int* const volatile>(true), GetTypeName<int* const volatile>(false));
+    PrintTestResult("const int* const", "int", GetTypeName<const int* const>(true), GetTypeName<const int* const>(false));
+
+    PrintTestResult("int&", "int", GetTypeName<int&>(true), GetTypeName<int&>(false));
+    PrintTestResult("const int&", "int", GetTypeName<const int&>(true), GetTypeName<const int&>(false));
+    PrintTestResult("volatile int&", "int", GetTypeName<volatile int&>(true), GetTypeName<volatile int&>(false));
+    PrintTestResult("int&&", "int", GetTypeName<int&&>(true), GetTypeName<int&&>(false));
+
+    // 사용자 정의 타입
+    struct AnotherStruct
+    {
+    };
+    PrintTestResult("AnotherStruct", "AnotherStruct", GetTypeName<AnotherStruct>(true), GetTypeName<AnotherStruct>(false));
+    PrintTestResult("const AnotherStruct&", "AnotherStruct", GetTypeName<const AnotherStruct&>(true), GetTypeName<const AnotherStruct&>(false));
+    PrintTestResult(
+        "volatile AnotherStruct*", "AnotherStruct", GetTypeName<volatile AnotherStruct*>(true), GetTypeName<volatile AnotherStruct*>(false)
+    );
+
+    // 다중 포인터 및 cv 한정자
+    PrintTestResult(
+        "MyEnum const*volatile**const*", "MyEnum", GetTypeName<MyEnum const*volatile**const*>(true), GetTypeName<MyEnum const*volatile**const*>(false)
+    );
+    PrintTestResult(
+        "const volatile MyEnum * const * volatile *", "MyEnum", GetTypeName<const volatile MyEnum* const * volatile *>(true),
+        GetTypeName<const volatile MyEnum* const * volatile *>(false)
+    );
+
+
+    // 사용자가 언급한 "MyEnum*****volatile" 결과가 나오는 경우를 재현하기 위한 입력 타입 추정
+    // 만약 GetTypeName< TYPE >() 의 결과가 "MyEnum*****volatile" 이었다면,
+    // TYPE 은 예를 들어 (MyEnum*****)volatile 또는 MyEnum volatile ***** 와 유사한 구조일 수 있습니다.
+    // 또는 (MyEnum***** const) volatile 같은 형태.
+    // 아래는 그러한 타입에 대한 테스트입니다.
+    {
+        using FiveStarMyEnum = MyEnum*****;
+        using TestTypeUserIssue1 = FiveStarMyEnum volatile; // (MyEnum*****) volatile
+        PrintTestResult("(MyEnum*****) volatile", "MyEnum", GetTypeName<TestTypeUserIssue1>(true), GetTypeName<TestTypeUserIssue1>(false));
+    }
+    {
+        using TestTypeUserIssue2 = MyEnum volatile*****;
+        PrintTestResult("MyEnum volatile *****", "MyEnum", GetTypeName<TestTypeUserIssue2>(true), GetTypeName<TestTypeUserIssue2>(false));
+    }
+    {
+        // 사용자의 예시: volatile const volatile const MyEnum ***** const volatile
+        // 이것은 위에서 TestType2로 이미 테스트되었고, 기대값은 "MyEnum" 입니다.
+        // 만약 이것이 "MyEnum*****volatile"로 나온다면, GetTypeName 내부 로직 (특히 MSVC 파서)에 문제가 있는 것입니다.
+        // 이 테스트는 해당 케이스가 "MyEnum"을 반환하는지 재확인합니다.
+        using TypeFromUserExample = volatile const volatile const MyEnum***** const volatile;
+        PrintTestResult(
+            "FROM USER: volatile const volatile const MyEnum ***** const volatile", "MyEnum", GetTypeName<TypeFromUserExample>(true),
+            GetTypeName<TypeFromUserExample>(false)
+        );
+    }
+
+
+    // 배열 타입 (현재 로직은 배열의 '[]'를 제거하지 않음)
+    // MSVC에서 `const char[N]`은 `char const [N]`으로 나올 수 있음.
+    PrintTestResult("char[10]", "char[10]", GetTypeName<char[10]>(true), GetTypeName<char[10]>(false));
+    // 현재 로직으로는 'const char[N]' 또는 'char const [N]'에서 'const'만 제거하기는 어려움.
+    // MSVC `__FUNCSIG__`는 "char const [5]" 형태를 띌 수 있습니다.
+    // 현재 IsAlnumChar 기반 제거 로직은 "const"가 다른 식별자와 붙어있지 않은 경우에만 작동합니다.
+    // "char const [5]"의 "const"는 "char " 뒤, " [5]" 앞에 있어, "const " 또는 " const" 패턴으로 제거될 수 있지만,
+    // 공백 없는 "const" 제거 로직은 앞뒤가 IsAlnumChar가 아닐 때 작동하므로, "char const [5]"의 "const"를 제거할 수도 있습니다.
+    // 만약 "char const [5]" -> "char [5]" 로 만든다면, 현재 코드는 그렇게 동작할 가능성이 있습니다.
+    PrintTestResult("const char[10]", "char[10]", GetTypeName<const char[10]>(true), GetTypeName<const char[10]>(false));
+
+
+    // 함수 포인터 (단순화가 어려움, bIsNameOnly=false의 출력이 더 유용)
+    using FunctionPtrType = void(*)(int, double);
+    std::cout << "\nTest: void(*)(int, double)" << std::endl;
+    std::cout << "  bIsNameOnly = true: Actual: \"" << GetTypeName<FunctionPtrType>(true) << "\"" << std::endl;
+    std::cout << "  bIsNameOnly = false: Actual: \"" << GetTypeName<FunctionPtrType>(false) << "\"" << std::endl;
+
+
+    std::cout << "\n--- All Tests Completed ---" << std::endl;
+}
+#endif
+#pragma endregion
