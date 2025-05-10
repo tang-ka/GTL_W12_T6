@@ -9,6 +9,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
+#include "UObject/Casts.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
@@ -16,11 +17,17 @@ USkeletalMeshComponent::USkeletalMeshComponent()
 
 USkeletalMeshComponent::~USkeletalMeshComponent()
 {
-    if (AnimSequence)
-    {
-        delete AnimSequence;
-        AnimSequence = nullptr;
-    }
+}
+
+UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewComponent->SetSkeletalMeshAsset(SkeletalMeshAsset);
+    NewComponent->SetAnimation(AnimSequence);
+    NewComponent->SetAnimationEnabled(true);
+
+    return NewComponent;
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
