@@ -271,7 +271,7 @@ private:
     FORCEINLINE T& GetStoredValue()
     {
         // Storage를 T 타입의 포인터로 재해석하여 값에 접근
-        return *reinterpret_cast<T*>(&Storage);
+        return *reinterpret_cast<T*>(&Storage);  // NOLINT(clang-diagnostic-undefined-reinterpret-cast)
     }
 
     FORCEINLINE const T& GetStoredValue() const
