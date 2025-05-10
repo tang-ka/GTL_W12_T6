@@ -115,6 +115,36 @@ public:
     SizeType Find(const T& Item);
     bool Find(const T& Item, SizeType& Index);
 
+    template <typename Predicate>
+    FORCEINLINE const ElementType* FindByPredicate(Predicate Pred) const
+    {
+        return const_cast<TArray*>(this)->FindByPredicate(Pred);
+    }
+
+    template <typename Predicate>
+    ElementType* FindByPredicate(Predicate Pred)
+    {
+        /*
+        for (ElementType* Data = GetData(), DataEnd = Data + Num(); Data != DataEnd; ++Data)
+        {
+            if (std::invoke(Pred, *Data))
+            {
+                return Data;
+            }
+        }
+        */
+        for (int32 i = 0; i < Num(); ++i)
+        {
+            ElementType* Data = &ContainerPrivate[i];
+            if (std::invoke(Pred, *Data))
+            {
+                return Data;
+            }
+        }
+
+        return nullptr;
+    }
+
     /**
      * Finds an item by predicate.
      *

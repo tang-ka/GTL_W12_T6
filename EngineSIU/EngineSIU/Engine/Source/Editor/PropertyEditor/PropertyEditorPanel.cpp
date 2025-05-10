@@ -7,6 +7,8 @@
 
 #include "World/World.h"
 #include "Actors/Player.h"
+#include "Animation/AnimationAsset.h"
+#include "Animation/AnimSequence.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/Light/LightComponent.h"
@@ -429,20 +431,20 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::Text("SkeletalMesh");
         ImGui::SameLine();
 
-        FString PreviewName = FString("None");
+        FString SelectedSkeletalMeshName = FString("None");
         if (USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMeshAsset())
         {
             if (const FSkeletalMeshRenderData* RenderData = SkeletalMesh->GetRenderData())
             {
-                PreviewName = RenderData->DisplayName;
+                SelectedSkeletalMeshName = RenderData->DisplayName;
             }
         }
         
-        const TMap<FName, FAssetInfo> Assets = UAssetManager::Get().GetAssetRegistry();
+        const TMap<FName, FAssetInfo> SkeletalMeshAssets = UAssetManager::Get().GetAssetRegistry();
 
-        if (ImGui::BeginCombo("##SkeletalMesh", GetData(PreviewName), ImGuiComboFlags_None))
+        if (ImGui::BeginCombo("##SkeletalMesh", GetData(SelectedSkeletalMeshName), ImGuiComboFlags_None))
         {
-            for (const auto& Asset : Assets)
+            for (const auto& Asset : SkeletalMeshAssets)
             {
                 if (Asset.Value.AssetType != EAssetType::SkeletalMesh)
                 {
@@ -451,8 +453,8 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                 
                 if (ImGui::Selectable(GetData(Asset.Value.AssetName.ToString()), false))
                 {
-                    FString MeshName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
-                    USkeletalMesh* SkeletalMesh = UAssetManager::Get().GetSkeletalMesh(FName(MeshName));
+                    FString AssetName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
+                    USkeletalMesh* SkeletalMesh = UAssetManager::Get().GetSkeletalMesh(FName(AssetName));
                     if (SkeletalMesh)
                     {
                         SkeletalMeshComp->SetSkeletalMeshAsset(SkeletalMesh);
@@ -461,8 +463,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             }
             ImGui::EndCombo();
         }
-
-        ImGui::TreePop();
 
         if (ImGui::Button("Play Animation"))
         {
@@ -475,6 +475,47 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         {
             SkeletalMeshComp->SetAnimationEnabled(false);
         }
+
+        // Animation
+        FString SelectedAnimationName = FString("None");
+        if (UAnimationAsset* Animation = SkeletalMeshComp->GetAnimation())
+        {
+            SelectedAnimationName = Animation->GetName();
+        }
+        
+        const TMap<FName, FAssetInfo> AnimationAssets = UAssetManager::Get().GetAssetRegistry();
+
+        if (ImGui::BeginCombo("##Animation", GetData(SelectedAnimationName), ImGuiComboFlags_None))
+        {
+            for (const auto& Asset : AnimationAssets)
+            {
+                if (Asset.Value.AssetType != EAssetType::Animation)
+                {
+                    continue;
+                }
+                
+                if (ImGui::Selectable(GetData(Asset.Value.AssetName.ToString()), false))
+                {
+                    FString AssetName = Asset.Value.PackagePath.ToString() + "/" + Asset.Value.AssetName.ToString();
+
+                    UAnimationAsset* Animation = UAssetManager::Get().GetAnimation(FName(AssetName));
+                    UAnimSequence* AnimSeq = nullptr;
+                    
+                    if (Animation)
+                    {
+                        AnimSeq = Cast<UAnimSequence>(Animation);
+                    }
+
+                    if (AnimSeq)
+                    {
+                        SkeletalMeshComp->SetAnimation(AnimSeq);
+                    }
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::TreePop();
     }
     ImGui::PopStyleColor();
 }

@@ -212,15 +212,23 @@ FVector FMatrix::GetScaledAxis(EAxis::Type InAxis) const
 // 전치 행렬
 FMatrix FMatrix::Transpose(const FMatrix& Mat)
 {
-    FMatrix Result;
-    for (int32 i = 0; i < 4; i++)
-    {
-            Result.M[i][0] = Mat.M[0][i];
-            Result.M[i][1] = Mat.M[1][i];
-            Result.M[i][2] = Mat.M[2][i];
-            Result.M[i][3] = Mat.M[3][i];
-    }
-    return Result;
+    FMatrix dst;
+
+    // 각 행을 128비트(4 float) 단위로 로드
+    VectorRegister4Float row0 = _mm_loadu_ps(&Mat.M[0][0]); // 첫 번째 행
+    VectorRegister4Float row1 = _mm_loadu_ps(&Mat.M[1][0]); // 두 번째 행
+    VectorRegister4Float row2 = _mm_loadu_ps(&Mat.M[2][0]); // 세 번째 행
+    VectorRegister4Float row3 = _mm_loadu_ps(&Mat.M[3][0]); // 네 번째 행
+
+    _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
+
+    // 전치된 행을 저장
+    _mm_storeu_ps(&dst.M[0][0], row0);
+    _mm_storeu_ps(&dst.M[1][0], row1);
+    _mm_storeu_ps(&dst.M[2][0], row2);
+    _mm_storeu_ps(&dst.M[3][0], row3);
+
+    return dst;
 }
 
 FMatrix FMatrix::Inverse(const FMatrix& Mat)

@@ -3,6 +3,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class UAnimationAsset;
 class USkeleton;
 class USkeletalMesh;
 
@@ -37,7 +38,7 @@ struct FFbxLoadResult
     TArray<USkeletalMesh*> SkeletalMeshes;
     TArray<UStaticMesh*> StaticMeshes;
     TArray<UMaterial*> Materials;
-    // TArray<UAnimation*> Animations;
+    TArray<UAnimationAsset*> Animations;
 };
 
 class UAssetManager : public UObject
@@ -45,6 +46,7 @@ class UAssetManager : public UObject
     DECLARE_CLASS(UAssetManager, UObject)
 
 private:
+    // TODO: 에셋 타입이 다른데 이름이 같은 경우가 있으므로, 맵으로 관리해야할 듯
     std::unique_ptr<FAssetRegistry> AssetRegistry;
 
 public:
@@ -68,11 +70,14 @@ public:
     UStaticMesh* GetStaticMesh(const FName& Name);
     USkeleton* GetSkeleton(const FName& Name);
     UMaterial* GetMaterial(const FName& Name);
+    UAnimationAsset* GetAnimation(const FName& Name);
 
     void AddAssetInfo(const FAssetInfo& Info);
     void AddSkeleton(const FName& Key, USkeleton* Skeleton);
-    void AddSkeletalMesh(const FName& Key, USkeletalMesh* Mesh);
+    void AddSkeletalMesh(const FName& Key, USkeletalMesh* SkeletalMesh);
     void AddMaterial(const FName& Key, UMaterial* Material);
+    void AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh);
+    void AddAnimation(const FName& Key, UAnimationAsset* Animation);
 
 private:
     void LoadContentFiles();
@@ -81,5 +86,5 @@ private:
     inline static TMap<FName, USkeletalMesh*> SkeletalMeshMap;
     inline static TMap<FName, UStaticMesh*> StaticMeshMap;
     inline static TMap<FName, UMaterial*> MaterialMap;
-    // inline static TMap<FName, UAnimation*> AnimationMap;
+    inline static TMap<FName, UAnimationAsset*> AnimationMap;
 };
