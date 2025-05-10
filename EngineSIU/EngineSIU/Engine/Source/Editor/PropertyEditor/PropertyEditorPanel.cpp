@@ -478,7 +478,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
 
         // Animation
         FString SelectedAnimationName = FString("None");
-        if (UAnimationAsset* Animation = SkeletalMeshComp->AnimSequence)
+        if (UAnimationAsset* Animation = SkeletalMeshComp->GetAnimation())
         {
             SelectedAnimationName = Animation->GetName();
         }
@@ -508,7 +508,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
 
                     if (AnimSeq)
                     {
-                        SkeletalMeshComp->AnimSequence = AnimSeq;
+                        SkeletalMeshComp->SetAnimation(AnimSeq);
                     }
                 }
             }

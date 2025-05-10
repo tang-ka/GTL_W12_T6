@@ -1363,8 +1363,6 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
             {
                 continue;
             }
-
-            const FTransform& RefBoneTransform = RefBoneTransforms[BoneIndex];
             
             FbxNode* BoneNode = BoneNodeMap[BoneName];
             if (BoneNode)
@@ -1382,7 +1380,7 @@ void FFbxLoader::ProcessAnimations(TArray<UAnimationAsset*>& OutAnimations, cons
                 if (NodeHasAnimation(BoneNode, AnimLayer))
                 {
                     // 본 애니메이션 키프레임 추출
-                    ExtractBoneAnimation(BoneNode, AnimLayer, RefBoneTransform, Start, End, NumFrames, Positions, Rotations, Scales);
+                    ExtractBoneAnimation(BoneNode, Start, End, NumFrames, Positions, Rotations, Scales);
                 }
                 else
                 {
@@ -1538,8 +1536,7 @@ void FFbxLoader::BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneN
 }
 
 void FFbxLoader::ExtractBoneAnimation(
-    FbxNode* BoneNode, FbxAnimLayer* AnimLayer, const FTransform& RefBoneTransform,
-    FbxTime Start, FbxTime End, int32 NumFrames,
+    FbxNode* BoneNode, FbxTime Start, FbxTime End, int32 NumFrames,
     TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales)
 {
     // 배열 초기화
@@ -1552,21 +1549,7 @@ void FFbxLoader::ExtractBoneAnimation(
     double FrameInterval = (End.GetSecondDouble() - Start.GetSecondDouble()) / (NumFrames - 1);
     FrameTime.SetSecondDouble(FrameInterval);
     
-    // 변환 애니메이션 커브 가져오기
-    FbxAnimCurve* TranslationX = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-    FbxAnimCurve* TranslationY = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-    FbxAnimCurve* TranslationZ = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-    
-    FbxAnimCurveNode* RotNode = BoneNode->LclRotation.GetCurveNode(AnimLayer, true);
-    
-    FbxAnimCurve* RotationX = RotNode->GetCurve(0);
-    FbxAnimCurve* RotationY = RotNode->GetCurve(1);
-    FbxAnimCurve* RotationZ = RotNode->GetCurve(2);
-    
-    FbxAnimCurve* ScaleX = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-    FbxAnimCurve* ScaleY = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-    FbxAnimCurve* ScaleZ = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-
+    // TODO: 바인드 포즈는 이전에 이미 찾았지만, 루트의 트랜스폼 관련 문제가 있어 다시 계산하는 방식 사용 중
     // 바인드 포즈 찾기
     FbxPose* BindPose = FindBindPose(BoneNode);
     int32 PoseNodeIndex = BindPose ? BindPose->Find(BoneNode) : -1;
@@ -1620,52 +1603,7 @@ void FFbxLoader::ExtractBoneAnimation(
     {
         FbxTime CurrentTime = Start + FrameTime * FrameIndex;
         
-        // 로컬 트랜스폼 값 추출
-        FbxVector4 Translation;
-        FbxVector4 Rotation;
-        FbxVector4 Scale;
-        
-        // 커브에서 직접 값을 읽거나 노드의 기본 로컬 값 사용
-        if (TranslationX || TranslationY || TranslationZ)
-        {
-            // 각 축의 값을 커브에서 평가하거나 기본값 사용
-            Translation[0] = TranslationX ? TranslationX->Evaluate(CurrentTime) : BoneNode->LclTranslation.Get()[0];
-            Translation[1] = TranslationY ? TranslationY->Evaluate(CurrentTime) : BoneNode->LclTranslation.Get()[1];
-            Translation[2] = TranslationZ ? TranslationZ->Evaluate(CurrentTime) : BoneNode->LclTranslation.Get()[2];
-            Translation[3] = 0.0;
-        }
-        else
-        {
-            Translation = BoneNode->LclTranslation.Get();
-        }
-        
-        if (RotationX || RotationY || RotationZ)
-        {
-            // 각 축의 값을 커브에서 평가하거나 기본값 사용
-            Rotation[0] = RotationX ? RotationX->Evaluate(CurrentTime) : BoneNode->LclRotation.Get()[0];
-            Rotation[1] = RotationY ? RotationY->Evaluate(CurrentTime) : BoneNode->LclRotation.Get()[1];
-            Rotation[2] = RotationZ ? RotationZ->Evaluate(CurrentTime) : BoneNode->LclRotation.Get()[2];
-            Rotation[3] = 0.0;
-        }
-        else
-        {
-            Rotation = BoneNode->LclRotation.Get();
-        }
-        
-        if (ScaleX || ScaleY || ScaleZ)
-        {
-            // 각 축의 값을 커브에서 평가하거나 기본값 사용
-            Scale[0] = ScaleX ? ScaleX->Evaluate(CurrentTime) : BoneNode->LclScaling.Get()[0];
-            Scale[1] = ScaleY ? ScaleY->Evaluate(CurrentTime) : BoneNode->LclScaling.Get()[1];
-            Scale[2] = ScaleZ ? ScaleZ->Evaluate(CurrentTime) : BoneNode->LclScaling.Get()[2];
-            Scale[3] = 0.0;
-        }
-        else
-        {
-            Scale = BoneNode->LclScaling.Get();
-        }
-
-        // 애니메이션이 적용된 노드의 로컬 트랜스폼을 가져와서 평가
+        // 애니메이션이 적용된 노드의 로컬 트랜스폼을 통해 오프셋 계산
         FbxAMatrix LocalTransform = BoneNode->EvaluateLocalTransform(CurrentTime);
 
         FbxAMatrix LocalOffsetMatrix = LocalBindPoseMatrix.Inverse() * LocalTransform;
@@ -1673,9 +1611,26 @@ void FFbxLoader::ExtractBoneAnimation(
         FbxVector4 LocalTranslation = LocalOffsetMatrix.GetT();
         FbxVector4 LocalScale = LocalOffsetMatrix.GetS();
 
-        OutPositions.Add(FVector(LocalTranslation[0], LocalTranslation[1], LocalTranslation[2]));
-        OutRotations.Add(FQuat(LocalRotationQuat[0], LocalRotationQuat[1], LocalRotationQuat[2], LocalRotationQuat[3]));
-        OutScales.Add(FVector(LocalScale[0], LocalScale[1], LocalScale[2]));
+        FVector LocalPosition = FVector(
+            static_cast<float>(LocalTranslation[0]),
+            static_cast<float>(LocalTranslation[1]),
+            static_cast<float>(LocalTranslation[2])
+        );
+        FQuat LocalRotation = FQuat(
+            static_cast<float>(LocalRotationQuat[0]),
+            static_cast<float>(LocalRotationQuat[1]),
+            static_cast<float>(LocalRotationQuat[2]),
+            static_cast<float>(LocalRotationQuat[3])
+        );
+        FVector LocalScale3D = FVector(
+            static_cast<float>(LocalScale[0]),
+            static_cast<float>(LocalScale[1]),
+            static_cast<float>(LocalScale[2])
+        );
+        
+        OutPositions.Add(LocalPosition);
+        OutRotations.Add(LocalRotation);
+        OutScales.Add(LocalScale3D);
     }
 }
 

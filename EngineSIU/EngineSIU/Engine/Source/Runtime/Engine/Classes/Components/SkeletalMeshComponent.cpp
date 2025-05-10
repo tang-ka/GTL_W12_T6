@@ -55,7 +55,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             FName BoneName = RefSkeleton.RawRefBoneInfo[BoneIdx].Name;
             FTransform RefBoneTransform = RefBonePoseTransforms[BoneIdx];
             BonePoseTransforms[BoneIdx] = RefBoneTransform * DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
-            //BonePoseTransforms[BoneIdx] = DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
         }
     }
 }
@@ -105,14 +104,8 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
 
 void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
 {
-    if (!AnimSequence)
-    {
-        bPlayAnimation = false;
-        return;
-    }
+    bPlayAnimation = AnimSequence && bEnable;
     
-    bPlayAnimation = bEnable;
-
     if (!bPlayAnimation)
     {
         if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
@@ -120,5 +113,15 @@ void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
             const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
             BonePoseTransforms = RefSkeleton.RawRefBonePose;
         }
+        ElapsedTime = 0.f;
     }
+}
+
+void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimSequence)
+{
+    AnimSequence = InAnimSequence;
+
+    SetAnimationEnabled(bPlayAnimation);
+    
+    ElapsedTime = 0.f;
 }

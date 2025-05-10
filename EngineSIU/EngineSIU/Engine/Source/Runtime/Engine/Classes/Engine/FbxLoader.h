@@ -92,8 +92,7 @@ private:
 
     void BuildBoneNodeMap(FbxNode* Node, TMap<FName, FbxNode*>& OutBoneNodeMap);
 
-    void ExtractBoneAnimation(FbxNode* BoneNode, FbxAnimLayer* AnimLayer, const FTransform& RefBoneTransform,
-        FbxTime Start, FbxTime End, int32 NumFrames,
+    void ExtractBoneAnimation(FbxNode* BoneNode, FbxTime Start, FbxTime End, int32 NumFrames,
         TArray<FVector>& OutPositions, TArray<FQuat>& OutRotations, TArray<FVector>& OutScales);
     // End Animation
 

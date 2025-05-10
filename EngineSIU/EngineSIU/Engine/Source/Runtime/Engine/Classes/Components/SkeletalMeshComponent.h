@@ -19,18 +19,22 @@ public:
 
     void SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshAsset);
 
-    UAnimSequence* AnimSequence = nullptr;
-
     TArray<FTransform> RefBonePoseTransforms; // 원본 BindPose에서 복사해온 에디팅을 위한 Transform
 
     void GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const;
 
     void SetAnimationEnabled(bool bEnable);
+
+    void SetAnimation(UAnimSequence* InAnimSequence);
+
+    UAnimSequence* GetAnimation() const { return AnimSequence; }
     
 private:
     TArray<FTransform> BonePoseTransforms;
     
     USkeletalMesh* SkeletalMeshAsset = nullptr;
+
+    UAnimSequence* AnimSequence = nullptr;
 
     float ElapsedTime = 0.f;
 
