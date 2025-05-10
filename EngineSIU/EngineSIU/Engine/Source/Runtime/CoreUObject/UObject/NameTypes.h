@@ -19,7 +19,9 @@ public:
     FName() : DisplayIndex(NAME_None), ComparisonIndex(NAME_None) {}
     FName(ENameNone) : DisplayIndex(NAME_None), ComparisonIndex(NAME_None) {}
     FName(const WIDECHAR* Name);
+    FName(const WIDECHAR* Name, uint32 Len);
     FName(const ANSICHAR* Name);
+    FName(const ANSICHAR* Name, uint32 Len);
     FName(const FString& Name);
 
     FString ToString() const;
