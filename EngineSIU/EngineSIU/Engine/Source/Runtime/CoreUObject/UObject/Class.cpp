@@ -71,6 +71,7 @@ void UClass::ResolvePendingProperties()
             }
         }
         Prop->Type = EPropertyType::Unknown;
+        Prop->TypeSpecificData = std::monostate{};
         UE_LOG(ELogLevel::Error, "Unknown Property Type : %s", Prop->Name);
     }
     GetUnresolvedProperties().Empty();
