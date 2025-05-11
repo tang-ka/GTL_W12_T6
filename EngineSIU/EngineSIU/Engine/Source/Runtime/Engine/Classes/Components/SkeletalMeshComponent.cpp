@@ -3,6 +3,7 @@
 
 #include "ReferenceSkeleton.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimTypes.h"
 #include "Animation/Skeleton.h"
 #include "Animation/AnimData/AnimDataModel.h"
@@ -10,17 +11,30 @@
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
 #include "UObject/Casts.h"
+#include "UObject/ObjectFactory.h"
+#include "CoreUObject/Template/SubclassOf.h"
 
 bool USkeletalMeshComponent::bCPUSkinning = true;
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
-    AnimSequence = new UAnimSequence();
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
 
 USkeletalMeshComponent::~USkeletalMeshComponent()
 {
+    if (AnimScriptInstance)
+    {
+        delete AnimScriptInstance;
+        AnimScriptInstance = nullptr;
+    }
+}
+
+void USkeletalMeshComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+
+    InitializeAnimScriptInstance();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -36,7 +50,7 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
-    USkinnedMeshComponent::TickComponent(DeltaTime);
+    Super::TickComponent(DeltaTime);
 
     if (bPlayAnimation)
     {
@@ -139,6 +153,36 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     }
 }
 
+bool USkeletalMeshComponent::InitializeAnimScriptInstance()
+{
+    USkeletalMesh* SkelMesh = GetSkeletalMeshAsset();
+    
+    if (NeedToSpawnAnimScriptInstance())
+    {
+        AnimScriptInstance = FObjectFactory::ConstructObject<AnimClass>(this);
+
+        if (AnimScriptInstance)
+        {
+            AnimScriptInstance->InitializeAnimation();
+        }
+    }
+    else
+    {
+        bool bShouldSpawnSingleNodeInstance = SkelMesh && SkelMesh->GetSkeleton();
+        if (bShouldSpawnSingleNodeInstance)
+        {
+            AnimScriptInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(this);
+
+            if (AnimScriptInstance)
+            {
+                AnimScriptInstance->InitializeAnimation();
+            }
+        }
+    }
+
+    return true;
+}
+
 void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshAsset)
 {
     SkeletalMeshAsset = InSkeletalMeshAsset;
@@ -204,6 +248,12 @@ void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
         CPURenderData->ObjectName = SkeletalMeshAsset->GetRenderData()->ObjectName;
         CPURenderData->MaterialSubsets = SkeletalMeshAsset->GetRenderData()->MaterialSubsets;
     }
+}
+
+void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool bLooping)
+{
+    SetAnimation(NewAnimToPlay);
+    Play(bLooping);
 }
 
 int USkeletalMeshComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const
@@ -279,11 +329,75 @@ bool USkeletalMeshComponent::GetCPUSkinning()
     return bCPUSkinning;
 }
 
-void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimSequence)
+bool USkeletalMeshComponent::NeedToSpawnAnimScriptInstance() const
 {
-    AnimSequence = InAnimSequence;
+    USkeletalMesh* MeshAsset = GetSkeletalMeshAsset();
+    USkeleton* AnimSkeleton = MeshAsset ? MeshAsset->GetSkeleton() : nullptr;
+    if (AnimClass && AnimSkeleton)
+    {
+        if (AnimScriptInstance == nullptr || AnimScriptInstance->GetClass() != AnimClass || AnimScriptInstance->GetOuter() != this)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
-    SetAnimationEnabled(bPlayAnimation);
-    
-    ElapsedTime = 0.f;
+UAnimSingleNodeInstance* USkeletalMeshComponent::GetSingleNodeInstance() const
+{
+    return Cast<UAnimSingleNodeInstance>(AnimScriptInstance);
+}
+
+void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetAnimationAsset(NewAnimToPlay, false);
+        SingleNodeInstance->SetPlaying(false);
+    }
+}
+
+void USkeletalMeshComponent::Play(bool bLooping)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(true);
+        SingleNodeInstance->SetLooping(bLooping);
+    }
+}
+
+void USkeletalMeshComponent::Stop()
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(false);
+    }
+}
+
+bool USkeletalMeshComponent::IsPlaying() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->IsPlaying();
+    }
+
+    return false;
+}
+
+void USkeletalMeshComponent::SetPlayRate(float Rate)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->SetPlayRate(Rate);
+    }
+}
+
+float USkeletalMeshComponent::GetPlayRate() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetPlayRate();
+    }
+
+    return 0.f;
 }
