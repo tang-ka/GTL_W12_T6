@@ -31,7 +31,6 @@ struct FPropertyUIHelper
 
 void FProperty::DisplayInImGui(UObject* Object) const
 {
-    // TODO: FProperty를 상속받은 클래스 만들기
 }
 
 void FInt8Property::DisplayInImGui(UObject* Object) const
@@ -108,5 +107,6 @@ void FBoolProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
 
-    
+    bool* Data = GetPropertyData<bool>(Object);
+    ImGui::Checkbox(Name, Data);
 }

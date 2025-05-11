@@ -98,6 +98,7 @@ private:
         return std::nullopt;
     }
 
+protected:
     /**
      * Property를 실제 데이터 타입으로 변환합니다.
      * @tparam T 변환할 타입
@@ -107,7 +108,7 @@ private:
      * @warning 타입이 잘못되면 UB가 발생할 수 있습니다.
      */
     template <typename T>
-    T* GetPropertyData(UObject* Object)
+    T* GetPropertyData(UObject* Object) const
     {
         // assert(GetPropertyType<T>() == Type); // TODO: UnresolvedType 해결하기
         return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(Object) + Offset);
