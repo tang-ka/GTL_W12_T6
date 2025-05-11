@@ -326,3 +326,19 @@ struct FBoolProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
 };
+
+struct FStringProperty : public FProperty
+{
+    FStringProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::String, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};

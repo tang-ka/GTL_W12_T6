@@ -110,3 +110,19 @@ void FBoolProperty::DisplayInImGui(UObject* Object) const
     bool* Data = GetPropertyData<bool>(Object);
     ImGui::Checkbox(Name, Data);
 }
+
+void FStringProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+    FString* Data = GetPropertyData<FString>(Object);
+
+    constexpr int32 IMGUI_FSTRING_BUFFER_SIZE = 2048;
+    char Buffer[IMGUI_FSTRING_BUFFER_SIZE];
+    FCStringAnsi::Strncpy(Buffer, Data->ToAnsiString().c_str(), IMGUI_FSTRING_BUFFER_SIZE);
+    Buffer[IMGUI_FSTRING_BUFFER_SIZE - 1] = '\0'; // 항상 널 종료 보장
+
+    if (ImGui::InputText(Name, Buffer, IMGUI_FSTRING_BUFFER_SIZE))
+    {
+        *Data = Buffer;
+    }
+}
