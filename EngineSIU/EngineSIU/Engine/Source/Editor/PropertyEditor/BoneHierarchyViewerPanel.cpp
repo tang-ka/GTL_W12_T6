@@ -1,61 +1,22 @@
 #include "BoneHierarchyViewerPanel.h"
 #include "Engine/EditorEngine.h"
-#include <ReferenceSkeleton.h> // Should be Engine/Public/ReferenceSkeleton.h or similar if it's an engine type
+#include <ReferenceSkeleton.h>
 
-#include "Animation/AnimData/AnimDataModel.h" // Make sure this path is correct
+#include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
-// #include "Engine/Classes/Engine/FbxLoader.h" // Not directly used in timeline logic
-#include "ThirdParty/ImGui/include/ImGui/imgui.h" // Added for ImGui functions
+#include "Engine/Classes/Engine/FbxLoader.h"
 #include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
 #include "Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Engine/Classes/Animation/AnimSequence.h"
 
-// Helper function to initialize or reset playback state
-void BoneHierarchyViewerPanel::InitializePlaybackState(UAnimSequence* AnimSequence)
-{
-    if (AnimSequence && AnimSequence->GetDataModel())
-    {
-        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-        mPlaybackState.StartFrame = 0;
-        mPlaybackState.EndFrame = DataModel->GetNumberOfFrames() <= 0 ? 1:DataModel->GetNumberOfFrames() - 1;
-        if (mPlaybackState.EndFrame < 0) mPlaybackState.EndFrame = 0; // Handle empty animation
-
-        mPlaybackState.CurrentFrame = mPlaybackState.StartFrame;
-        mPlaybackState.LoopStartFrame = mPlaybackState.StartFrame;
-        mPlaybackState.LoopEndFrame = mPlaybackState.EndFrame;
-        
-        mPlaybackState.bIsPlaying = false;
-        mPlaybackState.bIsPaused = false;
-        mPlaybackState.bIsReversing = false;
-        mPlaybackState.PlaybackSpeed = 1.0f;
-        mPlaybackState.AccumulatedTime = 0.0f;
-        // mPlaybackState.PreviousFrameForEngineUpdate = -1; // Part of struct, default init is fine
-    }
-    else
-    {
-        // Default values if no valid animation sequence
-        mPlaybackState.StartFrame = 0;
-        mPlaybackState.EndFrame = 100;
-        mPlaybackState.CurrentFrame = 0;
-        mPlaybackState.LoopStartFrame = 0;
-        mPlaybackState.LoopEndFrame = 100;
-        mPlaybackState.bIsPlaying = false;
-        mPlaybackState.bIsPaused = false;
-        mPlaybackState.bIsReversing = false;
-        mPlaybackState.PlaybackSpeed = 1.0f;
-        mPlaybackState.AccumulatedTime = 0.0f;
-    }
-}
-
 BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
 {
     SetSupportedWorldTypes(EWorldTypeBitFlag::SkeletalViewer);
-    InitializePlaybackState(nullptr); 
 }
-
 void BoneHierarchyViewerPanel::Render()
 {
+    
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
     {
@@ -66,57 +27,75 @@ void BoneHierarchyViewerPanel::Render()
         LoadBoneIcon();
     }
 
+    /* Pre Setup */
     float PanelWidth = (Width) * 0.2f - 6.0f;
     float PanelHeight = (Height) * 0.3f;
-    float PanelPosX = (Width) * 0.8f + 5.0f;
+
+    float PanelPosX = (Width) * 0.8f+5.0f;
     float PanelPosY = 5.0f;
 
     ImVec2 MinSize(140, 100);
     ImVec2 MaxSize(FLT_MAX, 500);
 
+    /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
+    /* Panel Position */
     ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY), ImGuiCond_Always);
+
+    /* Panel Size */
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
     constexpr ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar;
     
+    
     if (Engine->ActiveWorld) {
         if (Engine->ActiveWorld->WorldType == EWorldType::SkeletalViewer) {
+
             if (CopiedRefSkeleton == nullptr) {
-                CopyRefSkeleton(); // RefSkeletalMeshComponent가 null이어도 내부에서 처리
-                if (RefSkeletalMeshComponent && RefSkeletalMeshComponent->GetAnimation()) {
-                    InitializePlaybackState(RefSkeletalMeshComponent->GetAnimation());
-                }
+                CopyRefSkeleton(); // 선택된 액터/컴포넌트로부터 스켈레톤 정보 복사
             }
 
-
+            // CopiedRefSkeleton이 여전히 null이면 렌더링하지 않음
             if (CopiedRefSkeleton == nullptr || CopiedRefSkeleton->RawRefBoneInfo.IsEmpty()) {
-                ImGui::Begin("Bone Hierarchy", nullptr, PanelFlags);
+                ImGui::Begin("Bone Hierarchy", nullptr, PanelFlags); // 창은 표시하되 내용은 비움
                 ImGui::Text("No skeleton selected or skeleton has no bones.");
                 ImGui::End();
-            } else {
-                ImGui::Begin("Bone Hierarchy", nullptr, PanelFlags);
-                for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
-                {
-                    if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE)
-                    {
-                        RenderBoneTree(*CopiedRefSkeleton, i, Engine);
-                    }
-                }
-                ImGui::End();
+                return;
             }
+
+            ImGui::Begin("Bone Hierarchy", nullptr, PanelFlags); // 창 이름 변경
+
+            // 검색 필터 추가 (선택 사항)
+            // static char BoneSearchText[128] = "";
+            // ImGui::InputText("Search", BoneSearchText, IM_ARRAYSIZE(BoneSearchText));
+            // FString SearchFilter(BoneSearchText);
+
+            // 루트 본부터 시작하여 트리 렌더링
+            for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
+            {
+                if (CopiedRefSkeleton->RawRefBoneInfo[i].ParentIndex == INDEX_NONE) // 루트 본인 경우
+                {
+                    // RenderBoneTree 호출 시 Engine 포인터 전달
+                    RenderBoneTree(*CopiedRefSkeleton, i, Engine /*, SearchFilter */);
+                }
+            }
+            ImGui::End();
         }
         
-        if (RefSkeletalMeshComponent) { 
+        if (CopiedRefSkeleton) {
             RenderAnimationSequence(*CopiedRefSkeleton, Engine);
         }
         
         float ExitPanelWidth = (Width) * 0.2f - 6.0f;
         float ExitPanelHeight = 30.0f;
+
+        const float margin = 10.0f;
+
         float ExitPanelPosX = Width - ExitPanelWidth;
         float ExitPanelPosY = Height - ExitPanelHeight - 10;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
         ImGui::SetNextWindowSize(ImVec2(ExitPanelWidth, ExitPanelHeight), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(ExitPanelPosX, ExitPanelPosY), ImGuiCond_Always);
         
@@ -129,12 +108,14 @@ void BoneHierarchyViewerPanel::Render()
 
         ImGui::Begin("Exit Viewer", nullptr, ExitPanelFlags);
         if (ImGui::Button("Exit Viewer", ImVec2(ExitPanelWidth, ExitPanelHeight))) {
+            ClearRefSkeletalMeshComponent();
             UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine);
             EdEngine->EndSkeletalMeshViewer();
         }
         ImGui::End();
         ImGui::PopStyleVar();
     }
+ 
 }
 
 void BoneHierarchyViewerPanel::OnResize(HWND hWnd)
@@ -148,11 +129,6 @@ void BoneHierarchyViewerPanel::OnResize(HWND hWnd)
 void BoneHierarchyViewerPanel::SetSkeletalMesh(USkeletalMesh* SMesh)
 {
     SkeletalMesh = SMesh;
-    if (RefSkeletalMeshComponent) {
-         InitializePlaybackState(RefSkeletalMeshComponent->GetAnimation());
-    } else {
-         InitializePlaybackState(nullptr);
-    }
 }
 
 int32 BoneHierarchyViewerPanel::GetSelectedBoneIndex() const
@@ -168,43 +144,72 @@ FString BoneHierarchyViewerPanel::GetSelectedBoneName() const
     return RefSkel.RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
 }
 
+void BoneHierarchyViewerPanel::ClearRefSkeletalMeshComponent()
+{
+    if (RefSkeletalMeshComponent)
+    {
+        RefSkeletalMeshComponent = nullptr;
+    }
+}
+
 void BoneHierarchyViewerPanel::LoadBoneIcon()
 {
     BoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/Bone_16x.PNG")->TextureSRV;
     NonWeightBoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/BoneNonWeighted_16x.PNG")->TextureSRV;
+
 }
 
 void BoneHierarchyViewerPanel::CopyRefSkeleton()
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-    if (!Engine || !Engine->SkeletalMeshViewerWorld) return;
+    const FReferenceSkeleton& OrigRef = Engine->SkeletalMeshViewerWorld
+        ->GetSkeletalMeshComponent()->GetSkeletalMeshAsset()
+        ->GetSkeleton()->GetReferenceSkeleton();
 
-    USkeletalMeshComponent* SkelComp = Engine->SkeletalMeshViewerWorld->GetSkeletalMeshComponent();
-    if (!SkelComp || !SkelComp->GetSkeletalMeshAsset() || !SkelComp->GetSkeletalMeshAsset()->GetSkeleton())
-        return;
-
-    const FReferenceSkeleton& OrigRef = SkelComp->GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
-
-    if (CopiedRefSkeleton) delete CopiedRefSkeleton;
     CopiedRefSkeleton = new FReferenceSkeleton();
     CopiedRefSkeleton->RawRefBoneInfo = OrigRef.RawRefBoneInfo;
     CopiedRefSkeleton->RawRefBonePose = OrigRef.RawRefBonePose;
+    CopiedRefSkeleton->InverseBindPoseMatrices = OrigRef.InverseBindPoseMatrices;
     CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
 
-    RefSkeletalMeshComponent = SkelComp; // 항상 갱신
+    RefSkeletalMeshComponent = Engine->SkeletalMeshViewerWorld->GetSkeletalMeshComponent();
 }
 
-
-void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine)
+void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine /*, const FString& SearchFilter */)
 {
     const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
     const FString& ShortBoneName = GetCleanBoneName(BoneInfo.Name.ToString());
 
+    // 검색 필터 적용 (선택 사항)
+    // if (!SearchFilter.IsEmpty() && !ShortBoneName.Contains(SearchFilter))
+    // {
+    //    // 자식도 검색해야 하므로, 현재 노드가 필터에 맞지 않아도 자식은 재귀 호출
+    //    bool bChildMatchesFilter = false;
+    //    for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+    //    {
+    //        if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == BoneIndex)
+    //        {
+    //            // 자식 중 하나라도 필터에 맞으면 현재 노드도 표시해야 할 수 있음 (복잡해짐)
+    //            // 간단하게는 현재 노드가 안 맞으면 그냥 건너뛰도록 할 수 있음
+    //        }
+    //    }
+    //    // 간단한 필터링: 현재 노드가 안 맞으면 그냥 숨김 (자식도 안 나옴)
+    //    // if (!ShortBoneName.Contains(SearchFilter)) return;
+    // }
+
+    // 1) ImGui ID 충돌 방지
     ImGui::PushID(BoneIndex);
-    ImGui::Image((ImTextureID)BoneIconSRV, ImVec2(16, 16));
+
+    ImGui::Image((ImTextureID)BoneIconSRV, ImVec2(16, 16));  // 16×16 픽셀 크기
     ImGui::SameLine();
 
     ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+    // if (Engine->SkeletalMeshViewerWorld->SelectBoneIndex == BoneIndex) // 가상의 함수 호출
+    // {
+    //     NodeFlags |= ImGuiTreeNodeFlags_Selected; // 선택된 경우 Selected 플래그 추가
+    // }
+
+    // 자식이 없는 본은 리프 노드로 처리 (화살표 없음)
     bool bHasChildren = false;
     for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
     {
@@ -216,34 +221,40 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
     }
     if (!bHasChildren)
     {
-        NodeFlags |= ImGuiTreeNodeFlags_Leaf;
-        NodeFlags &= ~ImGuiTreeNodeFlags_OpenOnArrow;
+        NodeFlags |= ImGuiTreeNodeFlags_Leaf; // 자식 없으면 리프 노드
+        NodeFlags &= ~ImGuiTreeNodeFlags_OpenOnArrow; // 리프 노드는 화살표로 열 필요 없음
     }
 
+    // ImGui::TreeNodeEx (본 이름, 플래그)
+    // 이름 부분만 클릭 가능하도록 하려면 ImGui::Selectable을 함께 사용하거나 커스텀 로직 필요
+    // 여기서는 TreeNodeEx 자체의 클릭 이벤트를 사용
     bool bNodeOpen = ImGui::TreeNodeEx(*ShortBoneName, NodeFlags);
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+
+    // --- 클릭 이벤트 처리 ---
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) // 왼쪽 마우스 버튼 클릭 시
     {
-        SelectedBoneIndex = BoneIndex; 
+        // 엔진에 선택된 본 인덱스 설정 (가상의 함수 호출)
+        Engine->SkeletalMeshViewerWorld->SelectBoneIndex = (BoneIndex);
     }
 
-    if (bNodeOpen)
+    if (bNodeOpen) // 노드가 열려있다면
     {
+        // 자식 본들 재귀적으로 처리
         for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
         {
             if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == BoneIndex)
             {
-                RenderBoneTree(RefSkeleton, i, Engine);
+                RenderBoneTree(RefSkeleton, i, Engine /*, SearchFilter */); // 재귀 호출 시 Engine 전달
             }
         }
-        ImGui::TreePop();
+        ImGui::TreePop(); // 트리 노드 닫기
     }
-    ImGui::PopID();
+    ImGui::PopID(); // ID 스택 복원
 }
 
 void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
 {
     if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->GetAnimation())
-<<<<<<< HEAD
         return;
 
     UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimation();
@@ -337,235 +348,30 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                 std::vector<ImGui::FrameIndexType> keys = {0, 10, 24};
                 if (ImGui::BeginNeoTimeline("Position", keys)) {
                     ImGui::EndNeoTimeLine();
-=======
-    {
-        ImGui::Begin("Animation Timeline", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
-        ImGui::Text("No Animation Loaded or Skeletal Mesh Component not set.");
-        ImGui::End();
-        return;
-    }
-
-    UAnimSequence* AnimSequence = RefSkeletalMeshComponent->GetAnimation();
-    const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-    if (!DataModel)
-    {
-        ImGui::Begin("Animation Timeline", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
-        ImGui::Text("Animation Data Model is not available.");
-        ImGui::End();
-        return;
-    }
-
-    if (mPlaybackState.EndFrame != (DataModel->GetNumberOfFrames() -1) && DataModel->GetNumberOfFrames() > 0) {
-        InitializePlaybackState(AnimSequence);
-    }
-    mPlaybackState.CurrentFrame = RefSkeletalMeshComponent->GetElapsedTime() * DataModel->GetFrameRate();
-    
-    const float FrameRate = DataModel->GetFrameRate();
-    int32 previousCurrentFrameForEngine = mPlaybackState.CurrentFrame; // Store current frame before any UI or logic changes it this tick
-    
-    ImGui::SetNextWindowSize(ImVec2(Width * 0.78f, 220), ImGuiCond_FirstUseEver); 
-    ImGui::SetNextWindowPos(ImVec2(10, Height - 230), ImGuiCond_FirstUseEver); 
-
-    if (ImGui::Begin("Animation Timeline", nullptr, ImGuiWindowFlags_HorizontalScrollbar))
-    {
-        int32 frameBeforeSequencer = mPlaybackState.CurrentFrame;
-
-        if (mPlaybackState.bIsPlaying && !mPlaybackState.bIsPaused && mPlaybackState.PlaybackSpeed != 0.0f && FrameRate > 0.0f)
-        {
-            mPlaybackState.AccumulatedTime += ImGui::GetIO().DeltaTime;
-            float timePerFrame = 1.0f / FrameRate;
-            float effectiveTimePerFrame = timePerFrame / fabsf(mPlaybackState.PlaybackSpeed);
-
-            if (effectiveTimePerFrame > 0) 
-            {
-                int framesToAdvance = static_cast<int>(mPlaybackState.AccumulatedTime / effectiveTimePerFrame);
-                if (framesToAdvance > 0)
-                {
-                    mPlaybackState.AccumulatedTime -= framesToAdvance * effectiveTimePerFrame;
-                    if (mPlaybackState.bIsReversing || mPlaybackState.PlaybackSpeed < 0.0f) 
-                    {
-                        mPlaybackState.CurrentFrame -= framesToAdvance;
-                    }
-                    else
-                    {
-                        mPlaybackState.CurrentFrame += framesToAdvance;
-                    }
->>>>>>> cac7cb82 (UI 임시 작업중)
                 }
+                ImGui::EndNeoGroup();
             }
-        }
-
-        if (ImGui::BeginNeoSequencer("Sequencer", &mPlaybackState.CurrentFrame, &mPlaybackState.StartFrame, &mPlaybackState.EndFrame, ImVec2(0,60) /*ImGuiNeoSequencerFlags_HideZoom*/))
-        {
             ImGui::EndNeoSequencer();
         }
-<<<<<<< HEAD
-=======
-        // If sequencer changed the frame, reset accumulated time
-        if (mPlaybackState.CurrentFrame != frameBeforeSequencer) {
-            mPlaybackState.AccumulatedTime = 0.0f;
-        }
-
-        ImGui::Spacing();
-
-        if (mPlaybackState.bIsPlaying && !mPlaybackState.bIsPaused)
-        {
-            if (ImGui::Button("Pause [❚❚]")) { mPlaybackState.bIsPaused = true; }
-        }
-        else
-        {
-            if (ImGui::Button("Play  [▶]")) 
-            {
-                mPlaybackState.bIsPlaying = true;
-                mPlaybackState.bIsPaused = false;
-                if (!mPlaybackState.bIsReversing && mPlaybackState.CurrentFrame >= mPlaybackState.EndFrame && mPlaybackState.EndFrame > mPlaybackState.StartFrame) { // Check EndFrame > StartFrame to avoid issues with single frame anims
-                    mPlaybackState.CurrentFrame = mPlaybackState.bIsLooping ? mPlaybackState.LoopStartFrame : mPlaybackState.StartFrame;
-                }
-                else if (mPlaybackState.bIsReversing && mPlaybackState.CurrentFrame <= mPlaybackState.StartFrame && mPlaybackState.EndFrame > mPlaybackState.StartFrame) {
-                     mPlaybackState.CurrentFrame = mPlaybackState.bIsLooping ? mPlaybackState.LoopEndFrame : mPlaybackState.EndFrame;
-                }
-                mPlaybackState.AccumulatedTime = 0.0f; 
-            }
-        }
-        ImGui::SameLine();
-
-        if (ImGui::Button("Stop [■]"))
-        {
-            mPlaybackState.bIsPlaying = false;
-            mPlaybackState.bIsPaused = false;
-            mPlaybackState.CurrentFrame = mPlaybackState.StartFrame; 
-            mPlaybackState.AccumulatedTime = 0.0f;
-        }
-        ImGui::SameLine();
-
-        const char* reverseButtonLabel = (mPlaybackState.bIsReversing || mPlaybackState.PlaybackSpeed < 0.0f) ? "Forward [▶>]": "Reverse [<◀]";
-        if (ImGui::Button(reverseButtonLabel))
-        {
-            mPlaybackState.bIsReversing = !mPlaybackState.bIsReversing;
-            // If speed is negative, make it positive for forward, and vice-versa, or just toggle bIsReversing and let speed sign control direction.
-            // For simplicity, this button primarily toggles the bIsReversing flag. Speed sign can also dictate direction.
-        }
-        ImGui::SameLine();
-
-        ImGui::Checkbox("Loop", &mPlaybackState.bIsLooping);
-        ImGui::SameLine();
-
-        ImGui::PushItemWidth(100.0f);
-        if(ImGui::SliderFloat("Speed", &mPlaybackState.PlaybackSpeed, 0.0f, 4.0f, "%.1fx")) {
-            // If speed becomes 0, effectively pause but keep isPlaying state unless explicitly stopped/paused.
-            // If speed becomes negative, could imply reverse playing.
-            if (mPlaybackState.PlaybackSpeed == 0.0f && mPlaybackState.bIsPlaying) {
-                // mPlaybackState.bIsPaused = true; // Or handle as just zero speed.
-            }
-        }
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushItemWidth(80.0f);
-        if (ImGui::InputInt("Frame##Current", &mPlaybackState.CurrentFrame))
-        {
-            mPlaybackState.AccumulatedTime = 0.0f; 
-            if (mPlaybackState.CurrentFrame > mPlaybackState.EndFrame) mPlaybackState.CurrentFrame = mPlaybackState.EndFrame;
-            if (mPlaybackState.CurrentFrame < mPlaybackState.StartFrame) mPlaybackState.CurrentFrame = mPlaybackState.StartFrame;
-        }
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-        ImGui::Text("/ %d", mPlaybackState.EndFrame);
-
-        ImGui::Spacing();
-        ImGui::Text("Loop Range:"); ImGui::SameLine();
-        ImGui::PushItemWidth(70.0f);
-        if (ImGui::InputInt("Start##Loop", &mPlaybackState.LoopStartFrame)) {
-             if (mPlaybackState.LoopStartFrame > mPlaybackState.LoopEndFrame) mPlaybackState.LoopStartFrame = mPlaybackState.LoopEndFrame;
-             if (mPlaybackState.LoopStartFrame < mPlaybackState.StartFrame) mPlaybackState.LoopStartFrame = mPlaybackState.StartFrame;
-             if (mPlaybackState.LoopStartFrame > mPlaybackState.EndFrame) mPlaybackState.LoopStartFrame = mPlaybackState.EndFrame;
-        }
-        ImGui::PopItemWidth(); ImGui::SameLine();
-        ImGui::PushItemWidth(70.0f);
-        if (ImGui::InputInt("End##Loop", &mPlaybackState.LoopEndFrame)) {
-            if (mPlaybackState.LoopEndFrame < mPlaybackState.LoopStartFrame) mPlaybackState.LoopEndFrame = mPlaybackState.LoopStartFrame;
-            if (mPlaybackState.LoopEndFrame > mPlaybackState.EndFrame) mPlaybackState.LoopEndFrame = mPlaybackState.EndFrame;
-            if (mPlaybackState.LoopEndFrame < mPlaybackState.StartFrame) mPlaybackState.LoopEndFrame = mPlaybackState.StartFrame;
-        }
-        ImGui::PopItemWidth(); ImGui::SameLine();
-        if(ImGui::Button("Set Start##BtnLoop")) { 
-            mPlaybackState.LoopStartFrame = mPlaybackState.CurrentFrame; 
-            if (mPlaybackState.LoopStartFrame > mPlaybackState.LoopEndFrame) mPlaybackState.LoopEndFrame = mPlaybackState.LoopStartFrame; 
-        }
-        ImGui::SameLine();
-        if(ImGui::Button("Set End##BtnLoop")) { 
-            mPlaybackState.LoopEndFrame = mPlaybackState.CurrentFrame; 
-            if (mPlaybackState.LoopEndFrame < mPlaybackState.LoopStartFrame) mPlaybackState.LoopStartFrame = mPlaybackState.LoopEndFrame; 
-        }
-
-        if (mPlaybackState.bIsLooping)
-        {
-            bool crossedLoopEndForward = !mPlaybackState.bIsReversing && mPlaybackState.CurrentFrame > mPlaybackState.LoopEndFrame;
-            bool crossedLoopStartReverse = mPlaybackState.bIsReversing && mPlaybackState.CurrentFrame < mPlaybackState.LoopStartFrame;
-            if (crossedLoopEndForward)
-            {
-                mPlaybackState.CurrentFrame = mPlaybackState.LoopStartFrame + (mPlaybackState.CurrentFrame - mPlaybackState.LoopEndFrame -1); // Wrap around
-                 if(mPlaybackState.CurrentFrame < mPlaybackState.LoopStartFrame) mPlaybackState.CurrentFrame = mPlaybackState.LoopStartFrame;
-            }
-            else if (crossedLoopStartReverse)
-            {
-                mPlaybackState.CurrentFrame = mPlaybackState.LoopEndFrame - (mPlaybackState.LoopStartFrame - mPlaybackState.CurrentFrame -1); // Wrap around
-                if(mPlaybackState.CurrentFrame > mPlaybackState.LoopEndFrame) mPlaybackState.CurrentFrame = mPlaybackState.LoopEndFrame;
-            }
-            // Clamp to loop range if manually set outside or due to large step
-            if (mPlaybackState.CurrentFrame > mPlaybackState.LoopEndFrame && mPlaybackState.LoopEndFrame >= mPlaybackState.LoopStartFrame) mPlaybackState.CurrentFrame = mPlaybackState.LoopEndFrame;
-            if (mPlaybackState.CurrentFrame < mPlaybackState.LoopStartFrame && mPlaybackState.LoopEndFrame >= mPlaybackState.LoopStartFrame) mPlaybackState.CurrentFrame = mPlaybackState.LoopStartFrame;
-        }
-        else
-        {
-            if (!mPlaybackState.bIsReversing && mPlaybackState.CurrentFrame >= mPlaybackState.EndFrame)
-            {
-                mPlaybackState.CurrentFrame = mPlaybackState.EndFrame;
-                if (mPlaybackState.bIsPlaying) { mPlaybackState.bIsPlaying = false; mPlaybackState.bIsPaused = false; } 
-            }
-            else if (mPlaybackState.bIsReversing && mPlaybackState.CurrentFrame <= mPlaybackState.StartFrame)
-            {
-                mPlaybackState.CurrentFrame = mPlaybackState.StartFrame;
-                if (mPlaybackState.bIsPlaying) { mPlaybackState.bIsPlaying = false; mPlaybackState.bIsPaused = false; }
-            }
-        }
-        
-        if (mPlaybackState.CurrentFrame > mPlaybackState.EndFrame) mPlaybackState.CurrentFrame = mPlaybackState.EndFrame;
-        if (mPlaybackState.CurrentFrame < mPlaybackState.StartFrame) mPlaybackState.CurrentFrame = mPlaybackState.StartFrame;
-
-        // --- Update Skeletal Mesh Component Animation Time --- 
-        if (RefSkeletalMeshComponent && (mPlaybackState.CurrentFrame != previousCurrentFrameForEngine || mPlaybackState.bIsPlaying || ImGui::IsAnyItemActive() ))
-        {
-            if (FrameRate > 0.0f) {
-                float ElapsedTime = static_cast<float>(mPlaybackState.CurrentFrame) / FrameRate;
-                // Using SetElapsedTime and SetCurrentKey as per original commented code and user feedback
-                RefSkeletalMeshComponent->SetElapsedTime(ElapsedTime);
-                // RefSkeletalMeshComponent->SetCurrentKey(mPlaybackState.CurrentFrame); // SetCurrentKey might be an internal helper or specific to a custom engine version.
-                                                                            // SetElapsedTime is generally safer if available and works as expected.
-                                                                            // If SetCurrentKey is indeed a valid public API for this engine version, it can be uncommented.
-                                                                            // For now, relying on SetElapsedTime to also update the current key/frame implicitly or via internal logic.
-                // To ensure the pose updates visually, a call to refresh or tick might be needed depending on the engine.
-                // Example: RefSkeletalMeshComponent->ForceAnimationUpdate(); or similar.
-                // If the component ticks itself based on world time, SetElapsedTime might be enough.
-                // For an editor panel, we might need to explicitly tell it to update.
-            }
-            previousCurrentFrameForEngine = mPlaybackState.CurrentFrame; // Update for next tick comparison
-        }
->>>>>>> cac7cb82 (UI 임시 작업중)
     }
-    ImGui::End(); 
+    ImGui::End();
 }
 
-<<<<<<< HEAD
 
-=======
->>>>>>> cac7cb82 (UI 임시 작업중)
 FString BoneHierarchyViewerPanel::GetCleanBoneName(const FString& InFullName)
 {
-    int32 barIdx = InFullName.FindChar(TEXT('|'), ESearchCase::CaseSensitive, ESearchDir::FromEnd);
-    FString name = (barIdx != INDEX_NONE) ? InFullName.RightChop(barIdx + 1) : InFullName;
+    // 1) 계층 구분자 '|' 뒤 이름만 취하기
+    int32 barIdx = InFullName.FindChar(TEXT('|'),
+        /*case*/ ESearchCase::CaseSensitive,
+        /*dir*/  ESearchDir::FromEnd);
+    FString name = (barIdx != INDEX_NONE)
+        ? InFullName.RightChop(barIdx + 1)
+        : InFullName;
 
-    int32 colonIdx = name.FindChar(TEXT(':'), ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+    // 2) 네임스페이스 구분자 ':' 뒤 이름만 취하기
+    int32 colonIdx = name.FindChar(TEXT(':'),
+        /*case*/ ESearchCase::CaseSensitive,
+        /*dir*/  ESearchDir::FromEnd);
     if (colonIdx != INDEX_NONE)
     {
         return name.RightChop(colonIdx + 1);
