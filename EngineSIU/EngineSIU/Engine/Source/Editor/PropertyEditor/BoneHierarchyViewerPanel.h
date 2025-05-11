@@ -19,6 +19,7 @@ public:
     int32 GetSelectedBoneIndex() const;
     FString GetSelectedBoneName() const;
 
+    void ClearRefSkeletalMeshComponent();
 private:
     float Width = 0, Height = 0;
     USkeletalMesh* SkeletalMesh;

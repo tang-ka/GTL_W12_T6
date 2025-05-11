@@ -108,6 +108,7 @@ void BoneHierarchyViewerPanel::Render()
 
         ImGui::Begin("Exit Viewer", nullptr, ExitPanelFlags);
         if (ImGui::Button("Exit Viewer", ImVec2(ExitPanelWidth, ExitPanelHeight))) {
+            ClearRefSkeletalMeshComponent();
             UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine);
             EdEngine->EndSkeletalMeshViewer();
         }
@@ -141,6 +142,14 @@ FString BoneHierarchyViewerPanel::GetSelectedBoneName() const
         return TEXT("");
     const auto& RefSkel = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
     return RefSkel.RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
+}
+
+void BoneHierarchyViewerPanel::ClearRefSkeletalMeshComponent()
+{
+    if (RefSkeletalMeshComponent)
+    {
+        RefSkeletalMeshComponent = nullptr;
+    }
 }
 
 void BoneHierarchyViewerPanel::LoadBoneIcon()
@@ -254,7 +263,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     
     int32 StartFrame = 0;
     int32 EndFrame = NumFrames - 1;
-
+    EndFrame = FMath::Max(EndFrame, StartFrame + 1);
     // 현재 재생 중인 키프레임
     int32 CurrentFrame = RefSkeletalMeshComponent->GetCurrentKey();
    
