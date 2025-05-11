@@ -10,7 +10,7 @@
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
 
-bool USkeletalMeshComponent::bCPUSkinning = true;
+bool USkeletalMeshComponent::bCPUSkinning = false;
 
 USkeletalMeshComponent::USkeletalMeshComponent()
 {
