@@ -9,7 +9,9 @@ struct FVector;
 
 struct FAnimNotifyEvent
 {
-    
+    float TriggerTime;
+    float Duration;
+    FName NotifyName;
 };
 
 struct FAnimNotifyTrack
