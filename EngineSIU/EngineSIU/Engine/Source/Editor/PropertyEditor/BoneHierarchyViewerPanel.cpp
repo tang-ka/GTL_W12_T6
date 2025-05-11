@@ -243,6 +243,101 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
 void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
 {
     if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->GetAnimation())
+<<<<<<< HEAD
+        return;
+
+    UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimation();
+    UAnimDataModel* DataModel = AnimSeq->GetDataModel();
+    if (PrevAnimDataModel != DataModel)
+    {
+        RefSkeletalMeshComponent->SetLoopStartFrame(0);
+        RefSkeletalMeshComponent->SetLoopEndFrame(FMath::Max(1, DataModel->GetNumberOfFrames() - 1));
+        PrevAnimDataModel = DataModel;
+    }
+    
+    const int32 FrameRate = DataModel->GetFrameRate();
+    const int32 NumFrames = DataModel->GetNumberOfFrames();
+    static bool transformOpen = false;
+    
+    // 게터/세터를 통한 접근으로 변경
+    int32 LoopStart = RefSkeletalMeshComponent->GetLoopStartFrame();
+    int32 LoopEnd = RefSkeletalMeshComponent->GetLoopEndFrame();
+    // 방어 코드 추가
+    LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
+    LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
+
+    // 유효성 확인: Start가 End보다 크거나 같거나 음수면 기본 값으로 설정
+    if (LoopStart >= LoopEnd || LoopStart < 0 || LoopEnd < 0)
+    {
+        LoopStart = 0;
+        LoopEnd = FMath::Max(1, NumFrames - 1);
+        RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
+        RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
+    }
+
+    float PlaySpeed = RefSkeletalMeshComponent->GetPlaySpeed();
+    bool bLooping = RefSkeletalMeshComponent->IsLooping();
+    bool bReverse = RefSkeletalMeshComponent->IsPlayReverse();
+    bool bPaused = RefSkeletalMeshComponent->IsPaused();
+
+    float Elapsed = RefSkeletalMeshComponent->GetElapsedTime();
+    float TargetKeyFrame = Elapsed * FrameRate;
+    int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (LoopEnd + 1);
+    PreviousFrame = CurrentFrame;
+
+    ImGui::SetNextWindowSize(ImVec2(400, 220), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Animation Sequence Timeline"))
+    {
+        if (ImGui::Button("Play")) {
+            RefSkeletalMeshComponent->SetAnimationEnabled(true);
+            RefSkeletalMeshComponent->SetPaused(false);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Pause")) {
+            RefSkeletalMeshComponent->SetPaused(true);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Stop")) {
+            RefSkeletalMeshComponent->SetAnimationEnabled(false);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::SliderFloat("Play Speed", &PlaySpeed, 0.1f, 3.0f, "%.1fx"))
+            RefSkeletalMeshComponent->SetPlaySpeed(PlaySpeed);
+
+        if (ImGui::Checkbox("Looping", &bLooping))
+            RefSkeletalMeshComponent->SetLooping(bLooping);
+
+        if (ImGui::Checkbox("Play Reverse", &bReverse))
+            RefSkeletalMeshComponent->SetPlayReverse(bReverse);
+
+        if (ImGui::SliderInt("Loop Start", &LoopStart, 0, NumFrames - 2))
+            RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
+
+        if (ImGui::SliderInt("Loop End", &LoopEnd, LoopStart + 1, NumFrames - 1))
+            RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
+
+        // 슬라이더 조정 후 유효성 재검사
+        LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
+        LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
+
+        if (LoopStart >= LoopEnd || LoopStart < 0 || LoopEnd < 0)
+        {
+            LoopStart = 0;
+            LoopEnd = FMath::Max(1, NumFrames - 1);
+            RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
+            RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
+        }
+
+        
+
+        if (ImGui::BeginNeoSequencer("Sequencer", &CurrentFrame, &LoopStart, &LoopEnd)) {
+            if (ImGui::BeginNeoGroup("Transform", &transformOpen)) {
+                std::vector<ImGui::FrameIndexType> keys = {0, 10, 24};
+                if (ImGui::BeginNeoTimeline("Position", keys)) {
+                    ImGui::EndNeoTimeLine();
+=======
     {
         ImGui::Begin("Animation Timeline", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
         ImGui::Text("No Animation Loaded or Skeletal Mesh Component not set.");
@@ -295,6 +390,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                     {
                         mPlaybackState.CurrentFrame += framesToAdvance;
                     }
+>>>>>>> cac7cb82 (UI 임시 작업중)
                 }
             }
         }
@@ -303,6 +399,8 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         {
             ImGui::EndNeoSequencer();
         }
+<<<<<<< HEAD
+=======
         // If sequencer changed the frame, reset accumulated time
         if (mPlaybackState.CurrentFrame != frameBeforeSequencer) {
             mPlaybackState.AccumulatedTime = 0.0f;
@@ -453,10 +551,15 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
             }
             previousCurrentFrameForEngine = mPlaybackState.CurrentFrame; // Update for next tick comparison
         }
+>>>>>>> cac7cb82 (UI 임시 작업중)
     }
     ImGui::End(); 
 }
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> cac7cb82 (UI 임시 작업중)
 FString BoneHierarchyViewerPanel::GetCleanBoneName(const FString& InFullName)
 {
     int32 barIdx = InFullName.FindChar(TEXT('|'), ESearchCase::CaseSensitive, ESearchDir::FromEnd);
