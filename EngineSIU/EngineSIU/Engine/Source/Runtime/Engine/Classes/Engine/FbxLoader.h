@@ -106,6 +106,8 @@ private:
     FMatrix ConvertFbxMatrixToFMatrix(const FbxAMatrix& FbxMatrix) const;
 
     FbxAMatrix ConvertFbxMatrixToFbxAMatrix(const FbxMatrix& Matrix) const;
+
+    void ComputeBoundingBox(const TArray<FSkeletalMeshVertex>& InVertices, FVector& OutMinVector, FVector& OutMaxVector);
 };
 
 template <typename T>

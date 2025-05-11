@@ -1043,6 +1043,8 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& M
 
     CalculateTangents(RenderData->Vertices, RenderData->Indices);
     
+    ComputeBoundingBox(RenderData->Vertices, RenderData->BoundingBoxMin, RenderData->BoundingBoxMax);
+    
     USkeletalMesh* SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
     SkeletalMesh->SetRenderData(std::move(RenderData));
 
@@ -1749,4 +1751,24 @@ FbxAMatrix FFbxLoader::ConvertFbxMatrixToFbxAMatrix(const FbxMatrix& Matrix) con
         }
     }
     return Result;
+}
+
+void FFbxLoader::ComputeBoundingBox(const TArray<FSkeletalMeshVertex>& InVertices, FVector& OutMinVector, FVector& OutMaxVector)
+{
+    FVector MinVector = { FLT_MAX, FLT_MAX, FLT_MAX };
+    FVector MaxVector = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+
+    for (int32 i = 0; i < InVertices.Num(); i++)
+    {
+        MinVector.X = std::min(MinVector.X, InVertices[i].X);
+        MinVector.Y = std::min(MinVector.Y, InVertices[i].Y);
+        MinVector.Z = std::min(MinVector.Z, InVertices[i].Z);
+
+        MaxVector.X = std::max(MaxVector.X, InVertices[i].X);
+        MaxVector.Y = std::max(MaxVector.Y, InVertices[i].Y);
+        MaxVector.Z = std::max(MaxVector.Z, InVertices[i].Z);
+    }
+
+    OutMinVector = MinVector;
+    OutMaxVector = MaxVector;
 }
