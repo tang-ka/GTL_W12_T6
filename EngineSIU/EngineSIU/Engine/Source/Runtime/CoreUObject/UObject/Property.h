@@ -342,3 +342,18 @@ struct FStrProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
 };
+
+struct FNameProperty : public FProperty
+{
+    FNameProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Name, InSize, InOffset, InFlags)
+    {}
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
