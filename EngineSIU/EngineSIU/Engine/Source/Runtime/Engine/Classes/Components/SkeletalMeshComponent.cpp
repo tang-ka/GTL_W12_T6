@@ -56,8 +56,10 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
             DeltaPlayTime *= -1.0f;
         }
 
+        PreviousTime = ElapsedTime;
         ElapsedTime += DeltaPlayTime;
 
+        EvaluateAnimNotifies(AnimSequence->Notifies, ElapsedTime, PreviousTime, DeltaPlayTime, this, AnimSequence, bPlayLooping);
         // 루프 처리
         if (bPlayLooping)
         {
@@ -83,6 +85,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
                 bPlayAnimation = false;
             }
         }
+        
     }
 
     // 포즈 초기화
@@ -398,7 +401,7 @@ void USkeletalMeshComponent::SetLooping(bool bEnable)
     bPlayLooping = bEnable;
 }
 
-static void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping)
+ void USkeletalMeshComponent::EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping)
 {
     for (FAnimNotifyEvent& NotifyEvent : const_cast<TArray<FAnimNotifyEvent>&>(Notifies))
     {
@@ -418,6 +421,7 @@ static void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float
             {
                 if (NotifyEvent.Notify)
                 {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
                     NotifyEvent.Notify->Notify(MeshComp, AnimAsset);
                 }
                 NotifyEvent.bTriggered = true;
@@ -429,6 +433,7 @@ static void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float
             {
                 if (NotifyEvent.NotifyState)
                 {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
                     NotifyEvent.NotifyState->NotifyBegin(MeshComp, AnimAsset, NotifyEvent.Duration);
                 }
                 NotifyEvent.bStateActive = true;
@@ -437,6 +442,7 @@ static void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float
             {
                 if (NotifyEvent.NotifyState)
                 {
+
                     NotifyEvent.NotifyState->NotifyTick(MeshComp, AnimAsset, DeltaTime);
                 }
             }

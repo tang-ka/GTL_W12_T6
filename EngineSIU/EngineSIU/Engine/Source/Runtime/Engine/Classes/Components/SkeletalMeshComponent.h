@@ -5,7 +5,8 @@
 
 class UAnimSequence;
 class USkeletalMesh;
-
+class FAnimNotifyEvent;
+class UAnimSequenceBase;
 class USkeletalMeshComponent : public USkinnedMeshComponent
 {
     DECLARE_CLASS(USkeletalMeshComponent, USkinnedMeshComponent)
@@ -69,6 +70,7 @@ public:
     bool IsLooping() const;
     void SetLooping(bool bEnable);
 
+    void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping);
     
 private:
     TArray<FTransform> BonePoseTransforms;
@@ -78,6 +80,7 @@ private:
     UAnimSequence* AnimSequence = nullptr;
 
     float ElapsedTime = 0.f;
+    float PreviousTime = 0.f;
     float TargetKeyFrame = 0.f;
     float Alpha = 0.f;
     int32 CurrentKey = 0.f;

@@ -5,7 +5,7 @@
 #include "Animation/AnimData/AnimDataModel.h"
 #include "Developer/AnimDataController/AnimDataController.h"
 #include "Animation/AnimTypes.h"
-
+#include "Engine/Classes/Animation/AnimNotifyState.h"
 UAnimSequenceBase::UAnimSequenceBase()
     : RateScale(1.f)
     , bLoop(true)
@@ -132,15 +132,25 @@ bool UAnimSequenceBase::AddNotifyEvent(int32 TargetTrackIndex, float Time, float
         return false;
     }
 
-    FAnimNotifyEvent NewEvent;
+    int32 NewIndex = Notifies.Add(FAnimNotifyEvent());
+    FAnimNotifyEvent& NewEvent = Notifies[NewIndex];
     NewEvent.Time = Time;
     NewEvent.Duration = Duration;
     NewEvent.TrackIndex = TargetTrackIndex;
     NewEvent.NotifyName = NotifyName;
-    OutNewNotifyIndex = Notifies.Add(NewEvent);
 
-    // Add the global notify index to the track's list of notifies
-    AnimNotifyTracks[TargetTrackIndex].NotifyIndices.Add(OutNewNotifyIndex);
+    if (Duration > 0.f)
+    {
+        NewEvent.NotifyState = FObjectFactory::ConstructObject<UAnimNotifyState>(this);
+    }
+    else
+    {
+        NewEvent.Notify = FObjectFactory::ConstructObject<UAnimNotify>(this);
+    }
+
+    AnimNotifyTracks[TargetTrackIndex].NotifyIndices.Add(NewIndex);
+    OutNewNotifyIndex = NewIndex;
+
     return true;
 }
 

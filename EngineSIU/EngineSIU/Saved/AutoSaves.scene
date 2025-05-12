@@ -26,8 +26,8 @@
                     "ComponentClass": "USkeletalMeshComponent",
                     "ComponentID": "USkeletalMeshComponent_177",
                     "Properties": {
-                        "AABB_max": "X=1.315 Y=56.225 Z=26.075",
-                        "AABB_min": "X=-182.937 Y=-56.857 Z=-35.441",
+                        "AABB_max": "X=17.174 Y=90.257 Z=180.888",
+                        "AABB_min": "X=-14.896 Y=-90.257 Z=-0.035",
                         "AttachParentID": "nullptr",
                         "ComponentClass": "USkeletalMeshComponent",
                         "ComponentName": "USkeletalMeshComponent_177",
