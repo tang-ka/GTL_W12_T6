@@ -9,6 +9,7 @@
 #include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
 #include "Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Engine/Classes/Animation/AnimSequence.h"
+#include "Engine/Classes/Animation/AnimTypes.h"
 
 BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
 {
@@ -255,10 +256,16 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
 void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
 {
     if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->GetAnimation())
+    {
         return;
-
+    }
     UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimation();
     UAnimDataModel* DataModel = AnimSeq->GetDataModel();
+    
+    if (!DataModel)
+    {
+        return;
+    }
     if (PrevAnimDataModel != DataModel)
     {
         RefSkeletalMeshComponent->SetLoopStartFrame(0);
@@ -267,13 +274,20 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     }
     
     const int32 FrameRate = DataModel->GetFrameRate();
-    const int32 NumFrames = DataModel->GetNumberOfFrames();
+    int32 NumFrames = DataModel->GetNumberOfFrames();
+    if (NumFrames <= 1)
+    {
+        ImGui::Begin("Animation Sequence Timeline");
+        ImGui::Text("Animation has too few frames.");
+        ImGui::End();
+        return;
+    }
+
     static bool transformOpen = false;
     
-    // 게터/세터를 통한 접근으로 변경
     int32 LoopStart = RefSkeletalMeshComponent->GetLoopStartFrame();
     int32 LoopEnd = RefSkeletalMeshComponent->GetLoopEndFrame();
-    // 방어 코드 추가
+  
     LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
     LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
 
@@ -292,7 +306,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     bool bPaused = RefSkeletalMeshComponent->IsPaused();
 
     float Elapsed = RefSkeletalMeshComponent->GetElapsedTime();
-    float TargetKeyFrame = Elapsed * FrameRate;
+    float TargetKeyFrame = Elapsed * static_cast<float>(FrameRate);
     int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (LoopEnd + 1);
     PreviousFrame = CurrentFrame;
 
@@ -315,21 +329,31 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         ImGui::Separator();
 
         if (ImGui::SliderFloat("Play Speed", &PlaySpeed, 0.1f, 3.0f, "%.1fx"))
+        {
             RefSkeletalMeshComponent->SetPlaySpeed(PlaySpeed);
+        }
 
         if (ImGui::Checkbox("Looping", &bLooping))
+        {
             RefSkeletalMeshComponent->SetLooping(bLooping);
+        }
 
         if (ImGui::Checkbox("Play Reverse", &bReverse))
+        {
             RefSkeletalMeshComponent->SetPlayReverse(bReverse);
+        }
 
         if (ImGui::SliderInt("Loop Start", &LoopStart, 0, NumFrames - 2))
+        {
             RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
+        }
 
         if (ImGui::SliderInt("Loop End", &LoopEnd, LoopStart + 1, NumFrames - 1))
+        {
             RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
+        }
 
-        // 슬라이더 조정 후 유효성 재검사
+        
         LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
         LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
 
@@ -340,19 +364,94 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
             RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
             RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
         }
-
         
+        TArray<FAnimNotifyTrack>& Tracks = AnimSeq->GetAnimNotifyTracks();
+        TArray<FAnimNotifyEvent>& Events = AnimSeq->Notifies;
 
         if (ImGui::BeginNeoSequencer("Sequencer", &CurrentFrame, &LoopStart, &LoopEnd)) {
-            if (ImGui::BeginNeoGroup("Transform", &transformOpen)) {
-                std::vector<ImGui::FrameIndexType> keys = {0, 10, 24};
-                if (ImGui::BeginNeoTimeline("Position", keys)) {
+            for (int TrackIdx = 0; TrackIdx < Tracks.Num(); ++TrackIdx)
+        {
+            FAnimNotifyTrack& Track = Tracks[TrackIdx];
+            std::string TrackLabel = *Track.TrackName.ToString();
+
+            bool bOpen = true;
+            if (ImGui::BeginNeoGroup(TrackLabel.c_str(), &bOpen))
+            {
+                std::vector<ImGui::FrameIndexType> Keys;
+                for (int32 Index : Track.NotifyIndices)
+                {
+                    if (Events.IsValidIndex(Index))
+                    {
+                        const FAnimNotifyEvent& Notify = Events[Index];
+                        int32 Frame = static_cast<int32>(Notify.Time * static_cast<float>(FrameRate));
+                        Keys.push_back(Frame);
+                    }
+                }
+
+                if (ImGui::BeginNeoTimeline("Notify", Keys))
+                {
+                    // 드래그 핸들링 등 기본 처리 후 커스텀 컨트롤 추가
+                    for (int32 i = 0; i < Keys.size(); ++i)
+                    {
+                        ImGui::PushID(i);
+
+                        int frame = Keys[i];
+                        float framePos = static_cast<float>(frame);
+
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + framePos);
+                        ImGui::Text("|");
+                        ImGui::SameLine();
+                        ImGui::Text("%d", frame);
+
+                        if (ImGui::BeginPopupContextItem("RightClickMenu"))
+                        {
+                            if (ImGui::MenuItem("Delete Notify"))
+                            {
+                                // 삭제 처리: Track.NotifyIndices에서 해당 인덱스 제거
+                                if (i < Track.NotifyIndices.Num())
+                                {
+                                    int32 ToRemove = Track.NotifyIndices[i];
+                                    Track.NotifyIndices.RemoveAt(i);
+                                    if (Events.IsValidIndex(ToRemove))
+                                    {
+                                        const_cast<TArray<FAnimNotifyEvent>&>(Events).RemoveAt(ToRemove);
+                                    }
+                                }
+                                ImGui::CloseCurrentPopup();
+                                break;
+                            }
+                            ImGui::EndPopup();
+                        }
+
+                        ImGui::PopID();
+                    }
+
                     ImGui::EndNeoTimeLine();
                 }
-                ImGui::EndNeoGroup();
-            }
+
+                if (ImGui::Button("+ Add Notify"))
+                {
+                    float CurrentTimeSec = static_cast<float>(CurrentFrame) / FrameRate;
+                    int32 NewIndex = Events.Num();
+
+                    FAnimNotifyEvent NewEvent;
+                    NewEvent.Time = CurrentTimeSec;
+                    NewEvent.TrackIndex = TrackIdx;
+                    NewEvent.NotifyName = FName("AddedByUI");
+                    NewEvent.Notify = nullptr;
+
+                    const_cast<TArray<FAnimNotifyEvent>&>(Events).Add(NewEvent);
+                    Track.NotifyIndices.Add(NewIndex);
+                }
+
+        ImGui::EndNeoGroup();
+    }
+}
+
+
             ImGui::EndNeoSequencer();
         }
+
     }
     ImGui::End();
 }

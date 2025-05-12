@@ -34,6 +34,11 @@ public:
 
     UAnimDataController& GetController();
 
+    TArray<FAnimNotifyTrack>& GetAnimNotifyTracks() 
+    {
+        return AnimNotifyTracks;
+    }
+
 private:
     void CreateModel();
 };

@@ -9,6 +9,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
+#include "Animation/AnimNotifyState.h"
 
 bool USkeletalMeshComponent::bCPUSkinning = false;
 
@@ -39,31 +40,48 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
 
-    // 실제 루프 범위 적용
+    
     LoopStartFrame = FMath::Clamp(LoopStartFrame, 0, NumberOfFrames - 2);
     LoopEndFrame = FMath::Clamp(LoopEndFrame, LoopStartFrame + 1, NumberOfFrames - 1);
-    const float StartTime = static_cast<float>(LoopStartFrame) / FrameRate;
-    const float EndTime   = static_cast<float>(LoopEndFrame) / FrameRate;
+    const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
+    const float EndTime   = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate)
+
+    ;
 
     if (bPlayAnimation && !bPuaseAnimation)
     {
         float DeltaPlayTime = DeltaTime * PlaySpeed;
         if (bPlayReverse)
+        {
             DeltaPlayTime *= -1.0f;
+        }
 
         ElapsedTime += DeltaPlayTime;
 
         // 루프 처리
         if (bPlayLooping)
         {
-            if (ElapsedTime > EndTime)
+            if (ElapsedTime >= EndTime)
+            {
                 ElapsedTime = StartTime + FMath::Fmod(ElapsedTime - StartTime, EndTime - StartTime);
-            else if (ElapsedTime < StartTime)
+            }
+            else if (ElapsedTime <= StartTime)
+            {
                 ElapsedTime = EndTime - FMath::Fmod(EndTime - ElapsedTime, EndTime - StartTime);
+            }
         }
         else
         {
-            ElapsedTime = FMath::Clamp(ElapsedTime, StartTime, EndTime);
+            if (!bPlayReverse && ElapsedTime >= EndTime)
+            {
+                ElapsedTime = StartTime;
+                bPlayAnimation = false;
+            }
+            else if (bPlayReverse && ElapsedTime <= StartTime)
+            {
+                ElapsedTime = EndTime;
+                bPlayAnimation = false;
+            }
         }
     }
 
@@ -292,7 +310,20 @@ void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimSequence)
 
     SetAnimationEnabled(bPlayAnimation);
     
-    ElapsedTime = 0.f;
+    if (AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+        const int32 FrameRate = DataModel->GetFrameRate();
+
+        const float StartTime = static_cast<float>(LoopStartFrame) / FrameRate;
+        const float EndTime   = static_cast<float>(LoopEndFrame) / FrameRate;
+
+        ElapsedTime = bPlayReverse ? EndTime : StartTime;
+    }
+    else
+    {
+        ElapsedTime = 0.f;
+    }
 }
 
 float USkeletalMeshComponent::GetPlaySpeed() const
@@ -329,7 +360,25 @@ bool USkeletalMeshComponent::IsPlayReverse() const
 void USkeletalMeshComponent::SetPlayReverse(bool bEnable)
 {
     bPlayReverse = bEnable;
+
+    if (bEnable && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+        const int32 FrameRate = DataModel->GetFrameRate();
+        const float EndTime = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
+
+        ElapsedTime = EndTime;  
+    }
+    else if (!bEnable && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+        const int32 FrameRate = DataModel->GetFrameRate();
+        const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
+
+        ElapsedTime = StartTime; 
+    }
 }
+
 
 bool USkeletalMeshComponent::IsPaused() const
 {
@@ -347,4 +396,58 @@ bool USkeletalMeshComponent::IsLooping() const
 void USkeletalMeshComponent::SetLooping(bool bEnable)
 {
     bPlayLooping = bEnable;
+}
+
+static void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping)
+{
+    for (FAnimNotifyEvent& NotifyEvent : const_cast<TArray<FAnimNotifyEvent>&>(Notifies))
+    {
+        const float StartTime = NotifyEvent.Time;
+        const float EndTime = NotifyEvent.GetEndTime();
+        const bool bReversed = DeltaTime < 0.0f;
+
+        const bool bPassed = bReversed
+            ? (PreviousTime >= StartTime && CurrentTime < StartTime)
+            : (PreviousTime <= StartTime && CurrentTime > StartTime);
+
+        const bool bInside = CurrentTime >= StartTime && CurrentTime < EndTime;
+
+        if (!NotifyEvent.IsState()) 
+        {
+            if (bPassed || (bIsLooping && !bReversed && PreviousTime > CurrentTime && StartTime >= 0.f && StartTime < CurrentTime))
+            {
+                if (NotifyEvent.Notify)
+                {
+                    NotifyEvent.Notify->Notify(MeshComp, AnimAsset);
+                }
+                NotifyEvent.bTriggered = true;
+            }
+        }
+        else 
+        {
+            if (bInside && !NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    NotifyEvent.NotifyState->NotifyBegin(MeshComp, AnimAsset, NotifyEvent.Duration);
+                }
+                NotifyEvent.bStateActive = true;
+            }
+            else if (bInside && NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    NotifyEvent.NotifyState->NotifyTick(MeshComp, AnimAsset, DeltaTime);
+                }
+            }
+            else if (!bInside && NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    NotifyEvent.NotifyState->NotifyEnd(MeshComp, AnimAsset);
+                }
+                NotifyEvent.bStateActive = false;
+            }
+        }
+    }
 }
