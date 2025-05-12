@@ -39,6 +39,17 @@ public:
         return AnimNotifyTracks;
     }
 
+    bool AddNotifyTrack(const FName& TrackName, int32& OutNewTrackIndex);
+    bool RemoveNotifyTrack(int32 TrackIndexToRemove);
+    bool RenameNotifyTrack(int32 TrackIndex, const FName& NewTrackName);
+    int32 FindNotifyTrackIndex(const FName& TrackName) const;
+
+    bool AddNotifyEvent(int32 TargetTrackIndex, float Time, float Duration, const FName& NotifyName, int32& OutNewNotifyIndex);
+    bool RemoveNotifyEvent(int32 NotifyIndexToRemove);
+    bool UpdateNotifyEvent(int32 NotifyIndexToUpdate, float NewTime, float NewDuration, int32 NewTrackIndex, const FName& NewNotifyName = NAME_None);
+    FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex);
+    const FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex) const;
+    
 private:
     void CreateModel();
 };

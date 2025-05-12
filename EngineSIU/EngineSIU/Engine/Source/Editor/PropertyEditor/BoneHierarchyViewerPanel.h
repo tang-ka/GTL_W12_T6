@@ -45,4 +45,9 @@ private:
     UAnimDataModel* PrevAnimDataModel = nullptr;
     
     int32 PreviousFrame = 0;
+    int32 SelectedTrackIndex_ForRename = INDEX_NONE;
+    int32 SelectedNotifyGlobalIndex_ForRename = INDEX_NONE;
+    TCHAR RenameTrackBuffer[256];
+    TCHAR RenameNotifyBuffer[256];
+
 };
