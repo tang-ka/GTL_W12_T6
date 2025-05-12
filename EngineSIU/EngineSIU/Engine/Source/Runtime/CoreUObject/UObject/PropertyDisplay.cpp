@@ -153,44 +153,62 @@ void FNameProperty::DisplayInImGui(UObject* Object) const
 void FVector2DProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    FPropertyUIHelper::DisplayNumericDragN<float>(*this, Object, 2);
 }
 
 void FVectorProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    FPropertyUIHelper::DisplayNumericDragN<float>(*this, Object, 3);
 }
 
 void FVector4Property::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    FPropertyUIHelper::DisplayNumericDragN<float>(*this, Object, 4);
 }
 
 void FRotatorProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    FPropertyUIHelper::DisplayNumericDragN<float>(*this, Object, 3);
 }
 
 void FQuatProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    FPropertyUIHelper::DisplayNumericDragN<float>(*this, Object, 4);
 }
 
 void FTransformProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    // TODO: Implements This
 }
 
 void FMatrixProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    // TODO: Implements This
 }
 
 void FColorProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    // TODO: Implements This
 }
 
 void FLinearColorProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
+
+    // TODO: Implements This
 }

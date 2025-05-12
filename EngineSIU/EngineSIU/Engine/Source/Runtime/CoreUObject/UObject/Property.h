@@ -504,9 +504,47 @@ struct FLinearColorProperty : public FProperty
 };
 
 
-struct FArrayProperty : public FProperty {};
+struct FArrayProperty : public FProperty
+{
+    FArrayProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Array, InSize, InOffset, InFlags)
+    {
+    }
+};
 
-struct FMapProperty : public FProperty {};
+struct FMapProperty : public FProperty
+{
+    FMapProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Map, InSize, InOffset, InFlags)
+    {
+    }
+};
+
+struct FSetProperty : public FProperty
+{
+    FSetProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Set, InSize, InOffset, InFlags)
+    {
+    }
+};
 
 template <typename InEnumType>
 struct TEnumProperty : public FProperty
@@ -626,24 +664,36 @@ FProperty* MakeProperty(
 {
     constexpr EPropertyType TypeEnum = GetPropertyType<T>();
 
-    if constexpr      (TypeEnum == EPropertyType::Int8)   { return new FInt8Property    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Int16)  { return new FInt16Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Int32)  { return new FInt32Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Int64)  { return new FInt64Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt8)  { return new FUInt8Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt16) { return new FUInt16Property  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt32) { return new FUInt32Property  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt64) { return new FUInt64Property  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Float)  { return new FFloatProperty   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Double) { return new FDoubleProperty  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Bool)   { return new FBoolProperty    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    if constexpr      (TypeEnum == EPropertyType::Int8)        { return new FInt8Property        { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Int16)       { return new FInt16Property       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Int32)       { return new FInt32Property       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Int64)       { return new FInt64Property       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt8)       { return new FUInt8Property       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt16)      { return new FUInt16Property      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt32)      { return new FUInt32Property      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt64)      { return new FUInt64Property      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Float)       { return new FFloatProperty       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Double)      { return new FDoubleProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Bool)        { return new FBoolProperty        { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
 
-    else if constexpr (TypeEnum == EPropertyType::String) { return new FStrProperty     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Name)   { return new FNameProperty    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    
+    else if constexpr (TypeEnum == EPropertyType::String)      { return new FStrProperty         { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Name)        { return new FNameProperty        { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Vector2D)    { return new FVector2DProperty    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Vector)      { return new FVectorProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Vector4)     { return new FVector4Property     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Rotator)     { return new FRotatorProperty     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Quat)        { return new FQuatProperty        { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Transform)   { return new FTransformProperty   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Matrix)      { return new FMatrixProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Color)       { return new FColorProperty       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
 
-    else if constexpr (TypeEnum == EPropertyType::Enum)   { return new TEnumProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Struct) { return new FStructProperty  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Array)       { return new FArrayProperty       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Map)         { return new FMapProperty         { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Set)         { return new FSetProperty         { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+
+    else if constexpr (TypeEnum == EPropertyType::Enum)        { return new TEnumProperty<T>     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Struct)      { return new FStructProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::Object)
     {
         FProperty* Property = new FObjectProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };

@@ -35,8 +35,8 @@ enum class EPropertyType : uint8
     Set,                           // TSet<T>
 
     Enum,                          // 커스텀 Enum 타입
-    Object,                        // UObject* 타입
     Struct,                        // 사용자 정의 구조체 타입
+    Object,                        // UObject* 타입
 };
 
 template <typename T>
@@ -65,7 +65,7 @@ consteval EPropertyType GetPropertyType()
     else if constexpr (std::same_as<T, FQuat>)        { return EPropertyType::Quat;        }
     else if constexpr (std::same_as<T, FTransform>)   { return EPropertyType::Transform;   }
     else if constexpr (std::same_as<T, FMatrix>)      { return EPropertyType::Matrix;      }
-    else if constexpr (std::same_as<T, FColor>)       {  return EPropertyType::Color;      }
+    else if constexpr (std::same_as<T, FColor>)       { return EPropertyType::Color;       }
     else if constexpr (std::same_as<T, FLinearColor>) { return EPropertyType::LinearColor; }
 
     // 포인터 타입
