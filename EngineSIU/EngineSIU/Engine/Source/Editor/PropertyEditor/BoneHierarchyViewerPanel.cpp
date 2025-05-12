@@ -421,6 +421,11 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                             PendingRemoveTrackIdx = TrackIdx;
                             ImGui::CloseCurrentPopup();
                         }
+                        int32 newIndex;
+                        if (ImGui::MenuItem("Add Notify"))
+                        {
+                            AnimSeq->AddNotifyEvent(TrackIdx, Elapsed, 0, "New Notify", newIndex);
+                        }
                         ImGui::EndPopup();
                     }
                     if (bRenamePopup) {
@@ -454,7 +459,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                             Keys.push_back(Frame);
                         }
                     }
-
+                    ImGui::SameLine();
                     if (ImGui::BeginNeoTimeline("Notify", Keys))
                     {
                         ImGui::EndNeoTimeLine();

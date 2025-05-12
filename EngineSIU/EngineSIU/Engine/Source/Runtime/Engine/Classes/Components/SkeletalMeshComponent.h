@@ -90,9 +90,6 @@ private:
     bool bPuaseAnimation = false;
     bool bPlayReverse = false;
     bool bPlayLooping = false;
-
-
-    
     
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;

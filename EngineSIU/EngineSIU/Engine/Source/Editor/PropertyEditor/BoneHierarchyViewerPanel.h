@@ -49,5 +49,10 @@ private:
     int32 SelectedNotifyGlobalIndex_ForRename = INDEX_NONE;
     TCHAR RenameTrackBuffer[256];
     TCHAR RenameNotifyBuffer[256];
+    
+private:
+    char NewNotifyNameBuffer[128] = "NewNotify";
+    float NewNotifyTime = 0.0f;
+    float NewNotifyDuration = 0.0f;
 
 };
