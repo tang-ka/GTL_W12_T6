@@ -246,10 +246,13 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
 void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
 {
     if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->GetAnimation())
+    {
         return;
+    }
 
-    const int32 FrameRate = RefSkeletalMeshComponent->GetAnimation()->GetDataModel()->GetFrameRate();
-    const int32 NumFrames = RefSkeletalMeshComponent->GetAnimation()->GetDataModel()->GetNumberOfFrames();
+    UAnimSequence* AnimSequence = Cast<UAnimSequence>(RefSkeletalMeshComponent->GetAnimation());
+    const int32 FrameRate = AnimSequence->GetDataModel()->GetFrameRate();
+    const int32 NumFrames = AnimSequence->GetDataModel()->GetNumberOfFrames();
     static bool transformOpen = false;
     
     int32 StartFrame = 0;

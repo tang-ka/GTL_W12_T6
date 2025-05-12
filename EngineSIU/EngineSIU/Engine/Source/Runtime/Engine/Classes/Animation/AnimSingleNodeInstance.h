@@ -12,9 +12,13 @@ class UAnimSingleNodeInstance : public UAnimInstance
 public:
     UAnimSingleNodeInstance();
 
-public:
     virtual void SetAnimationAsset(UAnimationAsset* NewAsset, bool bIsLooping=true, float InPlayRate=1.f);
 
+    UAnimationAsset* GetAnimationAsset() const
+    {
+        return CurrentAsset;
+    }
+    
     void SetPlaying(bool bIsPlaying)
     {
         bPlaying = bIsPlaying;
@@ -66,7 +70,10 @@ private:
     float CurrentTime;
     
     float PlayRate;
+    
     bool bLooping;
+    
     bool bPlaying;
+    
     bool bReverse;
 };

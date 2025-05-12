@@ -2,6 +2,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class USkeleton;
 class USkeletalMeshComponent;
 
 class UAnimInstance : public UObject
@@ -11,7 +12,18 @@ class UAnimInstance : public UObject
 public:
     UAnimInstance() = default;
 
-    void TriggerAnimNotifies(float DeltaSeconds);
+    void InitializeAnimation();
+
+    void UpdateAnimation(float DeltaSeconds);
+
+    virtual void NativeUpdateAnimation(float DeltaSeconds);
 
     virtual USkeletalMeshComponent* GetSkelMeshComponent() const;
+
+    void TriggerAnimNotifies(float DeltaSeconds);
+
+    USkeleton* GetCurrentSkeleton() const { return CurrentSkeleton; }
+
+private:
+    USkeleton* CurrentSkeleton;
 };

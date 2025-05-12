@@ -9,6 +9,12 @@ class USkeletalMesh;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
 
+enum class EAnimationMode : uint8
+{
+    AnimationBlueprint,
+    AnimationSingleNode,
+};
+
 class USkeletalMeshComponent : public USkinnedMeshComponent
 {
     DECLARE_CLASS(USkeletalMeshComponent, USkinnedMeshComponent)
@@ -23,7 +29,13 @@ public:
 
     virtual void TickComponent(float DeltaTime) override;
 
+    virtual void TickPose(float DeltaTime) override;
+
+    bool ShouldTickAnimation() const;
+
     bool InitializeAnimScriptInstance();
+
+    void ClearAnimScriptInstance();
 
     USkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMeshAsset; }
 
@@ -33,13 +45,13 @@ public:
 
     void GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const;
 
-    void SetAnimationEnabled(bool bEnable);
+    void DEBUG_SetAnimationEnabled(bool bEnable);
 
     void PlayAnimation(UAnimationAsset* NewAnimToPlay, bool bLooping);
 
     void SetAnimation(UAnimationAsset* NewAnimToPlay);
 
-    UAnimSequence* GetAnimation() const { return AnimSequence; }
+    UAnimationAsset* GetAnimation() const;
 
     void Play(bool bLooping);
 
@@ -50,6 +62,10 @@ public:
     void SetPlayRate(float Rate);
 
     float GetPlayRate() const;
+
+    void SetLooping(bool bIsLooping);
+
+    bool IsLooping() const;
     
     bool bIsAnimationEnabled() const { return bPlayAnimation; }
     
@@ -71,15 +87,23 @@ public:
 
     UAnimInstance* GetAnimInstance() const { return AnimScriptInstance; }
 
+    void SetAnimationMode(EAnimationMode InAnimationMode);
+
+    EAnimationMode GetAnimationMode() const { return AnimationMode; }
+
+    virtual void InitAnim();
+    
 protected:
     bool NeedToSpawnAnimScriptInstance() const;
+
+    EAnimationMode AnimationMode;
     
 private:
     TArray<FTransform> BonePoseTransforms;
     
-    USkeletalMesh* SkeletalMeshAsset = nullptr;
+    USkeletalMesh* SkeletalMeshAsset;
 
-    UAnimSequence* AnimSequence = nullptr;
+    UAnimSequence* AnimSequence;
 
     float ElapsedTime = 0.f;
     
@@ -89,7 +113,7 @@ private:
     
     int32 CurrentKey = 0.f;
     
-    bool bPlayAnimation = false;
+    bool bPlayAnimation;
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;
 
