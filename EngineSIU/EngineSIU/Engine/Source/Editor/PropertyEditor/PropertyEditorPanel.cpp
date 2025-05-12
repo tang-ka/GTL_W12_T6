@@ -232,7 +232,7 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
         FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
         ImGui::Spacing();
 
-        FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
+        FImGuiWidget::DrawVec3Control("Scale", Scale, 1, 85);
         ImGui::Spacing();
 
         SceneComponent->SetRelativeTransform(FTransform(Rotation, Location, Scale));
