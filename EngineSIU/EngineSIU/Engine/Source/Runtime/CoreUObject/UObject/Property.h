@@ -569,14 +569,14 @@ struct TEnumProperty : public FProperty
         EnumType* Data = GetPropertyData<EnumType>(Object);
         constexpr auto EnumEntries = magic_enum::enum_entries<EnumType>();
 
-        auto CurrentNameOpt = magic_enum::enum_name(*Data);
-        const std::string CurrentName = CurrentNameOpt.value_or("Unknown");
+        const std::string_view CurrentNameView = magic_enum::enum_name(*Data);
+        const std::string CurrentName = std::string(CurrentNameView);
 
         if (ImGui::BeginCombo(Name, CurrentName.c_str()))
         {
             for (const auto& [Enum, NameView] : EnumEntries)
             {
-                const std::string EnumName = NameView;
+                const std::string EnumName = std::string(NameView);
                 const bool bIsSelected = (*Data == Enum);
                 if (ImGui::Selectable(EnumName.c_str(), bIsSelected))
                 {
