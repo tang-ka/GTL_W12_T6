@@ -3,6 +3,7 @@
 #include "Engine/AssetManager.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Template/SubclassOf.h"
+#include "Animation/AnimNodeBase.h"
 
 class UAnimSequence;
 class USkeletalMesh;
@@ -96,6 +97,8 @@ public:
     EAnimationMode GetAnimationMode() const { return AnimationMode; }
 
     virtual void InitAnim();
+
+    UAnimSequence* GetAnimSequence() const {return AnimSequence;}
     
 protected:
     bool NeedToSpawnAnimScriptInstance() const;
@@ -103,7 +106,7 @@ protected:
     EAnimationMode AnimationMode;
     
 private:
-    TArray<FTransform> BonePoseTransforms;
+    FPoseContext BonePoseContext;
     
     USkeletalMesh* SkeletalMeshAsset;
 

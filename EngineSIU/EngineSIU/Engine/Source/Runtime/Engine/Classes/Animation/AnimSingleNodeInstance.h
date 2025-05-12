@@ -4,6 +4,7 @@
 
 
 class UAnimationAsset;
+struct FTransform;
 
 class UAnimSingleNodeInstance : public UAnimInstance
 {
@@ -13,7 +14,11 @@ public:
     UAnimSingleNodeInstance();
 
     virtual void SetAnimationAsset(UAnimationAsset* NewAsset, bool bIsLooping=true, float InPlayRate=1.f);
+    
+    virtual void NativeInitializeAnimation() override;
 
+    virtual void NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose) override;
+    
     UAnimationAsset* GetAnimationAsset() const
     {
         return CurrentAsset;

@@ -24,7 +24,6 @@ public:
     }
 
     int32 FindBoneIndex(const FName& BoneName) const;
-
 protected:
     FReferenceSkeleton ReferenceSkeleton;
     

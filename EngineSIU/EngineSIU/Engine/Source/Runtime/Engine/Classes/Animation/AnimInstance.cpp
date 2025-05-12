@@ -17,12 +17,16 @@ void UAnimInstance::InitializeAnimation()
     }
 }
 
-void UAnimInstance::UpdateAnimation(float DeltaSeconds)
+void UAnimInstance::UpdateAnimation(float DeltaSeconds, FPoseContext& OutPose)
 {
-    NativeUpdateAnimation(DeltaSeconds);
+    NativeUpdateAnimation(DeltaSeconds, OutPose);
 }
 
-void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+void UAnimInstance::NativeInitializeAnimation()
+{
+}
+
+void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose)
 {
 }
 

@@ -4,6 +4,8 @@
 
 class USkeleton;
 class USkeletalMeshComponent;
+struct FTransform;
+struct FPoseContext;
 
 class UAnimInstance : public UObject
 {
@@ -14,9 +16,11 @@ public:
 
     void InitializeAnimation();
 
-    void UpdateAnimation(float DeltaSeconds);
+    void UpdateAnimation(float DeltaSeconds, FPoseContext& OutPose);
 
-    virtual void NativeUpdateAnimation(float DeltaSeconds);
+    virtual void NativeInitializeAnimation();
+    
+    virtual void NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose);
 
     virtual USkeletalMeshComponent* GetSkelMeshComponent() const;
 

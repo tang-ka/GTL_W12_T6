@@ -7,7 +7,9 @@ struct FAnimationBaseContext
 {
     UAnimInstance* AnimInstance;
 
-    FAnimationBaseContext(UAnimInstance* InAnimInstance);
+    FAnimationBaseContext(UAnimInstance* InAnimInstance)
+        : AnimInstance(InAnimInstance)
+    {}
 };
 
 /** Evaluation context passed around during animation tree evaluation */

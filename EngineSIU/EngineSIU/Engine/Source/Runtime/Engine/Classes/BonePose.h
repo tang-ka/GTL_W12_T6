@@ -138,25 +138,20 @@ struct FBaseCompactPose : public FBasePose
 	void ResetToRefPose(const FBoneContainer& RequiredBones)
 	{
 		RequiredBones.FillWithCompactRefPose(this->Bones);
-
+	
 		this->BoneContainer = &RequiredBones;
-
-		// If retargeting is disabled, copy ref pose from Skeleton, rather than mesh.
-		// this is only used in editor and for debugging.
-		if (RequiredBones.GetDisableRetargeting())
+        
+		// Only do this if we have a mesh. otherwise we're not retargeting animations.
+		if (RequiredBones.GetSkeletalMeshAsset())
 		{
-			// Only do this if we have a mesh. otherwise we're not retargeting animations.
-			if (RequiredBones.GetSkeletalMeshAsset())
+			TArray<FTransform> const & SkeletonRefPose = RequiredBones.GetSkeletonAsset()->GetReferencePose();
+	
+			for (int32 BoneIndex = 0; BoneIndex< Bones.Num(); BoneIndex++)
 			{
-				TArray<FTransform> const & SkeletonRefPose = RequiredBones.GetSkeletonAsset()->GetRefLocalPoses();
-
-				for (const FCompactPoseBoneIndex BoneIndex : ForEachBoneIndex())
-				{
-					const int32 SkeletonBoneIndex = GetBoneContainer().GetSkeletonIndex(BoneIndex);
-
-					// Pose bone index should always exist in Skeleton
-					this->Bones[BoneIndex.GetInt()] = SkeletonRefPose[SkeletonBoneIndex];
-				}
+			    const int32 SkeletonBoneIndex = GetBoneContainer().GetSkeletonIndex(BoneIndex);
+	
+			    // Pose bone index should always exist in Skeleton
+			    this->Bones[BoneIndex] = SkeletonRefPose[SkeletonBoneIndex];
 			}
 		}
 	}

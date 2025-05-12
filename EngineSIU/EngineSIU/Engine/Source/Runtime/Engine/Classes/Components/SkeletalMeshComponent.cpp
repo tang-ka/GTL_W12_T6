@@ -1,13 +1,10 @@
-
 #include "SkeletalMeshComponent.h"
 
 #include "ReferenceSkeleton.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimSingleNodeInstance.h"
-#include "Animation/AnimTypes.h"
 #include "Animation/Skeleton.h"
-#include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
@@ -24,6 +21,7 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     , AnimClass(nullptr)
     , AnimScriptInstance(nullptr)
     , bPlayAnimation(false)
+    ,BonePoseContext(nullptr)
 {
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
@@ -57,8 +55,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     TickPose(DeltaTime);
-
-    RefreshBoneTransforms();
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)
@@ -78,108 +74,81 @@ void USkeletalMeshComponent::TickAnimation(float DeltaTime)
         TickAnimInstances(DeltaTime);
     }
 
-#pragma region Anim
-    ElapsedTime += DeltaTime;
-    
-    BonePoseTransforms = RefBonePoseTransforms;
-    
-    const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-
-    const int32 FrameRate = DataModel->GetFrameRate();
-    const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
-
-    const float TargetKeyFrameLocal = ElapsedTime * static_cast<float>(FrameRate);
-    const int32 CurrentFrame = static_cast<int32>(TargetKeyFrameLocal) % (NumberOfFrames - 1);
-    const float AlphaLocal = TargetKeyFrameLocal - static_cast<float>(static_cast<int32>(TargetKeyFrameLocal)); // [0 ~ 1]
-
-    FFrameTime FrameTime(CurrentFrame, AlphaLocal);
-    
-    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-
-    // TODO: 인덱스 말고 맵을 통해 FName으로 포즈 계산
-    for (int32 BoneIdx = 0; BoneIdx < RefSkeleton.RawRefBoneInfo.Num(); ++BoneIdx)
-    {
-        FName BoneName = RefSkeleton.RawRefBoneInfo[BoneIdx].Name;
-        FTransform RefBoneTransform = RefBonePoseTransforms[BoneIdx];
-        BonePoseTransforms[BoneIdx] = RefBoneTransform * DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
-    }
-
-    if (bCPUSkinning)
-    {
-        TArray<FMatrix> CurrentGlobalBoneMatrices;
-        GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
-        const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
-        
-        // 최종 스키닝 행렬 계산
-        TArray<FMatrix> FinalBoneMatrices;
-        FinalBoneMatrices.SetNum(BoneNum);
-
-        for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
-        {
-            FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentGlobalBoneMatrices[BoneIndex];
-        }
-        
-        const FSkeletalMeshRenderData* RenderData = SkeletalMeshAsset->GetRenderData();
-        
-        for (int i = 0; i < RenderData->Vertices.Num(); i++)
-        {
-            FSkeletalMeshVertex Vertex = RenderData->Vertices[i];
-            // 가중치 합산
-            float TotalWeight = 0.0f;
-
-            FVector SkinnedPosition = FVector(0.0f, 0.0f, 0.0f);
-            FVector SkinnedNormal = FVector(0.0f, 0.0f, 0.0f);
-            
-            for (int j = 0; j < 4; ++j)
-            {
-                float Weight = Vertex.BoneWeights[j];
-                TotalWeight += Weight;
-    
-                if (Weight > 0.0f)
-                {
-                    uint32 BoneIdx = Vertex.BoneIndices[j];
-                    
-                    // 본 행렬 적용 (BoneMatrices는 이미 최종 스키닝 행렬)
-                    // FBX SDK에서 가져온 역바인드 포즈 행렬이 이미 포함됨
-                    FVector pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
-                    FVector4 norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
-                    FVector norm(norm4.X, norm4.Y, norm4.Z);
-                    
-                    SkinnedPosition += pos * Weight;
-                    SkinnedNormal += norm * Weight;
-                }
-            }
-
-            // 가중치 예외 처리
-            if (TotalWeight < 0.001f)
-            {
-                SkinnedPosition = FVector(Vertex.X, Vertex.Y, Vertex.Z);
-                SkinnedNormal = FVector(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
-            }
-            else if (FMath::Abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
-            {
-                // 가중치 합이 1이 아닌 경우 정규화
-                SkinnedPosition /= TotalWeight;
-                SkinnedNormal /= TotalWeight;
-            }
-
-            CPURenderData->Vertices[i].X = SkinnedPosition.X;
-            CPURenderData->Vertices[i].Y = SkinnedPosition.Y;
-            CPURenderData->Vertices[i].Z = SkinnedPosition.Z;
-            CPURenderData->Vertices[i].NormalX = SkinnedNormal.X;
-            CPURenderData->Vertices[i].NormalY = SkinnedNormal.Y;
-            CPURenderData->Vertices[i].NormalZ = SkinnedNormal.Z;
-        }
-    }
-#pragma endregion
+    // if (bCPUSkinning)
+    // {
+    //      TArray<FMatrix> CurrentGlobalBoneMatrices;
+    //      GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
+    //      const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
+    //      
+    //      // 최종 스키닝 행렬 계산
+    //      TArray<FMatrix> FinalBoneMatrices;
+    //      FinalBoneMatrices.SetNum(BoneNum);
+    //
+    //      for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
+    //      {
+    //          FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentGlobalBoneMatrices[BoneIndex];
+    //      }
+    //      
+    //      const FSkeletalMeshRenderData* RenderData = SkeletalMeshAsset->GetRenderData();
+    //      
+    //      for (int i = 0; i < RenderData->Vertices.Num(); i++)
+    //      {
+    //          FSkeletalMeshVertex Vertex = RenderData->Vertices[i];
+    //          // 가중치 합산
+    //          float TotalWeight = 0.0f;
+    //
+    //          FVector SkinnedPosition = FVector(0.0f, 0.0f, 0.0f);
+    //          FVector SkinnedNormal = FVector(0.0f, 0.0f, 0.0f);
+    //          
+    //          for (int j = 0; j < 4; ++j)
+    //          {
+    //              float Weight = Vertex.BoneWeights[j];
+    //              TotalWeight += Weight;
+    //  
+    //              if (Weight > 0.0f)
+    //              {
+    //                  uint32 BoneIdx = Vertex.BoneIndices[j];
+    //                  
+    //                  // 본 행렬 적용 (BoneMatrices는 이미 최종 스키닝 행렬)
+    //                  // FBX SDK에서 가져온 역바인드 포즈 행렬이 이미 포함됨
+    //                  FVector pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
+    //                  FVector4 norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
+    //                  FVector norm(norm4.X, norm4.Y, norm4.Z);
+    //                  
+    //                  SkinnedPosition += pos * Weight;
+    //                  SkinnedNormal += norm * Weight;
+    //              }
+    //          }
+    //
+    //          // 가중치 예외 처리
+    //          if (TotalWeight < 0.001f)
+    //          {
+    //              SkinnedPosition = FVector(Vertex.X, Vertex.Y, Vertex.Z);
+    //              SkinnedNormal = FVector(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
+    //          }
+    //          else if (FMath::Abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
+    //          {
+    //              // 가중치 합이 1이 아닌 경우 정규화
+    //              SkinnedPosition /= TotalWeight;
+    //              SkinnedNormal /= TotalWeight;
+    //          }
+    //
+    //          CPURenderData->Vertices[i].X = SkinnedPosition.X;
+    //          CPURenderData->Vertices[i].Y = SkinnedPosition.Y;
+    //          CPURenderData->Vertices[i].Z = SkinnedPosition.Z;
+    //          CPURenderData->Vertices[i].NormalX = SkinnedNormal.X;
+    //          CPURenderData->Vertices[i].NormalY = SkinnedNormal.Y;
+    //          CPURenderData->Vertices[i].NormalZ = SkinnedNormal.Z;
+    //        }
+    //  }
 }
 
 void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 {
-    if (AnimScriptInstance)
+    if (GetSingleNodeInstance())
     {
         // TODO: 아래 UpdateAnimation 함수에서 포즈 결과를 받아와야 함.
-        AnimScriptInstance->UpdateAnimation(DeltaTime);
+        GetSingleNodeInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
     }
 }
 
@@ -238,14 +207,15 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
 
     InitAnim();
 
-    BonePoseTransforms.Empty();
+    BonePoseContext.Pose.Empty();
     RefBonePoseTransforms.Empty();
     AABB = FBoundingBox(InSkeletalMeshAsset->GetRenderData()->BoundingBoxMin, SkeletalMeshAsset->GetRenderData()->BoundingBoxMax);
     
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+    BonePoseContext.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
     for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
     {
-        BonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+        BonePoseContext.Pose[i] = RefSkeleton.RawRefBonePose[i];
         RefBonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
     }
     
@@ -266,7 +236,7 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
         // 현재 본의 로컬 변환
-        FTransform CurrentLocalTransform = BonePoseTransforms[BoneIndex];
+        FTransform CurrentLocalTransform = BonePoseContext.Pose[BoneIndex];
         FMatrix LocalMatrix = CurrentLocalTransform.ToMatrixWithScale(); // FTransform -> FMatrix
         
         // 부모 본의 영향을 적용하여 월드 변환 구성
@@ -291,7 +261,11 @@ void USkeletalMeshComponent::DEBUG_SetAnimationEnabled(bool bEnable)
         if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
         {
             const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-            BonePoseTransforms = RefSkeleton.RawRefBonePose;
+            BonePoseContext.Pose.InitBones(RefSkeleton.RawRefBonePose.Num());
+            for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+            {
+                BonePoseContext.Pose[i] = RefSkeleton.RawRefBonePose[i];
+            }
         }
         ElapsedTime = 0.f;
         CPURenderData->Vertices = SkeletalMeshAsset->GetRenderData()->Vertices;
@@ -444,6 +418,7 @@ UAnimSingleNodeInstance* USkeletalMeshComponent::GetSingleNodeInstance() const
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
 {
+    AnimSequence = Cast<UAnimSequence>(NewAnimToPlay);
     if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
     {
         SingleNodeInstance->SetAnimationAsset(NewAnimToPlay, false);
