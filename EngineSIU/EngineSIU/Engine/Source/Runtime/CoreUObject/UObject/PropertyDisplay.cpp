@@ -2,32 +2,39 @@
 #include "Math/NumericLimits.h"
 #include "ImGui/imgui.h"
 
+template <typename Type, typename... Types>
+concept TIsAnyOf = (std::same_as<Type, Types> || ...);
+
+template <typename T>
+concept NumericType = TIsAnyOf<T, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, double>;
+    
+
 static constexpr int32 IMGUI_FSTRING_BUFFER_SIZE = 2048;
 
 
 struct FPropertyUIHelper
 {
-    template <typename T>
-    static void DisplayNumericDrag(const FProperty& Prop, UObject* Object, float Speed = 1.0f)
+    template <NumericType NumType>
+    static void DisplayNumericDragN(const FProperty& Prop, UObject* Object, int Components, float Speed = 1.0f, const char* Format = nullptr)
     {
-        T* Data = Prop.GetPropertyData<T>(Object);
-        constexpr T Min = TNumericLimits<T>::Min();
-        constexpr T Max = TNumericLimits<T>::Max();
+        NumType* Data = Prop.GetPropertyData<NumType>(Object);
+        constexpr NumType Min = TNumericLimits<NumType>::Min();
+        constexpr NumType Max = TNumericLimits<NumType>::Max();
     
         ImGuiDataType DataType;
-        if constexpr (std::same_as<T, int8>)        { DataType = ImGuiDataType_S8;     }
-        else if constexpr (std::same_as<T, int16>)  { DataType = ImGuiDataType_S16;    }
-        else if constexpr (std::same_as<T, int32>)  { DataType = ImGuiDataType_S32;    }
-        else if constexpr (std::same_as<T, int64>)  { DataType = ImGuiDataType_S64;    }
-        else if constexpr (std::same_as<T, uint8>)  { DataType = ImGuiDataType_U8;     }
-        else if constexpr (std::same_as<T, uint16>) { DataType = ImGuiDataType_U16;    }
-        else if constexpr (std::same_as<T, uint32>) { DataType = ImGuiDataType_U32;    }
-        else if constexpr (std::same_as<T, uint64>) { DataType = ImGuiDataType_U64;    }
-        else if constexpr (std::same_as<T, float>)  { DataType = ImGuiDataType_Float;  }
-        else if constexpr (std::same_as<T, double>) { DataType = ImGuiDataType_Double; }
+        if constexpr (std::same_as<NumType, int8>)        { DataType = ImGuiDataType_S8;     }
+        else if constexpr (std::same_as<NumType, int16>)  { DataType = ImGuiDataType_S16;    }
+        else if constexpr (std::same_as<NumType, int32>)  { DataType = ImGuiDataType_S32;    }
+        else if constexpr (std::same_as<NumType, int64>)  { DataType = ImGuiDataType_S64;    }
+        else if constexpr (std::same_as<NumType, uint8>)  { DataType = ImGuiDataType_U8;     }
+        else if constexpr (std::same_as<NumType, uint16>) { DataType = ImGuiDataType_U16;    }
+        else if constexpr (std::same_as<NumType, uint32>) { DataType = ImGuiDataType_U32;    }
+        else if constexpr (std::same_as<NumType, uint64>) { DataType = ImGuiDataType_U64;    }
+        else if constexpr (std::same_as<NumType, float>)  { DataType = ImGuiDataType_Float;  }
+        else if constexpr (std::same_as<NumType, double>) { DataType = ImGuiDataType_Double; }
         else { static_assert(false); }
     
-        ImGui::DragScalar(Prop.Name, DataType, Data, Speed, &Min, &Max);
+        ImGui::DragScalarN(Prop.Name, DataType, Data, Components, Speed, &Min, &Max, Format);
     }
 };
 
@@ -40,70 +47,70 @@ void FInt8Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<int8>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<int8>(*this, Object, 1);
 }
 
 void FInt16Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<int16>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<int16>(*this, Object, 1);
 }
 
 void FInt32Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<int32>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<int32>(*this, Object, 1);
 }
 
 void FInt64Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<int64>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<int64>(*this, Object, 1);
 }
 
 void FUInt8Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<uint8>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<uint8>(*this, Object, 1);
 }
 
 void FUInt16Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<uint16>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<uint16>(*this, Object, 1);
 }
 
 void FUInt32Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<uint32>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<uint32>(*this, Object, 1);
 }
 
 void FUInt64Property::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<uint64>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<uint64>(*this, Object, 1);
 }
 
 void FFloatProperty::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<float>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<float>(*this, Object, 1);
 }
 
 void FDoubleProperty::DisplayInImGui(UObject* Object) const
 {
     FNumericProperty::DisplayInImGui(Object);
 
-    FPropertyUIHelper::DisplayNumericDrag<double>(*this, Object);
+    FPropertyUIHelper::DisplayNumericDragN<double>(*this, Object, 1);
 }
 
 void FBoolProperty::DisplayInImGui(UObject* Object) const
