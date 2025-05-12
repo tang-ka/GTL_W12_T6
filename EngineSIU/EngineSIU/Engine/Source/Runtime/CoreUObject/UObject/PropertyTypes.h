@@ -50,19 +50,15 @@ consteval EPropertyType GetPropertyType()
     {
         // using PointedToType = std::remove_cv_t<std::remove_pointer_t<T>>;
         //
-        // // PointedToType이 완전한 타입일 때만 true를 반환.
+        // // if문을 주석처리한 이유는 여기서 컴파일 타임에 UObject를 상속받은 클래스에 대해서 상속여부 검사를 하는데, 이때 UObject의 IsA<T>를 실제로 인스턴싱을 하게 됩니다.
+        // // 하지만 이 시점에서 IsA의 requires std::derived_from<T, UObject>가 T에 대한 완전한 타입정보를 가지고 있지 않기 때문에 false로 평가되어 컴파일 에러가 발생합니다.
+        //
+        // // PointedToType가 완전한 타입일 때만 true를 반환.
         // // 전방 선언 시 false가 될 수 있음.
-        // if constexpr (std::is_base_of_v<UObject, PointedToType>)
+        // if constexpr (std::derived_from<PointedToType, UObject>)
         // {
         //     return EPropertyType::Object;
         // }
-
-        // T가 완전한 타입일 때만 true를 반환.
-        // 전방 선언 시 false가 될 수 있음.
-        if constexpr (std::derived_from<T, UObject>)
-        {
-            return EPropertyType::Object;
-        }
 
         // 전방 선언된 타입이 들어올 경우, 상속관계를 확인할 수 없음
         // 이때는 UObject일 확률도 있기 때문에 런타임에 검사
