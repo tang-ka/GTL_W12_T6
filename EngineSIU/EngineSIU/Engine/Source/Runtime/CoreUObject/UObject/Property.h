@@ -4,6 +4,7 @@
 
 #include "Object.h"
 #include "PropertyTypes.h"
+#include "Templates/TypeUtilities.h"
 
 
 struct FProperty
@@ -501,3 +502,164 @@ struct FLinearColorProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
 };
+
+
+struct FArrayProperty : public FProperty {};
+
+struct FMapProperty : public FProperty {};
+
+template <typename InEnumType>
+struct TEnumProperty : public FProperty
+{
+    using EnumType = InEnumType;
+
+    TEnumProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Enum, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override
+    {
+        FProperty::DisplayInImGui(Object);
+
+        EnumType* Data = GetPropertyData<EnumType>(Object);
+        constexpr auto EnumEntries = magic_enum::enum_entries<EnumType>();
+
+        auto CurrentNameOpt = magic_enum::enum_name(*Data);
+        const std::string CurrentName = CurrentNameOpt.value_or("Unknown");
+
+        if (ImGui::BeginCombo(Name, CurrentName.c_str()))
+        {
+            for (const auto& [Enum, NameView] : EnumEntries)
+            {
+                const std::string EnumName = NameView;
+                const bool bIsSelected = (*Data == Enum);
+                if (ImGui::Selectable(EnumName.c_str(), bIsSelected))
+                {
+                    *Data = Enum;
+                }
+                if (bIsSelected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
+};
+
+struct FObjectBaseProperty : public FProperty
+{
+    FObjectBaseProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
+    {
+    }
+};
+
+struct FObjectProperty : public FObjectBaseProperty
+{
+    FObjectProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FObjectBaseProperty(InOwnerClass, InPropertyName, InSize, InOffset, InFlags)
+    {
+    }
+};
+
+struct FUnresolvedPtrProperty : public FObjectBaseProperty
+{
+    FUnresolvedPtrProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FObjectBaseProperty(InOwnerClass, InPropertyName, InSize, InOffset, InFlags)
+    {
+    }
+};
+
+struct FStructProperty : public FProperty
+{
+    FStructProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Struct, InSize, InOffset, InFlags)
+    {
+    }
+};
+
+
+// struct FDelegateProperty : public FProperty {};  // TODO: 나중에 Delegate Property 만들기
+
+// struct FMulticastDelegateProperty : public FProperty {};
+
+
+template <typename T>
+FProperty* MakeProperty(
+    UClass* InOwnerClass,
+    const char* InPropertyName,
+    int32 InOffset,
+    EPropertyFlags InFlags = EPropertyFlags::None
+)
+{
+    constexpr EPropertyType TypeEnum = GetPropertyType<T>();
+
+    if constexpr      (TypeEnum == EPropertyType::Int8)   { return new FInt8Property    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Int16)  { return new FInt16Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Int32)  { return new FInt32Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Int64)  { return new FInt64Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt8)  { return new FUInt8Property   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt16) { return new FUInt16Property  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt32) { return new FUInt32Property  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt64) { return new FUInt64Property  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Float)  { return new FFloatProperty   { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Double) { return new FDoubleProperty  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Bool)   { return new FBoolProperty    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+
+    else if constexpr (TypeEnum == EPropertyType::String) { return new FStrProperty     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Name)   { return new FNameProperty    { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    
+
+    else if constexpr (TypeEnum == EPropertyType::Enum)   { return new TEnumProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Struct) { return new FStructProperty  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Object)
+    {
+        FProperty* Property = new FObjectProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
+        // Property->TypeSpecificData = ; // TODO: PropertyClass 설정
+        return Property;
+    }
+    else if constexpr (TypeEnum == EPropertyType::UnresolvedPointer)
+    {
+        constexpr std::string_view TypeName = GetTypeName<T>();
+        FProperty* Property = new FUnresolvedPtrProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
+        Property->TypeSpecificData = FName(TypeName.data(), TypeName.size());
+        return Property;
+    }
+    else
+    {
+        static_assert(!std::same_as<T, T>, "Unsupported Property Type"); // 지원되지 않는 타입!!
+    }
+    std::unreachable();
+}
