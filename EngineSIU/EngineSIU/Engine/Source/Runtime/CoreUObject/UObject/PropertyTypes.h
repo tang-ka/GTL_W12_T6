@@ -5,21 +5,35 @@
 #include "Container/Set.h"
 #include "Templates/IsArray.h"
 #include "magic_enum/magic_enum.hpp"
+#include "Math/Transform.h"
 
 
 enum class EPropertyType : uint8
 {
     Unknown,                       // 알 수 없는 타입
     UnresolvedPointer,             // 컴파일 타임에 알 수 없는 포인터 타입
+
     Int8, Int16, Int32, Int64,     // 부호 있는 정수타입
     UInt8, UInt16, UInt32, UInt64, // 부호 없는 정수타입
     Float, Double,                 // 실수 타입
     Bool,                          // Boolean 타입
+
     String,                        // 문자열 타입 (FString)
     Name,                          // 이름 타입 (FName)
+    Vector2D,                      // FVector2D
+    Vector,                        // FVector
+    Vector4,                       // FVector4
+    Rotator,                       // FRotator
+    Quat,                          // FQuat
+    Transform,                     // FTransform
+    Matrix,                        // FMatrix
+    Color,                         // FColor
+    LinearColor,                   // FLinearColor
+
     Array,                         // TArray<T>
     Map,                           // TMap<T>
     Set,                           // TSet<T>
+
     Enum,                          // 커스텀 Enum 타입
     Object,                        // UObject* 타입
     Struct,                        // 사용자 정의 구조체 타입
@@ -29,21 +43,30 @@ template <typename T>
 consteval EPropertyType GetPropertyType()
 {
     // 기본 내장 타입들
-    if constexpr (std::same_as<T, int8>)          { return EPropertyType::Int8;   }
-    else if constexpr (std::same_as<T, int16>)    { return EPropertyType::Int16;  }
-    else if constexpr (std::same_as<T, int32>)    { return EPropertyType::Int32;  }
-    else if constexpr (std::same_as<T, int64>)    { return EPropertyType::Int64;  }
-    else if constexpr (std::same_as<T, uint8>)    { return EPropertyType::UInt8;  }
-    else if constexpr (std::same_as<T, uint16>)   { return EPropertyType::UInt16; }
-    else if constexpr (std::same_as<T, uint32>)   { return EPropertyType::UInt32; }
-    else if constexpr (std::same_as<T, uint64>)   { return EPropertyType::UInt64; }
-    else if constexpr (std::same_as<T, float>)    { return EPropertyType::Float;  }
-    else if constexpr (std::same_as<T, double>)   { return EPropertyType::Double; }
-    else if constexpr (std::same_as<T, bool>)     { return EPropertyType::Bool;   }
+    if constexpr (std::same_as<T, int8>)              { return EPropertyType::Int8;        }
+    else if constexpr (std::same_as<T, int16>)        { return EPropertyType::Int16;       }
+    else if constexpr (std::same_as<T, int32>)        { return EPropertyType::Int32;       }
+    else if constexpr (std::same_as<T, int64>)        { return EPropertyType::Int64;       }
+    else if constexpr (std::same_as<T, uint8>)        { return EPropertyType::UInt8;       }
+    else if constexpr (std::same_as<T, uint16>)       { return EPropertyType::UInt16;      }
+    else if constexpr (std::same_as<T, uint32>)       { return EPropertyType::UInt32;      }
+    else if constexpr (std::same_as<T, uint64>)       { return EPropertyType::UInt64;      }
+    else if constexpr (std::same_as<T, float>)        { return EPropertyType::Float;       }
+    else if constexpr (std::same_as<T, double>)       { return EPropertyType::Double;      }
+    else if constexpr (std::same_as<T, bool>)         { return EPropertyType::Bool;        }
 
     // 엔진 기본 타입들
-    else if constexpr (std::same_as<T, FString>)  { return EPropertyType::String; }
-    else if constexpr (std::same_as<T, FName>)    { return EPropertyType::Name;   }
+    else if constexpr (std::same_as<T, FString>)      { return EPropertyType::String;      }
+    else if constexpr (std::same_as<T, FName>)        { return EPropertyType::Name;        }
+    else if constexpr (std::same_as<T, FVector2D>)    { return EPropertyType::Vector2D;    }
+    else if constexpr (std::same_as<T, FVector>)      { return EPropertyType::Vector;      }
+    else if constexpr (std::same_as<T, FVector4>)     { return EPropertyType::Vector4;     }
+    else if constexpr (std::same_as<T, FRotator>)     { return EPropertyType::Rotator;     }
+    else if constexpr (std::same_as<T, FQuat>)        { return EPropertyType::Quat;        }
+    else if constexpr (std::same_as<T, FTransform>)   { return EPropertyType::Transform;   }
+    else if constexpr (std::same_as<T, FMatrix>)      { return EPropertyType::Matrix;      }
+    else if constexpr (std::same_as<T, FColor>)       {  return EPropertyType::Color;      }
+    else if constexpr (std::same_as<T, FLinearColor>) { return EPropertyType::LinearColor; }
 
     // 포인터 타입
     else if constexpr (std::is_pointer_v<T>)
@@ -82,12 +105,12 @@ consteval EPropertyType GetPropertyType()
     // }
 
     // 커스텀 구조체
-    else if constexpr (std::is_class_v<T> && !std::derived_from<T, UObject>)
-    {
-        // TODO: 임시용
-        // 나중에 커스텀 구조체 타입에 대해서 만들어야함
-        return EPropertyType::Struct;
-    }
+    // else if constexpr (std::is_class_v<T> && !std::derived_from<T, UObject>)
+    // {
+    //     // TODO: 임시용
+    //     // 나중에 커스텀 구조체 타입에 대해서 만들어야함
+    //     return EPropertyType::Struct;
+    // }
 
     else
     {

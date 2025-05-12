@@ -150,3 +150,48 @@ void FNameProperty::DisplayInImGui(UObject* Object) const
     }
     ImGui::EndDisabled();
 }
+
+void FVector2DProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FVectorProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FVector4Property::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FRotatorProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FQuatProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FTransformProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FMatrixProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FColorProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}
+
+void FLinearColorProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+}

@@ -357,3 +357,147 @@ struct FNameProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
 };
+
+struct FVector2DProperty : public FProperty
+{
+    FVector2DProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Vector2D, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FVectorProperty : public FProperty
+{
+    FVectorProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Vector, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FVector4Property : public FProperty
+{
+    FVector4Property(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Vector4, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FRotatorProperty : public FProperty
+{
+    FRotatorProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Rotator, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FQuatProperty : public FProperty
+{
+    FQuatProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Quat, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FTransformProperty : public FProperty
+{
+    FTransformProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Transform, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FMatrixProperty : public FProperty
+{
+    FMatrixProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Matrix, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FColorProperty : public FProperty
+{
+    FColorProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Color, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
+
+struct FLinearColorProperty : public FProperty
+{
+    FLinearColorProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags)
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+};
