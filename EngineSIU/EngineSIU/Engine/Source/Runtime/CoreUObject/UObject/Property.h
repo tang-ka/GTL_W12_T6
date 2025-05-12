@@ -597,11 +597,12 @@ struct FObjectBaseProperty : public FProperty
     FObjectBaseProperty(
         UClass* InOwnerClass,
         const char* InPropertyName,
+        EPropertyType InType,
         int32 InSize,
         int32 InOffset,
         EPropertyFlags InFlags = EPropertyFlags::None
     )
-        : FProperty(InOwnerClass, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
+        : FProperty(InOwnerClass, InPropertyName, InType, InSize, InOffset, InFlags)
     {
     }
 };
@@ -615,7 +616,7 @@ struct FObjectProperty : public FObjectBaseProperty
         int32 InOffset,
         EPropertyFlags InFlags = EPropertyFlags::None
     )
-        : FObjectBaseProperty(InOwnerClass, InPropertyName, InSize, InOffset, InFlags)
+        : FObjectBaseProperty(InOwnerClass, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
     {
     }
 };
@@ -629,7 +630,7 @@ struct FUnresolvedPtrProperty : public FObjectBaseProperty
         int32 InOffset,
         EPropertyFlags InFlags = EPropertyFlags::None
     )
-        : FObjectBaseProperty(InOwnerClass, InPropertyName, InSize, InOffset, InFlags)
+        : FObjectBaseProperty(InOwnerClass, InPropertyName, EPropertyType::UnresolvedPointer, InSize, InOffset, InFlags)
     {
     }
 };
@@ -711,5 +712,6 @@ FProperty* MakeProperty(
     {
         static_assert(!std::same_as<T, T>, "Unsupported Property Type"); // 지원되지 않는 타입!!
     }
-    std::unreachable();
+
+    std::unreachable(); // 모든 Enum값에 대해서 처리하지 않으면 이 코드가 호출될 수 있음
 }
