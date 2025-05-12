@@ -61,7 +61,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // 루프 처리
         if (bPlayLooping)
         {
-            if (ElapsedTime >= EndTime)
+            if (ElapsedTime > EndTime)
             {
                 ElapsedTime = StartTime + FMath::Fmod(ElapsedTime - StartTime, EndTime - StartTime);
             }

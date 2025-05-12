@@ -398,6 +398,8 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                 RefSkeletalMeshComponent->SetCurrentKey(CurrentFrame);
                 RefSkeletalMeshComponent->SetElapsedTime(static_cast<float>(CurrentFrame) / static_cast<float>(FrameRate));
             }
+
+            int32 PendingRemoveTrackIdx = INDEX_NONE;
             for (int TrackIdx = 0; TrackIdx < Tracks.Num(); ++TrackIdx)
             {
                 bool bOpen = true;
@@ -416,10 +418,8 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                             bRenamePopup = true;
                         }
                         if (ImGui::MenuItem("Remove Track")) {
-                            AnimSeq->RemoveNotifyTrack(TrackIdx); 
-                            TrackIdx--; 
+                            PendingRemoveTrackIdx = TrackIdx;
                             ImGui::CloseCurrentPopup();
-                            break;
                         }
                         ImGui::EndPopup();
                     }
@@ -463,6 +463,10 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                     ImGui::EndNeoGroup();
                 }
                 ImGui::PopID();
+            }
+            if (PendingRemoveTrackIdx != INDEX_NONE && AnimSeq->AnimNotifyTracks.IsValidIndex(PendingRemoveTrackIdx))
+            {
+                AnimSeq->RemoveNotifyTrack(PendingRemoveTrackIdx);
             }
             ImGui::EndNeoSequencer();
         }
