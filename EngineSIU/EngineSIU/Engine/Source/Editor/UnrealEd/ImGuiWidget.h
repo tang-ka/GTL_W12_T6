@@ -22,7 +22,6 @@ struct FImGuiWidget
     static void DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
     static void DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
 
-private:
     template <size_t N>
     static void DisplayNControl(
         const std::string& Label,
