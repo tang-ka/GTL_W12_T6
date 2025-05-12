@@ -2,6 +2,9 @@
 #include "Math/NumericLimits.h"
 #include "ImGui/imgui.h"
 
+static constexpr int32 IMGUI_FSTRING_BUFFER_SIZE = 2048;
+
+
 struct FPropertyUIHelper
 {
     template <typename T>
@@ -116,7 +119,6 @@ void FStrProperty::DisplayInImGui(UObject* Object) const
     FProperty::DisplayInImGui(Object);
     FString* Data = GetPropertyData<FString>(Object);
 
-    constexpr int32 IMGUI_FSTRING_BUFFER_SIZE = 2048;
     char Buffer[IMGUI_FSTRING_BUFFER_SIZE];
     FCStringAnsi::Strncpy(Buffer, Data->ToAnsiString().c_str(), IMGUI_FSTRING_BUFFER_SIZE);
     Buffer[IMGUI_FSTRING_BUFFER_SIZE - 1] = '\0'; // 항상 널 종료 보장
@@ -125,4 +127,19 @@ void FStrProperty::DisplayInImGui(UObject* Object) const
     {
         *Data = Buffer;
     }
+}
+
+void FNameProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+
+    const FName* Data = GetPropertyData<FName>(Object);
+    std::string NameStr = Data->ToString().ToAnsiString();
+
+    // ReadOnly Mode
+    ImGui::BeginDisabled(true);
+    {
+        ImGui::InputText(Name, NameStr.data(), NameStr.size(), ImGuiInputTextFlags_ReadOnly);
+    }
+    ImGui::EndDisabled();
 }
