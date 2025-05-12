@@ -26,7 +26,7 @@ PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
     Output.Position = mul(Output.Position, ViewMatrix);
     Output.Position = mul(Output.Position, ProjectionMatrix);
     
-    Output.WorldNormal = mul(Input.Normal, (float3x3)InverseTransposedWorld);
+    Output.WorldNormal = normalize(mul(Input.Normal, (float3x3)InverseTransposedWorld));
 
     // Begin Tangent
     float3 WorldTangent = mul(Input.Tangent.xyz, (float3x3)WorldMatrix);

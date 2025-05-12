@@ -10,6 +10,7 @@
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
 #include "Animation/AnimNotifyState.h"
+#include "UObject/Casts.h"
 
 bool USkeletalMeshComponent::bCPUSkinning = false;
 
@@ -21,11 +22,17 @@ USkeletalMeshComponent::USkeletalMeshComponent()
 
 USkeletalMeshComponent::~USkeletalMeshComponent()
 {
-    if (AnimSequence)
-    {
-        delete AnimSequence;
-        AnimSequence = nullptr;
-    }
+}
+
+UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewComponent->SetSkeletalMeshAsset(SkeletalMeshAsset);
+    NewComponent->SetAnimation(AnimSequence);
+    NewComponent->SetAnimationEnabled(true);
+
+    return NewComponent;
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
@@ -192,7 +199,6 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
     const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
 
-    // 1. 현재 애니메이션 본 행렬 계산 (계층 구조 적용)
     OutBoneMatrices.Empty();
     OutBoneMatrices.SetNum(BoneNum);
 

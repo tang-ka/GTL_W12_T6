@@ -15,7 +15,9 @@ public:
     USkeletalMeshComponent();
     virtual ~USkeletalMeshComponent() override;
 
-    void TickComponent(float DeltaTime) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+
+    virtual void TickComponent(float DeltaTime) override;
 
     USkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMeshAsset; }
 
