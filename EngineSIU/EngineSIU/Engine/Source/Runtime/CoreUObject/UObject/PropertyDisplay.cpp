@@ -111,7 +111,7 @@ void FBoolProperty::DisplayInImGui(UObject* Object) const
     ImGui::Checkbox(Name, Data);
 }
 
-void FStringProperty::DisplayInImGui(UObject* Object) const
+void FStrProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
     FString* Data = GetPropertyData<FString>(Object);

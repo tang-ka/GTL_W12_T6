@@ -327,9 +327,9 @@ struct FBoolProperty : public FProperty
     virtual void DisplayInImGui(UObject* Object) const override;
 };
 
-struct FStringProperty : public FProperty
+struct FStrProperty : public FProperty
 {
-    FStringProperty(
+    FStrProperty(
         UClass* InOwnerClass,
         const char* InPropertyName,
         int32 InSize,
