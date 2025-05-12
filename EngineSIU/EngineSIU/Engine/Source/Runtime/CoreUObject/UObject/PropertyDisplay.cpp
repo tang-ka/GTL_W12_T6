@@ -7,7 +7,6 @@ concept TIsAnyOf = (std::same_as<Type, Types> || ...);
 
 template <typename T>
 concept NumericType = TIsAnyOf<T, int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, double>;
-    
 
 static constexpr int32 IMGUI_FSTRING_BUFFER_SIZE = 2048;
 
@@ -18,7 +17,7 @@ struct FPropertyUIHelper
     static void DisplayNumericDragN(const FProperty& Prop, UObject* Object, int Components, float Speed = 1.0f, const char* Format = nullptr)
     {
         NumType* Data = Prop.GetPropertyData<NumType>(Object);
-        constexpr NumType Min = TNumericLimits<NumType>::Min();
+        constexpr NumType Min = TNumericLimits<NumType>::Lowest();
         constexpr NumType Max = TNumericLimits<NumType>::Max();
     
         ImGuiDataType DataType;
