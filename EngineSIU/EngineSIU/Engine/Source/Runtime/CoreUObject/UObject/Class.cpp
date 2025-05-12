@@ -52,27 +52,7 @@ void UClass::ResolvePendingProperties()
 {
     for (FProperty* Prop : GetUnresolvedProperties())
     {
-        if (Prop->Type == EPropertyType::UnresolvedPointer)
-        {
-            // TODO: 자식 FProperty 만들면 Prop->Resolve()로 사용
-            if (std::holds_alternative<FName>(Prop->TypeSpecificData))
-            {
-                const FName& TypeName = std::get<FName>(Prop->TypeSpecificData);
-                if (UClass** FoundClass = GetClassMap().Find(TypeName))
-                {
-                    UClass* Class = *FoundClass;
-                    if (Class->IsChildOf(UObject::StaticClass()))
-                    {
-                        Prop->Type = EPropertyType::Object;
-                        Prop->TypeSpecificData = Class;
-                        continue;
-                    }
-                }
-            }
-        }
-        Prop->Type = EPropertyType::Unknown;
-        Prop->TypeSpecificData = std::monostate{};
-        UE_LOG(ELogLevel::Error, "Unknown Property Type : %s", Prop->Name);
+        Prop->Resolve();
     }
     GetUnresolvedProperties().Empty();
 }

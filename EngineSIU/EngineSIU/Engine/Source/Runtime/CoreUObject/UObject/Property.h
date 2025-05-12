@@ -635,6 +635,7 @@ struct FUnresolvedPtrProperty : public FObjectBaseProperty
     }
 
     virtual void DisplayInImGui(UObject* Object) const override;
+    virtual void Resolve() override;
 };
 
 struct FStructProperty : public FProperty
