@@ -57,6 +57,8 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     TickPose(DeltaTime);
+
+    RefreshBoneTransforms();
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)
@@ -65,7 +67,18 @@ void USkeletalMeshComponent::TickPose(float DeltaTime)
     {
         return;
     }
-    
+
+    TickAnimation(DeltaTime);
+}
+
+void USkeletalMeshComponent::TickAnimation(float DeltaTime)
+{
+    if (GetSkeletalMeshAsset())
+    {
+        TickAnimInstances(DeltaTime);
+    }
+
+#pragma region Anim
     ElapsedTime += DeltaTime;
     
     BonePoseTransforms = RefBonePoseTransforms;
@@ -157,6 +170,16 @@ void USkeletalMeshComponent::TickPose(float DeltaTime)
             CPURenderData->Vertices[i].NormalY = SkinnedNormal.Y;
             CPURenderData->Vertices[i].NormalZ = SkinnedNormal.Z;
         }
+    }
+#pragma endregion
+}
+
+void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
+{
+    if (AnimScriptInstance)
+    {
+        // TODO: 아래 UpdateAnimation 함수에서 포즈 결과를 받아와야 함.
+        AnimScriptInstance->UpdateAnimation(DeltaTime);
     }
 }
 

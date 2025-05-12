@@ -31,6 +31,10 @@ public:
 
     virtual void TickPose(float DeltaTime) override;
 
+    void TickAnimation(float DeltaTime);
+
+    void TickAnimInstances(float DeltaTime);
+
     bool ShouldTickAnimation() const;
 
     bool InitializeAnimScriptInstance();

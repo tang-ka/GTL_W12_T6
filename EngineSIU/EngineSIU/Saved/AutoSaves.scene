@@ -2,18 +2,18 @@
     "Actors": [
         {
             "ActorClass": "AActor",
-            "ActorID": "AActor_160",
-            "ActorLabel": "OBJ_SKELETALMESH_160",
+            "ActorID": "AActor_166",
+            "ActorLabel": "OBJ_SKELETALMESH_166",
             "ActorTickInEditor": "true",
             "Components": [
                 {
                     "ComponentClass": "USceneComponent",
-                    "ComponentID": "USceneComponent_161",
+                    "ComponentID": "USceneComponent_167",
                     "Properties": {
-                        "AttachParentID": "USkeletalMeshComponent_162",
+                        "AttachParentID": "USkeletalMeshComponent_168",
                         "ComponentClass": "USceneComponent",
-                        "ComponentName": "USceneComponent_161",
-                        "ComponentOwner": "AActor_160",
+                        "ComponentName": "USceneComponent_167",
+                        "ComponentOwner": "AActor_166",
                         "ComponentOwnerClass": "AActor",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
@@ -24,14 +24,14 @@
                 },
                 {
                     "ComponentClass": "USkeletalMeshComponent",
-                    "ComponentID": "USkeletalMeshComponent_162",
+                    "ComponentID": "USkeletalMeshComponent_168",
                     "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_max": "X=0.275 Y=72.008 Z=46.439",
+                        "AABB_min": "X=-176.632 Y=-72.008 Z=-19.802",
                         "AttachParentID": "nullptr",
                         "ComponentClass": "USkeletalMeshComponent",
-                        "ComponentName": "USkeletalMeshComponent_162",
-                        "ComponentOwner": "AActor_160",
+                        "ComponentName": "USkeletalMeshComponent_168",
+                        "ComponentOwner": "AActor_166",
                         "ComponentOwnerClass": "AActor",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
@@ -42,7 +42,7 @@
                     }
                 }
             ],
-            "RootComponentID": "USkeletalMeshComponent_162"
+            "RootComponentID": "USkeletalMeshComponent_168"
         }
     ],
     "NextUUID": 0,

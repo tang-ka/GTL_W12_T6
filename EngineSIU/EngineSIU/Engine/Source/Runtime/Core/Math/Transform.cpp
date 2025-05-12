@@ -150,6 +150,16 @@ void FTransform::SetIdentity()
     Scale3D = FVector::OneVector;
 }
 
+void FTransform::SetIdentityZeroScale()
+{
+    // Translation = {0,0,0)
+    Translation = FVector::ZeroVector;
+    // Rotation = {0,0,0,1)
+    Rotation = FQuat::Identity;
+    // Scale3D = {0,0,0);
+    Scale3D = FVector::ZeroVector;
+}
+
 FMatrix FTransform::ToMatrixWithScale() const
 {
     FMatrix OutMatrix;
