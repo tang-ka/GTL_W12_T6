@@ -212,3 +212,11 @@ void FLinearColorProperty::DisplayInImGui(UObject* Object) const
 
     // TODO: Implements This
 }
+
+void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
+{
+    if (Type == EPropertyType::Object)
+    {
+        FObjectBaseProperty::DisplayInImGui(Object);
+    }
+}

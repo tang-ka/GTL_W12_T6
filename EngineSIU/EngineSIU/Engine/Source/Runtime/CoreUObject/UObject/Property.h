@@ -633,6 +633,8 @@ struct FUnresolvedPtrProperty : public FObjectBaseProperty
         : FObjectBaseProperty(InOwnerClass, InPropertyName, EPropertyType::UnresolvedPointer, InSize, InOffset, InFlags)
     {
     }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
 };
 
 struct FStructProperty : public FProperty
