@@ -84,13 +84,7 @@ public: \
         VarName##_PropRegistrar_PRIVATE() \
         { \
             constexpr int64 Offset = offsetof(ThisClass, VarName); \
-            constexpr EPropertyType TypeEnum = GetPropertyType<Type>(); \
-            constexpr std::string_view TypeName = GetTypeName<Type>(); \
-            FProperty* Property = new FProperty{ ThisClass::StaticClass(), #VarName, TypeEnum, sizeof(Type), Offset }; \
-            if (Property && TypeEnum == EPropertyType::UnresolvedPointer) \
-            { \
-                Property->TypeSpecificData = FName(TypeName.data(), TypeName.size()); \
-            } \
-            ThisClass::StaticClass()->RegisterProperty(Property); \
+            constexpr EPropertyFlags Flags = EPropertyFlags::None; \
+            ThisClass::StaticClass()->RegisterProperty(MakeProperty<Type>(ThisClass::StaticClass(), #VarName, Offset, Flags)); \
         } \
     } VarName##_PropRegistrar_PRIVATE{};
