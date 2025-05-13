@@ -22,7 +22,7 @@ public:
     
     virtual void NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose);
 
-    virtual USkeletalMeshComponent* GetSkelMeshComponent() const;
+    USkeletalMeshComponent* GetSkelMeshComponent() const;
 
     void TriggerAnimNotifies(float DeltaSeconds);
 
