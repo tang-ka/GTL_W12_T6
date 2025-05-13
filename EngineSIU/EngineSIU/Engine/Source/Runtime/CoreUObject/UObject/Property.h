@@ -592,6 +592,20 @@ struct TEnumProperty : public FProperty
     }
 };
 
+struct FSubclassOfProperty : public FProperty
+{
+    FSubclassOfProperty(
+        UClass* InOwnerClass,
+        const char* InPropertyName,
+        int32 InSize,
+        int32 InOffset,
+        EPropertyFlags InFlags = EPropertyFlags::None
+    )
+        : FProperty(InOwnerClass, InPropertyName, EPropertyType::SubclassOf, InSize, InOffset, InFlags)
+    {
+    }
+};
+
 struct FObjectBaseProperty : public FProperty
 {
     FObjectBaseProperty(
@@ -698,6 +712,7 @@ FProperty* MakeProperty(
 
     else if constexpr (TypeEnum == EPropertyType::Enum)        { return new TEnumProperty<T>     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::Struct)      { return new FStructProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::SubclassOf)  { return new FSubclassOfProperty  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::Object)
     {
         FProperty* Property = new FObjectProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };

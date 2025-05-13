@@ -3,9 +3,11 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 #include "Container/Set.h"
-#include "Templates/IsArray.h"
-#include "magic_enum/magic_enum.hpp"
 #include "Math/Transform.h"
+#include "Template/SubclassOf.h"
+#include "Templates/IsArray.h"
+
+#include "magic_enum/magic_enum.hpp"
 
 
 enum class EPropertyType : uint8
@@ -36,6 +38,7 @@ enum class EPropertyType : uint8
 
     Enum,                          // 커스텀 Enum 타입
     Struct,                        // 사용자 정의 구조체 타입
+    SubclassOf,                      // TSubclassOf
     Object,                        // UObject* 타입
 };
 
@@ -67,6 +70,9 @@ consteval EPropertyType GetPropertyType()
     else if constexpr (std::same_as<T, FMatrix>)      { return EPropertyType::Matrix;      }
     else if constexpr (std::same_as<T, FColor>)       { return EPropertyType::Color;       }
     else if constexpr (std::same_as<T, FLinearColor>) { return EPropertyType::LinearColor; }
+
+    // TSubclassOf
+    else if constexpr (TIsTSubclassOf<T>)             { return EPropertyType::SubclassOf;    }
 
     // 포인터 타입
     else if constexpr (std::is_pointer_v<T>)
