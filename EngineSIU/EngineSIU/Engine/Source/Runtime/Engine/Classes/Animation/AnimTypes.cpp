@@ -1,2 +1,1 @@
-
 #include "AnimTypes.h"

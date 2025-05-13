@@ -391,6 +391,10 @@ void FSlateAppMessageHandler::OnKeyUp(const uint32 KeyCode, const uint32 Charact
 
 void FSlateAppMessageHandler::OnMouseDown(const EMouseButtons::Type Button, const FVector2D CursorPos)
 {
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        return;
+    }
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
     {
@@ -428,6 +432,10 @@ void FSlateAppMessageHandler::OnMouseDown(const EMouseButtons::Type Button, cons
 
 void FSlateAppMessageHandler::OnMouseUp(const EMouseButtons::Type Button, const FVector2D CursorPos)
 {
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        return;
+    }
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
     {

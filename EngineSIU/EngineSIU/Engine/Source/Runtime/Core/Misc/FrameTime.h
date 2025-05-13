@@ -25,7 +25,7 @@ struct FFrameTime
 	 */
 	template<typename T, typename = std::enable_if_t<std::is_same_v<T, int32>>>
 	FFrameTime(T /* int32 */ InFrameNumber);
-
+ 
 	/**
 	 * Implicit construction from a type-safe frame number
 	 */

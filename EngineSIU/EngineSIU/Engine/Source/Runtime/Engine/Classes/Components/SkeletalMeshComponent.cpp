@@ -8,6 +8,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
+#include "Animation/AnimNotifyState.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 #include "CoreUObject/Template/SubclassOf.h"
@@ -495,4 +496,155 @@ bool USkeletalMeshComponent::IsLooping() const
         return SingleNodeInstance->IsLooping();
     }
     return false;
+}
+
+void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimSequence)
+{
+    AnimSequence = InAnimSequence;
+
+    SetAnimationEnabled(bPlayAnimation);
+    
+    if (AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+        const int32 FrameRate = DataModel->GetFrameRate();
+
+        const float StartTime = static_cast<float>(LoopStartFrame) / FrameRate;
+        const float EndTime   = static_cast<float>(LoopEndFrame) / FrameRate;
+
+        ElapsedTime = bPlayReverse ? EndTime : StartTime;
+    }
+    else
+    {
+        ElapsedTime = 0.f;
+    }
+}
+
+float USkeletalMeshComponent::GetPlaySpeed() const
+{
+    return PlaySpeed;
+}
+void USkeletalMeshComponent::SetPlaySpeed(float InSpeed)
+{
+    PlaySpeed = InSpeed;
+}
+
+int32 USkeletalMeshComponent::GetLoopStartFrame() const
+{
+    return LoopStartFrame;
+}
+void USkeletalMeshComponent::SetLoopStartFrame(int32 InStart)
+{
+    LoopStartFrame = InStart;
+}
+
+int32 USkeletalMeshComponent::GetLoopEndFrame() const
+{
+    return LoopEndFrame;
+}
+void USkeletalMeshComponent::SetLoopEndFrame(int32 InEnd)
+{
+    LoopEndFrame = InEnd;
+}
+
+bool USkeletalMeshComponent::IsPlayReverse() const
+{
+    return bPlayReverse;
+}
+void USkeletalMeshComponent::SetPlayReverse(bool bEnable)
+{
+    bPlayReverse = bEnable;
+
+    if (bEnable && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+        const int32 FrameRate = DataModel->GetFrameRate();
+        const float EndTime = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
+
+        ElapsedTime = EndTime;  
+    }
+    else if (!bEnable && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    {
+        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+        const int32 FrameRate = DataModel->GetFrameRate();
+        const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
+
+        ElapsedTime = StartTime; 
+    }
+}
+
+
+bool USkeletalMeshComponent::IsPaused() const
+{
+    return bPauseAnimation;
+}
+void USkeletalMeshComponent::SetPaused(bool bPause)
+{
+    bPauseAnimation = bPause;
+}
+
+bool USkeletalMeshComponent::IsLooping() const
+{
+    return bPlayLooping;
+}
+void USkeletalMeshComponent::SetLooping(bool bEnable)
+{
+    bPlayLooping = bEnable;
+}
+
+ void USkeletalMeshComponent::EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping)
+{
+    for (FAnimNotifyEvent& NotifyEvent : const_cast<TArray<FAnimNotifyEvent>&>(Notifies))
+    {
+        const float StartTime = NotifyEvent.Time;
+        const float EndTime = NotifyEvent.GetEndTime();
+        const bool bReversed = DeltaTime < 0.0f;
+
+        const bool bPassed = bReversed
+            ? (PreviousTime >= StartTime && CurrentTime < StartTime)
+            : (PreviousTime <= StartTime && CurrentTime > StartTime);
+
+        const bool bInside = CurrentTime >= StartTime && CurrentTime < EndTime;
+
+        if (!NotifyEvent.IsState()) 
+        {
+            if (bPassed || (bIsLooping && !bReversed && PreviousTime > CurrentTime && StartTime >= 0.f && StartTime < CurrentTime))
+            {
+                if (NotifyEvent.Notify)
+                {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    NotifyEvent.Notify->Notify(MeshComp, AnimAsset);
+                }
+                NotifyEvent.bTriggered = true;
+            }
+        }
+        else 
+        {
+            if (bInside && !NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    NotifyEvent.NotifyState->NotifyBegin(MeshComp, AnimAsset, NotifyEvent.Duration);
+                }
+                NotifyEvent.bStateActive = true;
+            }
+            else if (bInside && NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+
+                    NotifyEvent.NotifyState->NotifyTick(MeshComp, AnimAsset, DeltaTime);
+                }
+            }
+            else if (!bInside && NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    NotifyEvent.NotifyState->NotifyEnd(MeshComp, AnimAsset);
+                }
+                NotifyEvent.bStateActive = false;
+            }
+        }
+    }
 }
