@@ -37,7 +37,7 @@ struct FPropertyUIHelper
         else if constexpr (std::same_as<NumType, uint64>) { DataType = ImGuiDataType_U64;    }
         else if constexpr (std::same_as<NumType, float>)  { DataType = ImGuiDataType_Float;  }
         else if constexpr (std::same_as<NumType, double>) { DataType = ImGuiDataType_Double; }
-        else { static_assert(false); }
+        else { static_assert(TAlwaysFalse<NumType>); }
     
         ImGui::DragScalarN(Prop.Name, DataType, Data, Components, Speed, &Min, &Max, Format);
     }

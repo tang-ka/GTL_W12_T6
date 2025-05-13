@@ -4,6 +4,7 @@
 
 #include "Object.h"
 #include "PropertyTypes.h"
+#include "Templates/TemplateUtilities.h"
 #include "Templates/TypeUtilities.h"
 
 
@@ -751,10 +752,14 @@ FProperty* MakeProperty(
         Property->TypeSpecificData = FName(TypeName.data(), TypeName.size());
         return Property;
     }
-    else
+    else if constexpr (TypeEnum == EPropertyType::Unknown)
     {
         static_assert(!std::same_as<T, T>, "Unsupported Property Type"); // 지원되지 않는 타입!!
-        // 혹은 모든 Enum값에 대해서 처리하지 않으면 이 코드가 호출될 수 있음
+    }
+    else
+    {
+        // 모든 Enum값에 대해서 처리하지 않으면 컴파일 에러
+        static_assert(TAlwaysFalse<T>, "Not all property types are handled in MakeProperty function. Please add missing property type handling.");
     }
 
     std::unreachable(); // 이론상 도달할 수 없는 코드, (static_assert 지우면 호출됨)
