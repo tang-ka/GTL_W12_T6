@@ -63,7 +63,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
         PreviousTime = ElapsedTime;
         ElapsedTime += DeltaPlayTime;
-
         EvaluateAnimNotifies(AnimSequence->Notifies, ElapsedTime, PreviousTime, DeltaPlayTime, this, AnimSequence, bPlayLooping);
         // 루프 처리
         if (bPlayLooping)
@@ -437,7 +436,7 @@ void USkeletalMeshComponent::SetLooping(bool bEnable)
             {
                 if (NotifyEvent.NotifyState)
                 {
-                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] begin: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
                     NotifyEvent.NotifyState->NotifyBegin(MeshComp, AnimAsset, NotifyEvent.Duration);
                 }
                 NotifyEvent.bStateActive = true;
@@ -446,7 +445,7 @@ void USkeletalMeshComponent::SetLooping(bool bEnable)
             {
                 if (NotifyEvent.NotifyState)
                 {
-
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Tick: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
                     NotifyEvent.NotifyState->NotifyTick(MeshComp, AnimAsset, DeltaTime);
                 }
             }
@@ -454,6 +453,7 @@ void USkeletalMeshComponent::SetLooping(bool bEnable)
             {
                 if (NotifyEvent.NotifyState)
                 {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] End: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
                     NotifyEvent.NotifyState->NotifyEnd(MeshComp, AnimAsset);
                 }
                 NotifyEvent.bStateActive = false;
