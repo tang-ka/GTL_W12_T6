@@ -213,7 +213,38 @@ void FMatrixProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
 
-    // TODO: Implements This
+    // TODO: 짐벌락 현상 있음
+    if (ImGui::TreeNode(Name))
+    {
+        bool bChanged = false;
+        FMatrix* Data = GetPropertyData<FMatrix>(Object);
+
+        FTransform Transform = FTransform(*Data);
+        FRotator Rotation = Transform.Rotator();
+
+        bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation);
+        bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
+        bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f);
+
+        if (bChanged)
+        {
+            *Data =
+                FMatrix::CreateScaleMatrix(Transform.Scale3D)
+                * FMatrix::CreateRotationMatrix(Rotation.Quaternion())
+                * FMatrix::CreateTranslationMatrix(Transform.Translation);
+        }
+
+        if (ImGui::TreeNode("Advanced"))
+        {
+            ImGui::DragFloat4("##1", Data->M[0], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+            ImGui::DragFloat4("##2", Data->M[1], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+            ImGui::DragFloat4("##3", Data->M[2], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+            ImGui::DragFloat4("##4", Data->M[3], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+            ImGui::TreePop();
+        }
+
+        ImGui::TreePop();
+    }
 }
 
 void FColorProperty::DisplayInImGui(UObject* Object) const
