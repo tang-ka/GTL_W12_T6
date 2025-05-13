@@ -60,7 +60,6 @@ class UAssetManager : public UObject
     DECLARE_CLASS(UAssetManager, UObject)
 
 private:
-    // TODO: 에셋 타입이 다른데 이름이 같은 경우가 있으므로, 맵으로 관리해야할 듯
     std::unique_ptr<FAssetRegistry> AssetRegistry;
 
 public:
