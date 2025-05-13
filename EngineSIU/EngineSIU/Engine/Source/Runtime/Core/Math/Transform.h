@@ -66,6 +66,7 @@ struct FTransform
     // 항등 변환 관련
     bool IsIdentity() const;
     void SetIdentity();
+    void SetIdentityZeroScale();
     static const FTransform Identity;
     
     // 역변환 계산

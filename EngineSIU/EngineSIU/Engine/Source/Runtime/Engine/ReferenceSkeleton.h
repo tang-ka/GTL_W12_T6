@@ -106,6 +106,23 @@ public:
         return (RawRefBoneInfo.IsValidIndex(Index));
     }
 
+    int32 GetParentIndexInternal(const int32 BoneIndex, const TArray<FMeshBoneInfo>& BoneInfo) const
+    {
+        const int32 ParentIndex = BoneInfo[BoneIndex].ParentIndex;
+
+        assert(
+                ((BoneIndex == 0) && (ParentIndex == INDEX_NONE)) ||
+                ((BoneIndex > 0) && BoneInfo.IsValidIndex(ParentIndex) && (ParentIndex < BoneIndex))
+            );
+        
+        return ParentIndex;
+    }
+    
+    int32 GetParentIndex(const int32 BoneIndex) const
+    {
+        return GetParentIndexInternal(BoneIndex, RawRefBoneInfo);
+    }
+
     void Serialize(FArchive& Ar)
     {
         Ar << RawRefBoneInfo

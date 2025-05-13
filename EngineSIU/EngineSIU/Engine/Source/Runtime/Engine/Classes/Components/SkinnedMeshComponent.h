@@ -7,5 +7,7 @@ class USkinnedMeshComponent : public UMeshComponent
 
 public:
     USkinnedMeshComponent() = default;
-    virtual ~USkinnedMeshComponent() = default;
+    virtual ~USkinnedMeshComponent() override = default;
+
+    virtual void TickPose(float DeltaTime) {}
 };

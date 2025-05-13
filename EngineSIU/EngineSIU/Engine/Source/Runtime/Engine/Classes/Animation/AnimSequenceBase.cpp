@@ -140,14 +140,10 @@ bool UAnimSequenceBase::AddNotifyEvent(int32 TargetTrackIndex, float Time, float
     NewEvent.TrackIndex = TargetTrackIndex;
     NewEvent.NotifyName = NotifyName;
 
-    if (Duration > 0.f)
-    {
-        NewEvent.NotifyState = FObjectFactory::ConstructObject<UAnimNotifyState>(this);
-    }
-    else
-    {
-        NewEvent.Notify = FObjectFactory::ConstructObject<UAnimNotify>(this);
-    }
+   
+    NewEvent.NotifyState = FObjectFactory::ConstructObject<UAnimNotifyState>(this);
+    NewEvent.Notify = FObjectFactory::ConstructObject<UAnimNotify>(this);
+    
 
     AnimNotifyTracks[TargetTrackIndex].NotifyIndices.Add(NewIndex);
     OutNewNotifyIndex = NewIndex;
@@ -255,6 +251,67 @@ int32 UAnimSequenceBase::FindNotifyTrackIndex(const FName& TrackName) const
     return INDEX_NONE;
 }
 
+void UAnimSequenceBase::EvaluateAnimNotifies(
+    const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp,
+    UAnimSequenceBase* AnimAsset, bool bIsLooping
+)
+{
+    for (FAnimNotifyEvent& NotifyEvent : const_cast<TArray<FAnimNotifyEvent>&>(Notifies))
+    {
+        const float StartTime = NotifyEvent.Time;
+        const float EndTime = NotifyEvent.GetEndTime();
+        const bool bReversed = DeltaTime < 0.0f;
+
+        const bool bPassed = bReversed
+            ? (PreviousTime >= StartTime && CurrentTime < StartTime)
+            : (PreviousTime <= StartTime && CurrentTime > StartTime);
+
+        const bool bInside = CurrentTime >= StartTime && CurrentTime < EndTime;
+
+        if (!NotifyEvent.IsState()) 
+        {
+            if (bPassed || (bIsLooping && !bReversed && PreviousTime > CurrentTime && StartTime >= 0.f && StartTime < CurrentTime))
+            {
+                if (NotifyEvent.Notify)
+                {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    NotifyEvent.Notify->Notify(MeshComp, AnimAsset);
+                }
+                NotifyEvent.bTriggered = true;
+            }
+        }
+        else 
+        {
+            if (bInside && !NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Begin: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    NotifyEvent.NotifyState->NotifyBegin(MeshComp, AnimAsset, NotifyEvent.Duration);
+                }
+                NotifyEvent.bStateActive = true;
+            }
+            else if (bInside && NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Tick: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    NotifyEvent.NotifyState->NotifyTick(MeshComp, AnimAsset, DeltaTime);
+                }
+            }
+            else if (!bInside && NotifyEvent.bStateActive)
+            {
+                if (NotifyEvent.NotifyState)
+                {
+                    UE_LOG(ELogLevel::Display, TEXT("[Notify] End: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
+                    NotifyEvent.NotifyState->NotifyEnd(MeshComp, AnimAsset);
+                }
+                NotifyEvent.bStateActive = false;
+            }
+        }
+    }
+}
+
 void UAnimSequenceBase::SerializeAsset(FArchive& Ar)
 {
     // TODO: 애님 노티파이 및 노티파이 트랙도 직렬화가 가능할지 생각해보기.
@@ -298,3 +355,4 @@ void UAnimSequenceBase::SerializeAsset(FArchive& Ar)
         }
     }
 }
+

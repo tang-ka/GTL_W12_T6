@@ -4,6 +4,19 @@
 
 class USkeleton;
 
+struct FAnimExtractContext
+{
+    double CurrentTime;
+
+    bool bLooping;
+
+    FAnimExtractContext(double InCurrentTime = 0.0, bool InbLooping = false)
+        : CurrentTime(InCurrentTime)
+        , bLooping(InbLooping)
+    {
+    }
+};
+
 class UAnimationAsset : public UObject
 {
     DECLARE_CLASS(UAnimationAsset, UObject)
