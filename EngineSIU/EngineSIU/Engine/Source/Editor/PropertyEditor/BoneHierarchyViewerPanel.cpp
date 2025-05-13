@@ -150,6 +150,14 @@ void BoneHierarchyViewerPanel::ClearRefSkeletalMeshComponent()
     {
         RefSkeletalMeshComponent = nullptr;
     }
+    if (CopiedRefSkeleton)
+    {
+        CopiedRefSkeleton = nullptr;
+    }
+    if (PrevAnimDataModel)
+    {
+        PrevAnimDataModel = nullptr;
+    }
 }
 
 void BoneHierarchyViewerPanel::LoadBoneIcon()
