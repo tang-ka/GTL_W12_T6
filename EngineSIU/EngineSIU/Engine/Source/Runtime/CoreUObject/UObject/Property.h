@@ -72,10 +72,14 @@ private:
     {
         if constexpr (std::same_as<T, UClass*>)
         {
-            if (Type != EPropertyType::Object)
+            switch (Type)  // NOLINT(clang-diagnostic-switch-enum)
             {
-                // Object 타입일 때만 UClass*가 유효
-                return std::nullopt;
+                // Type이 Object와 SubclassOf 일 때만 UClass*가 유효
+                case EPropertyType::Object:
+                case EPropertyType::SubclassOf:
+                    break;
+                default:
+                    return std::nullopt;
             }
         }
         // else if constexpr (std::same_as<T, FStructInfo*>) {
@@ -604,6 +608,8 @@ struct FSubclassOfProperty : public FProperty
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::SubclassOf, InSize, InOffset, InFlags)
     {
     }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
 };
 
 struct FObjectBaseProperty : public FProperty
@@ -712,7 +718,20 @@ FProperty* MakeProperty(
 
     else if constexpr (TypeEnum == EPropertyType::Enum)        { return new TEnumProperty<T>     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::Struct)      { return new FStructProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::SubclassOf)  { return new FSubclassOfProperty  { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::SubclassOf)
+    {
+        if constexpr (std::derived_from<typename T::ElementType, UObject>)
+        {
+            FProperty* Property = new FSubclassOfProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
+            Property->TypeSpecificData = T::ElementType::StaticClass();
+            return Property;
+        }
+        else
+        {
+            // TSubclassOf에 UObject를 상속받은 클래스가 아닌 타입이 들어오면, 여기서 컴파일 에러가 날 수 있음
+            static_assert(false, "TSubclassOf template parameter must inherit from UObject");
+        }
+    }
     else if constexpr (TypeEnum == EPropertyType::Object)
     {
         FProperty* Property = new FObjectProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
@@ -729,7 +748,8 @@ FProperty* MakeProperty(
     else
     {
         static_assert(!std::same_as<T, T>, "Unsupported Property Type"); // 지원되지 않는 타입!!
+        // 혹은 모든 Enum값에 대해서 처리하지 않으면 이 코드가 호출될 수 있음
     }
 
-    std::unreachable(); // 모든 Enum값에 대해서 처리하지 않으면 이 코드가 호출될 수 있음
+    std::unreachable(); // 이론상 도달할 수 없는 코드, (static_assert 지우면 호출됨)
 }

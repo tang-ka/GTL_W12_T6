@@ -1,5 +1,10 @@
 ﻿#include "Property.h"
+
+#include "Class.h"
+#include "UObjectHash.h"
 #include "Math/NumericLimits.h"
+#include "Template/SubclassOf.h"
+
 #include "ImGui/imgui.h"
 
 template <typename Type, typename... Types>
@@ -211,6 +216,45 @@ void FLinearColorProperty::DisplayInImGui(UObject* Object) const
     FProperty::DisplayInImGui(Object);
 
     // TODO: Implements This
+}
+
+void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+
+    TSubclassOf<UObject>* Data = GetPropertyData<TSubclassOf<UObject>>(Object);
+    UClass* CurrentClass = GetSpecificClass();
+    if (CurrentClass == nullptr)
+    {
+        return;
+    }
+
+    TArray<UClass*> ChildClasses;
+    GetChildOfClass(CurrentClass, ChildClasses);
+
+    const std::string CurrentClassName = (*Data) ? (*Data)->GetName().ToAnsiString() : "None";
+    if (ImGui::BeginCombo(Name, CurrentClassName.c_str()))
+    {
+        if (ImGui::Selectable("None", !(*Data)))
+        {
+            *Data = nullptr;
+        }
+
+        for (UClass* ChildClass : ChildClasses)
+        {
+            const std::string ChildClassName = ChildClass->GetName().ToAnsiString();
+            const bool bIsSelected = (*Data) && (*Data) == ChildClass;
+            if (ImGui::Selectable(ChildClassName.c_str(), bIsSelected))
+            {
+                *Data = ChildClass;
+            }
+            if (bIsSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
 }
 
 void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
