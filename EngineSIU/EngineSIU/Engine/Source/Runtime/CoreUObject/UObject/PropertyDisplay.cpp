@@ -2,6 +2,7 @@
 
 #include "Class.h"
 #include "UObjectHash.h"
+#include "Editor/UnrealEd/ImGuiWidget.h"
 #include "Math/NumericLimits.h"
 #include "Template/SubclassOf.h"
 
@@ -194,7 +195,18 @@ void FTransformProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
 
-    // TODO: Implements This
+    if (ImGui::TreeNode(Name))
+    {
+        FTransform* Data = GetPropertyData<FTransform>(Object);
+        FRotator Rotation = Data->Rotator();
+
+        FImGuiWidget::DrawVec3Control("Location", Data->Translation);
+        FImGuiWidget::DrawRot3Control("Rotation", Rotation);
+        FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f);
+
+        Data->Rotation = Rotation.Quaternion();
+        ImGui::TreePop();
+    }
 }
 
 void FMatrixProperty::DisplayInImGui(UObject* Object) const

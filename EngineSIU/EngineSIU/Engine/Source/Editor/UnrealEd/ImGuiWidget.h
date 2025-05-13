@@ -27,6 +27,7 @@ struct FImGuiWidget
         const std::string& Label,
         float ResetValue,
         float ColumnWidth,
+        const char* Format,
         const std::array<FControlInfo, N>& ComponentsInfo
     )
     {
@@ -91,7 +92,7 @@ struct FImGuiWidget
                 ImGuiDataType_Float,
                 Info.ValuePtr,
                 0.1f,
-                &Min, &Max, "%.2f"
+                &Min, &Max, Format
             );
 
             if (Idx < N - 1)
