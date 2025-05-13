@@ -4,7 +4,7 @@
 #include "Container/Map.h"
 #include "Container/Set.h"
 #include "Math/Transform.h"
-#include "Template/SubclassOf.h"
+#include "Template/IsTSubclassOf.h"
 #include "Templates/IsArray.h"
 
 #include "magic_enum/magic_enum.hpp"
@@ -38,7 +38,7 @@ enum class EPropertyType : uint8
 
     Enum,                          // 커스텀 Enum 타입
     Struct,                        // 사용자 정의 구조체 타입
-    SubclassOf,                      // TSubclassOf
+    SubclassOf,                    // TSubclassOf
     Object,                        // UObject* 타입
 };
 
@@ -72,7 +72,7 @@ consteval EPropertyType GetPropertyType()
     else if constexpr (std::same_as<T, FLinearColor>) { return EPropertyType::LinearColor; }
 
     // TSubclassOf
-    else if constexpr (TIsTSubclassOf<T>)             { return EPropertyType::SubclassOf;    }
+    else if constexpr (TIsTSubclassOf<T>)             { return EPropertyType::SubclassOf;  }
 
     // 포인터 타입
     else if constexpr (std::is_pointer_v<T>)
