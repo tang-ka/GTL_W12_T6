@@ -113,8 +113,6 @@ public:
     EAnimationMode GetAnimationMode() const { return AnimationMode; }
 
     virtual void InitAnim();
-
-    UAnimSequence* GetAnimSequence() const {return AnimSequence;}
     
 protected:
     bool NeedToSpawnAnimScriptInstance() const;
@@ -126,8 +124,6 @@ private:
     
     USkeletalMesh* SkeletalMeshAsset;
 
-    UAnimSequence* AnimSequence;
-    
     bool bPlayAnimation;
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;

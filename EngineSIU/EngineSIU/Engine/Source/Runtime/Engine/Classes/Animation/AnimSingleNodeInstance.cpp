@@ -9,6 +9,7 @@
 #include "Animation/AnimSequence.h"
 #include "Engine/SkeletalMesh.h"
 #include "Misc/FrameTime.h"
+#include "UObject/Casts.h"
 
 UAnimSingleNodeInstance::UAnimSingleNodeInstance()
     : CurrentAsset(nullptr)
@@ -63,11 +64,11 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseCon
 #pragma region Anim
     USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();
     
-    if (!SkeletalMeshComp->GetAnimSequence() || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
+    if (!SkeletalMeshComp->GetAnimation() || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
         return;
 
-    UAnimSequence* AnimSequence = SkeletalMeshComp->GetAnimSequence();
-    const UAnimDataModel* DataModel = SkeletalMeshComp->GetAnimSequence()->GetDataModel();
+    UAnimSequence* AnimSequence = Cast<UAnimSequence>(CurrentAsset);
+    const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
     const int32 FrameRate = DataModel->GetFrameRate();
     const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
     

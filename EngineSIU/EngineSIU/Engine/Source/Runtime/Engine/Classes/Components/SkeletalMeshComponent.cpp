@@ -17,7 +17,6 @@ bool USkeletalMeshComponent::bCPUSkinning = false;
 USkeletalMeshComponent::USkeletalMeshComponent()
     : AnimationMode(EAnimationMode::AnimationSingleNode)
     , SkeletalMeshAsset(nullptr)
-    , AnimSequence(nullptr)
     , AnimClass(nullptr)
     , AnimScriptInstance(nullptr)
     , bPlayAnimation(false)
@@ -44,7 +43,7 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 
     NewComponent->SetAnimationMode(AnimationMode);
     NewComponent->SetSkeletalMeshAsset(SkeletalMeshAsset);
-    NewComponent->SetAnimation(AnimSequence);
+    //NewComponent->SetAnimation(AnimSequence);
     NewComponent->Play(true);
 
     return NewComponent;
@@ -187,7 +186,7 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
 
 void USkeletalMeshComponent::DEBUG_SetAnimationEnabled(bool bEnable)
 {
-    bPlayAnimation = AnimSequence && bEnable;
+    bPlayAnimation = bEnable;
     
     if (!bPlayAnimation)
     {
@@ -458,7 +457,6 @@ void USkeletalMeshComponent::SetAnimInstanceClass(class UClass* NewClass)
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
 {
-    AnimSequence = Cast<UAnimSequence>(NewAnimToPlay);
     if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
     {
         SingleNodeInstance->SetAnimationAsset(NewAnimToPlay, false);
