@@ -539,10 +539,14 @@ protected:
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
-
-struct FArrayProperty : public FProperty
+template <typename InArrayType>
+struct TArrayProperty : public FProperty
 {
-    FArrayProperty(
+    using ElementType = typename InArrayType::ElementType;
+
+    FProperty* ElementProperty = nullptr;
+
+    TArrayProperty(
         UClass* InOwnerClass,
         const char* InPropertyName,
         int32 InSize,
@@ -552,11 +556,26 @@ struct FArrayProperty : public FProperty
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Array, InSize, InOffset, InFlags)
     {
     }
+
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override
+    {
+        FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+        TArray<ElementType>* Data = static_cast<TArray<ElementType>*>(DataPtr);
+    }
 };
 
-struct FMapProperty : public FProperty
+template <typename InMapType>
+struct TMapProperty : public FProperty
 {
-    FMapProperty(
+    using KeyType = typename InMapType::KeyType;
+    using ValueType = typename InMapType::ValueType;
+
+    FProperty* KeyProperty = nullptr;
+    FProperty* ValueProperty = nullptr;
+
+    TMapProperty(
         UClass* InOwnerClass,
         const char* InPropertyName,
         int32 InSize,
@@ -566,11 +585,24 @@ struct FMapProperty : public FProperty
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Map, InSize, InOffset, InFlags)
     {
     }
+
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override
+    {
+        FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+        TMap<KeyType, ValueType>* Data = static_cast<TMap<KeyType, ValueType>*>(DataPtr);
+    }
 };
 
-struct FSetProperty : public FProperty
+template <typename InSetType>
+struct TSetProperty : public FProperty
 {
-    FSetProperty(
+    using ElementType = typename InSetType::ElementType;
+
+    FProperty* ElementProperty = nullptr;
+
+    TSetProperty(
         UClass* InOwnerClass,
         const char* InPropertyName,
         int32 InSize,
@@ -579,6 +611,14 @@ struct FSetProperty : public FProperty
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Set, InSize, InOffset, InFlags)
     {
+    }
+
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override
+    {
+        FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+        TSet<ElementType>* Data = static_cast<TSet<ElementType>*>(DataPtr);
     }
 };
 
@@ -714,23 +754,9 @@ struct FStructProperty : public FProperty
 
 namespace PropertyFactory::Private
 {
-// template <typename T>
-// FProperty* CreatePropertyForContainerType()
-// {
-//     constexpr EPropertyType TypeEnum = GetPropertyType<T>();
-//
-//     if constexpr (
-//         TypeEnum == EPropertyType::Array
-//         || TypeEnum == EPropertyType::Set
-//         || TypeEnum == EPropertyType::Map
-//     )
-//     {
-//         // 다차원 컨테이너는 UPROPERTY로 사용할 수 없음!!
-//         static_assert(TAlwaysFalse<T>, "Container type cannot be used as property type.");
-//     }
-//
-//     return MakeProperty<T>()
-// }
+template <typename T>
+FProperty* CreatePropertyForContainerType(EPropertyFlags Flags);
+
 template <typename T>
 FProperty* MakeProperty(
     UClass* InOwnerClass,
@@ -765,9 +791,25 @@ FProperty* MakeProperty(
     else if constexpr (TypeEnum == EPropertyType::Color)       { return new FColorProperty       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
 
-    else if constexpr (TypeEnum == EPropertyType::Array)       { return new FArrayProperty       { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Map)         { return new FMapProperty         { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Set)         { return new FSetProperty         { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::Array)
+    {
+        TArrayProperty<T>* Property = new TArrayProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
+        Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType>(InFlags);
+        return Property;
+    }
+    else if constexpr (TypeEnum == EPropertyType::Map)
+    {
+        TMapProperty<T>* Property = new TMapProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
+        Property->KeyProperty = CreatePropertyForContainerType<typename T::KeyType>(InFlags);
+        Property->ValueProperty = CreatePropertyForContainerType<typename T::ValueType>(InFlags);
+        return Property;
+    }
+    else if constexpr (TypeEnum == EPropertyType::Set)
+    {
+        TSetProperty<T>* Property = new TSetProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
+        Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType>(InFlags);
+        return Property;
+    }
 
     else if constexpr (TypeEnum == EPropertyType::Enum)        { return new TEnumProperty<T>     { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::Struct)      { return new FStructProperty      { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
@@ -812,5 +854,29 @@ FProperty* MakeProperty(
     }
 
     std::unreachable(); // 이론상 도달할 수 없는 코드, (static_assert 지우면 호출됨)
+}
+
+template <typename T>
+FProperty* CreatePropertyForContainerType(EPropertyFlags Flags)
+{
+    constexpr EPropertyType TypeEnum = GetPropertyType<T>();
+
+    if constexpr (
+        TypeEnum == EPropertyType::Array
+        || TypeEnum == EPropertyType::Set
+        || TypeEnum == EPropertyType::Map
+        || TypeEnum == EPropertyType::SubclassOf
+    )
+    {
+        // 다차원 컨테이너는 UPROPERTY로 사용할 수 없음!!
+        static_assert(TAlwaysFalse<T>, "Container type cannot be used as property type.");
+    }
+
+    return MakeProperty<T>(
+        nullptr,
+        "Container",
+        0,
+        Flags
+    );
 }
 }
