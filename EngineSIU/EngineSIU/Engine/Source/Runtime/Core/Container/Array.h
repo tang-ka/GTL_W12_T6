@@ -73,6 +73,33 @@ public:
     void Append(const TArray& Source);
 
     /**
+     * InitList에 있는 요소들을 InIndex 위치에 삽입합니다.
+     * @param InitList 삽입할 요소들의 초기화 리스트
+     * @param InIndex 삽입 시작 위치의 인덱스
+     * @return 삽입된 첫 번째 요소의 인덱스
+     */
+    SizeType Insert(std::initializer_list<ElementType> InitList, SizeType InIndex);
+
+    /**
+     * 다른 TArray의 요소들을 현재 배열의 특정 위치에 삽입합니다.
+     * 
+     * @param Items 삽입할 요소들이 포함된 TArray
+     * @param InIndex 요소들을 삽입할 인덱스 위치 
+     * @return 삽입된 첫 번째 요소의 인덱스
+     */
+    template <typename OtherAllocatorType>
+    SizeType Insert(const TArray<ElementType, OtherAllocatorType>& Items, SizeType InIndex);
+
+    /**
+     * 하나의 요소를 특정 인덱스 위치에 삽입합니다.
+     *
+     * @param Item 삽입할 요소
+     * @param InIndex 삽입 위치의 인덱스
+     * @return 삽입된 요소의 인덱스
+     */
+    SizeType Insert(const ElementType& Item, SizeType InIndex);
+
+    /**
      * 포인터가 가리키는 C-스타일 배열의 요소들을 이 배열의 끝에 추가합니다.
      * @param Ptr 추가할 요소 배열의 시작 포인터
      * @param Count 추가할 요소의 개수
@@ -302,6 +329,32 @@ void TArray<T, AllocatorType>::Append(const TArray& Source)
         Source.ContainerPrivate.begin(), // 복사할 시작 이터레이터
         Source.ContainerPrivate.end()    // 복사할 끝 이터레이터
     );
+}
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(std::initializer_list<ElementType> InitList, const SizeType InIndex)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, InitList);
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+template <typename OtherAllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(
+    const TArray<ElementType, OtherAllocatorType>& Items, const SizeType InIndex
+)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, Items.begin(), Items.end());
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(const ElementType& Item, SizeType InIndex)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, Item);
+    return InIndex;
 }
 
 template <typename T, typename AllocatorType>
