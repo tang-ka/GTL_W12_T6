@@ -92,7 +92,7 @@ private:
     int32 LoopEndFrame = 0;
     
     bool bPlayAnimation = false;
-    bool bPuaseAnimation = false;
+    bool bPauseAnimation = false;
     bool bPlayReverse = false;
     bool bPlayLooping = false;
     

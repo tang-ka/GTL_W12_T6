@@ -51,11 +51,9 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     LoopStartFrame = FMath::Clamp(LoopStartFrame, 0, NumberOfFrames - 2);
     LoopEndFrame = FMath::Clamp(LoopEndFrame, LoopStartFrame + 1, NumberOfFrames - 1);
     const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
-    const float EndTime   = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate)
+    const float EndTime   = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
 
-    ;
-
-    if (bPlayAnimation && !bPuaseAnimation)
+    if (bPlayAnimation && !bPauseAnimation)
     {
         float DeltaPlayTime = DeltaTime * PlaySpeed;
         if (bPlayReverse)
@@ -391,11 +389,11 @@ void USkeletalMeshComponent::SetPlayReverse(bool bEnable)
 
 bool USkeletalMeshComponent::IsPaused() const
 {
-    return bPuaseAnimation;
+    return bPauseAnimation;
 }
 void USkeletalMeshComponent::SetPaused(bool bPause)
 {
-    bPuaseAnimation = bPause;
+    bPauseAnimation = bPause;
 }
 
 bool USkeletalMeshComponent::IsLooping() const
