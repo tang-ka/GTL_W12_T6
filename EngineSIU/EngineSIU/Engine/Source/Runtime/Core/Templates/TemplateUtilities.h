@@ -6,6 +6,20 @@
 
 
 /**
+ * 어떤 타입에 대해서도 항상 false를 반환하는 변수 템플릿입니다.
+ *
+ * 이 변수 템플릿은 템플릿 메타프로그래밍에서 특정 분기에서만 컴파일 타임 에러를 발생시키고 싶을 때
+ * static_assert와 함께 자주 사용됩니다.
+ *
+ * @tparam T 사용되는 타입 파라미터 (실제 값에는 영향을 주지 않습니다)
+ *
+ * @note 템플릿 코드에서 static_assert를 통해 컴파일 에러를 발생시키고 싶을 때 유용합니다.
+ * @see https://en.cppreference.com/w/cpp/language/variable_template
+ */
+template <typename T>
+constexpr bool TAlwaysFalse = false;
+
+/**
  * 객체를 우측값으로 캐스팅하여 이동 연산을 수행합니다.
  * rvalue나 const 객체에 대해서는 사용할 수 없도록 제한됩니다.
  * @param Obj 이동시킬 객체
