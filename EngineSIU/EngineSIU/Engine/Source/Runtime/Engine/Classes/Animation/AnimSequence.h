@@ -4,6 +4,8 @@
 
 struct FTransform;
 struct FBoneAnimationTrack;
+struct FAnimationPoseData;
+struct FAnimExtractContext;
 
 class UAnimSequence : public UAnimSequenceBase
 {
@@ -12,4 +14,8 @@ class UAnimSequence : public UAnimSequenceBase
 public:
     UAnimSequence();
     virtual ~UAnimSequence() override = default;
+    
+    virtual void GetAnimationPose(FAnimationPoseData& OutAnimationPoseData, const FAnimExtractContext& ExtractionContext);
+    
+    void GetBonePose(FAnimationPoseData& OutAnimationPoseData, const FAnimExtractContext& ExtractionContext);
 };
