@@ -139,14 +139,10 @@ bool UAnimSequenceBase::AddNotifyEvent(int32 TargetTrackIndex, float Time, float
     NewEvent.TrackIndex = TargetTrackIndex;
     NewEvent.NotifyName = NotifyName;
 
-    if (Duration > 0.f)
-    {
-        NewEvent.NotifyState = FObjectFactory::ConstructObject<UAnimNotifyState>(this);
-    }
-    else
-    {
-        NewEvent.Notify = FObjectFactory::ConstructObject<UAnimNotify>(this);
-    }
+   
+    NewEvent.NotifyState = FObjectFactory::ConstructObject<UAnimNotifyState>(this);
+    NewEvent.Notify = FObjectFactory::ConstructObject<UAnimNotify>(this);
+    
 
     AnimNotifyTracks[TargetTrackIndex].NotifyIndices.Add(NewIndex);
     OutNewNotifyIndex = NewIndex;

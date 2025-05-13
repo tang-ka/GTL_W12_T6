@@ -53,6 +53,6 @@ private:
 private:
     char NewNotifyNameBuffer[128] = "NewNotify";
     float NewNotifyTime = 0.0f;
-    float NewNotifyDuration = 0.0f;
+    float RenameNotifyDuration = 1.0f; 
 
 };
