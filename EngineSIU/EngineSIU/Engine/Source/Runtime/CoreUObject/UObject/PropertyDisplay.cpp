@@ -143,7 +143,9 @@ void FStrProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPt
     FCStringAnsi::Strncpy(Buffer, Data->ToAnsiString().c_str(), IMGUI_FSTRING_BUFFER_SIZE);
     Buffer[IMGUI_FSTRING_BUFFER_SIZE - 1] = '\0'; // 항상 널 종료 보장
 
-    if (ImGui::InputText(PropertyLabel, Buffer, IMGUI_FSTRING_BUFFER_SIZE))
+    ImGui::Text("%s", PropertyLabel);
+    ImGui::SameLine();
+    if (ImGui::InputText(std::format("##{}", PropertyLabel).c_str(), Buffer, IMGUI_FSTRING_BUFFER_SIZE))
     {
         *Data = Buffer;
     }
