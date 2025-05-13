@@ -538,7 +538,64 @@ struct TArrayProperty : public FProperty
     {
         FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
-        TArray<ElementType>* Data = static_cast<TArray<ElementType>*>(DataPtr);
+        if (ImGui::TreeNode(PropertyLabel))
+        {
+            TArray<ElementType>* Data = static_cast<TArray<ElementType>*>(DataPtr);
+
+            const ImGuiIO& IO = ImGui::GetIO();
+            ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
+
+            ImGui::Text("Num Of Elements: %d", Data->Num());
+
+            ImGui::SameLine();
+            ImGui::PushFont(IconFont);
+            if (ImGui::Button("\ue9c8"))
+            {
+                Data->AddDefaulted();
+            }
+            ImGui::PopFont();
+            ImGui::SetItemTooltip("Add Element");
+
+            ImGui::SameLine();
+            ImGui::PushFont(IconFont);
+            if (ImGui::Button("\ue9f6"))
+            {
+                Data->Empty();
+            }
+            ImGui::PopFont();
+            ImGui::SetItemTooltip("Remove All Elements");
+
+            for (int32 Index = 0; Index < Data->Num(); ++Index)
+            {
+                ElementProperty->DisplayRawDataInImGui(std::format("Idx [{}]", Index).c_str(), &((*Data)[Index]));
+
+                std::string PopupLabel = std::format("ArrayElementOption##{}", Index);
+                ImGui::SameLine();
+                if (ImGui::Button(std::format("...##{}", Index).c_str()))
+                {
+                    ImGui::OpenPopup(PopupLabel.c_str());
+                }
+
+                if (ImGui::BeginPopup(PopupLabel.c_str()))
+                {
+                    if (ImGui::Selectable("Insert"))
+                    {
+                        Data->Insert(ElementType{}, Index);
+                    }
+                    else if (ImGui::Selectable("Remove"))
+                    {
+                        Data->RemoveAt(Index);
+                    }
+                    else if (ImGui::Selectable("Duplicate"))
+                    {
+                        Data->Insert((*Data)[Index], Index);
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+
+            ImGui::TreePop();
+        }
     }
 };
 
@@ -675,7 +732,6 @@ struct FObjectBaseProperty : public FProperty
     }
 
     virtual void DisplayInImGui(UObject* Object) const override;
-    virtual void Resolve() override;
 };
 
 struct FObjectProperty : public FObjectBaseProperty
