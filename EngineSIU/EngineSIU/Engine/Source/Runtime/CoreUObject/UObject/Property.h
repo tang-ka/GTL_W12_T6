@@ -901,7 +901,7 @@ FProperty* CreatePropertyForContainerType(EPropertyFlags Flags)
     )
     {
         // 다차원 컨테이너는 UPROPERTY로 사용할 수 없음!!
-        static_assert(TAlwaysFalse<T>, "Container type cannot be used as property type.");
+        static_assert(TAlwaysFalse<T>, "Nested container types (e.g. TArray<TArray<T>>, TArray<TSet<T>>) cannot be used as UPROPERTY type.");
     }
 
     return MakeProperty<T>(
