@@ -50,6 +50,8 @@ public:
     FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex);
     const FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex) const;
     
+    virtual void SerializeAsset(FArchive& Ar) override;
+
 private:
     void CreateModel();
 };

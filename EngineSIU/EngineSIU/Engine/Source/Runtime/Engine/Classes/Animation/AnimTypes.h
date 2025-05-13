@@ -1,6 +1,8 @@
 #pragma once
 #include "Container/Array.h"
 #include "UObject/NameTypes.h"
+#include "Math/Quat.h"
+#include "Math/Vector.h"
 
 struct FQuat;
 struct FVector;
@@ -45,6 +47,11 @@ struct FRawAnimSequenceTrack
     TArray<FQuat> RotKeys;
 
     TArray<FVector> ScaleKeys;
+
+    void Serialize(FArchive& Ar)
+    {
+        Ar << PosKeys << RotKeys << ScaleKeys;
+    }
 };
 
 // From Unreal Engine IAnimationDataMode.h
@@ -55,6 +62,13 @@ struct FBoneAnimationTrack
     int32 BoneTreeIndex = INDEX_NONE;
 
     FName Name;
+
+    friend FArchive& operator<<(FArchive& Ar, FBoneAnimationTrack& Data)
+    {
+        Data.InternalTrackData.Serialize(Ar);
+
+        return Ar << Data.BoneTreeIndex << Data.Name;
+    }
 };
 
 enum class EAnimInterpolationType : uint8

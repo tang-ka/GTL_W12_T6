@@ -9,5 +9,5 @@ UAnimSequence::UAnimSequence()
 
 void UAnimSequence::SerializeAsset(FArchive& Ar)
 {
-    
+    Super::SerializeAsset(Ar);
 }

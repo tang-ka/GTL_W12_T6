@@ -6,6 +6,7 @@
 #include "Developer/AnimDataController/AnimDataController.h"
 #include "Animation/AnimTypes.h"
 #include "Engine/Classes/Animation/AnimNotifyState.h"
+
 UAnimSequenceBase::UAnimSequenceBase()
     : RateScale(1.f)
     , bLoop(true)
@@ -252,4 +253,48 @@ int32 UAnimSequenceBase::FindNotifyTrackIndex(const FName& TrackName) const
         }
     }
     return INDEX_NONE;
+}
+
+void UAnimSequenceBase::SerializeAsset(FArchive& Ar)
+{
+    // TODO: 애님 노티파이 및 노티파이 트랙도 직렬화가 가능할지 생각해보기.
+    // Ar << Notifies << AnimNotifyTracks;
+
+    Ar << RateScale << bLoop;
+
+    TArray<FBoneAnimationTrack> BoneAnimationTracks;
+    int32 FrameRate;
+    int32 NumberOfFrames;
+    int32 NumberOfKeys;
+
+    if (Ar.IsSaving())
+    {
+        BoneAnimationTracks = GetDataModel()->GetBoneAnimationTracks();
+        FrameRate = GetDataModel()->GetFrameRate();
+        NumberOfFrames = GetDataModel()->GetNumberOfFrames();
+        NumberOfKeys = GetDataModel()->GetNumberOfKeys();
+    }
+
+    Ar << BoneAnimationTracks
+        << FrameRate
+        << NumberOfFrames
+        << NumberOfKeys;
+
+    if (Ar.IsLoading())
+    {
+        GetController().SetFrameRate(FrameRate);
+        GetController().SetNumberOfFrames(NumberOfFrames); // NumberOfKeys는 SetNumberOfFrames 에서 설정 (FrameRate 기반)
+
+        for (int32 i = 0; i < BoneAnimationTracks.Num(); ++i)
+        {
+            FName BoneName = BoneAnimationTracks[i].Name;
+            int32 TrackIdx = GetController().AddBoneTrack(BoneName);
+
+            TArray<FVector> PositionalKeys = BoneAnimationTracks[i].InternalTrackData.PosKeys;
+            TArray<FQuat> RotationalKeys = BoneAnimationTracks[i].InternalTrackData.RotKeys;
+            TArray<FVector> ScalingKeys = BoneAnimationTracks[i].InternalTrackData.ScaleKeys;
+
+            GetController().SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
+        }
+    }
 }

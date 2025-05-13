@@ -590,6 +590,7 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
                 if (Object == SkeletalMesh->GetSkeleton())
                 {
                     SkeletonKey = Key;
+                    break;
                 }
             }
 
@@ -623,6 +624,12 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
             {
                 UE_LOG(ELogLevel::Error, "Failed assign skeleton to {}", SkeletalMesh->GetName());
             }
+
+            /**
+             * TODO: 스켈레탈 메시의 머티리얼은 FMaterialInfo로 관리되고 있으므로, USkeletalMesh::SerializeAsset에서 이미 읽어 옴.
+             *       나중에 FMaterialInfo 대신 UMaterial을 참조하여 사용한다면 여기에서 UMatrial을 찾는 코드를 작성해야 함.
+             *       스켈레톤 찾는 방법 참고.
+             */
         }
     }
 
@@ -644,7 +651,7 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
         Info.Serialize(Ar);
 
         UStaticMesh* StaticMesh = nullptr;
-        TArray<FName> MaterialNames;
+        TArray<FName> MaterialKeys;
         if (Ar.IsLoading())
         {
             StaticMesh = FObjectFactory::ConstructObject<UStaticMesh>(nullptr);
@@ -653,13 +660,24 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
         else
         {
             StaticMesh = Result.StaticMeshes[i];
+
             for (const FMaterialInfo& Mat : StaticMesh->GetRenderData()->Materials)
             {
-                MaterialNames.Add(Mat.MaterialName);
+                MaterialKeys.Add(FolderPath / Mat.MaterialName);
             }
         }
 
+        Ar << MaterialKeys;
         StaticMesh->SerializeAsset(Ar);
+
+        if (Ar.IsLoading())
+        {
+            /**
+             * TODO: 스태틱 메시의 머티리얼은 FMaterialInfo로 관리되고 있으므로, UStaticMesh::SerializeAsset에서 이미 읽어 옴.
+             *       나중에 FMaterialInfo 대신 UMaterial을 참조하여 사용한다면 여기에서 UMatrial을 찾는 코드를 작성해야 함.
+             *       스켈레톤 찾는 방법 참고.
+             */
+        }
     }
 
     for (int i = 0; i < AnimationNum; ++i)
@@ -680,7 +698,7 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
         Info.Serialize(Ar);
 
         UAnimationAsset* Animation = nullptr;
-        FName SkeletonName;
+        FName SkeletonKey;
         if (Ar.IsLoading())
         {
             Animation = FObjectFactory::ConstructObject<UAnimSequence>(nullptr, Info.AssetName);
@@ -689,7 +707,42 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
         else
         {
             Animation = Result.Animations[i];
-            SkeletonName = Animation->GetSkeleton()->GetName();
+
+            // SkeletonMap의 Value와 비교하면서 Key를 찾고 저장.
+            // Key를 저장하면, binary 파일을 읽을 때 Key를 통해 원하는 오브젝트를 찾을 수 있음.
+            for (const auto& [Key, Object] : SkeletonMap)
+            {
+                if (Object == Animation->GetSkeleton())
+                {
+                    SkeletonKey = Key;
+                    break;
+                }
+            }
+        }
+
+        Ar << SkeletonKey;
+
+        if (Ar.IsLoading())
+        {
+            // 스켈레톤 지정
+            USkeleton* Skeleton = nullptr;
+            for (const auto& [Key, Object] : TempSkeletonMap)
+            {
+                if (Key == SkeletonKey)
+                {
+                    Skeleton = Object;
+                    break;
+                }
+            }
+
+            if (Skeleton)
+            {
+                Animation->SetSkeleton(Skeleton);
+            }
+            else
+            {
+                UE_LOG(ELogLevel::Error, "Failed assign skeleton to {}", Animation->GetName());
+            }
         }
 
         Animation->SerializeAsset(Ar);
