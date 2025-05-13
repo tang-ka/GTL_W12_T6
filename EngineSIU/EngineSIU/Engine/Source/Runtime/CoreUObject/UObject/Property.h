@@ -626,6 +626,7 @@ struct FObjectBaseProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void Resolve() override;
 };
 

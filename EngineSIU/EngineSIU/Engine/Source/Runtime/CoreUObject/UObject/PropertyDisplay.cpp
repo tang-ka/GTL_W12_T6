@@ -320,6 +320,13 @@ void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
     }
 }
 
+void FObjectBaseProperty::DisplayInImGui(UObject* Object) const
+{
+    FProperty::DisplayInImGui(Object);
+
+    // 띄울 정보가 딱히 없는듯
+}
+
 void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
 {
     if (Type == EPropertyType::Object)
