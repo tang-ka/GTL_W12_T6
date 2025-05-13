@@ -134,6 +134,8 @@ private:
 
     static bool bCPUSkinning;
 
+    void CPUSkinning();
+
 public:
     TSubclassOf<UAnimInstance> AnimClass;
     
