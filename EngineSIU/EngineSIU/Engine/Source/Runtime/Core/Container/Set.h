@@ -10,11 +10,11 @@ class TSet
 {
 private:
     using SetType = std::unordered_set<T, Hasher, std::equal_to<>, Allocator>;
-    using ElementType = T;
 
     SetType ContainerPrivate;
 
 public:
+    using ElementType = T;
     using SizeType = typename Allocator::SizeType;
     using Iterator = typename SetType::iterator;
     using ConstIterator = typename SetType::const_iterator;
