@@ -142,4 +142,10 @@ public:
     UAnimInstance* AnimScriptInstance;
 
     UAnimSingleNodeInstance* GetSingleNodeInstance() const;
+
+    void SetAnimClass(UClass* NewClass);
+    
+    UClass* GetAnimClass();
+    
+    void SetAnimInstanceClass(class UClass* NewClass);
 };

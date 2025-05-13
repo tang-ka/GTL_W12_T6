@@ -79,9 +79,19 @@ void USkeletalMeshComponent::TickAnimation(float DeltaTime)
 
 void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 {
-    if (GetSingleNodeInstance())
+    if (AnimationMode == EAnimationMode::AnimationBlueprint)
     {
-        GetSingleNodeInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
+        if (GetAnimInstance())
+        {
+            GetAnimInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
+        }
+    }
+    else if (AnimationMode == EAnimationMode::AnimationSingleNode)
+    {
+        if (GetSingleNodeInstance())
+        {
+            GetSingleNodeInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
+        }
     }
 }
 
@@ -419,6 +429,41 @@ void USkeletalMeshComponent::CPUSkinning()
 UAnimSingleNodeInstance* USkeletalMeshComponent::GetSingleNodeInstance() const
 {
     return Cast<UAnimSingleNodeInstance>(AnimScriptInstance);
+}
+
+void USkeletalMeshComponent::SetAnimClass(UClass* NewClass)
+{
+    SetAnimInstanceClass(NewClass);
+}
+
+UClass* USkeletalMeshComponent::GetAnimClass()
+{
+    return AnimClass;
+}
+
+void USkeletalMeshComponent::SetAnimInstanceClass(class UClass* NewClass)
+{
+    if (NewClass != nullptr)
+    {
+        // set the animation mode
+        const bool bWasUsingBlueprintMode = AnimationMode == EAnimationMode::AnimationBlueprint;
+        AnimationMode = EAnimationMode::AnimationBlueprint;
+
+        if (NewClass != AnimClass || !bWasUsingBlueprintMode)
+        {
+            // Only need to initialize if it hasn't already been set or we weren't previously using a blueprint instance
+            AnimClass = NewClass;
+            ClearAnimScriptInstance();
+            InitAnim();
+        }
+    }
+    else
+    {
+        // Need to clear the instance as well as the blueprint.
+        // @todo is this it?
+        AnimClass = nullptr;
+        ClearAnimScriptInstance();
+    }
 }
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
