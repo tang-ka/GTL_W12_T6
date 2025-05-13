@@ -210,6 +210,7 @@ void USkeletalMeshComponent::DEBUG_SetAnimationEnabled(bool bEnable)
 
 void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool bLooping)
 {
+    SetAnimationMode(EAnimationMode::AnimationSingleNode);
     SetAnimation(NewAnimToPlay);
     Play(bLooping);
 }

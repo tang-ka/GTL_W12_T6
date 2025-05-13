@@ -366,6 +366,30 @@ void FTransform::BlendFromIdentityAndAccumulate(FTransform& OutTransform, const 
     OutTransform = OutTransform * BlendedTransform;
 }
 
+void FTransform::AccumulateWithShortestRotation(const FTransform& DeltaAtom, float BlendWeight)
+{
+    FTransform Atom(DeltaAtom * BlendWeight);
+
+    // To ensure the 'shortest route', we make sure the dot product between the accumulator and the incoming child atom is positive.
+    if ((Atom.Rotation | Rotation) < 0.f)
+    {
+        Rotation.X -= Atom.Rotation.X;
+        Rotation.Y -= Atom.Rotation.Y;
+        Rotation.Z -= Atom.Rotation.Z;
+        Rotation.W -= Atom.Rotation.W;
+    }
+    else
+    {
+        Rotation.X += Atom.Rotation.X;
+        Rotation.Y += Atom.Rotation.Y;
+        Rotation.Z += Atom.Rotation.Z;
+        Rotation.W += Atom.Rotation.W;
+    }
+
+    Translation += Atom.Translation;
+    Scale3D += Atom.Scale3D;
+}
+
 FTransform FTransform::operator*(const FTransform& Other) const 
 {
     // 언리얼 엔진 방식의 트랜스폼 
@@ -373,6 +397,15 @@ FTransform FTransform::operator*(const FTransform& Other) const
     Result.Scale3D = Scale3D * Other.Scale3D;
     Result.Rotation = Rotation * Other.Rotation;
     Result.Translation = Rotation.RotateVector(Scale3D * Other.Translation) + Translation;
+    return Result;
+}
+
+FTransform FTransform::operator*(float Scale) const
+{
+    FTransform Result;
+    Result.Scale3D = Scale3D * Scale;
+    Result.Rotation = Rotation * Scale;
+    Result.Translation = Translation * Scale;
     return Result;
 }
 

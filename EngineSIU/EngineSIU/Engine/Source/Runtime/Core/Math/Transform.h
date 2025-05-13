@@ -33,6 +33,7 @@ struct FTransform
     // 회전 관련 추가 함수들
     FQuat GetRotation() const { return Rotation; }
     FRotator Rotator() const { return Rotation.Rotator(); }
+    void SetRotation(const FQuat& InRotation) { Rotation = InRotation; }
     
     // 위치 관련 함수들
     FVector GetTranslation() const { return Translation; }
@@ -57,6 +58,8 @@ struct FTransform
     
     // 변환 연산자들과 함수들
     FTransform operator*(const FTransform& Other) const;
+    FTransform operator*(float Scale) const;
+    
     void Blend(const FTransform& Atom1, const FTransform& Atom2, float Alpha);
     FTransform BlendWith(const FTransform& Other, float Alpha) const;
     
@@ -99,4 +102,6 @@ struct FTransform
     
     // 보간 함수들
     static void BlendFromIdentityAndAccumulate(FTransform& OutTransform, const FTransform& InTransform, float Alpha);
+    
+    void AccumulateWithShortestRotation(const FTransform& DeltaAtom, float BlendWeight);
 };

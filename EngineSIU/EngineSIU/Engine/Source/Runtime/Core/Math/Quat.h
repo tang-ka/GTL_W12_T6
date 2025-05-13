@@ -56,7 +56,9 @@ public:
 
     // 쿼터니언의 곱셈 연산 (회전 결합)
     FQuat operator*(const FQuat& Other) const;
+    FQuat operator*(float Scale) const;
 
+    float operator|(const FQuat& Other) const;
     bool operator==(const FQuat& Q) const;
 
     // (쿼터니언) 벡터 회전
