@@ -514,6 +514,12 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
         if (Ar.IsLoading())
         {
             TempMaterialMap.Add(Info.GetFullPath(), Material);
+
+            // 텍스처 렌더 리소스 생성
+            for (const FTextureInfo& Info : Material->GetMaterialInfo().TextureInfos)
+            {
+                FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, Info.TexturePath.c_str(), Info.bIsSRGB);
+            }
         }
     }
 
