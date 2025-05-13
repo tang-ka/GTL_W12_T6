@@ -42,12 +42,20 @@ struct FProperty
     FProperty(FProperty&&) = default;
     FProperty& operator=(FProperty&&) = default;
 
+protected:
+    /**
+     * ImGui를 통해 주어진 Raw Data를 표시합니다.
+     * @param PropertyLabel 표시할 프로퍼티의 레이블
+     * @param DataPtr 표시할 Raw Data의 포인터
+     */
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const;
+
 public:
     /** ImGui에 각 프로퍼티에 맞는 UI를 띄웁니다. */
     virtual void DisplayInImGui(UObject* Object) const;
 
     /** 런타임에 타입 정보를 검사하고 업데이트 합니다. */
-    virtual void Resolve(); // TODO: 자식 FProperty 만들면 사용
+    virtual void Resolve();
 
     /**
      * 이 프로퍼티가 EPropertyType::Object 타입일 경우, 해당 UObject의 UClass*를 반환합니다.
@@ -116,12 +124,13 @@ protected:
     template <typename T>
     T* GetPropertyData(UObject* Object) const
     {
-        // assert(GetPropertyType<T>() == Type); // TODO: UnresolvedType 해결하기
         return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(Object) + Offset);
     }
 
-private:
-    friend struct FPropertyUIHelper;
+    void* GetPropertyData(UObject* Object) const
+    {
+        return reinterpret_cast<std::byte*>(Object) + Offset;
+    }
 
 public:
     UClass* OwnerClass;
@@ -170,7 +179,8 @@ struct FInt8Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FInt16Property : public FNumericProperty
@@ -186,7 +196,8 @@ struct FInt16Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FInt32Property : public FNumericProperty
@@ -202,7 +213,8 @@ struct FInt32Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FInt64Property : public FNumericProperty
@@ -218,7 +230,8 @@ struct FInt64Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FUInt8Property : public FNumericProperty
@@ -234,7 +247,8 @@ struct FUInt8Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FUInt16Property : public FNumericProperty
@@ -250,7 +264,8 @@ struct FUInt16Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FUInt32Property : public FNumericProperty
@@ -266,7 +281,8 @@ struct FUInt32Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FUInt64Property : public FNumericProperty
@@ -282,7 +298,8 @@ struct FUInt64Property : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FFloatProperty : public FNumericProperty
@@ -298,7 +315,8 @@ struct FFloatProperty : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FDoubleProperty : public FNumericProperty
@@ -314,7 +332,8 @@ struct FDoubleProperty : public FNumericProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FBoolProperty : public FProperty
@@ -330,7 +349,8 @@ struct FBoolProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FStrProperty : public FProperty
@@ -346,7 +366,8 @@ struct FStrProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FNameProperty : public FProperty
@@ -361,7 +382,8 @@ struct FNameProperty : public FProperty
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Name, InSize, InOffset, InFlags)
     {}
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FVector2DProperty : public FProperty
@@ -377,7 +399,8 @@ struct FVector2DProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FVectorProperty : public FProperty
@@ -393,7 +416,8 @@ struct FVectorProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FVector4Property : public FProperty
@@ -409,7 +433,8 @@ struct FVector4Property : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FRotatorProperty : public FProperty
@@ -425,7 +450,8 @@ struct FRotatorProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FQuatProperty : public FProperty
@@ -441,7 +467,8 @@ struct FQuatProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FTransformProperty : public FProperty
@@ -457,7 +484,8 @@ struct FTransformProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FMatrixProperty : public FProperty
@@ -473,7 +501,8 @@ struct FMatrixProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FColorProperty : public FProperty
@@ -489,7 +518,8 @@ struct FColorProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FLinearColorProperty : public FProperty
@@ -505,7 +535,8 @@ struct FLinearColorProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+protected:
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 
@@ -682,6 +713,8 @@ struct FStructProperty : public FProperty
 // struct FMulticastDelegateProperty : public FProperty {};
 
 
+namespace PropertyFactory::Private
+{
 template <typename T>
 FProperty* MakeProperty(
     UClass* InOwnerClass,
@@ -763,4 +796,5 @@ FProperty* MakeProperty(
     }
 
     std::unreachable(); // 이론상 도달할 수 없는 코드, (static_assert 지우면 호출됨)
+}
 }

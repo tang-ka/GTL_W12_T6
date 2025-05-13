@@ -85,6 +85,8 @@ public: \
         { \
             constexpr int64 Offset = offsetof(ThisClass, VarName); \
             constexpr EPropertyFlags Flags = EPropertyFlags::None; \
-            ThisClass::StaticClass()->RegisterProperty(MakeProperty<Type>(ThisClass::StaticClass(), #VarName, Offset, Flags)); \
+            ThisClass::StaticClass()->RegisterProperty( \
+                PropertyFactory::Private::MakeProperty<Type>(ThisClass::StaticClass(), #VarName, Offset, Flags) \
+            ); \
         } \
     } VarName##_PropRegistrar_PRIVATE{};
