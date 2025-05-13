@@ -251,14 +251,34 @@ void FColorProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
 
-    // TODO: Implements This
+    FColor* Data = GetPropertyData<FColor>(Object);
+    FLinearColor LinearColor = FLinearColor(*Data);
+
+    constexpr ImGuiColorEditFlags Flags =
+        ImGuiColorEditFlags_DisplayRGB
+        | ImGuiColorEditFlags_AlphaBar
+        | ImGuiColorEditFlags_AlphaPreview
+        | ImGuiColorEditFlags_AlphaPreviewHalf;
+
+    if (ImGui::ColorEdit4(Name, reinterpret_cast<float*>(&LinearColor), Flags))
+    {
+        *Data = LinearColor.ToColorRawRGB8();
+    }
 }
 
 void FLinearColorProperty::DisplayInImGui(UObject* Object) const
 {
     FProperty::DisplayInImGui(Object);
 
-    // TODO: Implements This
+    FLinearColor* Data = GetPropertyData<FLinearColor>(Object);
+
+    constexpr ImGuiColorEditFlags Flags =
+        ImGuiColorEditFlags_Float
+        | ImGuiColorEditFlags_AlphaBar
+        | ImGuiColorEditFlags_AlphaPreview
+        | ImGuiColorEditFlags_AlphaPreviewHalf;
+
+    ImGui::ColorEdit4(Name, reinterpret_cast<float*>(Data), Flags);
 }
 
 void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
