@@ -262,6 +262,11 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimation();
     UAnimDataModel* DataModel = AnimSeq->GetDataModel();
     
+    ImVec2 windowSize = ImVec2(Width*0.7, Height*0.3);
+    ImVec2 windowPos = ImVec2(0.0f, Height - windowSize.y - 30);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+
     if (!DataModel)
     {
         return;
@@ -311,7 +316,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (LoopEnd + 1);
     PreviousFrame = CurrentFrame;
 
-    ImGui::SetNextWindowSize(ImVec2(400, 220), ImGuiCond_FirstUseEver);
+
     if (ImGui::Begin("Animation Sequence Timeline"))
     {
         if (ImGui::Button((!bPlay||bPaused)?"Play":"Pause")) {
@@ -392,11 +397,16 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         const TArray<FAnimNotifyTrack>& Tracks = AnimSeq->GetAnimNotifyTracks();
         const TArray<FAnimNotifyEvent>& Events = AnimSeq->Notifies;
         
-        if (ImGui::BeginNeoSequencer("Sequencer", &CurrentFrame, &LoopStart, &LoopEnd)) {
+        if (ImGui::BeginNeoSequencer("Sequencer", &CurrentFrame, &LoopStart, &LoopEnd,ImVec2(0,0), ImGuiNeoSequencerFlags_EnableSelection |
+            ImGuiNeoSequencerFlags_Selection_EnableDragging)) {
             if (CurrentFrame != PreviousFrame)
             {
                 RefSkeletalMeshComponent->SetCurrentKey(CurrentFrame);
                 RefSkeletalMeshComponent->SetElapsedTime(static_cast<float>(CurrentFrame) / static_cast<float>(FrameRate));
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                ImGui::ClearNeoKeyframeSelection();
             }
 
             int32 PendingRemoveTrackIdx = INDEX_NONE;
@@ -449,21 +459,33 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                         }
                         ImGui::EndPopup();
                     }
-                    std::vector<ImGui::FrameIndexType> Keys;
-                    for (int32 Index : Tracks[TrackIdx].NotifyIndices)
+                    if (ImGui::BeginNeoTimelineEx("Notify"))
                     {
-                        if (Events.IsValidIndex(Index))
+                        for (int32 Index : Tracks[TrackIdx].NotifyIndices)
                         {
-                            const FAnimNotifyEvent& Notify = Events[Index];
+                            if (!Events.IsValidIndex(Index))
+                                continue;
+
+                            FAnimNotifyEvent& Notify = AnimSeq->Notifies[Index];
+
+                            // 현재 Notify의 프레임 계산
                             int32 Frame = static_cast<int32>(Notify.Time * static_cast<float>(FrameRate));
-                            Keys.push_back(Frame);
+                            int32 OriginalFrame = Frame;
+
+                            ImGui::PushID(Index);
+                            ImGui::NeoKeyframe(&Frame);
+                            ImGui::PopID();
+                            // 변경 감지 후 업데이트
+                            if (Frame != OriginalFrame)
+                            {
+                                float NewTime = static_cast<float>(Frame) / FrameRate;
+                                AnimSeq->UpdateNotifyEvent(Index, NewTime, Notify.Duration, Notify.TrackIndex, Notify.NotifyName);
+                            }
                         }
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::BeginNeoTimeline("Notify", Keys))
-                    {
+
                         ImGui::EndNeoTimeLine();
                     }
+
 
                     ImGui::EndNeoGroup();
                 }

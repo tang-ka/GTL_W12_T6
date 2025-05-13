@@ -1374,3 +1374,13 @@ ImGuiNeoSequencerStyle::ImGuiNeoSequencerStyle()
     Colors[ImGuiNeoSequencerCol_Selection] = ImVec4{0.98f, 0.706f, 0.322f, 0.33f};
 
 }
+
+void ImGui::ClearNeoKeyframeSelection()
+{
+    if (sequencerData.count(currentSequencer) != 0)
+    {
+        auto& context = sequencerData[currentSequencer];
+        context.Selection.clear();
+        context.SelectionData.clear();
+    }
+}
