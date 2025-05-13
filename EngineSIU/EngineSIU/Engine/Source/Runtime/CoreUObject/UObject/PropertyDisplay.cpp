@@ -39,7 +39,9 @@ struct FPropertyUIHelper
         else if constexpr (std::same_as<NumType, double>) { DataType = ImGuiDataType_Double; }
         else { static_assert(TAlwaysFalse<NumType>); }
 
-        ImGui::DragScalarN(PropertyLabel, DataType, Data, Components, Speed, &Min, &Max, Format);
+        ImGui::Text("%s", PropertyLabel);
+        ImGui::SameLine();
+        ImGui::DragScalarN(std::format("##{}", PropertyLabel).c_str(), DataType, Data, Components, Speed, &Min, &Max, Format);
     }
 };
 
@@ -157,7 +159,9 @@ void FNameProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
     // ReadOnly Mode
     ImGui::BeginDisabled(true);
     {
-        ImGui::InputText(PropertyLabel, NameStr.data(), NameStr.size(), ImGuiInputTextFlags_ReadOnly);
+        ImGui::Text("%s", PropertyLabel);
+        ImGui::SameLine();
+        ImGui::InputText(std::format("##{}", PropertyLabel).c_str(), NameStr.data(), NameStr.size(), ImGuiInputTextFlags_ReadOnly);
     }
     ImGui::EndDisabled();
 }
@@ -266,7 +270,9 @@ void FColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
         | ImGuiColorEditFlags_AlphaPreview
         | ImGuiColorEditFlags_AlphaPreviewHalf;
 
-    if (ImGui::ColorEdit4(PropertyLabel, reinterpret_cast<float*>(&LinearColor), Flags))
+    ImGui::Text("%s", PropertyLabel);
+    ImGui::SameLine();
+    if (ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColor), Flags))
     {
         *Data = LinearColor.ToColorRawRGB8();
     }
@@ -284,14 +290,16 @@ void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void
         | ImGuiColorEditFlags_AlphaPreview
         | ImGuiColorEditFlags_AlphaPreviewHalf;
 
-    ImGui::ColorEdit4(PropertyLabel, reinterpret_cast<float*>(Data), Flags);
+    ImGui::Text("%s", PropertyLabel);
+    ImGui::SameLine();
+    ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), Flags);
 }
 
-void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
+void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
-    FProperty::DisplayInImGui(Object);
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
-    TSubclassOf<UObject>* Data = GetPropertyData<TSubclassOf<UObject>>(Object);
+    TSubclassOf<UObject>* Data = static_cast<TSubclassOf<UObject>*>(DataPtr);
     UClass* CurrentClass = GetSpecificClass();
     if (CurrentClass == nullptr)
     {
@@ -302,7 +310,9 @@ void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
     GetChildOfClass(CurrentClass, ChildClasses);
 
     const std::string CurrentClassName = (*Data) ? (*Data)->GetName().ToAnsiString() : "None";
-    if (ImGui::BeginCombo(Name, CurrentClassName.c_str()))
+    ImGui::Text("%s", PropertyLabel);
+    ImGui::SameLine();
+    if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), CurrentClassName.c_str()))
     {
         if (ImGui::Selectable("None", !(*Data)))
         {

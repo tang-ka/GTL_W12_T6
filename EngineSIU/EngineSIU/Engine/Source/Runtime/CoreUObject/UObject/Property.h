@@ -612,18 +612,19 @@ struct TEnumProperty : public FProperty
     {
     }
 
-    // TODO: RawDisplay로 변경
-    virtual void DisplayInImGui(UObject* Object) const override
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override
     {
-        FProperty::DisplayInImGui(Object);
+        FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
-        EnumType* Data = GetPropertyData<EnumType>(Object);
+        EnumType* Data = static_cast<EnumType*>(DataPtr);
         constexpr auto EnumEntries = magic_enum::enum_entries<EnumType>();
 
         const std::string_view CurrentNameView = magic_enum::enum_name(*Data);
         const std::string CurrentName = std::string(CurrentNameView);
 
-        if (ImGui::BeginCombo(Name, CurrentName.c_str()))
+        ImGui::Text("%s", PropertyLabel);
+        ImGui::SameLine();
+        if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), CurrentName.c_str()))
         {
             for (const auto& [Enum, NameView] : EnumEntries)
             {
@@ -656,7 +657,7 @@ struct FSubclassOfProperty : public FProperty
     {
     }
 
-    virtual void DisplayInImGui(UObject* Object) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FObjectBaseProperty : public FProperty
