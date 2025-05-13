@@ -1,188 +1,221 @@
-
 #include "SkeletalMeshComponent.h"
 
 #include "ReferenceSkeleton.h"
 #include "Animation/AnimSequence.h"
-#include "Animation/AnimTypes.h"
+#include "Animation/AnimInstance.h"
 #include "Animation/Skeleton.h"
-#include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
-#include "Animation/AnimNotifyState.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Animation/AnimTypes.h"
 #include "UObject/Casts.h"
+#include "UObject/ObjectFactory.h"
 
 bool USkeletalMeshComponent::bCPUSkinning = false;
 
 USkeletalMeshComponent::USkeletalMeshComponent()
+    : AnimationMode(EAnimationMode::AnimationSingleNode)
+    , SkeletalMeshAsset(nullptr)
+    , AnimSequence(nullptr)
+    , AnimClass(nullptr)
+    , AnimScriptInstance(nullptr)
+    , bPlayAnimation(false)
+    ,BonePoseContext(nullptr)
 {
-    AnimSequence = new UAnimSequence();
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
 
 USkeletalMeshComponent::~USkeletalMeshComponent()
 {
+    ClearAnimScriptInstance();
+}
+
+void USkeletalMeshComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+
+    InitAnim();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
+    NewComponent->SetAnimationMode(AnimationMode);
     NewComponent->SetSkeletalMeshAsset(SkeletalMeshAsset);
     NewComponent->SetAnimation(AnimSequence);
-    NewComponent->SetAnimationEnabled(true);
+    NewComponent->Play(true);
 
     return NewComponent;
 }
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
-    USkinnedMeshComponent::TickComponent(DeltaTime);
+    Super::TickComponent(DeltaTime);
 
-    if (!AnimSequence || !SkeletalMeshAsset || !SkeletalMeshAsset->GetSkeleton())
+    TickPose(DeltaTime);
+}
+
+void USkeletalMeshComponent::TickPose(float DeltaTime)
+{
+    if (!ShouldTickAnimation())
+    {
         return;
-
-    const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-    const int32 FrameRate = DataModel->GetFrameRate();
-    const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
-    const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-
-    
-    LoopStartFrame = FMath::Clamp(LoopStartFrame, 0, NumberOfFrames - 2);
-    LoopEndFrame = FMath::Clamp(LoopEndFrame, LoopStartFrame + 1, NumberOfFrames - 1);
-    const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
-    const float EndTime   = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
-
-    if (bPlayAnimation && !bPauseAnimation)
-    {
-        float DeltaPlayTime = DeltaTime * PlaySpeed;
-        if (bPlayReverse)
-        {
-            DeltaPlayTime *= -1.0f;
-        }
-
-        PreviousTime = ElapsedTime;
-        ElapsedTime += DeltaPlayTime;
-
-        EvaluateAnimNotifies(AnimSequence->Notifies, ElapsedTime, PreviousTime, DeltaPlayTime, this, AnimSequence, bPlayLooping);
-        // 루프 처리
-        if (bPlayLooping)
-        {
-            if (ElapsedTime > EndTime)
-            {
-                ElapsedTime = StartTime + FMath::Fmod(ElapsedTime - StartTime, EndTime - StartTime);
-            }
-            else if (ElapsedTime <= StartTime)
-            {
-                ElapsedTime = EndTime - FMath::Fmod(EndTime - ElapsedTime, EndTime - StartTime);
-            }
-        }
-        else
-        {
-            if (!bPlayReverse && ElapsedTime >= EndTime)
-            {
-                ElapsedTime = StartTime;
-                bPlayAnimation = false;
-            }
-            else if (bPlayReverse && ElapsedTime <= StartTime)
-            {
-                ElapsedTime = EndTime;
-                bPlayAnimation = false;
-            }
-        }
-        
     }
 
-    // 포즈 초기화
-    BonePoseTransforms = RefBonePoseTransforms;
+    TickAnimation(DeltaTime);
+}
 
-    // 본 트랜스폼 보간
-    TargetKeyFrame = ElapsedTime * static_cast<float>(FrameRate);
-    const int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (NumberOfFrames - 1);
-    Alpha = TargetKeyFrame - static_cast<float>(CurrentFrame);
-    FFrameTime FrameTime(CurrentFrame, Alpha);
-
-
-    CurrentKey = CurrentFrame;
-
-    for (int32 BoneIdx = 0; BoneIdx < RefSkeleton.RawRefBoneInfo.Num(); ++BoneIdx)
+void USkeletalMeshComponent::TickAnimation(float DeltaTime)
+{
+    if (GetSkeletalMeshAsset())
     {
-        FName BoneName = RefSkeleton.RawRefBoneInfo[BoneIdx].Name;
-        FTransform RefBoneTransform = RefBonePoseTransforms[BoneIdx];
-        BonePoseTransforms[BoneIdx] = RefBoneTransform * DataModel->EvaluateBoneTrackTransform(BoneName, FrameTime, EAnimInterpolationType::Linear);
+        TickAnimInstances(DeltaTime);
     }
 
-    if (bCPUSkinning)
+    // if (bCPUSkinning)
+    // {
+    //      TArray<FMatrix> CurrentGlobalBoneMatrices;
+    //      GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
+    //      const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
+    //      
+    //      // 최종 스키닝 행렬 계산
+    //      TArray<FMatrix> FinalBoneMatrices;
+    //      FinalBoneMatrices.SetNum(BoneNum);
+    //
+    //      for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
+    //      {
+    //          FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentGlobalBoneMatrices[BoneIndex];
+    //      }
+    //      
+    //      const FSkeletalMeshRenderData* RenderData = SkeletalMeshAsset->GetRenderData();
+    //      
+    //      for (int i = 0; i < RenderData->Vertices.Num(); i++)
+    //      {
+    //          FSkeletalMeshVertex Vertex = RenderData->Vertices[i];
+    //          // 가중치 합산
+    //          float TotalWeight = 0.0f;
+    //
+    //          FVector SkinnedPosition = FVector(0.0f, 0.0f, 0.0f);
+    //          FVector SkinnedNormal = FVector(0.0f, 0.0f, 0.0f);
+    //          
+    //          for (int j = 0; j < 4; ++j)
+    //          {
+    //              float Weight = Vertex.BoneWeights[j];
+    //              TotalWeight += Weight;
+    //  
+    //              if (Weight > 0.0f)
+    //              {
+    //                  uint32 BoneIdx = Vertex.BoneIndices[j];
+    //                  
+    //                  // 본 행렬 적용 (BoneMatrices는 이미 최종 스키닝 행렬)
+    //                  // FBX SDK에서 가져온 역바인드 포즈 행렬이 이미 포함됨
+    //                  FVector pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
+    //                  FVector4 norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
+    //                  FVector norm(norm4.X, norm4.Y, norm4.Z);
+    //                  
+    //                  SkinnedPosition += pos * Weight;
+    //                  SkinnedNormal += norm * Weight;
+    //              }
+    //          }
+    //
+    //          // 가중치 예외 처리
+    //          if (TotalWeight < 0.001f)
+    //          {
+    //              SkinnedPosition = FVector(Vertex.X, Vertex.Y, Vertex.Z);
+    //              SkinnedNormal = FVector(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
+    //          }
+    //          else if (FMath::Abs(TotalWeight - 1.0f) > 0.001f && TotalWeight > 0.001f)
+    //          {
+    //              // 가중치 합이 1이 아닌 경우 정규화
+    //              SkinnedPosition /= TotalWeight;
+    //              SkinnedNormal /= TotalWeight;
+    //          }
+    //
+    //          CPURenderData->Vertices[i].X = SkinnedPosition.X;
+    //          CPURenderData->Vertices[i].Y = SkinnedPosition.Y;
+    //          CPURenderData->Vertices[i].Z = SkinnedPosition.Z;
+    //          CPURenderData->Vertices[i].NormalX = SkinnedNormal.X;
+    //          CPURenderData->Vertices[i].NormalY = SkinnedNormal.Y;
+    //          CPURenderData->Vertices[i].NormalZ = SkinnedNormal.Z;
+    //        }
+    //  }
+}
+
+void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
+{
+    if (GetSingleNodeInstance())
     {
-        TArray<FMatrix> CurrentGlobalBoneMatrices;
-        GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
-        const int32 BoneNum = RefSkeleton.RawRefBoneInfo.Num();
-
-        TArray<FMatrix> FinalBoneMatrices;
-        FinalBoneMatrices.SetNum(BoneNum);
-        for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
-        {
-            FinalBoneMatrices[BoneIndex] = RefSkeleton.InverseBindPoseMatrices[BoneIndex] * CurrentGlobalBoneMatrices[BoneIndex];
-        }
-
-        const FSkeletalMeshRenderData* RenderData = SkeletalMeshAsset->GetRenderData();
-
-        for (int i = 0; i < RenderData->Vertices.Num(); i++)
-        {
-            const FSkeletalMeshVertex& Vertex = RenderData->Vertices[i];
-            float TotalWeight = 0.0f;
-            FVector SkinnedPosition(0.0f), SkinnedNormal(0.0f);
-
-            for (int j = 0; j < 4; ++j)
-            {
-                float Weight = Vertex.BoneWeights[j];
-                TotalWeight += Weight;
-                if (Weight > 0.0f)
-                {
-                    uint32 BoneIdx = Vertex.BoneIndices[j];
-                    FVector pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
-                    FVector4 norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
-                    FVector norm(norm4.X, norm4.Y, norm4.Z);
-                    SkinnedPosition += pos * Weight;
-                    SkinnedNormal += norm * Weight;
-                }
-            }
-
-            if (TotalWeight < 0.001f)
-            {
-                SkinnedPosition = FVector(Vertex.X, Vertex.Y, Vertex.Z);
-                SkinnedNormal = FVector(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
-            }
-            else if (FMath::Abs(TotalWeight - 1.0f) > 0.001f)
-            {
-                SkinnedPosition /= TotalWeight;
-                SkinnedNormal /= TotalWeight;
-            }
-
-            CPURenderData->Vertices[i].X = SkinnedPosition.X;
-            CPURenderData->Vertices[i].Y = SkinnedPosition.Y;
-            CPURenderData->Vertices[i].Z = SkinnedPosition.Z;
-            CPURenderData->Vertices[i].NormalX = SkinnedNormal.X;
-            CPURenderData->Vertices[i].NormalY = SkinnedNormal.Y;
-            CPURenderData->Vertices[i].NormalZ = SkinnedNormal.Z;
-        }
+        // TODO: 아래 UpdateAnimation 함수에서 포즈 결과를 받아와야 함.
+        GetSingleNodeInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
     }
 }
 
+bool USkeletalMeshComponent::ShouldTickAnimation() const
+{
+    return bPlayAnimation && GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
+}
 
+bool USkeletalMeshComponent::InitializeAnimScriptInstance()
+{
+    USkeletalMesh* SkelMesh = GetSkeletalMeshAsset();
+    
+    if (NeedToSpawnAnimScriptInstance())
+    {
+        AnimScriptInstance = Cast<UAnimInstance>(FObjectFactory::ConstructObject(AnimClass, this));
+
+        if (AnimScriptInstance)
+        {
+            AnimScriptInstance->InitializeAnimation();
+        }
+    }
+    else
+    {
+        bool bShouldSpawnSingleNodeInstance = SkelMesh && SkelMesh->GetSkeleton();
+        if (bShouldSpawnSingleNodeInstance)
+        {
+            AnimScriptInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(this);
+
+            if (AnimScriptInstance)
+            {
+                AnimScriptInstance->InitializeAnimation();
+            }
+        }
+    }
+
+    return true;
+}
+
+void USkeletalMeshComponent::ClearAnimScriptInstance()
+{
+    if (AnimScriptInstance)
+    {
+        delete AnimScriptInstance;
+    }
+    AnimScriptInstance = nullptr;
+}
 
 void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshAsset)
 {
+    if (InSkeletalMeshAsset == GetSkeletalMeshAsset())
+    {
+        return;
+    }
+    
     SkeletalMeshAsset = InSkeletalMeshAsset;
 
-    BonePoseTransforms.Empty();
+    InitAnim();
+
+    BonePoseContext.Pose.Empty();
     RefBonePoseTransforms.Empty();
     AABB = FBoundingBox(InSkeletalMeshAsset->GetRenderData()->BoundingBoxMin, SkeletalMeshAsset->GetRenderData()->BoundingBoxMax);
     
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
+    BonePoseContext.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
     for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
     {
-        BonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
+        BonePoseContext.Pose[i] = RefSkeleton.RawRefBonePose[i];
         RefBonePoseTransforms.Add(RefSkeleton.RawRefBonePose[i]);
     }
     
@@ -203,7 +236,7 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
     for (int32 BoneIndex = 0; BoneIndex < BoneNum; ++BoneIndex)
     {
         // 현재 본의 로컬 변환
-        FTransform CurrentLocalTransform = BonePoseTransforms[BoneIndex];
+        FTransform CurrentLocalTransform = BonePoseContext.Pose[BoneIndex];
         FMatrix LocalMatrix = CurrentLocalTransform.ToMatrixWithScale(); // FTransform -> FMatrix
         
         // 부모 본의 영향을 적용하여 월드 변환 구성
@@ -219,7 +252,7 @@ void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBo
     }
 }
 
-void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
+void USkeletalMeshComponent::DEBUG_SetAnimationEnabled(bool bEnable)
 {
     bPlayAnimation = AnimSequence && bEnable;
     
@@ -228,14 +261,24 @@ void USkeletalMeshComponent::SetAnimationEnabled(bool bEnable)
         if (SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
         {
             const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
-            BonePoseTransforms = RefSkeleton.RawRefBonePose;
+            BonePoseContext.Pose.InitBones(RefSkeleton.RawRefBonePose.Num());
+            for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+            {
+                BonePoseContext.Pose[i] = RefSkeleton.RawRefBonePose[i];
+            }
         }
-        ElapsedTime = 0.f;
+        SetElapsedTime(0.f); 
         CPURenderData->Vertices = SkeletalMeshAsset->GetRenderData()->Vertices;
         CPURenderData->Indices = SkeletalMeshAsset->GetRenderData()->Indices;
         CPURenderData->ObjectName = SkeletalMeshAsset->GetRenderData()->ObjectName;
         CPURenderData->MaterialSubsets = SkeletalMeshAsset->GetRenderData()->MaterialSubsets;
     }
+}
+
+void USkeletalMeshComponent::PlayAnimation(UAnimationAsset* NewAnimToPlay, bool bLooping)
+{
+    SetAnimation(NewAnimToPlay);
+    Play(bLooping);
 }
 
 int USkeletalMeshComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const
@@ -311,153 +354,237 @@ bool USkeletalMeshComponent::GetCPUSkinning()
     return bCPUSkinning;
 }
 
-void USkeletalMeshComponent::SetAnimation(UAnimSequence* InAnimSequence)
+void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
 {
-    AnimSequence = InAnimSequence;
+    const bool bNeedsChange = AnimationMode != InAnimationMode;
+    if (bNeedsChange)
+    {
+        AnimationMode = InAnimationMode;
+        ClearAnimScriptInstance();
+    }
 
-    SetAnimationEnabled(bPlayAnimation);
+    if (GetSkeletalMeshAsset() && (bNeedsChange || AnimationMode == EAnimationMode::AnimationBlueprint))
+    {
+        InitializeAnimScriptInstance();
+    }
+}
+
+void USkeletalMeshComponent::InitAnim()
+{
+    if (GetSkeletalMeshAsset() == nullptr)
+    {
+        return;
+    }
+
+    bool bBlueprintMismatch = AnimClass && AnimScriptInstance && AnimScriptInstance->GetClass() != AnimClass;
     
-    if (AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
+    const USkeleton* AnimSkeleton = AnimScriptInstance ? AnimScriptInstance->GetCurrentSkeleton() : nullptr;
+    
+    const bool bClearAnimInstance = AnimScriptInstance && !AnimSkeleton;
+    const bool bSkeletonMismatch = AnimSkeleton && (AnimScriptInstance->GetCurrentSkeleton() != GetSkeletalMeshAsset()->GetSkeleton());
+    const bool bSkeletonsExist = AnimSkeleton && GetSkeletalMeshAsset()->GetSkeleton() && !bSkeletonMismatch;
+
+    if (bBlueprintMismatch || bSkeletonMismatch || !bSkeletonsExist || bClearAnimInstance)
     {
-        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-        const int32 FrameRate = DataModel->GetFrameRate();
-
-        const float StartTime = static_cast<float>(LoopStartFrame) / FrameRate;
-        const float EndTime   = static_cast<float>(LoopEndFrame) / FrameRate;
-
-        ElapsedTime = bPlayReverse ? EndTime : StartTime;
+        ClearAnimScriptInstance();
     }
-    else
+
+    const bool bInitializedAnimInstance = InitializeAnimScriptInstance();
+
+    if (bInitializedAnimInstance)
     {
-        ElapsedTime = 0.f;
-    }
-}
-
-float USkeletalMeshComponent::GetPlaySpeed() const
-{
-    return PlaySpeed;
-}
-void USkeletalMeshComponent::SetPlaySpeed(float InSpeed)
-{
-    PlaySpeed = InSpeed;
-}
-
-int32 USkeletalMeshComponent::GetLoopStartFrame() const
-{
-    return LoopStartFrame;
-}
-void USkeletalMeshComponent::SetLoopStartFrame(int32 InStart)
-{
-    LoopStartFrame = InStart;
-}
-
-int32 USkeletalMeshComponent::GetLoopEndFrame() const
-{
-    return LoopEndFrame;
-}
-void USkeletalMeshComponent::SetLoopEndFrame(int32 InEnd)
-{
-    LoopEndFrame = InEnd;
-}
-
-bool USkeletalMeshComponent::IsPlayReverse() const
-{
-    return bPlayReverse;
-}
-void USkeletalMeshComponent::SetPlayReverse(bool bEnable)
-{
-    bPlayReverse = bEnable;
-
-    if (bEnable && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
-    {
-        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-        const int32 FrameRate = DataModel->GetFrameRate();
-        const float EndTime = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
-
-        ElapsedTime = EndTime;  
-    }
-    else if (!bEnable && AnimSequence && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton())
-    {
-        const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
-        const int32 FrameRate = DataModel->GetFrameRate();
-        const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
-
-        ElapsedTime = StartTime; 
+        // TODO: 애니메이션 포즈 바로 반영하려면 여기에서 진행.
     }
 }
 
-
-bool USkeletalMeshComponent::IsPaused() const
+bool USkeletalMeshComponent::NeedToSpawnAnimScriptInstance() const
 {
-    return bPauseAnimation;
+    USkeletalMesh* MeshAsset = GetSkeletalMeshAsset();
+    USkeleton* AnimSkeleton = MeshAsset ? MeshAsset->GetSkeleton() : nullptr;
+    if (AnimationMode == EAnimationMode::AnimationBlueprint && AnimClass && AnimSkeleton)
+    {
+        if (AnimScriptInstance == nullptr || AnimScriptInstance->GetClass() != AnimClass || AnimScriptInstance->GetOuter() != this)
+        {
+            return true;
+        }
+    }
+    return false;
 }
-void USkeletalMeshComponent::SetPaused(bool bPause)
+
+UAnimSingleNodeInstance* USkeletalMeshComponent::GetSingleNodeInstance() const
 {
-    bPauseAnimation = bPause;
+    return Cast<UAnimSingleNodeInstance>(AnimScriptInstance);
+}
+
+void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
+{
+    AnimSequence = Cast<UAnimSequence>(NewAnimToPlay);
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetAnimationAsset(NewAnimToPlay, false);
+        SingleNodeInstance->SetPlaying(false);
+    }
+}
+
+UAnimationAsset* USkeletalMeshComponent::GetAnimation() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetAnimationAsset();
+    }
+    return nullptr;
+}
+
+void USkeletalMeshComponent::Play(bool bLooping)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(true);
+        SingleNodeInstance->SetLooping(bLooping);
+    }
+}
+
+void USkeletalMeshComponent::Stop()
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(false);
+    }
+}
+
+void USkeletalMeshComponent::SetPlaying(bool bPlaying)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(bPlaying);
+    }
+}
+
+bool USkeletalMeshComponent::IsPlaying() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->IsPlaying();
+    }
+
+    return false;
+}
+
+void USkeletalMeshComponent::SetReverse(bool bIsReverse)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetReverse(bIsReverse);
+    }
+}
+
+bool USkeletalMeshComponent::IsReverse() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->IsReverse();
+    }
+}
+
+void USkeletalMeshComponent::SetPlayRate(float Rate)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlayRate(Rate);
+    }
+}
+
+float USkeletalMeshComponent::GetPlayRate() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetPlayRate();
+    }
+
+    return 0.f;
+}
+
+void USkeletalMeshComponent::SetLooping(bool bIsLooping)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetLooping(bIsLooping);
+    }
 }
 
 bool USkeletalMeshComponent::IsLooping() const
 {
-    return bPlayLooping;
-}
-void USkeletalMeshComponent::SetLooping(bool bEnable)
-{
-    bPlayLooping = bEnable;
-}
-
- void USkeletalMeshComponent::EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping)
-{
-    for (FAnimNotifyEvent& NotifyEvent : const_cast<TArray<FAnimNotifyEvent>&>(Notifies))
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
     {
-        const float StartTime = NotifyEvent.Time;
-        const float EndTime = NotifyEvent.GetEndTime();
-        const bool bReversed = DeltaTime < 0.0f;
+        return SingleNodeInstance->IsLooping();
+    }
+    return false;
+}
 
-        const bool bPassed = bReversed
-            ? (PreviousTime >= StartTime && CurrentTime < StartTime)
-            : (PreviousTime <= StartTime && CurrentTime > StartTime);
+int USkeletalMeshComponent::GetCurrentKey() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetCurrentKey();
+    }
+    return 0;
+}
 
-        const bool bInside = CurrentTime >= StartTime && CurrentTime < EndTime;
+void USkeletalMeshComponent::SetCurrentKey(int InKey)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetCurrentKey(InKey);
+    }
+}
 
-        if (!NotifyEvent.IsState()) 
-        {
-            if (bPassed || (bIsLooping && !bReversed && PreviousTime > CurrentTime && StartTime >= 0.f && StartTime < CurrentTime))
-            {
-                if (NotifyEvent.Notify)
-                {
-                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
-                    NotifyEvent.Notify->Notify(MeshComp, AnimAsset);
-                }
-                NotifyEvent.bTriggered = true;
-            }
-        }
-        else 
-        {
-            if (bInside && !NotifyEvent.bStateActive)
-            {
-                if (NotifyEvent.NotifyState)
-                {
-                    UE_LOG(ELogLevel::Display, TEXT("[Notify] Triggered: %s at Time=%.3f"), *NotifyEvent.NotifyName.ToString(), CurrentTime);
-                    NotifyEvent.NotifyState->NotifyBegin(MeshComp, AnimAsset, NotifyEvent.Duration);
-                }
-                NotifyEvent.bStateActive = true;
-            }
-            else if (bInside && NotifyEvent.bStateActive)
-            {
-                if (NotifyEvent.NotifyState)
-                {
+void USkeletalMeshComponent::SetElapsedTime(float InElapsedTime)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetElapsedTime(InElapsedTime);
+    }
+}
 
-                    NotifyEvent.NotifyState->NotifyTick(MeshComp, AnimAsset, DeltaTime);
-                }
-            }
-            else if (!bInside && NotifyEvent.bStateActive)
-            {
-                if (NotifyEvent.NotifyState)
-                {
-                    NotifyEvent.NotifyState->NotifyEnd(MeshComp, AnimAsset);
-                }
-                NotifyEvent.bStateActive = false;
-            }
-        }
+float USkeletalMeshComponent::GetElapsedTime() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetElapsedTime();
+    }
+    return 0.f;
+}
+
+int32 USkeletalMeshComponent::GetLoopStartFrame() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetLoopStartFrame();
+    }
+    return 0;
+}
+
+void USkeletalMeshComponent::SetLoopStartFrame(int32 InLoopStartFrame)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetLoopStartFrame(InLoopStartFrame);
+    }
+}
+
+int32 USkeletalMeshComponent::GetLoopEndFrame() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetLoopEndFrame();
+    }
+    return 0;
+}
+
+void USkeletalMeshComponent::SetLoopEndFrame(int32 InLoopEndFrame)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetLoopEndFrame(InLoopEndFrame);
     }
 }
