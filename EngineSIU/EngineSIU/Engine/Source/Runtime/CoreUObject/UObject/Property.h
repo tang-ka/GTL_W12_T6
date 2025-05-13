@@ -712,9 +712,25 @@ struct FStructProperty : public FProperty
 
 // struct FMulticastDelegateProperty : public FProperty {};
 
-
 namespace PropertyFactory::Private
 {
+// template <typename T>
+// FProperty* CreatePropertyForContainerType()
+// {
+//     constexpr EPropertyType TypeEnum = GetPropertyType<T>();
+//
+//     if constexpr (
+//         TypeEnum == EPropertyType::Array
+//         || TypeEnum == EPropertyType::Set
+//         || TypeEnum == EPropertyType::Map
+//     )
+//     {
+//         // 다차원 컨테이너는 UPROPERTY로 사용할 수 없음!!
+//         static_assert(TAlwaysFalse<T>, "Container type cannot be used as property type.");
+//     }
+//
+//     return MakeProperty<T>()
+// }
 template <typename T>
 FProperty* MakeProperty(
     UClass* InOwnerClass,
@@ -766,7 +782,7 @@ FProperty* MakeProperty(
         else
         {
             // TSubclassOf에 UObject를 상속받은 클래스가 아닌 타입이 들어오면, 여기서 컴파일 에러가 날 수 있음
-            static_assert(false, "TSubclassOf template parameter must inherit from UObject");
+            static_assert(TAlwaysFalse<T>, "TSubclassOf template parameter must inherit from UObject");
         }
     }
     else if constexpr (TypeEnum == EPropertyType::Object)
