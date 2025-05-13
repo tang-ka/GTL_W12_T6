@@ -6,12 +6,15 @@
 #include "Serialization/Archive.h"
 
 
-template <typename KeyType, typename ValueType, typename Allocator = FDefaultAllocator<std::pair<const KeyType, ValueType>>>
+template <typename InKeyType, typename InValueType, typename Allocator = FDefaultAllocator<std::pair<const InKeyType, InValueType>>>
 class TMap
 {
 public:
-    using PairType = TPair<const KeyType, ValueType>;
-    using MapType = std::unordered_map<KeyType, ValueType, std::hash<KeyType>, std::equal_to<KeyType>, Allocator>;
+    using KeyType = InKeyType;
+    using ValueType = InValueType;
+
+    using PairType = TPair<const KeyType, InValueType>;
+    using MapType = std::unordered_map<KeyType, InValueType, std::hash<KeyType>, std::equal_to<>, Allocator>;
     using SizeType = typename MapType::size_type;
 
 private:
@@ -83,17 +86,17 @@ public:
     }
 
     // 요소 접근 및 수정
-    ValueType& operator[](const KeyType& Key)
+    InValueType& operator[](const KeyType& Key)
     {
         return ContainerPrivate[Key];
     }
 
-    const ValueType& operator[](const KeyType& Key) const
+    const InValueType& operator[](const KeyType& Key) const
     {
         return ContainerPrivate.at(Key);
     }
 
-    void Add(const KeyType& Key, const ValueType& Value)
+    void Add(const KeyType& Key, const InValueType& Value)
     {
         ContainerPrivate.insert_or_assign(Key, Value);
     }
@@ -104,8 +107,8 @@ public:
      * @param InValue 삽입할 값
      * @return InValue의 참조
      */
-    template <typename InitKeyType = KeyType, typename InitValueType = ValueType>
-    ValueType& Emplace(InitKeyType&& InKey, InitValueType&& InValue)
+    template <typename InitKeyType = KeyType, typename InitValueType = InValueType>
+    InValueType& Emplace(InitKeyType&& InKey, InitValueType&& InValue)
     {
         auto result = ContainerPrivate.emplace(std::forward<InitKeyType>(InKey), std::forward<InitValueType>(InValue));
         return result.first->second;
@@ -113,9 +116,9 @@ public:
 
     // Key만 넣고, Value는 기본값으로 삽입
     template <typename InitKeyType = KeyType>
-    ValueType& Emplace(InitKeyType&& InKey)
+    InValueType& Emplace(InitKeyType&& InKey)
     {
-        auto result = ContainerPrivate.emplace(std::forward<InitKeyType>(InKey), ValueType{});
+        auto result = ContainerPrivate.emplace(std::forward<InitKeyType>(InKey), InValueType{});
         return result.first->second;
     }
 
@@ -141,21 +144,21 @@ public:
         return ContainerPrivate.contains(Key);
     }
 
-    const ValueType* Find(const KeyType& Key) const
+    const InValueType* Find(const KeyType& Key) const
     {
         auto it = ContainerPrivate.find(Key);
         return it != ContainerPrivate.end() ? &(it->second) : nullptr;
     }
 
-    ValueType* Find(const KeyType& Key)
+    InValueType* Find(const KeyType& Key)
     {
         auto it = ContainerPrivate.find(Key);
         return it != ContainerPrivate.end() ? &(it->second) : nullptr;
     }
 
-    ValueType& FindOrAdd(const KeyType& Key)
+    InValueType& FindOrAdd(const KeyType& Key)
     {
-        if (ValueType* Value = Find(Key))
+        if (InValueType* Value = Find(Key))
         {
             return *Value;
         }
