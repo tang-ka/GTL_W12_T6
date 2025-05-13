@@ -20,7 +20,8 @@ public:
 
     void SetSkeleton(USkeleton* InSkeleton) { Skeleton = InSkeleton; }
 
-  
+    virtual void SerializeAsset(FArchive& Ar) override;
+
 protected:
     std::unique_ptr<FSkeletalMeshRenderData> RenderData;
 

@@ -6,3 +6,8 @@
 UAnimSequence::UAnimSequence()
 {
 }
+
+void UAnimSequence::SerializeAsset(FArchive& Ar)
+{
+    
+}

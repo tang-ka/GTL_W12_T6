@@ -202,7 +202,7 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
 
                 // FBX 로드
                 FFbxLoader Loader;
-                FFbxLoadResult Result = Loader.LoadFBX(FilePath);
+                FAssetLoadResult Result = Loader.LoadFBX(FilePath);
 
                 // 기본 AssetInfo 세팅
                 FAssetInfo AssetInfo;

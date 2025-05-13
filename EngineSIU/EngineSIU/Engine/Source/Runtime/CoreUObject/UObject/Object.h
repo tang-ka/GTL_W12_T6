@@ -101,4 +101,6 @@ public:
 
         return result;
     }
+
+    virtual void SerializeAsset(FArchive& Ar) {}
 };

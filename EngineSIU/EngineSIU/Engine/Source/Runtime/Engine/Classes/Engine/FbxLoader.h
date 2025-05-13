@@ -17,7 +17,7 @@ class USkeleton;
 class FString;
 class USkeletalMesh;
 struct FSkeletalMeshRenderData;
-struct FFbxLoadResult;
+struct FAssetLoadResult;
 struct FMatrix;
 
 class FFbxLoader
@@ -26,7 +26,7 @@ public:
     FFbxLoader();
     ~FFbxLoader();
 
-    FFbxLoadResult LoadFBX(const FString& InFilePath);
+    FAssetLoadResult LoadFBX(const FString& InFilePath);
 
 private:
     FbxManager* Manager;
@@ -64,7 +64,7 @@ private:
     // End Skeleton
     
     // Begin Mesh
-    void ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult);
+    void ProcessMeshes(FbxNode* Node, FAssetLoadResult& OutResult);
 
     void CollectMeshNodes(FbxNode* Node, const TArray<USkeleton*>& Skeletons, TMap<USkeleton*, TArray<FbxNode*>>& OutSkeletalMeshNodes , TArray<FbxNode*>& OutStaticMeshNodes);
 

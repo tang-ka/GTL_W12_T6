@@ -12,4 +12,6 @@ class UAnimSequence : public UAnimSequenceBase
 public:
     UAnimSequence();
     virtual ~UAnimSequence() override = default;
+
+    virtual void SerializeAsset(FArchive& Ar) override;
 };

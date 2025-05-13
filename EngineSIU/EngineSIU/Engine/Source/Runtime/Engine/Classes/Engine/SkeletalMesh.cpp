@@ -18,4 +18,17 @@ const FSkeletalMeshRenderData* USkeletalMesh::GetRenderData() const
     return RenderData.get(); 
 }
 
+void USkeletalMesh::SerializeAsset(FArchive& Ar)
+{
+    if (Ar.IsLoading())
+    {
+        if (!RenderData)
+        {
+            RenderData = std::make_unique<FSkeletalMeshRenderData>();
+        }
+    }
+
+    RenderData->Serialize(Ar);
+}
+
 
