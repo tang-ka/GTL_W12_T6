@@ -34,6 +34,11 @@ public:
         return bPlaying;
     }
 
+    void SetReverse(bool bIsReverse)
+    {
+        bReverse = bIsReverse;
+    }
+    
     bool IsReverse() const
     {
         return bReverse;
@@ -49,14 +54,14 @@ public:
         return bLooping;
     }
 
-    void SetCurrentTime(float InCurrentTime)
+    void SetElapsedTime(float InElapsedTime)
     {
-        CurrentTime = InCurrentTime;
+        ElapsedTime = InElapsedTime;
     }
 
-    float GetCurrentTime() const
+    float GetElapsedTime() const
     {
-        return CurrentTime;
+        return ElapsedTime;
     }
 
     float GetPlayRate() const
@@ -69,10 +74,41 @@ public:
         PlayRate = InPlayRate;
     }
 
+    int32 GetLoopStartFrame() const
+    {
+        return LoopStartFrame;
+    }
+
+    void SetLoopStartFrame(int32 InLoopStartFrame)
+    {
+        LoopStartFrame = InLoopStartFrame;
+    }
+
+    int32 GetLoopEndFrame() const
+    {
+        return LoopEndFrame;
+    }
+
+    void SetLoopEndFrame(int32 InLoopEndFrame)
+    {
+        LoopEndFrame = InLoopEndFrame;
+    }
+
+    int GetCurrentKey() const
+    {
+        return CurrentKey;
+    }
+
+    void SetCurrentKey(int InCurrentKey)
+    {
+        CurrentKey = InCurrentKey;
+    }
 private:
     UAnimationAsset* CurrentAsset;
     
-    float CurrentTime;
+    float ElapsedTime;
+
+    float PreviousTime;
     
     float PlayRate;
     
@@ -81,4 +117,10 @@ private:
     bool bPlaying;
     
     bool bReverse;
+
+    int32 LoopStartFrame;
+
+    int32 LoopEndFrame;
+
+    int CurrentKey;
 };

@@ -7,15 +7,20 @@
 #include "Animation/Skeleton.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include "Animation/AnimSequence.h"
+#include "Engine/SkeletalMesh.h"
 #include "Misc/FrameTime.h"
 
 UAnimSingleNodeInstance::UAnimSingleNodeInstance()
     : CurrentAsset(nullptr)
-    , CurrentTime(0.f)
+    , ElapsedTime(0.f)
     , PlayRate(1.f)
     , bLooping(true)
     , bPlaying(true)
     , bReverse(false)
+    , PreviousTime(0.f)
+    , LoopStartFrame(0)
+    , LoopEndFrame(0)
+    , CurrentKey(0)
 {
 }
 
@@ -44,7 +49,7 @@ void UAnimSingleNodeInstance::SetAnimationAsset(UAnimationAsset* NewAsset, bool 
     
     bLooping = bIsLooping;
     PlayRate = InPlayRate;
-    CurrentTime = 0.f;
+    ElapsedTime = 0.f;
 }
 
 void UAnimSingleNodeInstance::NativeInitializeAnimation()
@@ -54,16 +59,70 @@ void UAnimSingleNodeInstance::NativeInitializeAnimation()
 void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose)
 {
     UAnimInstance::NativeUpdateAnimation(DeltaSeconds, OutPose);
-#pragma region Anim
-    CurrentTime += DeltaSeconds;
     
-    UAnimDataModel* DataModel = GetSkelMeshComponent()->GetAnimSequence()->GetDataModel();
+#pragma region Anim
+    USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();
+    
+    if (!SkeletalMeshComp->GetAnimSequence() || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
+        return;
 
-    const float TargetKeyFrameLocal = CurrentTime * static_cast<float>( DataModel->GetFrameRate());
-    const int32 CurrentFrame = static_cast<int32>(TargetKeyFrameLocal) % (DataModel->GetNumberOfFrames()- 1);
-    const float AlphaLocal = TargetKeyFrameLocal - static_cast<float>(static_cast<int32>(TargetKeyFrameLocal)); // [0 ~ 1]
+    UAnimSequence* AnimSequence = SkeletalMeshComp->GetAnimSequence();
+    const UAnimDataModel* DataModel = SkeletalMeshComp->GetAnimSequence()->GetDataModel();
+    const int32 FrameRate = DataModel->GetFrameRate();
+    const int32 NumberOfFrames = DataModel->GetNumberOfFrames();
+    
+    LoopStartFrame = FMath::Clamp(LoopStartFrame, 0, NumberOfFrames - 2);
+    LoopEndFrame = FMath::Clamp(LoopEndFrame, LoopStartFrame + 1, NumberOfFrames - 1);
+    const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
+    const float EndTime   = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
 
-    FFrameTime FrameTime(CurrentFrame, AlphaLocal);
+    if (SkeletalMeshComp->bIsAnimationEnabled() && bPlaying)
+    {
+        float DeltaPlayTime = DeltaSeconds * PlayRate;
+        if (bReverse)
+        {
+            DeltaPlayTime *= -1.0f;
+        }
+
+        PreviousTime = ElapsedTime;
+        ElapsedTime += DeltaPlayTime;
+        
+        AnimSequence->EvaluateAnimNotifies(AnimSequence->Notifies, ElapsedTime, PreviousTime, DeltaPlayTime, SkeletalMeshComp, AnimSequence, bLooping);
+        
+        // 루프 처리
+        if (IsLooping())
+        {
+            if (ElapsedTime > EndTime)
+            {
+                ElapsedTime = StartTime + FMath::Fmod(ElapsedTime - StartTime, EndTime - StartTime);
+            }
+            else if (ElapsedTime <= StartTime)
+            {
+                ElapsedTime = EndTime - FMath::Fmod(EndTime - ElapsedTime, EndTime - StartTime);
+            }
+        }
+        else
+        {
+            if (!bReverse && ElapsedTime >= EndTime)
+            {
+                ElapsedTime = StartTime;
+                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+            }
+            else if (bReverse && ElapsedTime <= StartTime)
+            {
+                ElapsedTime = EndTime;
+                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+            }
+        }
+    }
+
+    // 본 트랜스폼 보간
+    float TargetKeyFrame = ElapsedTime * static_cast<float>(FrameRate);
+    const int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (NumberOfFrames - 1);
+    float Alpha = TargetKeyFrame - static_cast<float>(CurrentFrame);
+    FFrameTime FrameTime(CurrentFrame, Alpha);
+    
+    CurrentKey = CurrentFrame;
     
     const FReferenceSkeleton& RefSkeleton = GetCurrentSkeleton()->GetReferenceSkeleton();
 

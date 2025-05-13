@@ -2,22 +2,22 @@
 #include "Engine/EditorEngine.h"
 #include <ReferenceSkeleton.h>
 
+#include "Animation/AnimSequence.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
 #include "Engine/Classes/Engine/FbxLoader.h"
 #include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
 #include "Engine/Classes/Components/SkeletalMeshComponent.h"
-#include "Engine/Classes/Animation/AnimSequence.h"
 #include "Engine/Classes/Animation/AnimTypes.h"
 
 BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
 {
     SetSupportedWorldTypes(EWorldTypeBitFlag::SkeletalViewer);
 }
+
 void BoneHierarchyViewerPanel::Render()
 {
-    
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
     {
@@ -116,7 +116,6 @@ void BoneHierarchyViewerPanel::Render()
         ImGui::End();
         ImGui::PopStyleVar();
     }
- 
 }
 
 void BoneHierarchyViewerPanel::OnResize(HWND hWnd)
@@ -259,14 +258,14 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     {
         return;
     }
-    UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimation();
+    UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimSequence();
     UAnimDataModel* DataModel = AnimSeq->GetDataModel();
     
     ImVec2 windowSize = ImVec2(Width*0.7, Height*0.3);
     ImVec2 windowPos = ImVec2(0.0f, Height - windowSize.y - 30);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-
+    
     if (!DataModel)
     {
         return;
@@ -286,12 +285,13 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         ImGui::Text("Animation has too few frames.");
         ImGui::End();
         return;
+    }
 
     static bool transformOpen = false;
-    
+
     int32 LoopStart = RefSkeletalMeshComponent->GetLoopStartFrame();
     int32 LoopEnd = RefSkeletalMeshComponent->GetLoopEndFrame();
-  
+
     LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
     LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
 
@@ -304,11 +304,11 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
     }
 
-    float PlaySpeed = RefSkeletalMeshComponent->GetPlaySpeed();
+    float PlayRate = RefSkeletalMeshComponent->GetPlayRate();
     bool bLooping = RefSkeletalMeshComponent->IsLooping();
-    bool bReverse = RefSkeletalMeshComponent->IsPlayReverse();
-    bool bPaused = RefSkeletalMeshComponent->IsPaused();
-    bool bPlay = RefSkeletalMeshComponent->bIsAnimationEnabled();
+    bool bReverse = RefSkeletalMeshComponent->IsReverse();
+    bool bPlaying = RefSkeletalMeshComponent->IsPlaying();
+    bool bPlayAnimation = RefSkeletalMeshComponent->bIsAnimationEnabled();
 
     float Elapsed = RefSkeletalMeshComponent->GetElapsedTime();
     float TargetKeyFrame = Elapsed * static_cast<float>(FrameRate);
@@ -318,31 +318,31 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
 
     if (ImGui::Begin("Animation Sequence Timeline"))
     {
-        if (ImGui::Button((!bPlay||bPaused)?"Play":"Pause")) {
-            if (!bPlay)
+        if (ImGui::Button((!bPlayAnimation||!bPlaying)?"Play":"Pause")) {
+            if (!bPlayAnimation)
             {
-                RefSkeletalMeshComponent->SetAnimationEnabled(true);
-                RefSkeletalMeshComponent->SetPaused(false);
+                RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(true);
+                RefSkeletalMeshComponent->SetPlaying(true);
             }
-            else if (bPaused)
+            else if (!bPlaying)
             {
-                RefSkeletalMeshComponent->SetPaused(false);
+                RefSkeletalMeshComponent->SetPlaying(true);
             }
             else
             {
-                RefSkeletalMeshComponent->SetPaused(true);
+                RefSkeletalMeshComponent->SetPlaying(false);
             }
         }
         ImGui::SameLine();
         if (ImGui::Button("Stop")) {
-            RefSkeletalMeshComponent->SetAnimationEnabled(false);
+            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
         }
 
         ImGui::Separator();
 
-        if (ImGui::SliderFloat("Play Speed", &PlaySpeed, 0.1f, 3.0f, "%.1fx"))
+        if (ImGui::SliderFloat("Play Rate", &PlayRate, 0.1f, 3.0f, "%.1fx"))
         {
-            RefSkeletalMeshComponent->SetPlaySpeed(PlaySpeed);
+            RefSkeletalMeshComponent->SetPlayRate(PlayRate);
         }
 
         if (ImGui::Checkbox("Looping", &bLooping))
@@ -352,7 +352,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
 
         if (ImGui::Checkbox("Play Reverse", &bReverse))
         {
-            RefSkeletalMeshComponent->SetPlayReverse(bReverse);
+            RefSkeletalMeshComponent->SetReverse(bReverse);
         }
 
         if (ImGui::SliderInt("Loop Start", &LoopStart, 0, NumFrames - 2))
@@ -364,7 +364,6 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         {
             RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
         }
-
         
         LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
         LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);

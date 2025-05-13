@@ -64,7 +64,13 @@ public:
 
     void Stop();
 
+    void SetPlaying(bool bPlaying);
+    
     bool IsPlaying() const;
+
+    void SetReverse(bool bIsReverse);
+    
+    bool IsReverse() const;
 
     void SetPlayRate(float Rate);
 
@@ -73,6 +79,22 @@ public:
     void SetLooping(bool bIsLooping);
 
     bool IsLooping() const;
+
+    int GetCurrentKey() const;
+
+    void SetCurrentKey(int InKey);
+
+    void SetElapsedTime(float InElapsedTime);
+
+    float GetElapsedTime() const;
+
+    int32 GetLoopStartFrame() const;
+
+    void SetLoopStartFrame(int32 InLoopStartFrame);
+
+    int32 GetLoopEndFrame() const;
+
+    void SetLoopEndFrame(int32 InLoopEndFrame);
     
     bool bIsAnimationEnabled() const { return bPlayAnimation; }
     
@@ -83,14 +105,6 @@ public:
     static void SetCPUSkinning(bool flag);
 
     static bool GetCPUSkinning();
-    
-    float GetElapsedTime() const{ return ElapsedTime; }
-    float GetTargetKeyFrame() const { return TargetKeyFrame; }
-    int GetCurrentKey() const { return CurrentKey; }
-    float GetAlpha() const { return Alpha; }
-    
-    void SetCurrentKey(int InCurrentKey) { CurrentKey = InCurrentKey; }
-    void SetElapsedTime(float InSeconds) { ElapsedTime = InSeconds; }
 
     UAnimInstance* GetAnimInstance() const { return AnimScriptInstance; }
 
@@ -107,56 +121,14 @@ protected:
 
     EAnimationMode AnimationMode;
     
-    // PlaySpeed
-    float GetPlaySpeed() const;
-    void SetPlaySpeed(float InSpeed);
-
-    // Loop Frame
-    int32 GetLoopStartFrame() const;
-    void SetLoopStartFrame(int32 InStart);
-    int32 GetLoopEndFrame() const;
-    void SetLoopEndFrame(int32 InEnd);
-
-    // Reverse
-    bool IsPlayReverse() const;
-    void SetPlayReverse(bool bEnable);
-
-    // Pause
-    bool IsPaused() const;
-    void SetPaused(bool bPause);
-
-    // Looping
-    bool IsLooping() const;
-    void SetLooping(bool bEnable);
-
-    void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping);
-    
 private:
     FPoseContext BonePoseContext;
     
     USkeletalMesh* SkeletalMeshAsset;
 
     UAnimSequence* AnimSequence;
-
-    float ElapsedTime = 0.f;
-    
-    float PreviousTime = 0.f;
-    float TargetKeyFrame = 0.f;
-    
-    float Alpha = 0.f;
-    
-    int32 CurrentKey = 0.f;
     
     bool bPlayAnimation;
-    float PlaySpeed = 1.f;
-    
-    int32 LoopStartFrame = 0;
-    int32 LoopEndFrame = 0;
-    
-    bool bPauseAnimation = false;
-    bool bPlayReverse = false;
-    bool bPlayLooping = false;
-    
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;
 

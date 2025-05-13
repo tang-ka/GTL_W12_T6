@@ -5,6 +5,7 @@ class UAnimDataController;
 class UAnimDataModel;
 struct FAnimNotifyEvent;
 struct FAnimNotifyTrack;
+class USkeletalMeshComponent;
 
 class UAnimSequenceBase : public UAnimationAsset
 {
@@ -26,7 +27,6 @@ protected:
     UAnimDataModel* DataModel;
 
     UAnimDataController* Controller;
-
 public:
     virtual float GetPlayLength() const override;
 
@@ -49,7 +49,7 @@ public:
     bool UpdateNotifyEvent(int32 NotifyIndexToUpdate, float NewTime, float NewDuration, int32 NewTrackIndex, const FName& NewNotifyName = NAME_None);
     FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex);
     const FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex) const;
-    
+    void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping);
 private:
     void CreateModel();
 };
