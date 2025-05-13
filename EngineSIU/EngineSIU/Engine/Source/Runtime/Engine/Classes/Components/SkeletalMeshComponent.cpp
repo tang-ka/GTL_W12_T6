@@ -7,7 +7,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Misc/FrameTime.h"
-#include "Animation/AnimNotifyState.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimTypes.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
