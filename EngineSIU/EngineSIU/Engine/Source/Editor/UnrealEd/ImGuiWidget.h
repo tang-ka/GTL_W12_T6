@@ -19,11 +19,11 @@ struct FControlInfo
 
 struct FImGuiWidget
 {
-    static void DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
-    static void DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
+    static bool DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
+    static bool DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
 
     template <size_t N>
-    static void DisplayNControl(
+    static bool DisplayNControl(
         const std::string& Label,
         float ResetValue,
         float ColumnWidth,
@@ -31,6 +31,8 @@ struct FImGuiWidget
         const std::array<FControlInfo, N>& ComponentsInfo
     )
     {
+        bool bChanged = false;
+
         const ImGuiIO& IO = ImGui::GetIO();
         ImFont* BoldFont = IO.Fonts->Fonts[0];
     
@@ -87,13 +89,16 @@ struct FImGuiWidget
             constexpr float Max = TNumericLimits<float>::Max();
 
             ImGui::SameLine();
-            ImGui::DragScalar(
+            if (ImGui::DragScalar(
                 ("##" + Info.Label + "Drag").c_str(),
                 ImGuiDataType_Float,
                 Info.ValuePtr,
                 0.1f,
                 &Min, &Max, Format
-            );
+            ))
+            {
+                bChanged = true;
+            }
 
             if (Idx < N - 1)
             {
@@ -107,5 +112,7 @@ struct FImGuiWidget
         ImGui::PopStyleVar(2); // ItemSpacing, FrameRounding
         ImGui::Columns(1);
         ImGui::PopID();
+
+        return bChanged;
     }
 };
