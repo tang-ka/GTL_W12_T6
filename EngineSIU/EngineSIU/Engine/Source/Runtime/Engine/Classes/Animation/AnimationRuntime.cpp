@@ -16,8 +16,6 @@ template<>
 FORCEINLINE void BlendTransform<ETransformBlendMode::Accumulate>(const FTransform& Source, FTransform& Dest, const float BlendWeight)
 {
     Dest.AccumulateWithShortestRotation(Source, BlendWeight);
-    Dest.NormalizeRotation();
-
 }
 
 template <int32 TRANSFORM_BLEND_MODE>
