@@ -79,19 +79,9 @@ void USkeletalMeshComponent::TickAnimation(float DeltaTime)
 
 void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 {
-    if (AnimationMode == EAnimationMode::AnimationBlueprint)
+    if (AnimScriptInstance)
     {
-        if (GetAnimInstance())
-        {
-            GetAnimInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
-        }
-    }
-    else if (AnimationMode == EAnimationMode::AnimationSingleNode)
-    {
-        if (GetSingleNodeInstance())
-        {
-            GetSingleNodeInstance()->UpdateAnimation(DeltaTime, BonePoseContext);
-        }
+        AnimScriptInstance->UpdateAnimation(DeltaTime, BonePoseContext);
     }
 }
 
