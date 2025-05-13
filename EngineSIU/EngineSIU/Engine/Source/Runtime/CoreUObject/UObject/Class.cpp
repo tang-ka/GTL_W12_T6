@@ -100,7 +100,6 @@ void UClass::RegisterProperty(FProperty* Prop)
      */
     switch (Prop->Type)  // NOLINT(clang-diagnostic-switch-enum)
     {
-    case EPropertyType::Object:
     case EPropertyType::UnresolvedPointer:
     {
         GetUnresolvedProperties().Add(Prop);

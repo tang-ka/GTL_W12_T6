@@ -805,11 +805,11 @@ FProperty* MakeProperty(
     }
     else if constexpr (TypeEnum == EPropertyType::Object)
     {
-        constexpr std::string_view TypeName = GetTypeName<T>();
+        using PointerType = std::remove_cvref_t<std::remove_pointer_t<T>>;
         FProperty* Property = new FObjectProperty { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
 
         // Property륻 등록하는 시점에서는 아직 모든 UClass가 초기화되지 않았으므로, UEngine::Init()때 Property의 TypeName을 바탕으로 ClassMap에서 가져오기
-        Property->TypeSpecificData = FName(TypeName.data(), TypeName.size()); // TODO: 그냥 StaticClass가져와도 될듯
+        Property->TypeSpecificData = PointerType::StaticClass();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::UnresolvedPointer)
