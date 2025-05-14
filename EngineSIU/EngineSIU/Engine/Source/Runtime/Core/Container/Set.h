@@ -7,15 +7,17 @@
 
 
 template <typename T, typename Hasher = std::hash<T>, typename Allocator = FDefaultAllocator<T>>
+requires
+    requires(T) { Hasher{}(std::declval<T>()); } // std::hash가 구현이 된 타입만 들어올 수 있음
 class TSet
 {
 private:
     using SetType = std::unordered_set<T, Hasher, std::equal_to<>, Allocator>;
-    using ElementType = T;
 
     SetType ContainerPrivate;
 
 public:
+    using ElementType = T;
     using SizeType = typename Allocator::SizeType;
     using Iterator = typename SetType::iterator;
     using ConstIterator = typename SetType::const_iterator;
@@ -118,3 +120,14 @@ FArchive& operator<<(FArchive& Ar, TSet<ElementType, Hasher, Allocator>& Set)
 
     return Ar;
 }
+
+
+template <typename T> constexpr bool TIsTSet_V = false;
+
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<               TSet<T, Hasher, Allocator>> = true;
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<const          TSet<T, Hasher, Allocator>> = true;
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<      volatile TSet<T, Hasher, Allocator>> = true;
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<const volatile TSet<T, Hasher, Allocator>> = true;
+
+template <typename T>
+concept TIsTSet = TIsTSet_V<T>;

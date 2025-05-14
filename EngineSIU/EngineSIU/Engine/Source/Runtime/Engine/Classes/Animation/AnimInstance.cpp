@@ -30,6 +30,34 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutP
 {
 }
 
+void UAnimInstance::SetAnimState(EAnimState InAnimState)
+{
+}
+
+UAnimStateMachine* UAnimInstance::GetStateMachine() const
+{
+    return nullptr;
+}
+
+UAnimSequence* UAnimInstance::GetCurrAnim() const
+{
+    return nullptr;
+}
+
+UAnimSequence* UAnimInstance::GetPrevAnim() const
+{
+    return nullptr;
+}
+
+float UAnimInstance::GetBlendDuration() const
+{
+    return 0.f;
+}
+
+void UAnimInstance::SetBlendDuration(float InBlendDuration)
+{
+}
+
 USkeletalMeshComponent* UAnimInstance::GetSkelMeshComponent() const
 {
     return Cast<USkeletalMeshComponent>(GetOuter());

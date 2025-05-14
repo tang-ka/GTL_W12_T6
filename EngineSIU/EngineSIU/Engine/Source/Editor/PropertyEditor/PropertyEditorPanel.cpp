@@ -47,7 +47,7 @@
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
-    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE|EWorldTypeBitFlag::SkeletalViewer);
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE);
 }
 
 void PropertyEditorPanel::Render()
@@ -109,7 +109,7 @@ void PropertyEditorPanel::Render()
         if (ASequencerPlayer* SP = Cast<ASequencerPlayer>(SelectedActor))
         {
             FString Label = SP->Socket.ToString();
-            if (ImGui::InputText("Socket", GetData(Label), IM_ARRAYSIZE(*Label)))
+            if (ImGui::InputText("Socket", GetData(Label), Label.Len()))
             {
                 SP->Socket = Label;
             }
@@ -179,6 +179,46 @@ void PropertyEditorPanel::Render()
     if (USpringArmComponent* SpringArmComponent = GetTargetComponent<USpringArmComponent>(SelectedActor, SelectedComponent))
     {
         RenderForSpringArmComponent(SpringArmComponent);
+    }
+
+    if (SelectedActor)
+    {
+        ImGui::Separator();
+        const UClass* Class = SelectedActor->GetClass();
+
+        for (; Class; Class = Class->GetSuperClass())
+        {
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
+
+            for (const FProperty* Prop : Properties)
+            {
+                Prop->DisplayInImGui(SelectedActor);
+            }
+        }
+    }
+
+    if (SelectedComponent)
+    {
+        ImGui::Separator();
+        const UClass* Class = GetTargetComponent<USceneComponent>(SelectedActor, SelectedComponent)->GetClass();
+
+        for (; Class; Class = Class->GetSuperClass())
+        {
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
+
+            for (const FProperty* Prop : Properties)
+            {
+                Prop->DisplayInImGui(SelectedComponent);
+            }
+        }
     }
 
     ImGui::End();
@@ -258,7 +298,7 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
         FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
         ImGui::Spacing();
 
-        FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
+        FImGuiWidget::DrawVec3Control("Scale", Scale, 1, 85);
         ImGui::Spacing();
 
         SceneComponent->SetRelativeTransform(FTransform(Rotation, Location, Scale));
@@ -498,11 +538,13 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (ImGui::Selectable("Animation Instance", CurrentAnimationMode == EAnimationMode::AnimationBlueprint))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+                CurrentAnimationMode = EAnimationMode::AnimationBlueprint;
                 SkeletalMeshComp->SetAnimClass(UClass::FindClass(FName("UMyAnimInstance")));
             }
             if (ImGui::Selectable("Animation Asset", CurrentAnimationMode == EAnimationMode::AnimationSingleNode))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+                CurrentAnimationMode = EAnimationMode::AnimationSingleNode;
             }
             ImGui::EndCombo();
         }
@@ -521,7 +563,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                 for (int i = 0; i < CompClasses.Num(); ++i)
                 {
                     if (CompClasses[i] == UAnimInstance::StaticClass() || CompClasses[i] == UAnimSingleNodeInstance::StaticClass())
+                    {
                         continue;
+                    }
                     bool bIsSelected = (SelectedIndex == i);
                     if (ImGui::Selectable(*CompClasses[i]->GetName(), bIsSelected))
                     {
@@ -536,97 +580,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (CompClasses.IsValidIndex(SelectedIndex))
             {
                 UClass* SelectedClass = CompClasses[SelectedIndex];
-                UMyAnimInstance* AnimInstance = Cast<UMyAnimInstance>(SkeletalMeshComp->GetAnimInstance()); //형 변환 하드코딩 말고 가능한지 몰라서 일단 둠
+                UAnimInstance* AnimInstance = SkeletalMeshComp->GetAnimInstance();
                 if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
-                {
-                    // 블렌딩 알파 텍스트
-                    ImGui::Text("Blend Alpha");
-                    ImGui::SameLine();
-                    static float BlendAlpha = 0.0f;
-                    if (ImGui::SliderFloat("##BlendAlphaSlider", &BlendAlpha, 0.0f, 1.0f, "%.2f"))
-                    {
-                        AnimInstance->BlendAlpha = BlendAlpha;
-                    }
-
-                    // AnimA 콤보박스 텍스트
-                    ImGui::Text("AnimA");
-                    ImGui::SameLine();
-                    const TMap<FName, FAssetInfo> AnimationAssets = UAssetManager::Get().GetAssetRegistry();
-                    FString SelectedAnimAName = AnimInstance->AnimA ? AnimInstance->AnimA->GetName() : TEXT("None");
-                    if (ImGui::BeginCombo("##AnimA Combo", *SelectedAnimAName))
-                    {
-                        if (ImGui::Selectable("None", !AnimInstance->AnimA))
-                        {
-                            AnimInstance->AnimA = nullptr;
-                        }
-                        for (const auto& Asset : AnimationAssets)
-                        {
-                            if (Asset.Value.AssetType != EAssetType::Animation)
-                                continue;
-
-                            FString AssetName = Asset.Value.AssetName.ToString();
-                            bool bIsSelected = (AnimInstance->AnimA && AnimInstance->AnimA->GetName() == AssetName);
-                            if (ImGui::Selectable(*AssetName, bIsSelected))
-                            {
-                                FString AssetPath = Asset.Value.PackagePath.ToString() + "/" + AssetName;
-                                UAnimationAsset* Animation = UAssetManager::Get().GetAnimation(FName(*AssetPath));
-                                if (Animation)
-                                {
-                                    AnimInstance->AnimA = Cast<UAnimSequence>(Animation);
-                                }
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    // AnimB 콤보박스 텍스트
-                    ImGui::Text("AnimB");
-                    ImGui::SameLine();
-                    FString SelectedAnimBName = AnimInstance->AnimB ? AnimInstance->AnimB->GetName() : TEXT("None");
-                    if (ImGui::BeginCombo("##AnimB Combo", *SelectedAnimBName))
-                    {
-                        if (ImGui::Selectable("None", !AnimInstance->AnimB))
-                        {
-                            AnimInstance->AnimB = nullptr;
-                        }
-                        for (const auto& Asset : AnimationAssets)
-                        {
-                            if (Asset.Value.AssetType != EAssetType::Animation)
-                                continue;
-
-                            FString AssetName = Asset.Value.AssetName.ToString();
-                            bool bIsSelected = (AnimInstance->AnimB && AnimInstance->AnimB->GetName() == AssetName);
-                            if (ImGui::Selectable(*AssetName, bIsSelected))
-                            {
-                                FString AssetPath = Asset.Value.PackagePath.ToString() + "/" + AssetName;
-                                UAnimationAsset* Animation = UAssetManager::Get().GetAnimation(FName(*AssetPath));
-                                if (Animation)
-                                {
-                                    AnimInstance->AnimB = Cast<UAnimSequence>(Animation);
-                                }
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
-                    
-                    bool bLooping = AnimInstance->IsLooping();
-                    if (ImGui::Checkbox("Looping", &bLooping))
-                    {
-                        AnimInstance->SetLooping(bLooping);
-                    }
-
-                    bool bPlaying = AnimInstance->IsPlaying();
-                    if (ImGui::Checkbox("Playing", &bPlaying))
-                    {
-                        if (bPlaying)
-                        {
-                            AnimInstance->SetPlaying(true);
-                        }
-                        else
-                        {
-                            AnimInstance->SetPlaying(false);
-                        }
-                    }
+                {                    
                     UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
                     if(ImGui::Button("MoveFast"))
                     {
@@ -647,6 +603,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                     {
                         AnimStateMachine->StopDance();
                     }
+                    
+                    AnimInstance->SetAnimState(AnimStateMachine->GetState());
+                    
                     if (ImGui::Button("[DEBUG] Play Animation"))
                     {
                         SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
@@ -760,7 +719,10 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             {
                 return;
             }
-            Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName), SkeletalMeshComp->GetAnimation());
+            if (SkeletalMeshComp->GetSkeletalMeshAsset())
+            {
+                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName), SkeletalMeshComp->GetAnimation());
+            }
         }
         ImGui::TreePop();
     }

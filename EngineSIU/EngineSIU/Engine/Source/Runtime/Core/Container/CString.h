@@ -7,6 +7,7 @@
 #include <cwctype>
 
 #include "HAL/PlatformType.h"
+#include "Templates/TemplateUtilities.h"
 
 template <typename T>
 struct TCString
@@ -80,7 +81,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcslen(str); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -94,7 +95,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcscpy(dest, src); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return nullptr;
         }
     }
@@ -107,7 +108,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcsncpy(dest, src, count); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return nullptr;
         }
     }
@@ -121,7 +122,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcscat(dest, src); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return nullptr;
         }
     }
@@ -135,7 +136,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcscmp(str1, str2); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -149,7 +150,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcsncmp(str1, str2, count); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -218,7 +219,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcschr(str, c); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return nullptr;
         }
     }
@@ -238,7 +239,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcsrchr(str, c); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return nullptr;
         }
     }
@@ -259,7 +260,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcsstr(str1, str2); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return nullptr;
         }
     }
@@ -368,7 +369,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcsspn(str1, str2); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -381,7 +382,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcscspn(str1, str2); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -424,7 +425,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return static_cast<int>(std::wcstol(str, nullptr, 10)); } // wcstol 사용 및 캐스팅
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -437,7 +438,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcstoll(str, nullptr, 10); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0;
         }
     }
@@ -450,7 +451,7 @@ public:
         else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcstod(str, nullptr); }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(TAlwaysFalse<CharType>, "Unsupported character type!");
             return 0.0;
         }
     }
@@ -491,7 +492,7 @@ public:
         }
         else
         {
-            // static_assert(false, "Unsupported character type for Strtoi!");
+            static_assert(TAlwaysFalse<T>, "Unsupported character type for Strtoi!");
             if (endptr) *endptr = const_cast<CharType*>(nptr); // 변환 안 됐으므로 시작 위치 가리킴
             return 0;                                          // 지원되지 않는 타입
         }
