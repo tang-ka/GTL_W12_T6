@@ -359,6 +359,7 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
         ImGui::SameLine();
         if (ImGui::Button("Stop")) {
             RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
+            RefSkeletalMeshComponent->SetPlaying(false);
         }
         ImGui::SameLine();
         if (ImGui::Checkbox("Looping", &bLooping))
