@@ -42,7 +42,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true # Git LFS 파일들을 가져오도록 설정
+          # lfs: true # Git LFS 파일들을 가져오도록 설정
+          submodules: 'recursive' # 서브모듈을 재귀적으로 가져오도록 설정
 
       # 2. MSBuild 중간 파일 캐싱 설정
       # IntDir 경로를 캐싱합니다.
