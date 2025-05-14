@@ -547,6 +547,16 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
                                 for (const auto& name : SoundNames)
                                     SoundNameCStrs.Add(name.c_str());
 
+                                FName CurrentSoundName = Notify->GetSoundName();
+                                for (int32 i = 0; i < SoundNames.Num(); ++i)
+                                {
+                                    if (FName(SoundNames[i]) == CurrentSoundName)
+                                    {
+                                        SoundDropdownIndex = i;
+                                        break;
+                                    }
+                                }
+
                                 ImGui::Text("Sound");
                                 if (ImGui::Combo("##SoundCombo", &SoundDropdownIndex, SoundNameCStrs.GetData(), static_cast<int>(SoundNameCStrs.Num())))
                                 {
