@@ -4,6 +4,7 @@ UAnimStateMachine::UAnimStateMachine()
 {
     CurrentState = EAnimState::AS_Idle;
     MoveSpeed = 0;
+    bIsDancing = false;
 }
 
 EAnimState UAnimStateMachine::GetState() const
@@ -27,13 +28,13 @@ FString UAnimStateMachine::GetStateName(EAnimState State) const
 void UAnimStateMachine::MoveFast()
 {
     MoveSpeed++;
-    MoveSpeed = FMath::Clamp(MoveSpeed, 0, 2);
+    MoveSpeed = FMath::Clamp(MoveSpeed, 0, 3);
 }
 
 void UAnimStateMachine::MoveSlow()
 {
     MoveSpeed--;
-    MoveSpeed = FMath::Clamp(MoveSpeed, 0, 2);
+    MoveSpeed = FMath::Clamp(MoveSpeed, 0, 3);
 }
 
 void UAnimStateMachine::Dance()
@@ -95,6 +96,7 @@ void UAnimStateMachine::ProcessState()
     {
         CurrentState = EAnimState::AS_Dance;
     }
+    UE_LOG(ELogLevel::Display, TEXT("Current State: %s"), *GetStateName(CurrentState));
 }
 
 

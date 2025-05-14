@@ -43,6 +43,7 @@
 #include "imgui/imgui_bezier.h"
 #include "imgui/imgui_curve.h"
 #include "Math/Transform.h"
+#include "Animation/AnimStateMachine.h"
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
@@ -605,14 +606,31 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                             AnimInstance->SetPlaying(false);
                         }
                     }
-                    
+                    UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
+                    if(ImGui::Button("MoveFast"))
+                    {
+                        AnimStateMachine->MoveFast();
+                    }
+                    ImGui::SameLine();
+                    if(ImGui::Button("MoveSlow"))
+                    {
+                        AnimStateMachine->MoveSlow();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Dance"))
+                    {
+                        AnimStateMachine->Dance();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("StopDance"))
+                    {
+                        AnimStateMachine->StopDance();
+                    }
                     if (ImGui::Button("[DEBUG] Play Animation"))
                     {
                         SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
                     }
-        
                     ImGui::SameLine();
-        
                     if (ImGui::Button("[DEBUG] Stop Animation"))
                     {
                         SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);

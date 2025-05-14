@@ -7,6 +7,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Misc/FrameTime.h"
+#include "Animation/AnimStateMachine.h"
+#include "UObject/ObjectFactory.h"
 
 UMyAnimInstance::UMyAnimInstance()
     : CurrentAsset(nullptr)
@@ -22,6 +24,7 @@ UMyAnimInstance::UMyAnimInstance()
     , AnimA(nullptr)
     , AnimB(nullptr)
 {
+    StateMachine = FObjectFactory::ConstructObject<UAnimStateMachine>(this);
 }
 
 void UMyAnimInstance::SetAnimationAsset(UAnimationAsset* NewAsset, bool bIsLooping, float InPlayRate)
@@ -59,6 +62,7 @@ void UMyAnimInstance::NativeInitializeAnimation()
 void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose)
 {
     UAnimInstance::NativeUpdateAnimation(DeltaSeconds, OutPose);
+    StateMachine->ProcessState();
     
 #pragma region MyAnim
     USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();

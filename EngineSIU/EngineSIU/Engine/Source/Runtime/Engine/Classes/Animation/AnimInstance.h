@@ -4,8 +4,10 @@
 
 class USkeleton;
 class USkeletalMeshComponent;
+class UAnimStateMachine;
 struct FTransform;
 struct FPoseContext;
+
 
 class UAnimInstance : public UObject
 {
@@ -28,6 +30,11 @@ public:
 
     USkeleton* GetCurrentSkeleton() const { return CurrentSkeleton; }
 
+    UAnimStateMachine* GetStateMachine() const { return StateMachine; }
+
+public:
+    UAnimStateMachine* StateMachine;
 private:
     USkeleton* CurrentSkeleton;
+    
 };

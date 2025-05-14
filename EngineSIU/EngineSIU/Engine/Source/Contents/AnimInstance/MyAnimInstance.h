@@ -111,7 +111,7 @@ public:
 private:
     UAnimationAsset* CurrentAsset;
     //어차피 상속받아서 직접 만든 클래스니까 상태별로 Asset 저장해두고 써도 되지 않을까 싶음.
-    
+
     float ElapsedTime;
 
     float PreviousTime;
