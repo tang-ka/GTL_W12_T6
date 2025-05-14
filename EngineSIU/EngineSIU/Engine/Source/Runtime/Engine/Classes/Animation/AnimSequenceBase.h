@@ -50,6 +50,9 @@ public:
     FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex);
     const FAnimNotifyEvent* GetNotifyEvent(int32 NotifyIndex) const;
     void EvaluateAnimNotifies(const TArray<FAnimNotifyEvent>& Notifies, float CurrentTime, float PreviousTime, float DeltaTime, USkeletalMeshComponent* MeshComp, UAnimSequenceBase* AnimAsset, bool bIsLooping);
+    
+    virtual void SerializeAsset(FArchive& Ar) override;
+
 private:
     void CreateModel();
 };

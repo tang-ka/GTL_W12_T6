@@ -33,6 +33,8 @@ public:
 
     void SetTextureInfo(const TArray<FTextureInfo>& InTextureInfo) { MaterialInfo.TextureInfos = InTextureInfo; }
     
+    virtual void SerializeAsset(FArchive& Ar) override;
+
 private:
     FMaterialInfo MaterialInfo;
 };

@@ -263,7 +263,7 @@ void PrintNodeAttribute(FbxNode* Node, int32 Depth)
     }
 }
 
-FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
+FAssetLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
 {
     bool bSuccess = false;
     if (Importer->Initialize(*InFilePath, -1, Manager->GetIOSettings()))
@@ -272,7 +272,7 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
     }
     if (!bSuccess)
     {
-        return std::move(FFbxLoadResult());
+        return std::move(FAssetLoadResult());
     }
 
     ObjectName = InFilePath.ToWideString();
@@ -301,10 +301,10 @@ FFbxLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
     FbxNode* RootNode = Scene->GetRootNode();
     if (!RootNode)
     {
-        return std::move(FFbxLoadResult());
+        return std::move(FAssetLoadResult());
     }
 
-    FFbxLoadResult Result;
+    FAssetLoadResult Result;
     
     FbxGeometryConverter Converter(Manager);
     Converter.Triangulate(Scene, true);
@@ -733,7 +733,7 @@ void FFbxLoader::CollectBoneData(FbxNode* Node, FReferenceSkeleton& OutReference
     }
 }
 
-void FFbxLoader::ProcessMeshes(FbxNode* Node, FFbxLoadResult& OutResult)
+void FFbxLoader::ProcessMeshes(FbxNode* Node, FAssetLoadResult& OutResult)
 {
     TMap<USkeleton*, TArray<FbxNode*>> SkeletalMeshNodes;
     TArray<FbxNode*> StaticMeshNodes;

@@ -13,6 +13,17 @@ struct FSkeletalMeshVertex
     float U = 0, V = 0;
     uint32 BoneIndices[4] = { 0, 0, 0, 0 };
     float BoneWeights[4] = { 0.f, 0.f, 0.f, 0.f };
+
+    friend FArchive& operator<<(FArchive& Ar, FSkeletalMeshVertex& Data)
+    {
+        return Ar << Data.X << Data.Y << Data.Z
+                  << Data.R << Data.G << Data.B << Data.A
+                  << Data.NormalX << Data.NormalY << Data.NormalZ
+                  << Data.TangentX << Data.TangentY << Data.TangentZ << Data.TangentW
+                  << Data.U << Data.V
+                  << Data.BoneIndices[0] << Data.BoneIndices[1] << Data.BoneIndices[2] << Data.BoneIndices[3]
+                  << Data.BoneWeights[0] << Data.BoneWeights[1] << Data.BoneWeights[2] << Data.BoneWeights[3];
+    }
 };
 
 struct FSkeletalMeshRenderData
@@ -28,4 +39,24 @@ struct FSkeletalMeshRenderData
 
     FVector BoundingBoxMin;
     FVector BoundingBoxMax;
+
+    void Serialize(FArchive& Ar)
+    {
+        FString ObjectNameStr;
+        if (!ObjectName.empty())
+        {
+            ObjectNameStr = ObjectName;
+        }
+
+        Ar << ObjectNameStr
+           << DisplayName
+           << Vertices
+           << Indices
+           << Materials
+           << MaterialSubsets
+           << BoundingBoxMin
+           << BoundingBoxMax;
+
+        ObjectName = ObjectNameStr.ToWideString();
+    }
 };

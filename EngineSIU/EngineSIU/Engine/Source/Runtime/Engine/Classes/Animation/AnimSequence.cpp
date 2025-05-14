@@ -14,3 +14,7 @@ void UAnimSequence::GetBonePose(FAnimationPoseData& OutAnimationPoseData, const 
 {
 }
 
+void UAnimSequence::SerializeAsset(FArchive& Ar)
+{
+    Super::SerializeAsset(Ar);
+}
