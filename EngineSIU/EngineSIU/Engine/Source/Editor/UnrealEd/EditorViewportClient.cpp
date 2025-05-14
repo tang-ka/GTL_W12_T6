@@ -102,9 +102,6 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 
 void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
 {
-    // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
-
-    // 마우스 우클릭이 되었을때만 실행되는 함수
     if (GetKeyState(VK_RBUTTON) & 0x8000)
     {
         switch (InKeyEvent.GetCharacter())
@@ -286,6 +283,8 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
         {
         case VK_DELETE:
         {
+            if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+                return;
             UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
             if (Engine)
             {
@@ -505,7 +504,7 @@ void FEditorViewportClient::PivotMoveUp(const float InValue) const
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
-    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
         FMinimalViewInfo ViewInfo;
         GetViewInfo(ViewInfo);
@@ -551,7 +550,7 @@ void FEditorViewportClient::UpdateProjectionMatrix()
 {
     AspectRatio = GetViewport()->GetD3DViewport().Width / GetViewport()->GetD3DViewport().Height;
 
-    if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {
         FMinimalViewInfo ViewInfo;
         GetViewInfo(ViewInfo);

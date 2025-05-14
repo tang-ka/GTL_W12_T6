@@ -47,7 +47,7 @@
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
-    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE|EWorldTypeBitFlag::SkeletalViewer);
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE);
 }
 
 void PropertyEditorPanel::Render()
@@ -739,7 +739,10 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             {
                 return;
             }
-            Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+            if (SkeletalMeshComp->GetSkeletalMeshAsset())
+            {
+                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+            }
         }
         ImGui::TreePop();
     }
