@@ -157,7 +157,13 @@ constexpr EPropertyFlags& operator|=(EPropertyFlags& Lhs, EPropertyFlags Rhs)
 
 constexpr bool HasFlag(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
 {
-    return (static_cast<uint32>(Flags) & static_cast<uint32>(FlagToCheck)) != 0;
+    return (static_cast<uint32>(Flags) & static_cast<uint32>(FlagToCheck)) == static_cast<uint32>(FlagToCheck);
+}
+
+template <EPropertyFlags Flags>
+constexpr bool HasFlag(EPropertyFlags FlagToCheck)
+{
+    return HasFlag(Flags, FlagToCheck);
 }
 
 // 특정 플래그만 제외하는 연산자

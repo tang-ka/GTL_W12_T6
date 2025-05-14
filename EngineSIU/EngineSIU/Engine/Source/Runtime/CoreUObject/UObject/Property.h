@@ -1048,8 +1048,19 @@ FProperty* MakeProperty(
     int32 InOffset
 )
 {
-    
+    // Flags 검사
+    if constexpr (HasFlag<InFlags>(EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
+    {
+        // EditAnywhere와 VisibleAnywhere는 서로 같이 사용할 수 없음!!
+        static_assert(TAlwaysFalse<T>, "EditAnywhere and VisibleAnywhere cannot be set at the same time.");
+    }
+    else if constexpr (HasFlag<InFlags>(EPropertyFlags::LuaReadOnly | EPropertyFlags::LuaReadWrite))
+    {
+        // LuaReadOnly와 LuaReadWrite는 서로 같이 사용할 수 없음!!
+        static_assert(TAlwaysFalse<T>, "LuaReadOnly and LuaReadWrite cannot be set at the same time.");
+    }
 
+    // 각 타입에 맞는 Property 생성
     constexpr EPropertyType TypeEnum = GetPropertyType<T>();
 
     if constexpr      (TypeEnum == EPropertyType::Int8)        { return new FInt8Property        { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
