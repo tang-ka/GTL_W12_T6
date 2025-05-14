@@ -20,7 +20,7 @@ public:
             return false;
         }
 
-        result = system->init(512, FMOD_INIT_NORMAL, nullptr);
+        result = system->init(64, FMOD_INIT_NORMAL, nullptr);
         if (result != FMOD_OK) {
             std::cerr << "FMOD system init failed!" << std::endl;
             return false;
@@ -47,7 +47,8 @@ public:
         }
 
         FMOD::Sound* sound = nullptr;
-        FMOD_MODE mode = loop ? FMOD_LOOP_NORMAL : FMOD_DEFAULT;
+        FMOD_MODE mode = FMOD_DEFAULT | FMOD_LOOP_OFF | FMOD_CREATECOMPRESSEDSAMPLE;
+
         if (system->createSound(filePath.c_str(), mode, nullptr, &sound) != FMOD_OK) {
             std::cerr << "Failed to load sound: " << filePath << std::endl;
             return false;
@@ -69,18 +70,21 @@ public:
 
     void Update() {
         system->update();
-        // ä�� ����Ʈ���� ����� ���� ä�� ����
         activeChannels.erase(
-            std::remove_if(activeChannels.begin(), activeChannels.end(),
-                [](FMOD::Channel* channel) {
-                    bool isPlaying = false;
-                    if (channel) {
-                        channel->isPlaying(&isPlaying);
-                    }
-                    return !isPlaying; // ����� ���� ä�� ����
-                }),
-            activeChannels.end()
-        );
+    std::remove_if(activeChannels.begin(), activeChannels.end(),
+        [](FMOD::Channel* channel) {
+            bool isPlaying = false;
+            if (channel) {
+                FMOD_RESULT result = channel->isPlaying(&isPlaying);
+                if (result != FMOD_OK) {
+                    return true; 
+                }
+            }
+            return !isPlaying;
+        }),
+    activeChannels.end()
+);
+
     }
 
     void StopAllSounds()
