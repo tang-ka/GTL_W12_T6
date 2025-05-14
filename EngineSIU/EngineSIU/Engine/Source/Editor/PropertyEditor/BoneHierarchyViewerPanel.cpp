@@ -10,6 +10,7 @@
 #include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
 #include "Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Engine/Classes/Animation/AnimTypes.h"
+#include "UnrealEd/ImGuiWidget.h"
 
 BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
 {
@@ -345,33 +346,29 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         if (ImGui::Button("Stop")) {
             RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
         }
-
-        ImGui::Separator();
-
-        if (ImGui::SliderFloat("Play Rate", &PlayRate, 0.1f, 3.0f, "%.1fx"))
-        {
-            RefSkeletalMeshComponent->SetPlayRate(PlayRate);
-        }
-
+        ImGui::SameLine();
         if (ImGui::Checkbox("Looping", &bLooping))
         {
             RefSkeletalMeshComponent->SetLooping(bLooping);
         }
-
+        ImGui::SameLine();
         if (ImGui::Checkbox("Play Reverse", &bReverse))
         {
             RefSkeletalMeshComponent->SetReverse(bReverse);
         }
-
-        if (ImGui::SliderInt("Loop Start", &LoopStart, 0, NumFrames - 2))
-        {
-            RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
-        }
-
-        if (ImGui::SliderInt("Loop End", &LoopEnd, LoopStart + 1, NumFrames - 1))
-        {
-            RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
-        }
+        ImGui::SameLine();
+        FImGuiWidget::DrawDragFloat("Play Rate", PlayRate, 0.f,3.0,84);
+        RefSkeletalMeshComponent->SetPlayRate(PlayRate);
+        ImGui::Separator();
+        ImGui::Text("Frame: %d / %d", CurrentFrame, NumFrames -1);
+        ImGui::SameLine();
+        ImGui::Text("Time: %.2fs", RefSkeletalMeshComponent->GetElapsedTime());
+        ImGui::Separator();
+        FImGuiWidget::DrawDragInt("Loop Start", LoopStart, 0, NumFrames - 2,84);
+        RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
+        ImGui::SameLine();
+        FImGuiWidget::DrawDragInt("Loop End", LoopEnd, LoopStart + 1, NumFrames - 1,84);
+        RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
         
         LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
         LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
@@ -383,11 +380,6 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
             RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
         }
         ImGui::Separator();
-        ImGui::Text("Frame: %d / %d", CurrentFrame, NumFrames -1);
-        ImGui::SameLine();
-        ImGui::Text("Time: %.2fs", RefSkeletalMeshComponent->GetElapsedTime());
-        ImGui::Separator();
-
         if (ImGui::Button("Add New Notify Track")) {
             int32 NewTrackIdx = INDEX_NONE;
             int suffix = 0;

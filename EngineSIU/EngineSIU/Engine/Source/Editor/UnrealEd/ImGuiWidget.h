@@ -7,6 +7,10 @@ struct FRotator;
 struct FImGuiWidget
 {
     static void DrawVec3Control(const std::string& label, FVector& values, float resetValue = 0.0f, float columnWidth = 100.0f);
-
     static void DrawRot3Control(const std::string& label, FRotator& values, float resetValue = 0.0f, float columnWidth = 100.0f);
+    static void DrawDragInt(const std::string& label, int& value, int min = 0, int max = 0, float width = 100.0f);
+    static void DrawDragFloat(const std::string& label, float& value, float min = 0.0f, float max = 0.0f, float width = 100.0f);
+
+
+
 };
