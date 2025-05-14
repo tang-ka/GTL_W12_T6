@@ -13,6 +13,7 @@
 #include "UnrealEd/ImGuiWidget.h"
 #include "Contents/AnimInstance/MyAnimInstance.h"
 #include "Animation/AnimSoundNotify.h"
+#include "SoundManager.h"
 
 SkeletalMeshViewerPanel::SkeletalMeshViewerPanel()
 {
@@ -536,9 +537,30 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
                     }
                     if (ImGui::BeginPopupModal("Edit Notify", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
                     {
+                        static std::string SelectedSoundName;
+                        static int SoundDropdownIndex = 0;
+                        
                         ImGui::Text("Rename Notify and Duration");
                         ImGui::InputText("Name", RenameNotifyBuffer, sizeof(RenameNotifyBuffer) / sizeof(TCHAR));
                         ImGui::InputFloat("Duration", &RenameNotifyDuration, 0.1f);
+
+                        if (UAnimSoundNotify* Notify = Cast<UAnimSoundNotify>(AnimSeq->GetNotifyEvent(SelectedNotifyGlobalIndex_ForRename)->GetNotify()))
+                        {
+                            const auto& SoundNames = FSoundManager::GetInstance().GetAllSoundNames();
+                            if (!SoundNames.IsEmpty())
+                            {
+                                TArray<const char*> SoundNameCStrs;
+                                for (const auto& name : SoundNames)
+                                    SoundNameCStrs.Add(name.c_str());
+
+                                ImGui::Text("Sound");
+                                if (ImGui::Combo("##SoundCombo", &SoundDropdownIndex, SoundNameCStrs.GetData(), static_cast<int>(SoundNameCStrs.Num())))
+                                {
+                                    SelectedSoundName = SoundNames[SoundDropdownIndex];
+                                    Notify->SetSoundName(FName(SelectedSoundName));
+                                }
+                            }
+                        }
 
                         if (ImGui::Button("OK", ImVec2(120, 0)))
                         {

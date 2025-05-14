@@ -8,6 +8,6 @@ UAnimSoundNotify::UAnimSoundNotify()
 
 void UAnimSoundNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    FSoundManager::GetInstance().PlaySound("footprint");
+    FSoundManager::GetInstance().PlaySound(*SoundName.ToString());
 }
 

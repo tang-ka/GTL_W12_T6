@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "Container/Array.h"
+
 class FSoundManager {
 public:
     static FSoundManager& GetInstance() {
@@ -102,6 +104,17 @@ public:
         }
     }
 
+
+    TArray<std::string> GetAllSoundNames() const {
+        TArray<std::string> names;
+        for (const auto& pair : soundMap)
+        {
+            names.Add(pair.first);
+        }
+        return names;
+    }
+
+    
 private:
     FSoundManager() : system(nullptr) {}
     ~FSoundManager() { Shutdown(); }
