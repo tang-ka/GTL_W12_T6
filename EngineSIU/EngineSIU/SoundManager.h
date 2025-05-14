@@ -20,7 +20,7 @@ public:
             return false;
         }
 
-        result = system->init(64, FMOD_INIT_NORMAL, nullptr);
+        result = system->init(1024, FMOD_INIT_NORMAL, nullptr);
         if (result != FMOD_OK) {
             std::cerr << "FMOD system init failed!" << std::endl;
             return false;
@@ -43,7 +43,7 @@ public:
 
     bool LoadSound(const std::string& name, const std::string& filePath, bool loop = false) {
         if (soundMap.find(name) != soundMap.end()) {
-            return true; // �̹� �ε��
+            return true;
         }
 
         FMOD::Sound* sound = nullptr;
