@@ -6,6 +6,8 @@
 
 
 template <typename T, typename Hasher = std::hash<T>, typename Allocator = FDefaultAllocator<T>>
+requires
+    requires(T) { Hasher{}(std::declval<T>()); } // std::hash가 구현이 된 타입만 들어올 수 있음
 class TSet
 {
 private:
