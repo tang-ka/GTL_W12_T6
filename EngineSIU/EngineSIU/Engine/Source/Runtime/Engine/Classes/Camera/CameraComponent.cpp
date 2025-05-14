@@ -19,12 +19,13 @@ void UCameraComponent::InitializeComponent()
 {
     USceneComponent::InitializeComponent();
 
-    SetFInterpToSpeed(0.8f);
+    // SetFInterpToSpeed(0.8f);
 }
 
 void UCameraComponent::TickComponent(float DeltaTime)
 {
     USceneComponent::TickComponent(DeltaTime);
+    /*
     if (bFollowCustomTarget) {
         //
     }
@@ -34,6 +35,7 @@ void UCameraComponent::TickComponent(float DeltaTime)
     }
     
     ProceedFInterp(DeltaTime);
+    */
 }
 
 void UCameraComponent::FollowMainPlayer()

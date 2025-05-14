@@ -249,7 +249,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
 
                     // FOV 기반 거리 계산
                     float VerticalFOV = FMath::DegreesToRadians(FOV);
-                    float Distance = Radius / FMath::Tan(VerticalFOV * 0.5f);
+                    float Distance = FMath::Max(Radius / FMath::Tan(VerticalFOV * 0.5f), 10.0f);
 
                     // 카메라 위치 설정
                     ViewTransform.SetLocation(WorldCenter - ViewTransform.GetForwardVector() * Distance);

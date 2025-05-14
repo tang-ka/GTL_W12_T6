@@ -51,6 +51,13 @@ void UAnimSingleNodeInstance::SetAnimationAsset(UAnimationAsset* NewAsset, bool 
     bLooping = bIsLooping;
     PlayRate = InPlayRate;
     ElapsedTime = 0.f;
+
+    LoopStartFrame = 0;
+
+    if (UAnimSequence* AnimSequence = Cast<UAnimSequence>(CurrentAsset))
+    {
+        LoopEndFrame = AnimSequence->GetDataModel()->GetNumberOfFrames();
+    }
 }
 
 void UAnimSingleNodeInstance::NativeInitializeAnimation()
@@ -65,7 +72,9 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseCon
     USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();
     
     if (!SkeletalMeshComp->GetAnimation() || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
+    {
         return;
+    }
 
     UAnimSequence* AnimSequence = Cast<UAnimSequence>(CurrentAsset);
     const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
@@ -77,7 +86,7 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseCon
     const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
     const float EndTime   = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
 
-    if (SkeletalMeshComp->bIsAnimationEnabled() && bPlaying)
+    if (bPlaying)
     {
         float DeltaPlayTime = DeltaSeconds * PlayRate;
         if (bReverse)
@@ -107,12 +116,12 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseCon
             if (!bReverse && ElapsedTime >= EndTime)
             {
                 ElapsedTime = StartTime;
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+                SkeletalMeshComp->SetPlaying(false);
             }
             else if (bReverse && ElapsedTime <= StartTime)
             {
                 ElapsedTime = EndTime;
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+                SkeletalMeshComp->SetPlaying(false);
             }
         }
     }

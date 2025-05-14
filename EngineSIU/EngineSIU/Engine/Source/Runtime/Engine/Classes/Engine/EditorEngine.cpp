@@ -9,10 +9,10 @@
 #include "Classes/Engine/AssetManager.h"
 #include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "UObject/UObjectIterator.h"
-#include <Animation/SkeletalMeshActor.h>
-#include <Actors/DirectionalLightActor.h>
-#include <Components/Light/DirectionalLightComponent.h>
-#include<LevelEditor/SLevelEditor.h>
+#include "Animation/SkeletalMeshActor.h"
+#include "Actors/DirectionalLightActor.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Editor/UnrealEd/EditorViewportClient.h"
 
 extern FEngineLoop GEngineLoop;
@@ -158,7 +158,7 @@ void UEditorEngine::StartPIE()
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
 }
 
-void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
+void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset)
 {
     if (SkeletalMeshName == "")
     {
@@ -182,16 +182,22 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
     // 스켈레탈 액터 스폰
     ASkeletalMeshActor* SkeletalActor = SkeletalMeshViewerWorld->SpawnActor<ASkeletalMeshActor>();
     SkeletalActor->SetActorTickInEditor(true);
+    
     USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
     SkeletalActor->SetRootComponent(MeshComp);
     SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
     MeshComp->SetSkeletalMeshAsset(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
     SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
+
+    MeshComp->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+    MeshComp->PlayAnimation(AnimAsset, true);
+    MeshComp->DEBUG_SetAnimationEnabled(true);
+    MeshComp->SetPlaying(true);
+    
     ADirectionalLight* DirectionalLight = SkeletalMeshViewerWorld->SpawnActor<ADirectionalLight>();
     DirectionalLight->SetActorRotation(FRotator(45.f, 45.f, 0.f));
     DirectionalLight->GetComponentByClass<UDirectionalLightComponent>()->SetIntensity(4.0f);
 
-    
     FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
     CameraLocation = Camera.GetLocation();
     CameraRotation = Camera.GetRotation();
@@ -217,21 +223,15 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
         // 카메라 위치 설정
         Camera.SetLocation(WorldCenter - Camera.GetForwardVector() * Distance);
     }
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_LOCAL);
+    }
 }
 
 void UEditorEngine::BindEssentialObjects()
 {
-    // TODO: 플레이어 컨트롤러가 먼저 만들어져야 함.
-    //실수로 안만들면 넣어주기
-    if (ActiveWorld->GetMainPlayer() == nullptr)
-    {
-        APlayer* TempPlayer = ActiveWorld->SpawnActor<APlayer>();
-        TempPlayer->SetActorLabel(TEXT("OBJ_PLAYER"));
-        TempPlayer->SetActorTickInEditor(false);
-        ActiveWorld->SetMainPlayer(TempPlayer);
-    }
-    
-    //마찬가지
     for (const auto iter: TObjectRange<APlayer>())
     {
         if (iter->GetWorld() == ActiveWorld)
@@ -241,12 +241,20 @@ void UEditorEngine::BindEssentialObjects()
         }
     }
     
+    //실수로 안만들면 넣어주기
+    if (ActiveWorld->GetMainPlayer() == nullptr)
+    {
+        APlayer* TempPlayer = ActiveWorld->SpawnActor<APlayer>();
+        TempPlayer->SetActorLabel(TEXT("OBJ_PLAYER"));
+        TempPlayer->SetActorTickInEditor(false);
+        ActiveWorld->SetMainPlayer(TempPlayer);
+    }
+    
     //무조건 PIE들어갈때 만들어주기
     APlayerController* PlayerController = ActiveWorld->SpawnActor<APlayerController>();
     PlayerController->SetActorLabel(TEXT("OBJ_PLAYER_CONTROLLER"));
     PlayerController->SetActorTickInEditor(false);
     ActiveWorld->SetPlayerController(PlayerController);
-
     
     ActiveWorld->GetPlayerController()->Possess(ActiveWorld->GetMainPlayer());
 }
@@ -256,7 +264,6 @@ void UEditorEngine::EndPIE()
     if (PIEWorld)
     {
         this->ClearActorSelection(); // PIE World 기준 Select Actor 해제 
-        //WorldList.Remove(*GetWorldContextFromWorld(PIEWorld.get()));
         WorldList.Remove(GetWorldContextFromWorld(PIEWorld));
         PIEWorld->Release();
         GUObjectArray.MarkRemoveObject(PIEWorld);
@@ -292,6 +299,11 @@ void UEditorEngine::EndSkeletalMeshViewer()
         DeselectComponent(GetSelectedComponent());
     }
     ActiveWorld = EditorWorld;
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_WORLD);
+    }
 }
 
 FWorldContext& UEditorEngine::GetEditorWorldContext(/*bool bEnsureIsGWorld*/)

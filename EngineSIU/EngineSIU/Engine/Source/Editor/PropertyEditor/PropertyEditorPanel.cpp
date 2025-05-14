@@ -105,6 +105,27 @@ void PropertyEditorPanel::Render()
     if (SelectedActor)
     {
         RenderForActor(SelectedActor, TargetComponent);
+
+        if (ASequencerPlayer* SP = Cast<ASequencerPlayer>(SelectedActor))
+        {
+            FString Label = SP->Socket.ToString();
+            if (ImGui::InputText("##Socket", GetData(Label), 256))
+            {
+                SP->Socket = Label;
+            }
+
+            if (ImGui::BeginCombo("##Parent", "Parent", ImGuiComboFlags_None))
+            {
+                for (auto It : TObjectRange<USkeletalMeshComponent>())
+                {
+                    if (ImGui::Selectable(GetData(It->GetName()), false))
+                    {
+                        SP->SkeletalMeshComponent = It;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
     }
     
     if (UAmbientLightComponent* LightComponent = GetTargetComponent<UAmbientLightComponent>(SelectedActor, SelectedComponent))
@@ -294,7 +315,7 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
 
         if (ImGui::Button(CoordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
         {
-            Player->AddCoordiMode();
+            Player->AddCoordMode();
         }
          
         ImGui::TreePop();
@@ -559,7 +580,20 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (CompClasses.IsValidIndex(SelectedIndex))
             {
                 UClass* SelectedClass = CompClasses[SelectedIndex];
-                UAnimInstance* AnimInstance = SkeletalMeshComp->GetAnimInstance();
+                UMyAnimInstance* AnimInstance = Cast<UMyAnimInstance>(SkeletalMeshComp->GetAnimInstance());
+
+                bool bPlaying = AnimInstance->IsPlaying();
+                if (ImGui::Checkbox("Playing", &bPlaying))
+                {
+                    if (bPlaying)
+                    {
+                        AnimInstance->SetPlaying(true);
+                    }
+                    else
+                    {
+                        AnimInstance->SetPlaying(false);
+                    }
+                }
                 if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
                 {                    
                     UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
@@ -584,16 +618,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                     }
                     
                     AnimInstance->SetAnimState(AnimStateMachine->GetState());
-                    
-                    if (ImGui::Button("[DEBUG] Play Animation"))
-                    {
-                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("[DEBUG] Stop Animation"))
-                    {
-                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
-                    }
                 }
             }
         }
@@ -675,18 +699,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                     SkeletalMeshComp->Stop();
                 }
             }
-            
-            if (ImGui::Button("[DEBUG] Play Animation"))
-            {
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
-            }
-        
-            ImGui::SameLine();
-        
-            if (ImGui::Button("[DEBUG] Stop Animation"))
-            {
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
-            }
         }
 
         // End Animation
@@ -700,7 +712,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             }
             if (SkeletalMeshComp->GetSkeletalMeshAsset())
             {
-                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName), SkeletalMeshComp->GetAnimation());
             }
         }
         ImGui::TreePop();

@@ -273,17 +273,9 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
 
     if (RefSkeletalMeshComponent)
     {
-        if (RefSkeletalMeshComponent->GetAnimation())
+        if (RefSkeletalMeshComponent->GetAnimation() && RefSkeletalMeshComponent->GetAnimationMode() == EAnimationMode::AnimationSingleNode)
         {
             AnimSeq = Cast<UAnimSequence>(RefSkeletalMeshComponent->GetAnimation());
-        }
-        else if (RefSkeletalMeshComponent->GetAnimationMode() == EAnimationMode::AnimationBlueprint)
-        {
-            UAnimInstance* AnimInstance = RefSkeletalMeshComponent->GetAnimInstance();
-            if (AnimInstance)
-            {
-                AnimSeq = AnimInstance->GetCurrAnim();
-            }
         }
     }
     if (!AnimSeq)
@@ -352,7 +344,6 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
         if (ImGui::Button((!bPlayAnimation||!bPlaying)?"Play":"Pause")) {
             if (!bPlayAnimation)
             {
-                RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(true);
                 RefSkeletalMeshComponent->SetPlaying(true);
             }
             else if (!bPlaying)
@@ -366,7 +357,7 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
         }
         ImGui::SameLine();
         if (ImGui::Button("Stop")) {
-            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
+            RefSkeletalMeshComponent->SetPlaying(false);
         }
         ImGui::SameLine();
         if (ImGui::Checkbox("Looping", &bLooping))
@@ -546,6 +537,16 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
                                 TArray<const char*> SoundNameCStrs;
                                 for (const auto& name : SoundNames)
                                     SoundNameCStrs.Add(name.c_str());
+
+                                FName CurrentSoundName = Notify->GetSoundName();
+                                for (int32 i = 0; i < SoundNames.Num(); ++i)
+                                {
+                                    if (FName(SoundNames[i]) == CurrentSoundName)
+                                    {
+                                        SoundDropdownIndex = i;
+                                        break;
+                                    }
+                                }
 
                                 ImGui::Text("Sound");
                                 if (ImGui::Combo("##SoundCombo", &SoundDropdownIndex, SoundNameCStrs.GetData(), static_cast<int>(SoundNameCStrs.Num())))
@@ -729,16 +730,6 @@ void SkeletalMeshViewerPanel::RenderAnimationPanel(float PanelPosX, float PanelP
                         }
                         
                         AnimInstance->SetAnimState(AnimStateMachine->GetState());
-                        
-                        if (ImGui::Button("[DEBUG] Play Animation"))
-                        {
-                            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(true);
-                        }
-                        ImGui::SameLine();
-                        if (ImGui::Button("[DEBUG] Stop Animation"))
-                        {
-                            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
-                        }
                     }
                 }
             }

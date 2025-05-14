@@ -47,11 +47,11 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& Ou
 #pragma region MyAnim
     USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();
     
-    if (!PrevAnim || !CurrAnim || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
+    if (!PrevAnim || !CurrAnim || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton() || !bPlaying)
     {
         return;
     }
-
+    
     ElapsedTime += DeltaSeconds;
 
     if (bIsBlending)
@@ -69,11 +69,17 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& Ou
         BlendAlpha = 1.f;
     }
     
-    FPoseContext PrevPose(this);
-    FPoseContext CurrPose(this);
-
     // TODO: FPoseContext의 BoneContainer로 바꾸기
     const FReferenceSkeleton& RefSkeleton = this->GetCurrentSkeleton()->GetReferenceSkeleton();
+    
+    if (PrevAnim->GetSkeleton()->GetReferenceSkeleton().GetRawBoneNum()!= RefSkeleton.RawRefBoneInfo.Num() || CurrAnim->GetSkeleton()->GetReferenceSkeleton().GetRawBoneNum() != RefSkeleton.RawRefBoneInfo.Num())
+    {
+        return;
+    }
+    
+    FPoseContext PrevPose(this);
+    FPoseContext CurrPose(this);
+    
     PrevPose.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
     CurrPose.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
     for (int32 BoneIdx = 0; BoneIdx < RefSkeleton.RawRefBoneInfo.Num(); ++BoneIdx)
