@@ -461,6 +461,32 @@ void FObjectBaseProperty::DisplayInImGui(UObject* Object) const
     // 띄울 정보가 딱히 없는듯
 }
 
+void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+{
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+    if (ImGui::TreeNodeEx(PropertyLabel, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        UObject** Object = static_cast<UObject**>(DataPtr);
+
+        // 포인터가 가리키는것을 수정할 때, 보통 UObject의 인스턴스
+        if (HasFlag(Flags, EPropertyFlags::EditAnywhere))
+        {
+        }
+        else if (HasFlag(Flags, EPropertyFlags::VisibleAnywhere))
+        {
+            if (const UClass* ObjectClass = IsValid(*Object) ? (*Object)->GetClass() : nullptr)
+            {
+                for (const FProperty* Prop : ObjectClass->GetProperties())
+                {
+                    Prop->DisplayInImGui(*Object);
+                }
+            }
+        }
+        ImGui::TreePop();
+    }
+}
+
 void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
 {
     if (Type == EPropertyType::Object)

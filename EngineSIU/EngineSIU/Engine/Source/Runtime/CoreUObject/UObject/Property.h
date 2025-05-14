@@ -1014,6 +1014,7 @@ struct FObjectBaseProperty : public FProperty
     }
 
     virtual void DisplayInImGui(UObject* Object) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
 struct FObjectProperty : public FObjectBaseProperty
