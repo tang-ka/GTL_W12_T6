@@ -264,7 +264,7 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
 
                 // 뷰어 실행
                 UE_LOG(ELogLevel::Display, TEXT("FBX loaded: %s"), *FilePath);
-                Engine->StartSkeletalMeshViewer(SkeletalMeshName);
+                Engine->StartSkeletalMeshViewer(SkeletalMeshName, nullptr);
             }
         }
         

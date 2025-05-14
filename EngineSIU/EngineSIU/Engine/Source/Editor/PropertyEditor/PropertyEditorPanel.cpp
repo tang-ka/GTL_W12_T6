@@ -739,7 +739,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             {
                 return;
             }
-            Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+            Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName), SkeletalMeshComp->GetAnimation());
         }
         ImGui::TreePop();
     }

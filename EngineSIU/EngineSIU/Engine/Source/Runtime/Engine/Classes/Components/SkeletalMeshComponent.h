@@ -130,7 +130,7 @@ private:
 
     static bool bCPUSkinning;
 
-    void CPUSkinning();
+    void CPUSkinning(bool bForceUpdate = false);
 
 public:
     TSubclassOf<UAnimInstance> AnimClass;

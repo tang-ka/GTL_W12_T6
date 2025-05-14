@@ -152,7 +152,7 @@ void UEditorEngine::StartPIE()
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
 }
 
-void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
+void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset)
 {
     if (SkeletalMeshViewerWorld)
     {
@@ -172,11 +172,15 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
     // 스켈레탈 액터 스폰
     ASkeletalMeshActor* SkeletalActor = SkeletalMeshViewerWorld->SpawnActor<ASkeletalMeshActor>();
     SkeletalActor->SetActorTickInEditor(true);
+    
     USkeletalMeshComponent* MeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>();
     SkeletalActor->SetRootComponent(MeshComp);
     SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
     MeshComp->SetSkeletalMeshAsset(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
     SkeletalMeshViewerWorld->SetSkeletalMeshComponent(MeshComp);
+
+    MeshComp->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+    MeshComp->PlayAnimation(AnimAsset, true);
 }
 
 void UEditorEngine::BindEssentialObjects()

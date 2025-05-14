@@ -9,6 +9,7 @@
 #include "Misc/FrameTime.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimTypes.h"
+#include "Engine/Engine.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 
@@ -94,6 +95,10 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 bool USkeletalMeshComponent::ShouldTickAnimation() const
 {
+    if (GEngine->GetWorldContextFromWorld(GetWorld())->WorldType == EWorldType::Editor)
+    {
+        return false;
+    }
     return GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
 }
 
@@ -351,9 +356,9 @@ bool USkeletalMeshComponent::NeedToSpawnAnimScriptInstance() const
     return false;
 }
 
-void USkeletalMeshComponent::CPUSkinning()
+void USkeletalMeshComponent::CPUSkinning(bool bForceUpdate)
 {
-    if (bCPUSkinning)
+    if (bCPUSkinning || bForceUpdate)
     {
          const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
          TArray<FMatrix> CurrentGlobalBoneMatrices;
@@ -469,6 +474,8 @@ void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
     {
         SingleNodeInstance->SetAnimationAsset(NewAnimToPlay, false);
         SingleNodeInstance->SetPlaying(false);
+
+        // TODO: Force Update Pose and CPU Skinning
     }
 }
 
