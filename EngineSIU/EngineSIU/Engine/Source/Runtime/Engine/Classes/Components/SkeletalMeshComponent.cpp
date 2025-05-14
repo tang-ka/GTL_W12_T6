@@ -347,6 +347,7 @@ void USkeletalMeshComponent::CPUSkinning()
 {
     if (bCPUSkinning)
     {
+         QUICK_SCOPE_CYCLE_COUNTER(SkinningPass_CPU)
          const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
          TArray<FMatrix> CurrentGlobalBoneMatrices;
          GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);

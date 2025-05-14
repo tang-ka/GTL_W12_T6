@@ -364,7 +364,7 @@ void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& V
     {
         {
             // QUICK_SCOPE_CYCLE_COUNTER(SkeletalMeshPass_CPU)
-            // QUICK_GPU_SCOPE_CYCLE_COUNTER(SkeletalMeshPass_GPU, *GPUTimingManager)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(SkinningPass_GPU, *GPUTimingManager)
             SkeletalMeshRenderPass->Render(Viewport);
         }
     }
