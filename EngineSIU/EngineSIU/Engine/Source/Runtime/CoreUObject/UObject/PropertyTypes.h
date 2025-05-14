@@ -8,6 +8,7 @@
 #include "Templates/IsArray.h"
 
 #include "magic_enum/magic_enum.hpp"
+#include "Templates/TemplateUtilities.h"
 
 
 enum class EPropertyType : uint8
@@ -121,7 +122,7 @@ consteval EPropertyType GetPropertyType()
 
     else
     {
-        static_assert(!std::same_as<T, T>, "GetPropertyType: Type T is not supported.");
+        static_assert(TAlwaysFalse<T>, "GetPropertyType: Type T is not supported.");
         return EPropertyType::Unknown;
     }
 }

@@ -1171,7 +1171,7 @@ FProperty* MakeProperty(
     }
     else if constexpr (TypeEnum == EPropertyType::Unknown)
     {
-        static_assert(!std::same_as<T, T>, "Unsupported Property Type"); // 지원되지 않는 타입!!
+        static_assert(TAlwaysFalse<T>, "Unsupported Property Type"); // 지원되지 않는 타입!!
     }
     else
     {
