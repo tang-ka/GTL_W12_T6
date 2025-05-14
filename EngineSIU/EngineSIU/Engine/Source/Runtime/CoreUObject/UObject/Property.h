@@ -1038,17 +1038,18 @@ struct FStructProperty : public FProperty
 
 namespace PropertyFactory::Private
 {
-template <typename T>
-FProperty* CreatePropertyForContainerType(EPropertyFlags Flags);
+template <typename T, EPropertyFlags InFlags>
+FProperty* CreatePropertyForContainerType();
 
-template <typename T>
+template <typename T, EPropertyFlags InFlags>
 FProperty* MakeProperty(
     UClass* InOwnerClass,
     const char* InPropertyName,
-    int32 InOffset,
-    EPropertyFlags InFlags
+    int32 InOffset
 )
 {
+    
+
     constexpr EPropertyType TypeEnum = GetPropertyType<T>();
 
     if constexpr      (TypeEnum == EPropertyType::Int8)        { return new FInt8Property        { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags }; }
@@ -1078,20 +1079,20 @@ FProperty* MakeProperty(
     else if constexpr (TypeEnum == EPropertyType::Array)
     {
         TArrayProperty<T>* Property = new TArrayProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
-        Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType>(InFlags);
+        Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType, InFlags>();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::Map)
     {
         TMapProperty<T>* Property = new TMapProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
-        Property->KeyProperty = CreatePropertyForContainerType<typename T::KeyType>(InFlags);
-        Property->ValueProperty = CreatePropertyForContainerType<typename T::ValueType>(InFlags);
+        Property->KeyProperty = CreatePropertyForContainerType<typename T::KeyType, InFlags>();
+        Property->ValueProperty = CreatePropertyForContainerType<typename T::ValueType, InFlags>();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::Set)
     {
         TSetProperty<T>* Property = new TSetProperty<T> { InOwnerClass, InPropertyName, sizeof(T), InOffset, InFlags };
-        Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType>(InFlags);
+        Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType, InFlags>();
         return Property;
     }
 
@@ -1140,8 +1141,8 @@ FProperty* MakeProperty(
     std::unreachable(); // 이론상 도달할 수 없는 코드, (static_assert 지우면 호출됨)
 }
 
-template <typename T>
-FProperty* CreatePropertyForContainerType(EPropertyFlags Flags)
+template <typename T, EPropertyFlags InFlags>
+FProperty* CreatePropertyForContainerType()
 {
     constexpr EPropertyType TypeEnum = GetPropertyType<T>();
 
@@ -1156,11 +1157,10 @@ FProperty* CreatePropertyForContainerType(EPropertyFlags Flags)
         static_assert(TAlwaysFalse<T>, "Nested container types (e.g. TArray<TArray<T>>, TArray<TSet<T>>) cannot be used as UPROPERTY type.");
     }
 
-    return MakeProperty<T>(
+    return MakeProperty<T, InFlags>(
         nullptr,
         "InnerProperty", // 실제 컨테이너 항목은 이 이름을 사용하지 않음
-        0,
-        Flags
+        0
     );
 }
 }
