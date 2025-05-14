@@ -42,22 +42,22 @@ void FTileLightCullingPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
 
 void FTileLightCullingPass::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<ULightComponentBase>())
+    for (const auto Iter : TObjectRange<ULightComponentBase>())
     {
-        if (iter->GetWorld() == GEngine->ActiveWorld)
+        if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
+            if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Iter))
             {
                 PointLights.Add(PointLight);
             }
-            else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
+            else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Iter))
             {
                 SpotLight->GetDirection();
                 SpotLights.Add(SpotLight);
             }
             // [주의] : Directional Light에 대한 CasCade Shadow Map을 만들 때에 아래 View,Proj 갱신을 전제
-            iter->UpdateViewMatrix();
-            iter->UpdateProjectionMatrix();
+            Iter->UpdateViewMatrix();
+            Iter->UpdateProjectionMatrix();
         }
     }
 
@@ -139,8 +139,8 @@ void FTileLightCullingPass::ClearRenderArr()
 void FTileLightCullingPass::CreateShader()
 {
     // Compute Shader 생성
-    HRESULT hr = ShaderManager->AddComputeShader(L"TileLightCullingComputeShader", L"Shaders/TileLightCullingComputeShader.hlsl", "mainCS");
-    if (FAILED(hr))
+    const HRESULT Result = ShaderManager->AddComputeShader(L"TileLightCullingComputeShader", L"Shaders/TileLightCullingComputeShader.hlsl", "mainCS");
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to Compile Compute Shader!"));
     }
@@ -159,7 +159,10 @@ void FTileLightCullingPass::CreatePointLightBufferGPU()
 
     for (UPointLightComponent* LightComp : PointLights)
     {
-        if (!LightComp) continue;
+        if (!LightComp)
+        {
+            continue;
+        }
         FPointLightGPU LightData;
         LightData = {
             .Position = LightComp->GetComponentLocation(),
@@ -183,8 +186,8 @@ void FTileLightCullingPass::CreatePointLightBufferGPU()
     SAFE_RELEASE(PointLightBuffer)
     SAFE_RELEASE(PointLightBufferSRV)
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, &InitData, &PointLightBuffer);
-    if (FAILED(hr))
+    HRESULT Result = Graphics->Device->CreateBuffer(&Desc, &InitData, &PointLightBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Light Structured Buffer!"));
         return;
@@ -196,8 +199,8 @@ void FTileLightCullingPass::CreatePointLightBufferGPU()
     SrvDesc.Buffer.FirstElement = 0;
     SrvDesc.Buffer.NumElements = Lights.Num();
 
-    hr = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &SrvDesc, &PointLightBufferSRV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &SrvDesc, &PointLightBufferSRV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Light Buffer SRV!"));
     }
@@ -206,13 +209,18 @@ void FTileLightCullingPass::CreatePointLightBufferGPU()
 void FTileLightCullingPass::CreateSpotLightBufferGPU()
 {
     if (SpotLights.Num() == 0)
+    {
         return;
+    }
 
     TArray<FSpotLightGPU> Lights;
 
     for (USpotLightComponent* LightComp : SpotLights)
     {
-        if (!LightComp) continue;
+        if (!LightComp)
+        {
+            continue;
+        }
         FSpotLightGPU LightData;
         LightData = {
             .Position = LightComp->GetComponentLocation(),
@@ -236,8 +244,8 @@ void FTileLightCullingPass::CreateSpotLightBufferGPU()
     SAFE_RELEASE(SpotLightBuffer)
     SAFE_RELEASE(SpotLightBufferSRV)
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, &InitData, &SpotLightBuffer);
-    if (FAILED(hr))
+    HRESULT Result = Graphics->Device->CreateBuffer(&Desc, &InitData, &SpotLightBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Light Structured Buffer!"));
         return;
@@ -249,8 +257,8 @@ void FTileLightCullingPass::CreateSpotLightBufferGPU()
     SrvDesc.Buffer.FirstElement = 0;
     SrvDesc.Buffer.NumElements = Lights.Num();
 
-    hr = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &SrvDesc, &SpotLightBufferSRV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &SrvDesc, &SpotLightBufferSRV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Light Buffer SRV!"));
     }
@@ -279,39 +287,39 @@ void FTileLightCullingPass::CreateViews()
     SRVDesc.Buffer.NumElements = TILE_COUNT * SHADER_ENTITY_TILE_BUCKET_COUNT;
 
     // Per Tile PointLight Index Buffer
-    HRESULT hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &PerTilePointLightIndexMaskBuffer);
-    if (FAILED(hr))
+    HRESULT Result = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &PerTilePointLightIndexMaskBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Tile UAV Buffer!"));
     }
 
-    hr = Graphics->Device->CreateUnorderedAccessView(PerTilePointLightIndexMaskBuffer, &UAVDesc, &PerTilePointLightIndexMaskBufferUAV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateUnorderedAccessView(PerTilePointLightIndexMaskBuffer, &UAVDesc, &PerTilePointLightIndexMaskBufferUAV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Tile UAV!"));
     }
 
-    hr = Graphics->Device->CreateShaderResourceView(PerTilePointLightIndexMaskBuffer, &SRVDesc, &PerTilePointLightIndexMaskBufferSRV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateShaderResourceView(PerTilePointLightIndexMaskBuffer, &SRVDesc, &PerTilePointLightIndexMaskBufferSRV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Tile SRV!"));
     }
 
     // SpotLight Buffer
-    hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &PerTileSpotLightIndexMaskBuffer);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &PerTileSpotLightIndexMaskBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Tile SpotLight UAV Buffer!"));
     }
 
-    hr = Graphics->Device->CreateUnorderedAccessView(PerTileSpotLightIndexMaskBuffer, &UAVDesc, &PerTileSpotLightIndexMaskBufferUAV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateUnorderedAccessView(PerTileSpotLightIndexMaskBuffer, &UAVDesc, &PerTileSpotLightIndexMaskBufferUAV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Tile Spot UAV!"));
     }
 
-    hr = Graphics->Device->CreateShaderResourceView(PerTileSpotLightIndexMaskBuffer, &SRVDesc, &PerTileSpotLightIndexMaskBufferSRV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateShaderResourceView(PerTileSpotLightIndexMaskBuffer, &SRVDesc, &PerTileSpotLightIndexMaskBufferSRV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Tile Spot SRV!"));
     }
@@ -321,27 +329,27 @@ void FTileLightCullingPass::CreateViews()
     UAVDesc.Buffer.NumElements = SHADER_ENTITY_TILE_BUCKET_COUNT;
 
     // Culled PointLight Index Buffer
-    hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &CulledPointLightIndexMaskBuffer);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &CulledPointLightIndexMaskBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Culled PointLight Index Buffer!"));
     }
 
-    hr = Graphics->Device->CreateUnorderedAccessView(CulledPointLightIndexMaskBuffer, &UAVDesc, &CulledPointLightIndexMaskBufferUAV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateUnorderedAccessView(CulledPointLightIndexMaskBuffer, &UAVDesc, &CulledPointLightIndexMaskBufferUAV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Culled PointLight Index UAV!"));
     }
 
     // Culled SpotLight Index Buffer
-    hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &CulledSpotLightIndexMaskBuffer);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &CulledSpotLightIndexMaskBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Culled SpotLight Index Buffer!"));
     }
 
-    hr = Graphics->Device->CreateUnorderedAccessView(CulledSpotLightIndexMaskBuffer, &UAVDesc, &CulledSpotLightIndexMaskBufferUAV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateUnorderedAccessView(CulledSpotLightIndexMaskBuffer, &UAVDesc, &CulledSpotLightIndexMaskBufferUAV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Culled SpotLight Index UAV!"));
     }
@@ -360,8 +368,8 @@ void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
     HeatMapDesc.Usage = D3D11_USAGE_DEFAULT;
     HeatMapDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 
-    HRESULT hr = Graphics->Device->CreateTexture2D(&HeatMapDesc, nullptr, &DebugHeatmapTexture);
-    if (FAILED(hr))
+    HRESULT Result = Graphics->Device->CreateTexture2D(&HeatMapDesc, nullptr, &DebugHeatmapTexture);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Heatmap Texture!"));
     }
@@ -370,8 +378,8 @@ void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
     DebugUAVDesc.Format = HeatMapDesc.Format;
     DebugUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 
-    hr = Graphics->Device->CreateUnorderedAccessView(DebugHeatmapTexture, &DebugUAVDesc, &DebugHeatmapUAV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateUnorderedAccessView(DebugHeatmapTexture, &DebugUAVDesc, &DebugHeatmapUAV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Heatmap UAV!"));
     }
@@ -382,8 +390,8 @@ void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
     SRVDesc.Texture2D.MostDetailedMip = 0;
     SRVDesc.Texture2D.MipLevels = 1;
 
-    hr = Graphics->Device->CreateShaderResourceView(DebugHeatmapTexture, &SRVDesc, &DebugHeatmapSRV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateShaderResourceView(DebugHeatmapTexture, &SRVDesc, &DebugHeatmapSRV);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create Heatmap SRV!"));
     }
@@ -395,8 +403,8 @@ void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
     CBDesc.ByteWidth = (sizeof(TileLightCullSettings) + 0xf) & 0xfffffff0; // struct 정의 필요
     CBDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    hr = Graphics->Device->CreateBuffer(&CBDesc, nullptr, &TileLightConstantBuffer);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateBuffer(&CBDesc, nullptr, &TileLightConstantBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create TileLight Constant Buffer!"));
     }
@@ -467,8 +475,8 @@ void FTileLightCullingPass::UpdateTileLightConstantBuffer(const std::shared_ptr<
 
     D3D11_MAPPED_SUBRESOURCE MSR;
 
-    HRESULT hr = Graphics->DeviceContext->Map(TileLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MSR);
-    if (FAILED(hr)) {
+    HRESULT Result = Graphics->DeviceContext->Map(TileLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MSR);
+    if (FAILED(Result)) {
         UE_LOG(ELogLevel::Error, TEXT("Failed to map TileLightConstantBuffer"));
         return;
     }
@@ -500,8 +508,8 @@ bool FTileLightCullingPass::CopyLightIndexMaskBufferToCPU(TArray<uint32>& OutDat
 
     ID3D11Buffer* StagingBuffer = nullptr;
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &StagingBuffer);
-    if (FAILED(hr))
+    HRESULT Result = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &StagingBuffer);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create staging buffer for TileUAVBuffer"));
         return false;
@@ -511,8 +519,8 @@ bool FTileLightCullingPass::CopyLightIndexMaskBufferToCPU(TArray<uint32>& OutDat
 
     D3D11_MAPPED_SUBRESOURCE MSR = {};
 
-    hr = Graphics->DeviceContext->Map(StagingBuffer, 0, D3D11_MAP_READ, 0, &MSR);
-    if (FAILED(hr))
+    Result = Graphics->DeviceContext->Map(StagingBuffer, 0, D3D11_MAP_READ, 0, &MSR);
+    if (FAILED(Result))
     {
         UE_LOG(ELogLevel::Error, TEXT("TileUAVBuffer Staging Buffer Mapping Failed"));
         SAFE_RELEASE(StagingBuffer)

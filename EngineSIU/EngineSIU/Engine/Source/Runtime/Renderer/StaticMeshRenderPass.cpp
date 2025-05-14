@@ -207,13 +207,13 @@ void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShad
 
 void FStaticMeshRenderPass::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<UStaticMeshComponent>())
+    for (const auto Iter : TObjectRange<UStaticMeshComponent>())
     {
-        if (!Cast<UGizmoBaseComponent>(iter) && iter->GetWorld() == GEngine->ActiveWorld)
+        if (!Cast<UGizmoBaseComponent>(Iter) && Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            if (iter->GetOwner() && !iter->GetOwner()->IsHidden())
+            if (Iter->GetOwner() && !Iter->GetOwner()->IsHidden())
             {
-                StaticMeshComponents.Add(iter);
+                StaticMeshComponents.Add(Iter);
             }
         }
     }

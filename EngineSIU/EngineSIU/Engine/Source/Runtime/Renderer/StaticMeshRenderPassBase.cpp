@@ -33,13 +33,13 @@ void FStaticMeshRenderPassBase::Initialize(FDXDBufferManager* InBufferManager, F
 
 void FStaticMeshRenderPassBase::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<UStaticMeshComponent>())
+    for (const auto Iter : TObjectRange<UStaticMeshComponent>())
     {
-        if (iter->IsA<UGizmoBaseComponent>() || iter->GetWorld() != GEngine->ActiveWorld)
+        if (Iter->IsA<UGizmoBaseComponent>() || Iter->GetWorld() != GEngine->ActiveWorld)
         {
             continue;
         }
-        StaticMeshComponents.Add(iter);
+        StaticMeshComponents.Add(Iter);
     }
 }
 

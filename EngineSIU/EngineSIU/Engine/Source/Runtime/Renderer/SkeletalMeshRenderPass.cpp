@@ -9,8 +9,8 @@ void FSkeletalMeshRenderPass::CreateResource()
 {
     FSkeletalMeshRenderPassBase::CreateResource();
 
-    HRESULT hr = ShaderManager->AddPixelShader(L"SkeletalMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS");
-    if (FAILED(hr))
+    const HRESULT Result = ShaderManager->AddPixelShader(L"SkeletalMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS");
+    if (FAILED(Result))
     {
         return;
     }
@@ -29,16 +29,16 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
     
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 
-    const EResourceType ResourceType = EResourceType::ERT_Scene;
+    constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
     Graphics->DeviceContext->VSSetShaderResources(1, 1, &BoneSRV);
 
-    TArray<FString> PSBufferKeys = {
+    const TArray<FString> PSBufferKeys = {
         TEXT("FLightInfoBuffer"),
         TEXT("FMaterialConstants"),
         TEXT("FLitUnlitConstants"),

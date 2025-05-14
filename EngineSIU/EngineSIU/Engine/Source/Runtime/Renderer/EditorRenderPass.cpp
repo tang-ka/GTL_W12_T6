@@ -588,10 +588,10 @@ void FEditorRenderPass::RenderIcons(const UWorld* World, std::shared_ptr<FEditor
 }
 
 // 사용 안함
-void FEditorRenderPass::UpdateTextureIcon(EIconType type)
+void FEditorRenderPass::UpdateTextureIcon(EIconType Type)
 {
-    Graphics->DeviceContext->PSSetShaderResources(0, 1, &Resources.IconTextures[type]->TextureSRV);
-    Graphics->DeviceContext->PSSetSamplers(0, 1, &Resources.IconTextures[type]->SamplerState);
+    Graphics->DeviceContext->PSSetShaderResources(0, 1, &Resources.IconTextures[Type]->TextureSRV);
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &Resources.IconTextures[Type]->SamplerState);
 }
 
 void FEditorRenderPass::RenderArrowInstanced()

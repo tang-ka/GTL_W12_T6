@@ -3,6 +3,7 @@
 #include "UpdateLightBufferPass.h"
 
 #include <algorithm>
+#include <utility>
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
@@ -44,23 +45,23 @@ void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGra
 
 void FUpdateLightBufferPass::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<ULightComponentBase>())
+    for (const auto Iter : TObjectRange<ULightComponentBase>())
     {
-        if (iter->GetWorld() == GEngine->ActiveWorld)
+        if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
+            if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Iter))
             {
                 //PointLights.Add(PointLight); // 당분간 UnUsed : Structured Buffer로 전달
             }
-            else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
+            else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Iter))
             {
                 //SpotLights.Add(SpotLight); // UnUsed : Structured Buffer로 전달
             }
-            else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
+            else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Iter))
             {
                 DirectionalLights.Add(DirectionalLight);
             }
-            else if (UAmbientLightComponent* AmbientLight = Cast<UAmbientLightComponent>(iter))
+            else if (UAmbientLightComponent* AmbientLight = Cast<UAmbientLightComponent>(Iter))
             {
                 AmbientLights.Add(AmbientLight);
             }
@@ -175,9 +176,9 @@ void FUpdateLightBufferPass::SetPointLightData(
         TileData.NumLights = FMath::Min<uint32>(TileData.NumLights, MAX_POINTLIGHT_PER_TILE);
 
         // 각 조명 인덱스를 TileData.Indice 배열에 복사합니다.
-        for (uint32 i = 0; i < TileData.NumLights; ++i)
+        for (uint32 Idx = 0; Idx < TileData.NumLights; ++Idx)
         {
-            TileData.Indices[i] = TileLightList[i];
+            TileData.Indices[Idx] = TileLightList[Idx];
         }
         GPointLightPerTiles[TileIndex] = TileData;
     }
@@ -235,26 +236,26 @@ void FUpdateLightBufferPass::SetTileConstantBuffer(ID3D11Buffer* InTileConstantB
 
 void FUpdateLightBufferPass::CreatePointLightBuffer()
 {
-    D3D11_BUFFER_DESC desc = {};
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.ByteWidth = sizeof(FPointLightInfo) * MAX_NUM_POINTLIGHTS; // TOFIX : 하드코딩 : 10000개 light 받을 수 있음
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    desc.StructureByteStride = sizeof(FPointLightInfo);
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    Desc.ByteWidth = sizeof(FPointLightInfo) * MAX_NUM_POINTLIGHTS; // TOFIX : 하드코딩 : 10000개 light 받을 수 있음
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    Desc.StructureByteStride = sizeof(FPointLightInfo);
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &PointLightBuffer);
+    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, nullptr, &PointLightBuffer);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLightBuffer"));
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = MAX_NUM_POINTLIGHTS;
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = MAX_NUM_POINTLIGHTS;
 
-    hr = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &srvDesc, &PointLightSRV);
+    hr = Graphics->Device->CreateShaderResourceView(PointLightBuffer, &SrvDesc, &PointLightSRV);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLight SRV"));
@@ -263,23 +264,23 @@ void FUpdateLightBufferPass::CreatePointLightBuffer()
 
 void FUpdateLightBufferPass::CreateSpotLightBuffer()
 {
-    D3D11_BUFFER_DESC desc = {};
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.ByteWidth = sizeof(FSpotLightInfo) * MAX_NUM_SPOTLIGHTS; // TOFIX : 하드코딩 : 10000개 light 받을 수 있음
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    desc.StructureByteStride = sizeof(FSpotLightInfo);
-    HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &SpotLightBuffer);
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    Desc.ByteWidth = sizeof(FSpotLightInfo) * MAX_NUM_SPOTLIGHTS; // TOFIX : 하드코딩 : 10000개 light 받을 수 있음
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    Desc.StructureByteStride = sizeof(FSpotLightInfo);
+    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, nullptr, &SpotLightBuffer);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLightBuffer"));
     }
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = MAX_NUM_SPOTLIGHTS;
-    hr = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &srvDesc, &SpotLightSRV);
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = MAX_NUM_SPOTLIGHTS;
+    hr = Graphics->Device->CreateShaderResourceView(SpotLightBuffer, &SrvDesc, &SpotLightSRV);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLight SRV"));
@@ -288,29 +289,29 @@ void FUpdateLightBufferPass::CreateSpotLightBuffer()
 
 void FUpdateLightBufferPass::CreatePointLightPerTilesBuffer()
 {    
-    D3D11_BUFFER_DESC desc = {};
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.ByteWidth = sizeof(PointLightPerTile) * MAX_TILE;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    desc.StructureByteStride = sizeof(PointLightPerTile);       // 타일당 라이트 : 기존 1024에서 256으로 변경
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    Desc.ByteWidth = sizeof(PointLightPerTile) * MAX_TILE;
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    Desc.StructureByteStride = sizeof(PointLightPerTile);       // 타일당 라이트 : 기존 1024에서 256으로 변경
 
     /* D3D11_SUBRESOURCE_DATA initData = {};
      initData.pSysMem = GPointLightPerTiles.GetData();*/
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &PointLightPerTilesBuffer);
+    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, nullptr, &PointLightPerTilesBuffer);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLightPerTilesBuffer"));
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = MAX_TILE;
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = MAX_TILE;
 
-    hr = Graphics->Device->CreateShaderResourceView(PointLightPerTilesBuffer, &srvDesc, &PointLightPerTilesSRV);
+    hr = Graphics->Device->CreateShaderResourceView(PointLightPerTilesBuffer, &SrvDesc, &PointLightPerTilesSRV);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create PointLightPerTiles SRV"));
@@ -319,24 +320,24 @@ void FUpdateLightBufferPass::CreatePointLightPerTilesBuffer()
 
 void FUpdateLightBufferPass::CreateSpotLightPerTilesBuffer()
 {
-    D3D11_BUFFER_DESC desc = {};
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.ByteWidth = sizeof(SpotLightPerTile) * MAX_TILE;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    desc.StructureByteStride = sizeof(SpotLightPerTile);       // 타일당 라이트 : 기존 1024에서 256으로 변경
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    Desc.ByteWidth = sizeof(SpotLightPerTile) * MAX_TILE;
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    Desc.StructureByteStride = sizeof(SpotLightPerTile);       // 타일당 라이트 : 기존 1024에서 256으로 변경
 
-    HRESULT hr = Graphics->Device->CreateBuffer(&desc, nullptr, &SpotLightPerTilesBuffer);
+    HRESULT hr = Graphics->Device->CreateBuffer(&Desc, nullptr, &SpotLightPerTilesBuffer);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLightPerTilesBuffer"));
     }
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = MAX_TILE;
-    hr = Graphics->Device->CreateShaderResourceView(SpotLightPerTilesBuffer, &srvDesc, &SpotLightPerTilesSRV);
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = MAX_TILE;
+    hr = Graphics->Device->CreateShaderResourceView(SpotLightPerTilesBuffer, &SrvDesc, &SpotLightPerTilesSRV);
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create SpotLightPerTiles SRV"));
@@ -346,21 +347,23 @@ void FUpdateLightBufferPass::CreateSpotLightPerTilesBuffer()
 void FUpdateLightBufferPass::UpdatePointLightBuffer()
 {
     if (PointLights.Num() == 0 || !PointLightBuffer)
+    {
         return;
+    }
 
     TArray<FPointLightInfo> TempBuffer;
     TempBuffer.SetNum(MAX_NUM_POINTLIGHTS);
-    for (uint32 i = 0; i < PointLights.Num(); ++i)
+    for (uint32 LightIdx = 0; std::cmp_less(LightIdx, PointLights.Num()); ++LightIdx)
     {
-        FPointLightInfo& LightInfo = PointLights[i]->GetPointLightInfo();
-        LightInfo.Position = PointLights[i]->GetComponentLocation();
-        for (int j = 0; j < 6; ++j)
+        FPointLightInfo& LightInfo = PointLights[LightIdx]->GetPointLightInfo();
+        LightInfo.Position = PointLights[LightIdx]->GetComponentLocation();
+        for (int ProjectionIndex = 0; ProjectionIndex < 6; ++ProjectionIndex)
         {
-            LightInfo.LightViewProjs[j] = PointLights[i]->GetViewProjectionMatrix(j);
+            LightInfo.LightViewProjs[ProjectionIndex] = PointLights[LightIdx]->GetViewProjectionMatrix(ProjectionIndex);
         }
-        LightInfo.ShadowMapArrayIndex = i;
+        LightInfo.ShadowMapArrayIndex = LightIdx;
         LightInfo.ShadowBias = 0.005f;
-        TempBuffer[i] = LightInfo;
+        TempBuffer[LightIdx] = LightInfo;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(PointLightBuffer, 0, nullptr,
@@ -370,18 +373,20 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
 void FUpdateLightBufferPass::UpdateSpotLightBuffer()
 {
     if (SpotLights.Num() == 0 || !SpotLightBuffer)
+    {
         return;
+    }
     TArray<FSpotLightInfo> TempBuffer;
     TempBuffer.SetNum(MAX_NUM_SPOTLIGHTS);
-    for (uint32 i = 0; i < SpotLights.Num(); ++i)
+    for (uint32 Idx = 0; std::cmp_less(Idx, SpotLights.Num()); ++Idx)
     {
-        FSpotLightInfo& LightInfo = SpotLights[i]->GetSpotLightInfo();
-        LightInfo.Position = SpotLights[i]->GetComponentLocation();
-        LightInfo.Direction = SpotLights[i]->GetDirection();
-        LightInfo.LightViewProj = SpotLights[i]->GetViewMatrix() * SpotLights[i]->GetProjectionMatrix();
-        LightInfo.ShadowMapArrayIndex = i;
+        FSpotLightInfo& LightInfo = SpotLights[Idx]->GetSpotLightInfo();
+        LightInfo.Position = SpotLights[Idx]->GetComponentLocation();
+        LightInfo.Direction = SpotLights[Idx]->GetDirection();
+        LightInfo.LightViewProj = SpotLights[Idx]->GetViewMatrix() * SpotLights[Idx]->GetProjectionMatrix();
+        LightInfo.ShadowMapArrayIndex = Idx;
         LightInfo.ShadowBias = 0.005f;
-        TempBuffer[i] = LightInfo;
+        TempBuffer[Idx] = LightInfo;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightBuffer, 0, nullptr,
@@ -391,13 +396,15 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
 void FUpdateLightBufferPass::UpdatePointLightPerTilesBuffer()
 {
     if (GPointLightPerTiles.Num() == 0 || !PointLightPerTilesBuffer)
+    {
         return;
+    }
 
     TArray<PointLightPerTile> TempBuffer;
     TempBuffer.SetNum(MAX_TILE);
-    for (uint32 i = 0; i < GPointLightPerTiles.Num(); ++i)
+    for (uint32 Idx = 0; std::cmp_less(Idx, GPointLightPerTiles.Num()); ++Idx)
     {
-        TempBuffer[i] = GPointLightPerTiles[i];
+        TempBuffer[Idx] = GPointLightPerTiles[Idx];
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(PointLightPerTilesBuffer, 0, nullptr,
@@ -407,12 +414,14 @@ void FUpdateLightBufferPass::UpdatePointLightPerTilesBuffer()
 void FUpdateLightBufferPass::UpdateSpotLightPerTilesBuffer()
 {
     if (GSpotLightPerTiles.Num() == 0 || !SpotLightPerTilesBuffer)
+    {
         return;
+    }
     TArray<SpotLightPerTile> TempBuffer;
     TempBuffer.SetNum(MAX_TILE);
-    for (uint32 i = 0; i < GSpotLightPerTiles.Num(); ++i)
+    for (uint32 Idx = 0; std::cmp_less(Idx, GSpotLightPerTiles.Num()); ++Idx)
     {
-        TempBuffer[i] = GSpotLightPerTiles[i];
+        TempBuffer[Idx] = GSpotLightPerTiles[Idx];
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightPerTilesBuffer, 0, nullptr,

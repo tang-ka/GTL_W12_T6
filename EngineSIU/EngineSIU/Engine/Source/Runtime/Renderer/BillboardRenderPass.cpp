@@ -68,11 +68,11 @@ void FBillboardRenderPass::PrepareSubUVConstant() const
     BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
 }
 
-void FBillboardRenderPass::UpdateSubUVConstant(FVector2D uvOffset, FVector2D uvScale) const
+void FBillboardRenderPass::UpdateSubUVConstant(FVector2D UVOffset, FVector2D UVScale) const
 {
     FSubUVConstant data;
-    data.uvOffset = uvOffset;
-    data.uvScale = uvScale;
+    data.uvOffset = UVOffset;
+    data.uvScale = UVScale;
 
     BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), data);
 }
@@ -88,23 +88,23 @@ void FBillboardRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, cons
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
-void FBillboardRenderPass::RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const
+void FBillboardRenderPass::RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices, ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const
 {
-    SetupVertexBuffer(pVertexBuffer, numVertices);
+    SetupVertexBuffer(pVertexBuffer, NumVertices);
 
     Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &TextureSRV);
     Graphics->DeviceContext->PSSetSamplers(0, 1, &SamplerState);
-    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
+    Graphics->DeviceContext->DrawIndexed(NumIndices, 0, 0);
 }
 
-void FBillboardRenderPass::RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const
+void FBillboardRenderPass::RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const
 {
-    SetupVertexBuffer(pVertexBuffer, numVertices);
+    SetupVertexBuffer(pVertexBuffer, NumVertices);
 
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &TextureSRV);
     Graphics->DeviceContext->PSSetSamplers(0, 1, &SamplerState);
-    Graphics->DeviceContext->Draw(numVertices, 0);
+    Graphics->DeviceContext->Draw(NumVertices, 0);
 }
 
 void FBillboardRenderPass::CreateShader()
@@ -220,7 +220,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void FBillboardRenderPass::SetupVertexBuffer(ID3D11Buffer* pVertexBuffer, UINT numVertices) const
+void FBillboardRenderPass::SetupVertexBuffer(ID3D11Buffer* pVertexBuffer, UINT NumVertices) const
 {
     UINT Stride = sizeof(FVertexTexture);
     UINT Offset = 0;

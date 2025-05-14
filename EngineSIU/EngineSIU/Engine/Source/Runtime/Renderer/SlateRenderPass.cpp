@@ -91,15 +91,14 @@ void FSlateRenderPass::ClearRenderArr()
 
 void FSlateRenderPass::CreateShader()
 {
-    HRESULT hr = S_OK;
-    hr = ShaderManager->AddVertexShader(L"SlateShader", L"Shaders/SlateShader.hlsl", "mainVS");
-    if (FAILED(hr))
+    HRESULT Result = ShaderManager->AddVertexShader(L"SlateShader", L"Shaders/SlateShader.hlsl", "mainVS");
+    if (FAILED(Result))
     {
         return;
     }
     
-    hr = ShaderManager->AddPixelShader(L"SlateShader", L"Shaders/SlateShader.hlsl", "mainPS");
-    if (FAILED(hr))
+    Result = ShaderManager->AddPixelShader(L"SlateShader", L"Shaders/SlateShader.hlsl", "mainPS");
+    if (FAILED(Result))
     {
         return;
     }
@@ -107,9 +106,11 @@ void FSlateRenderPass::CreateShader()
 
 void FSlateRenderPass::CreateBuffer()
 {
-    HRESULT hr = S_OK;
-    hr = BufferManager->CreateBufferGeneric<FSlateTransform>("FSlateTransform", nullptr, sizeof(FSlateTransform), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    if (FAILED(hr))
+    HRESULT Result = BufferManager->CreateBufferGeneric<FSlateTransform>(
+        "FSlateTransform", nullptr, sizeof(FSlateTransform), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC,
+        D3D11_CPU_ACCESS_WRITE
+    );
+    if (FAILED(Result))
     {
         return;
     }

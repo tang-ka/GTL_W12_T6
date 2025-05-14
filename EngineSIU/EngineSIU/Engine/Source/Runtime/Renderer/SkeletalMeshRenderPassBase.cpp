@@ -38,13 +38,13 @@ void FSkeletalMeshRenderPassBase::Initialize(FDXDBufferManager* InBufferManager,
 
 void FSkeletalMeshRenderPassBase::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<USkeletalMeshComponent>())
+    for (const auto Iter : TObjectRange<USkeletalMeshComponent>())
     {
-        if (iter->GetWorld() != GEngine->ActiveWorld)
+        if (Iter->GetWorld() != GEngine->ActiveWorld)
         {
             continue;
         }
-        SkeletalMeshComponents.Add(iter);
+        SkeletalMeshComponents.Add(Iter);
     }
 }
 
@@ -73,12 +73,9 @@ void FSkeletalMeshRenderPassBase::CreateResource()
     BufferDesc.StructureByteStride = sizeof(FMatrix);
     
     // 6. 버퍼 생성 및 쉐이더 리소스 뷰 생성
-    ID3D11Buffer* boneBuffer = nullptr;
-    ID3D11ShaderResourceView* boneBufferSRV = nullptr;
-    
     // BufferManager를 통해 버퍼 생성 요청
-    HRESULT hr = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &BoneBuffer);
-    if (FAILED(hr))
+    HRESULT Result = Graphics->Device->CreateBuffer(&BufferDesc, nullptr, &BoneBuffer);
+    if (FAILED(Result))
     {
         return;
     }
@@ -89,8 +86,8 @@ void FSkeletalMeshRenderPassBase::CreateResource()
     SrvDesc.Buffer.FirstElement = 0;
     SrvDesc.Buffer.NumElements = MaxBoneNum;
     
-    hr = Graphics->Device->CreateShaderResourceView(BoneBuffer, nullptr, &BoneSRV);
-    if (FAILED(hr))
+    Result = Graphics->Device->CreateShaderResourceView(BoneBuffer, nullptr, &BoneSRV);
+    if (FAILED(Result))
     {
         return;
     }
@@ -118,7 +115,7 @@ void FSkeletalMeshRenderPassBase::Render_Internal(const std::shared_ptr<FEditorV
 
 void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    for (USkeletalMeshComponent* Comp : SkeletalMeshComponents)
+    for (const USkeletalMeshComponent* Comp : SkeletalMeshComponents)
     {
         if (!Comp || !Comp->GetSkeletalMeshAsset())
         {
@@ -130,7 +127,7 @@ void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<
             continue;
         }
 
-        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+        const UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
 
         FMatrix WorldMatrix = Comp->GetWorldMatrix();
         FVector4 UUIDColor = Comp->EncodeUUID() / 255.0f;
@@ -151,8 +148,8 @@ void FSkeletalMeshRenderPassBase::RenderAllSkeletalMeshes(const std::shared_ptr<
 
 void FSkeletalMeshRenderPassBase::RenderSkeletalMesh(const FSkeletalMeshRenderData* RenderData) const
 {
-    UINT Stride = sizeof(FSkeletalMeshVertex);
-    UINT Offset = 0;
+    constexpr UINT Stride = sizeof(FSkeletalMeshVertex);
+    constexpr UINT Offset = 0;
 
     FCPUSkinningConstants CPUSkinningData;
     CPUSkinningData.bCPUSKinning = USkeletalMeshComponent::GetCPUSkinning();
@@ -187,11 +184,11 @@ void FSkeletalMeshRenderPassBase::RenderSkeletalMesh(const FSkeletalMeshRenderDa
     {
         FName MaterialName = RenderData->MaterialSubsets[SubMeshIndex].MaterialName;
         UMaterial* Material = UAssetManager::Get().GetMaterial(MaterialName);
-        FMaterialInfo materilinfo = Material->GetMaterialInfo();
-        MaterialUtils::UpdateMaterial(BufferManager, Graphics, materilinfo);
+        FMaterialInfo MaterialInfo = Material->GetMaterialInfo();
+        MaterialUtils::UpdateMaterial(BufferManager, Graphics, MaterialInfo);
 
-        uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;
-        uint32 IndexCount = RenderData->MaterialSubsets[SubMeshIndex].IndexCount; 
+        const uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;
+        const uint32 IndexCount = RenderData->MaterialSubsets[SubMeshIndex].IndexCount; 
         Graphics->DeviceContext->DrawIndexed(IndexCount, StartIndex, 0);
     }
 }
@@ -220,7 +217,7 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     if (!SkeletalMeshComponent ||
         !SkeletalMeshComponent->GetSkeletalMeshAsset() ||
         !SkeletalMeshComponent->GetSkeletalMeshAsset()->GetSkeleton() ||
-        SkeletalMeshComponent->GetCPUSkinning())
+        USkeletalMeshComponent::GetCPUSkinning())
     {
         return;
     }
@@ -246,10 +243,10 @@ void FSkeletalMeshRenderPassBase::UpdateBone(const USkeletalMeshComponent* Skele
     
     // Update
     D3D11_MAPPED_SUBRESOURCE MappedResource;
-    HRESULT hr = Graphics->DeviceContext->Map(BoneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
-    if (FAILED(hr))
+    const HRESULT Result = Graphics->DeviceContext->Map(BoneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+    if (FAILED(Result))
     {
-        UE_LOG(ELogLevel::Error, TEXT("Buffer Map 실패, HRESULT: 0x%X"), hr);
+        UE_LOG(ELogLevel::Error, TEXT("Buffer Map 실패, HRESULT: 0x%X"), Result);
         return;
     }
     

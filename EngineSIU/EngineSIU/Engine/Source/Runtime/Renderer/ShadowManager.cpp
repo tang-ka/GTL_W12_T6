@@ -243,14 +243,14 @@ void FShadowManager::BindResourcesForSampling(
     }
 }
 
-FMatrix FShadowManager::GetCascadeViewProjMatrix(int i) const
+FMatrix FShadowManager::GetCascadeViewProjMatrix(int Idx) const
 {
-    if (i < 0 || i >= CascadesViewProjMatrices.Num())
+    if (Idx < 0 || Idx >= CascadesViewProjMatrices.Num())
     {
         UE_LOG(ELogLevel::Warning, TEXT("GetCascadeViewProjMatrix: Invalid cascade index."));
         return FMatrix::Identity;
     }
-    return CascadesViewProjMatrices[i];
+    return CascadesViewProjMatrices[Idx];
 }
 
 

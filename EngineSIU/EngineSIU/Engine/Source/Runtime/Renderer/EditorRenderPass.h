@@ -48,7 +48,7 @@ private:
 
     // Icon
     void RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);   // 사용 X
-    void UpdateTextureIcon(EIconType type);
+    void UpdateTextureIcon(EIconType Type);
 
     static constexpr UINT32 ConstantBufferSizeBox = 100;
     static constexpr UINT32 ConstantBufferSizeSphere = 100;

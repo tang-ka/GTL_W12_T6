@@ -177,9 +177,9 @@ public:
     FShadowCubeMapArrayRHI* GetPointShadowCubeMapRHI() const { return PointShadowCubeMapRHI; } // << 추가
     FShadowDepthRHI* GetDirectionalShadowCascadeDepthRHI() const { return DirectionalShadowCascadeDepthRHI; }
 
-    FMatrix GetCascadeViewProjMatrix(int i) const;
+    FMatrix GetCascadeViewProjMatrix(int Idx) const;
     uint32 GetNumCasCades() const { return NumCascades; }
-    float GetCascadeSplitDistance(int i) const { return CascadeSplits[i]; }
+    float GetCascadeSplitDistance(int Idx) const { return CascadeSplits[Idx]; }
 
     int32 GetMaxPointLightCount() const { return MaxPointLightShadows; } 
     int32 GetMaxSpotLightCount() const { return MaxSpotLightShadows; }

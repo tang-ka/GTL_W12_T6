@@ -50,8 +50,8 @@ void FLineRenderPass::ClearRenderArr()
 
 void FLineRenderPass::CreateShader()
 {
-    HRESULT hr = ShaderManager->AddVertexShader(L"VertexLineShader", L"Shaders/ShaderLine.hlsl", "mainVS");
-    hr = ShaderManager->AddPixelShader(L"PixelLineShader", L"Shaders/ShaderLine.hlsl", "mainPS");
+    HRESULT Result = ShaderManager->AddVertexShader(L"VertexLineShader", L"Shaders/ShaderLine.hlsl", "mainVS");
+    Result = ShaderManager->AddPixelShader(L"PixelLineShader", L"Shaders/ShaderLine.hlsl", "mainPS");
 
     VertexLineShader = ShaderManager->GetVertexShaderByKey(L"VertexLineShader");
     PixelLineShader = ShaderManager->GetPixelShaderByKey(L"PixelLineShader");
@@ -74,18 +74,18 @@ void FLineRenderPass::PrepareLineShader() const
 
 void FLineRenderPass::DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) const
 {
-    UINT stride = sizeof(FSimpleVertex);
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &BatchArgs.VertexBuffer, &stride, &offset);
+    constexpr UINT Stride = sizeof(FSimpleVertex);
+    constexpr UINT Offset = 0;
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &BatchArgs.VertexBuffer, &Stride, &Offset);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-    const UINT vertexCountPerInstance = 2;
-    UINT instanceCount = BatchArgs.GridParam.NumGridLines + 3 +
+    constexpr UINT VertexCountPerInstance = 2;
+    const UINT InstanceCount = BatchArgs.GridParam.NumGridLines + 3 +
         (BatchArgs.BoundingBoxCount * 12) +
         (BatchArgs.ConeCount * (2 * BatchArgs.ConeSegmentCount)) +
         (12 * BatchArgs.OBBCount);
 
-    Graphics->DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
+    Graphics->DeviceContext->DrawInstanced(VertexCountPerInstance, InstanceCount, 0, 0);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -116,7 +116,7 @@ void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewport
 
 void FLineRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    const EResourceType ResourceType = EResourceType::ERT_Editor;
+    constexpr EResourceType ResourceType = EResourceType::ERT_Editor;
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
