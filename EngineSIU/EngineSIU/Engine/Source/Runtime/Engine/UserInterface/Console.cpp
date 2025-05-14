@@ -4,6 +4,7 @@
 
 #include "Actors/PointLightActor.h"
 #include "Actors/SpotLightActor.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/Light/LightComponent.h"
 #include "Engine/Engine.h"
 #include "Renderer/UpdateLightBufferPass.h"
@@ -91,6 +92,7 @@ void FStatOverlay::Render(ID3D11DeviceContext* Context, UINT Width, UINT Height)
         ImGui::Text("Spot Light: %d", GetNumOfObjectsByClass(ASpotLight::StaticClass()));
     }
 
+    ImGui::PopStyleColor();
     ImGui::PopStyleColor();
     ImGui::End();
 }
@@ -365,6 +367,10 @@ void FConsole::ExecuteCommand(const std::string& Command)
     else if (Command.starts_with("stat "))
     {
         Overlay.ToggleStat(Command);
+    }
+    else if (Command == "Toggle Skinning")
+    {
+        USkeletalMeshComponent::SetCPUSkinning(!(USkeletalMeshComponent::GetCPUSkinning()));
     }
     else
     {

@@ -1,22 +1,22 @@
 {
     "Actors": [
         {
-            "ActorClass": "AActor",
-            "ActorID": "AActor_136",
-            "ActorLabel": "OBJ_SKELETALMESH_136",
+            "ActorClass": "ASkeletalMeshActor",
+            "ActorID": "ASkeletalMeshActor_175",
+            "ActorLabel": "OBJ_SKELETALMESH_175",
             "ActorTickInEditor": "true",
             "Components": [
                 {
                     "ComponentClass": "USceneComponent",
-                    "ComponentID": "USceneComponent_137",
+                    "ComponentID": "USceneComponent_176",
                     "Properties": {
-                        "AttachParentID": "USkeletalMeshComponent_138",
+                        "AttachParentID": "USkeletalMeshComponent_177",
                         "ComponentClass": "USceneComponent",
-                        "ComponentName": "USceneComponent_137",
-                        "ComponentOwner": "AActor_136",
-                        "ComponentOwnerClass": "AActor",
+                        "ComponentName": "USceneComponent_176",
+                        "ComponentOwner": "ASkeletalMeshActor_175",
+                        "ComponentOwnerClass": "ASkeletalMeshActor",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true"
@@ -24,15 +24,15 @@
                 },
                 {
                     "ComponentClass": "USkeletalMeshComponent",
-                    "ComponentID": "USkeletalMeshComponent_138",
+                    "ComponentID": "USkeletalMeshComponent_177",
                     "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
+                        "AABB_max": "X=17.174 Y=90.257 Z=180.888",
+                        "AABB_min": "X=-14.896 Y=-90.257 Z=-0.035",
                         "AttachParentID": "nullptr",
                         "ComponentClass": "USkeletalMeshComponent",
-                        "ComponentName": "USkeletalMeshComponent_138",
-                        "ComponentOwner": "AActor_136",
-                        "ComponentOwnerClass": "AActor",
+                        "ComponentName": "USkeletalMeshComponent_177",
+                        "ComponentOwner": "ASkeletalMeshActor_175",
+                        "ComponentOwnerClass": "ASkeletalMeshActor",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
@@ -42,59 +42,7 @@
                     }
                 }
             ],
-            "RootComponentID": "USkeletalMeshComponent_138"
-        },
-        {
-            "ActorClass": "ADirectionalLight",
-            "ActorID": "ADirectionalLight_139",
-            "ActorLabel": "OBJ_DIRECTIONALLGIHT_139",
-            "ActorTickInEditor": "false",
-            "Components": [
-                {
-                    "ComponentClass": "UDirectionalLightComponent",
-                    "ComponentID": "UDirectionalLightComponent_0",
-                    "Properties": {
-                        "AABB_Max": "X=1.000 Y=1.000 Z=0.100",
-                        "AABB_Min": "X=-1.000 Y=-1.000 Z=-0.100",
-                        "AttachParentID": "UBillboardComponent_0",
-                        "ComponentClass": "UDirectionalLightComponent",
-                        "ComponentName": "UDirectionalLightComponent_0",
-                        "ComponentOwner": "ADirectionalLight_139",
-                        "ComponentOwnerClass": "ADirectionalLight",
-                        "Direction": "X=-1.000 Y=-0.000 Z=-0.000",
-                        "Intensity": "2.000000",
-                        "LightColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
-                    }
-                },
-                {
-                    "ComponentClass": "UBillboardComponent",
-                    "ComponentID": "UBillboardComponent_0",
-                    "Properties": {
-                        "AABB_max": "X=0.000 Y=0.000 Z=0.000",
-                        "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "AttachParentID": "nullptr",
-                        "BufferKey": "Assets/Editor/Icon/S_LightDirectional.PNG",
-                        "ComponentClass": "UBillboardComponent",
-                        "ComponentName": "UBillboardComponent_0",
-                        "ComponentOwner": "ADirectionalLight_139",
-                        "ComponentOwnerClass": "ADirectionalLight",
-                        "FinalIndexU": "0.000000",
-                        "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=-0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true",
-                        "m_Type": "UBillboardComponent"
-                    }
-                }
-            ],
-            "RootComponentID": "UBillboardComponent_0"
+            "RootComponentID": "USkeletalMeshComponent_177"
         }
     ],
     "NextUUID": 0,

@@ -24,6 +24,12 @@ struct FMeshBoneInfo
     {
         return(Name == B.Name);
     }
+
+    friend FArchive& operator<<(FArchive& Ar, FMeshBoneInfo& Info)
+    {
+        return Ar << Info.Name 
+                  << Info.ParentIndex;
+    }
 };
 
 struct FReferenceSkeleton
@@ -37,4 +43,91 @@ public:
     TMap<FName, int32> RawNameToIndexMap;
 
     int32 FindBoneIndex(const FName& BoneName) const;
+
+    int32 GetRawBoneNum() const
+    {
+        return RawRefBoneInfo.Num();
+    }
+
+    const TArray<FMeshBoneInfo> & GetRawRefBoneInfo() const
+    {
+        return RawRefBoneInfo;
+    }
+
+    const TArray<FTransform> & GetRawRefBonePose() const
+    {
+        return RawRefBonePose;
+    }
+    
+    TArray<FName> GetRawRefBoneNames() const
+    {
+        TArray<FName> BoneNames;
+        BoneNames.Reserve(RawRefBoneInfo.Num());
+
+        for (const FMeshBoneInfo& BoneInfo : RawRefBoneInfo)
+        {
+            BoneNames.Add(BoneInfo.Name);
+        }
+
+        return BoneNames;
+    }
+	
+    void Empty(int32 Size=0)
+    {
+        RawRefBoneInfo.Empty(Size);
+        RawRefBonePose.Empty(Size);
+
+        InverseBindPoseMatrices.Empty(Size);
+
+        RawNameToIndexMap.Empty(Size);
+    }
+
+    int32 FindRawBoneIndex(const FName& BoneName) const
+    {
+        int32 BoneIndex = INDEX_NONE;
+        if (BoneName != NAME_None)
+        {
+            const int32* IndexPtr = RawNameToIndexMap.Find(BoneName);
+            if (IndexPtr)
+            {
+                BoneIndex = *IndexPtr;
+            }
+        }
+        return BoneIndex;
+    }
+
+    FName GetBoneName(const int32 BoneIndex) const
+    {
+        return RawRefBoneInfo[BoneIndex].Name;
+    }
+
+    bool IsValidRawIndex(int32 Index) const
+    {
+        return (RawRefBoneInfo.IsValidIndex(Index));
+    }
+
+    int32 GetParentIndexInternal(const int32 BoneIndex, const TArray<FMeshBoneInfo>& BoneInfo) const
+    {
+        const int32 ParentIndex = BoneInfo[BoneIndex].ParentIndex;
+
+        assert(
+                ((BoneIndex == 0) && (ParentIndex == INDEX_NONE)) ||
+                ((BoneIndex > 0) && BoneInfo.IsValidIndex(ParentIndex) && (ParentIndex < BoneIndex))
+            );
+        
+        return ParentIndex;
+    }
+    
+    int32 GetParentIndex(const int32 BoneIndex) const
+    {
+        return GetParentIndexInternal(BoneIndex, RawRefBoneInfo);
+    }
+
+    void Serialize(FArchive& Ar)
+    {
+        Ar << RawRefBoneInfo
+           << RawRefBonePose
+           << InverseBindPoseMatrices
+           << RawNameToIndexMap;
+    }
 };

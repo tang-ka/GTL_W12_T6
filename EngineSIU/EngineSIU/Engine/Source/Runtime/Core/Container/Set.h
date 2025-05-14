@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <unordered_set>
+#include <fbxsdk/scene/geometry/fbxnode.h>
 
 #include "Array.h"
 #include "ContainerAllocator.h"

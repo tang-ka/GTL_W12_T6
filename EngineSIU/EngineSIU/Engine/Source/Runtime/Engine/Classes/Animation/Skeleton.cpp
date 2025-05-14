@@ -20,3 +20,8 @@ int32 USkeleton::FindBoneIndex(const FName& BoneName) const
 {
     return ReferenceSkeleton.FindBoneIndex(BoneName);
 }
+
+void USkeleton::SerializeAsset(FArchive& Ar)
+{
+    ReferenceSkeleton.Serialize(Ar);
+}

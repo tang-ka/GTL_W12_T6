@@ -334,6 +334,7 @@ bool AActor::AddActorLocation(const FVector& DeltaLocation)
         RootComponent->AddLocation(DeltaLocation);
         return true;
     }
+    return false;
 }
 
 bool AActor::AddActorRotation(const FRotator& DeltaRotation)
@@ -343,6 +344,7 @@ bool AActor::AddActorRotation(const FRotator& DeltaRotation)
         RootComponent->AddRotation(DeltaRotation);
         return true;
     }
+    return false;
 }
 
 bool AActor::AddActorRotation(const FQuat& DeltaRotation)
@@ -352,6 +354,7 @@ bool AActor::AddActorRotation(const FQuat& DeltaRotation)
         RootComponent->AddRotation(DeltaRotation);
         return true;
     }
+    return false;
 }
 
 bool AActor::AddActorScale(const FVector& DeltaScale)
@@ -361,6 +364,7 @@ bool AActor::AddActorScale(const FVector& DeltaScale)
         RootComponent->AddScale(DeltaScale);
         return true;
     }
+    return false;
 }
 
 void AActor::SetActorTickInEditor(bool InbInTickInEditor)

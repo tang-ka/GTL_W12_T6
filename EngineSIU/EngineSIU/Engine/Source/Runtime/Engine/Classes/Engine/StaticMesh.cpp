@@ -50,3 +50,16 @@ void UStaticMesh::SetData(FStaticMeshRenderData* InRenderData)
         materials.Add(newMaterialSlot);
     }
 }
+
+void UStaticMesh::SerializeAsset(FArchive& Ar)
+{
+    if (Ar.IsLoading())
+    {
+        if (!RenderData)
+        {
+            RenderData = new FStaticMeshRenderData();
+        }
+    }
+
+    RenderData->Serialize(Ar);
+}

@@ -29,6 +29,14 @@ struct FMaterialSubset
     uint32 IndexCount; // Index Count
     uint32 MaterialIndex; // Material Index
     FString MaterialName; // Material Name
+
+    friend FArchive& operator<<(FArchive& Ar, FMaterialSubset& Data)
+    {
+        return Ar << Data.IndexStart
+                  << Data.IndexCount
+                  << Data.MaterialIndex
+                  << Data.MaterialName;
+    }
 };
 
 struct FStaticMaterial
@@ -99,6 +107,19 @@ struct FTextureInfo
     FString TextureName;
     FWString TexturePath;
     bool bIsSRGB;
+
+    friend FArchive& operator<<(FArchive& Ar, FTextureInfo& Info)
+    {
+        FString TexturePathStr = Info.TexturePath;
+
+        Ar << Info.TextureName
+           << TexturePathStr
+           << Info.bIsSRGB;
+
+        Info.TexturePath = TexturePathStr.ToWideString();
+        
+        return Ar;
+    }
 };
 
 struct FMaterialInfo
@@ -125,6 +146,31 @@ struct FMaterialInfo
     
     /* Texture */
     TArray<FTextureInfo> TextureInfos;
+
+    void Serialize(FArchive& Ar)
+    {
+        Ar << MaterialName
+           << TextureFlag
+           << bTransparent
+           << DiffuseColor
+           << SpecularColor
+           << AmbientColor
+           << EmissiveColor
+           << Shininess
+           << IOR
+           << Transparency
+           << BumpMultiplier
+           << IlluminanceModel
+           << Metallic
+           << Roughness
+           << TextureInfos;
+    }
+
+    friend FArchive& operator<<(FArchive& Ar, FMaterialInfo& Info)
+    {
+        Info.Serialize(Ar);
+        return Ar;
+    }
 };
 
 struct FVertexTexture
@@ -502,5 +548,11 @@ struct FFogConstants
 struct FGammaConstants
 {
     float GammaValue;
+    FVector Padding;
+};
+
+struct FCPUSkinningConstants
+{
+    int bCPUSKinning;
     FVector Padding;
 };

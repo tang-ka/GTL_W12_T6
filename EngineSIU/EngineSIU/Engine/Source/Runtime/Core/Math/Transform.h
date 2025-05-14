@@ -66,6 +66,7 @@ struct FTransform
     // 항등 변환 관련
     bool IsIdentity() const;
     void SetIdentity();
+    void SetIdentityZeroScale();
     static const FTransform Identity;
     
     // 역변환 계산
@@ -98,4 +99,11 @@ struct FTransform
     
     // 보간 함수들
     static void BlendFromIdentityAndAccumulate(FTransform& OutTransform, const FTransform& InTransform, float Alpha);
+
+    inline friend FArchive& operator<<(FArchive& Ar, FTransform& Transform)
+    {
+        return Ar << Transform.Translation
+                  << Transform.Rotation
+                  << Transform.Scale3D;
+    }
 };
