@@ -731,16 +731,6 @@ void SkeletalMeshViewerPanel::RenderAnimationPanel(float PanelPosX, float PanelP
                         }
                         
                         AnimInstance->SetAnimState(AnimStateMachine->GetState());
-                        
-                        if (ImGui::Button("[DEBUG] Play Animation"))
-                        {
-                            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(true);
-                        }
-                        ImGui::SameLine();
-                        if (ImGui::Button("[DEBUG] Stop Animation"))
-                        {
-                            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
-                        }
                     }
                 }
             }

@@ -696,18 +696,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                     SkeletalMeshComp->Stop();
                 }
             }
-            
-            if (ImGui::Button("[DEBUG] Play Animation"))
-            {
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
-            }
-        
-            ImGui::SameLine();
-        
-            if (ImGui::Button("[DEBUG] Stop Animation"))
-            {
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
-            }
         }
 
         // End Animation
