@@ -5,14 +5,14 @@
 #include "Font/RawFonts.h"
 #include "Font/IconDefs.h"
 
-void UImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+void UImGuiManager::Initialize(HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& IO = ImGui::GetIO();
     ImGui_ImplWin32_Init(hWnd);
-    ImGui_ImplDX11_Init(device, deviceContext);
-    io.Fonts->AddFontFromFileTTF(R"(C:\Windows\Fonts\malgun.ttf)", 20.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
+    ImGui_ImplDX11_Init(Device, DeviceContext);
+    IO.Fonts->AddFontFromFileTTF(R"(C:\Windows\Fonts\malgun.ttf)", 20.0f, nullptr, IO.Fonts->GetGlyphRangesKorean());
 
     ImFontConfig FeatherFontConfig;
     FeatherFontConfig.PixelSnapH = true;
@@ -36,7 +36,7 @@ void UImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceCont
         ICON_TRASHBIN2, ICON_TRASHBIN2 + 1,
         0 };
 
-    io.Fonts->AddFontFromMemoryTTF(FeatherRawData, FontSizeOfFeather, 22.0f, &FeatherFontConfig, IconRanges);
+    IO.Fonts->AddFontFromMemoryTTF(FeatherRawData, FontSizeOfFeather, 22.0f, &FeatherFontConfig, IconRanges);
     PreferenceStyle();
 }
 

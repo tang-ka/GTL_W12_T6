@@ -89,13 +89,13 @@ void FShadowRenderPass::PrepareCSMRenderState()
 
 void FShadowRenderPass::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<UStaticMeshComponent>())
+    for (const auto Iter : TObjectRange<UStaticMeshComponent>())
     {
-        if (!Cast<UGizmoBaseComponent>(iter) && iter->GetWorld() == GEngine->ActiveWorld)
+        if (!Cast<UGizmoBaseComponent>(Iter) && Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            if (iter->GetOwner() && !iter->GetOwner()->IsHidden())
+            if (Iter->GetOwner() && !Iter->GetOwner()->IsHidden())
             {
-                StaticMeshComponents.Add(iter);
+                StaticMeshComponents.Add(Iter);
             }
         }
     }
@@ -135,9 +135,9 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             PrepareCSMRenderState();
             FCascadeConstantBuffer CascadeData = {};
             uint32 NumCascades = ShadowManager->GetNumCasCades();
-            for (uint32 i = 0; i < NumCascades; i++)
+            for (uint32 Idx = 0; Idx < NumCascades; Idx++)
             {
-                CascadeData.ViewProj[i] = ShadowManager->GetCascadeViewProjMatrix(i);
+                CascadeData.ViewProj[Idx] = ShadowManager->GetCascadeViewProjMatrix(Idx);
             }
 
             ShadowManager->BeginDirectionalShadowCascadePass(0);
@@ -151,9 +151,9 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
        
     }
     PrepareRenderState();
-    for (int i = 0 ; i < SpotLights.Num(); i++)
+    for (int Idx = 0 ; Idx < SpotLights.Num(); Idx++)
     {
-        const auto& SpotLight = SpotLights[i];
+        const auto& SpotLight = SpotLights[Idx];
         FShadowConstantBuffer ShadowData;
         FMatrix LightViewMatrix = SpotLight->GetViewMatrix();
         FMatrix LightProjectionMatrix = SpotLight->GetProjectionMatrix();
@@ -161,7 +161,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 
         BufferManager->UpdateConstantBuffer(TEXT("FShadowConstantBuffer"), ShadowData);
 
-        ShadowManager->BeginSpotShadowPass(i);
+        ShadowManager->BeginSpotShadowPass(Idx);
         RenderAllStaticMeshes(Viewport);
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
@@ -169,11 +169,11 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     }
 
     PrepareCubeMapRenderState();
-    for (int i = 0 ; i < PointLights.Num(); i++)
+    for (int Idx = 0 ; Idx < PointLights.Num(); Idx++)
     {
         
-        ShadowManager->BeginPointShadowPass(i);
-        RenderAllStaticMeshesForPointLight(Viewport, PointLights[i]);
+        ShadowManager->BeginPointShadowPass(Idx);
+        RenderAllStaticMeshesForPointLight(Viewport, PointLights[Idx]);
            
         Graphics->DeviceContext->RSSetViewports(0, nullptr);
         Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -429,9 +429,9 @@ void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& Point
 {
     FPointLightGSBuffer DepthCubeMapBuffer;
     DepthCubeMapBuffer.World = WorldMatrix;
-    for (uint32 i = 0; i < 6; ++i)
+    for (uint32 Idx = 0; Idx < 6; ++Idx)
     {
-        DepthCubeMapBuffer.ViewProj[i] = PointLight->GetViewMatrix(i) * PointLight->GetProjectionMatrix();
+        DepthCubeMapBuffer.ViewProj[Idx] = PointLight->GetViewMatrix(Idx) * PointLight->GetProjectionMatrix();
     }
     BufferManager->UpdateConstantBuffer(TEXT("FPointLightGSBuffer"), DepthCubeMapBuffer);
 }

@@ -54,7 +54,7 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
         return;
     }
 
-    const EResourceType ResourceType = EResourceType::ERT_PostProcessCompositing; 
+    constexpr EResourceType ResourceType = EResourceType::ERT_PostProcessCompositing; 
     FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
 
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Fog), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_Fog)->SRV);

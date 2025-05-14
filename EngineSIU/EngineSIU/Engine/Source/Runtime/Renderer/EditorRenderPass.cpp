@@ -37,7 +37,7 @@ void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
 
 void FEditorRenderPass::CreateShaders()
 {
-    D3D11_INPUT_ELEMENT_DESC layoutGizmo[] = {
+    D3D11_INPUT_ELEMENT_DESC LayoutGizmo[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -45,20 +45,20 @@ void FEditorRenderPass::CreateShaders()
         {"MATERIAL_INDEX", 0, DXGI_FORMAT_R32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    D3D11_INPUT_ELEMENT_DESC layoutPosOnly[] = {
+    D3D11_INPUT_ELEMENT_DESC LayoutPosOnly[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    auto AddShaderSet = [this](const std::wstring& keyPrefix, const std::string& vsEntry, const std::string& psEntry, D3D11_INPUT_ELEMENT_DESC* layout, uint32_t layoutSize)
+    auto AddShaderSet = [this](const std::wstring& KeyPrefix, const std::string& VsEntry, const std::string& PsEntry, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
         {
-            ShaderManager->AddVertexShaderAndInputLayout(keyPrefix + L"VS", L"Shaders/EditorShader.hlsl", vsEntry, layout, layoutSize);
-            ShaderManager->AddPixelShader(keyPrefix + L"PS", L"Shaders/EditorShader.hlsl", psEntry);
+            ShaderManager->AddVertexShaderAndInputLayout(KeyPrefix + L"VS", L"Shaders/EditorShader.hlsl", VsEntry, Layout, LayoutSize);
+            ShaderManager->AddPixelShader(KeyPrefix + L"PS", L"Shaders/EditorShader.hlsl", PsEntry);
         };
 
-    auto AddShaderSetWithoutLayout = [this](const std::wstring& keyPrefix, const std::string& vsEntry, const std::string& psEntry)
+    auto AddShaderSetWithoutLayout = [this](const std::wstring& KeyPrefix, const std::string& VsEntry, const std::string& PsEntry)
     {
-        ShaderManager->AddVertexShader(keyPrefix + L"VS", L"Shaders/EditorShader.hlsl", vsEntry);
-        ShaderManager->AddPixelShader(keyPrefix + L"PS", L"Shaders/EditorShader.hlsl", psEntry);
+        ShaderManager->AddVertexShader(KeyPrefix + L"VS", L"Shaders/EditorShader.hlsl", VsEntry);
+        ShaderManager->AddPixelShader(KeyPrefix + L"PS", L"Shaders/EditorShader.hlsl", PsEntry);
     };
     
 
@@ -69,11 +69,11 @@ void FEditorRenderPass::CreateShaders()
     AddShaderSetWithoutLayout(L"Icon", "IconVS", "IconPS");
     
     // Arrow (기즈모 layout 재사용)
-    AddShaderSet(L"Arrow", "ArrowVS", "ArrowPS", layoutGizmo, ARRAYSIZE(layoutGizmo));
+    AddShaderSet(L"Arrow", "ArrowVS", "ArrowPS", LayoutGizmo, ARRAYSIZE(LayoutGizmo));
     
-    AddShaderSet(L"Sphere", "SphereVS", "SpherePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly));
-    AddShaderSet(L"Box", "BoxVS", "BoxPS", layoutPosOnly, ARRAYSIZE(layoutPosOnly));
-    AddShaderSet(L"Capsule", "CapsuleVS", "CapsulePS", layoutPosOnly, ARRAYSIZE(layoutPosOnly));
+    AddShaderSet(L"Sphere", "SphereVS", "SpherePS", LayoutPosOnly, ARRAYSIZE(LayoutPosOnly));
+    AddShaderSet(L"Box", "BoxVS", "BoxPS", LayoutPosOnly, ARRAYSIZE(LayoutPosOnly));
+    AddShaderSet(L"Capsule", "CapsuleVS", "CapsulePS", LayoutPosOnly, ARRAYSIZE(LayoutPosOnly));
 }
 
 void FEditorRenderPass::CreateBuffers()
@@ -269,8 +269,8 @@ void FEditorRenderPass::BindShaderResource(const std::wstring& VertexKey, const 
 
 void FEditorRenderPass::BindBuffers(const FDebugPrimitiveData& InPrimitiveData) const
 {
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &InPrimitiveData.VertexInfo.VertexBuffer, &InPrimitiveData.VertexInfo.Stride, &offset);
+    constexpr UINT Offset = 0;
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &InPrimitiveData.VertexInfo.VertexBuffer, &InPrimitiveData.VertexInfo.Stride, &Offset);
     Graphics->DeviceContext->IASetIndexBuffer(InPrimitiveData.IndexInfo.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 }
 
@@ -296,15 +296,15 @@ void FEditorRenderPass::PrepareRenderArr()
             }
 
             // light
-            if (ULightComponentBase* light = Cast<ULightComponentBase>(Component))
+            if (ULightComponentBase* Light = Cast<ULightComponentBase>(Component))
             {
-                Resources.Components.Light.Add(light);
+                Resources.Components.Light.Add(Light);
             }
 
             // fog
-            if (UHeightFogComponent* fog = Cast<UHeightFogComponent>(Component))
+            if (UHeightFogComponent* Fog = Cast<UHeightFogComponent>(Component))
             {
-                Resources.Components.Fog.Add(fog);
+                Resources.Components.Fog.Add(Fog);
             }
 
             if (USphereComponent* SphereComponent = Cast<USphereComponent>(Component))
@@ -340,7 +340,7 @@ void FEditorRenderPass::ClearRenderArr()
 void FEditorRenderPass::LazyLoad()
 {
     // Resourcemanager에서 로드된 texture의 포인터를 가져옴
-    // FResourceMgr::Initialize에 이미 추가되어 있어야 함
+    // FResourceManager::Initialize에 이미 추가되어 있어야 함
     Resources.IconTextures[EIconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
     Resources.IconTextures[EIconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
     Resources.IconTextures[EIconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
@@ -366,11 +366,11 @@ void FEditorRenderPass::LazyLoad()
 
 void FEditorRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    static bool isLoaded = false;
-    if (!isLoaded)
+    static bool IsLoaded = false;
+    if (!IsLoaded)
     {
         LazyLoad();
-        isLoaded = true;
+        IsLoaded = true;
     }
 
     const uint64 ShowFlag = Viewport->GetShowFlag();

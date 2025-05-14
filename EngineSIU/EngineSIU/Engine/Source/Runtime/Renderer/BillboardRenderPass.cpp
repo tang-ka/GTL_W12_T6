@@ -45,11 +45,11 @@ void FBillboardRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraph
 void FBillboardRenderPass::PrepareRenderArr()
 {
     BillboardComps.Empty();
-    for (const auto iter : TObjectRange<UBillboardComponent>())
+    for (const auto Iter : TObjectRange<UBillboardComponent>())
     {
-        if (iter->GetWorld() == GEngine->ActiveWorld)
+        if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            BillboardComps.Add(iter);
+            BillboardComps.Add(Iter);
         }
     }
 }
@@ -70,11 +70,11 @@ void FBillboardRenderPass::PrepareSubUVConstant() const
 
 void FBillboardRenderPass::UpdateSubUVConstant(FVector2D UVOffset, FVector2D UVScale) const
 {
-    FSubUVConstant data;
-    data.uvOffset = UVOffset;
-    data.uvScale = UVScale;
+    FSubUVConstant Data;
+    Data.uvOffset = UVOffset;
+    Data.uvScale = UVScale;
 
-    BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), data);
+    BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), Data);
 }
 
 void FBillboardRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const

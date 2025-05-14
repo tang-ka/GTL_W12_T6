@@ -105,7 +105,7 @@ public:
 
     const FSkeletalMeshRenderData* GetCPURenderData() const;
 
-    static void SetCPUSkinning(bool flag);
+    static void SetCPUSkinning(bool Flag);
 
     static bool GetCPUSkinning();
 
@@ -131,7 +131,7 @@ private:
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;
 
-    static bool bCPUSkinning;
+    static bool bIsCPUSkinning;
 
     void CPUSkinning(bool bForceUpdate = false);
 

@@ -24,17 +24,17 @@ public:
     
     void ClearText();
     
-    void SetText(const FWString& text);
+    void SetText(const FWString& InText);
 
     FWString GetText() { return Text; }
     
-    void SetRowColumnCount(int cellsPerRow, int cellsPerColumn);
+    void SetRowColumnCount(int CellsPerRow, int CellsPerColumn);
 
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
  
     
-    float GetRowCount() { return RowCount; }
-    float GetColumnCount() { return ColumnCount; }
+    float GetRowCount() const { return RowCount; }
+    float GetColumnCount() const { return ColumnCount; }
 
 protected:
 

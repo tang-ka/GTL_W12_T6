@@ -1,6 +1,7 @@
 #include "ResourceMgr.h"
 #include <fstream>
 #include <ranges>
+#include <unordered_map>
 #include <wincodec.h>
 #include "Define.h"
 #include "Components/SkySphereComponent.h"
@@ -9,7 +10,7 @@
 #include "Engine/FObjLoader.h"
 
 
-void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
+void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
 {
     //RegisterMesh(renderer, "Quad", quadVertices, sizeof(quadVertices) / sizeof(FVertexSimple), quadIndices, sizeof(quadIndices)/sizeof(uint32));
 
@@ -24,208 +25,235 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
     // FManagerLoadObjStaticMeshAsset("Assets/helloBlender.obj");
 
-    LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/font.dds");
-    LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
+    LoadTextureFromDDS(Device->Device, Device->DeviceContext, L"Assets/Texture/font.dds");
+    LoadTextureFromDDS(Device->Device, Device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
 
-    LoadTextureFromFile(device->Device, L"Assets/Texture/ocean_sky.jpg");
-    LoadTextureFromFile(device->Device, L"Assets/Texture/font.png");
-    LoadTextureFromFile(device->Device, L"Assets/Texture/emart.png");
-    LoadTextureFromFile(device->Device, L"Assets/Texture/T_Explosion_SubUV.png");
-    LoadTextureFromFile(device->Device, L"Assets/Texture/UUID_Font.png");
-    LoadTextureFromFile(device->Device, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
-    LoadTextureFromFile(device->Device, L"Assets/Texture/spotLight.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/ocean_sky.jpg");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/font.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/emart.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/T_Explosion_SubUV.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/UUID_Font.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Texture/spotLight.png");
 
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_Actor.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightSpot.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightPoint.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_LightDirectional.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
-    LoadTextureFromFile(device->Device, L"Assets/Viewer/Bone_16x.PNG");
-    LoadTextureFromFile(device->Device, L"Assets/Viewer/BoneNonWeighted_16x.PNG");
-
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_Actor.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_LightSpot.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_LightPoint.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_LightDirectional.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
+    LoadTextureFromFile(Device->Device, L"Assets/Viewer/Bone_16x.PNG");
+    LoadTextureFromFile(Device->Device, L"Assets/Viewer/BoneNonWeighted_16x.PNG");
 }
 
-void FResourceMgr::Release(FRenderer* renderer) {
-    for (const auto& Pair : textureMap)
-    {
-        FTexture* texture = Pair.Value.get();
-        texture->Release();
-    }
-    textureMap.Empty();
-}
-
-#include <unordered_map>
-
-struct PairHash {
-    template <typename T1, typename T2>
-    std::size_t operator()(const std::pair<T1, T2>& pair) const {
-        return std::hash<T1>()(pair.first) ^ (std::hash<T2>()(pair.second) << 1);
-    }
-};
-struct TupleHash {
-    template <typename T1, typename T2, typename T3>
-    std::size_t operator()(const std::tuple<T1, T2, T3>& tuple) const {
-        std::size_t h1 = std::hash<T1>()(std::get<0>(tuple));
-        std::size_t h2 = std::hash<T2>()(std::get<1>(tuple));
-        std::size_t h3 = std::hash<T3>()(std::get<2>(tuple));
-
-        return h1 ^ (h2 << 1) ^ (h3 << 2);  // 해시 값 섞기
-    }
-};
-
-std::shared_ptr<FTexture> FResourceMgr::GetTexture(const FWString& name) const
+void FResourceManager::Release(FRenderer* Renderer)
 {
-    auto* TempValue = textureMap.Find(name);
+    for (const auto& Pair : TextureMap)
+    {
+        FTexture* Texture = Pair.Value.get();
+        Texture->Release();
+    }
+    TextureMap.Empty();
+}
+
+struct PairHash
+{
+    template <typename T1, typename T2>
+    std::size_t operator()(const std::pair<T1, T2>& Pair) const
+    {
+        return std::hash<T1>()(Pair.first) ^ (std::hash<T2>()(Pair.second) << 1);
+    }
+};
+
+struct TupleHash
+{
+    template <typename T1, typename T2, typename T3>
+    std::size_t operator()(const std::tuple<T1, T2, T3>& Tuple) const
+    {
+        std::size_t h1 = std::hash<T1>()(std::get<0>(Tuple));
+        std::size_t h2 = std::hash<T2>()(std::get<1>(Tuple));
+        std::size_t h3 = std::hash<T3>()(std::get<2>(Tuple));
+
+        return h1 ^ (h2 << 1) ^ (h3 << 2); // 해시 값 섞기
+    }
+};
+
+std::shared_ptr<FTexture> FResourceManager::GetTexture(const FWString& Name) const
+{
+    auto* TempValue = TextureMap.Find(Name);
     return TempValue ? *TempValue : nullptr;
 }
 
-HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, const wchar_t* filename, bool bIsSRGB)
+HRESULT FResourceManager::LoadTextureFromFile(ID3D11Device* Device, const wchar_t* Filename, bool bIsSRGB)
 {
-    IWICImagingFactory* wicFactory = nullptr;
-    IWICBitmapDecoder* decoder = nullptr;
-    IWICBitmapFrameDecode* frame = nullptr;
-    IWICFormatConverter* converter = nullptr;
+    IWICImagingFactory* WicFactory = nullptr;
+    IWICBitmapDecoder* Decoder = nullptr;
+    IWICBitmapFrameDecode* Frame = nullptr;
+    IWICFormatConverter* Converter = nullptr;
 
     // WIC 팩토리 생성
     HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    if (FAILED(hr)) return hr;
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
-    hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wicFactory));
-    if (FAILED(hr)) return hr;
+    hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&WicFactory));
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
 
     // 이미지 파일 디코딩
-    hr = wicFactory->CreateDecoderFromFilename(filename, nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
-    if (FAILED(hr)) return hr;
+    hr = WicFactory->CreateDecoderFromFilename(Filename, nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &Decoder);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
 
-    hr = decoder->GetFrame(0, &frame);
-    if (FAILED(hr)) return hr;
+    hr = Decoder->GetFrame(0, &Frame);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
     // WIC 포맷 변환기 생성 (픽셀 포맷 변환)
-    hr = wicFactory->CreateFormatConverter(&converter);
-    if (FAILED(hr)) return hr;
+    hr = WicFactory->CreateFormatConverter(&Converter);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
-    hr = converter->Initialize(frame, GUID_WICPixelFormat32bppRGBA, WICBitmapDitherTypeNone, nullptr, 0.0, WICBitmapPaletteTypeCustom);
-    if (FAILED(hr)) return hr;
+    hr = Converter->Initialize(Frame, GUID_WICPixelFormat32bppRGBA, WICBitmapDitherTypeNone, nullptr, 0.0, WICBitmapPaletteTypeCustom);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
     // 이미지 크기 가져오기
-    UINT width, height;
-    frame->GetSize(&width, &height);
+    UINT Width, Height;
+    Frame->GetSize(&Width, &Height);
 
     // 픽셀 데이터 로드
-    BYTE* imageData = new BYTE[width * height * 4];
-    hr = converter->CopyPixels(nullptr, width * 4, width * height * 4, imageData);
+    BYTE* ImageData = new BYTE[Width * Height * 4];
+    hr = Converter->CopyPixels(nullptr, Width * 4, Width * Height * 4, ImageData);
     if (FAILED(hr)) {
-        delete[] imageData;
+        delete[] ImageData;
         return hr;
     }
 
     // DirectX 11 텍스처 생성
-    D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Width = width;
-    textureDesc.Height = height;
-    textureDesc.MipLevels = 1;
-    textureDesc.ArraySize = 1;
-    textureDesc.Format = bIsSRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    D3D11_TEXTURE2D_DESC TextureDesc = {};
+    TextureDesc.Width = Width;
+    TextureDesc.Height = Height;
+    TextureDesc.MipLevels = 1;
+    TextureDesc.ArraySize = 1;
+    TextureDesc.Format = bIsSRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
+    TextureDesc.SampleDesc.Count = 1;
+    TextureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = imageData;
-    initData.SysMemPitch = width * 4;
+    D3D11_SUBRESOURCE_DATA InitData = {};
+    InitData.pSysMem = ImageData;
+    InitData.SysMemPitch = Width * 4;
     ID3D11Texture2D* Texture2D;
-    hr = device->CreateTexture2D(&textureDesc, &initData, &Texture2D);
-    delete[] imageData;
-    if (FAILED(hr)) return hr;
+    hr = Device->CreateTexture2D(&TextureDesc, &InitData, &Texture2D);
+    delete[] ImageData;
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
     // Shader Resource View 생성
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = textureDesc.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
-    ID3D11ShaderResourceView* TextureSRV;
-    hr = device->CreateShaderResourceView(Texture2D, &srvDesc, &TextureSRV);
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.Format = TextureDesc.Format;
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    SrvDesc.Texture2D.MostDetailedMip = 0;
+    SrvDesc.Texture2D.MipLevels = 1;
+    ID3D11ShaderResourceView* TextureSrv;
+    hr = Device->CreateShaderResourceView(Texture2D, &SrvDesc, &TextureSrv);
 
     // 리소스 해제
-    wicFactory->Release();
-    decoder->Release();
-    frame->Release();
-    converter->Release();
+    WicFactory->Release();
+    Decoder->Release();
+    Frame->Release();
+    Converter->Release();
 
     //샘플러 스테이트 생성
     ID3D11SamplerState* SamplerState;
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    D3D11_SAMPLER_DESC SamplerDesc = {};
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    SamplerDesc.MinLOD = 0;
+    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    device->CreateSamplerState(&samplerDesc, &SamplerState);
-    FWString name = FWString(filename);
+    Device->CreateSamplerState(&SamplerDesc, &SamplerState);
+    FWString Name = FWString(Filename);
 
-    textureMap[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, SamplerState, name, width, height);
+    TextureMap[Name] = std::make_shared<FTexture>(TextureSrv, Texture2D, SamplerState, Name, Width, Height);
 
     FConsole::GetInstance().AddLog(ELogLevel::Warning, "Texture File Load Successs");
     return hr;
 }
 
-HRESULT FResourceMgr::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
+HRESULT FResourceManager::LoadTextureFromDDS(ID3D11Device* Device, ID3D11DeviceContext* Context, const wchar_t* Filename)
 {
 
-    ID3D11Resource* texture = nullptr;
-    ID3D11ShaderResourceView* textureView = nullptr;
+    ID3D11Resource* Texture = nullptr;
+    ID3D11ShaderResourceView* TextureView = nullptr;
 
     HRESULT hr = DirectX::CreateDDSTextureFromFile(
-        device, context,
-        filename,
-        &texture,
-        &textureView
+        Device, Context,
+        Filename,
+        &Texture,
+        &TextureView
     );
-    if (FAILED(hr) || texture == nullptr) abort();
+    if (FAILED(hr) || Texture == nullptr)
+    {
+        abort();
+    }
 
 #pragma region WidthHeight
 
-    ID3D11Texture2D* texture2D = nullptr;
-    hr = texture->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&texture2D);
-    if (FAILED(hr) || texture2D == nullptr) {
+    ID3D11Texture2D* Texture2D = nullptr;
+    hr = Texture->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&Texture2D);
+    if (FAILED(hr) || Texture2D == nullptr) {
         std::wcerr << L"Failed to query ID3D11Texture2D interface!" << std::endl;
-        texture->Release();
+        Texture->Release();
         abort();
         return hr;
     }
 
-    D3D11_TEXTURE2D_DESC texDesc;
-    texture2D->GetDesc(&texDesc);
-    uint32 width = texDesc.Width;
-    uint32 height = texDesc.Height;
+    D3D11_TEXTURE2D_DESC TexDesc;
+    Texture2D->GetDesc(&TexDesc);
+    uint32 Width = TexDesc.Width;
+    uint32 Height = TexDesc.Height;
 
 #pragma endregion WidthHeight
 
 #pragma region Sampler
     ID3D11SamplerState* SamplerState;
-    D3D11_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; // WRAP -> CLAMP로 변경
-    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    D3D11_SAMPLER_DESC SamplerDesc = {};
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; // WRAP -> CLAMP로 변경
+    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    SamplerDesc.MinLOD = 0;
+    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    device->CreateSamplerState(&samplerDesc, &SamplerState);
+    Device->CreateSamplerState(&SamplerDesc, &SamplerState);
 #pragma endregion Sampler
 
-    FWString name = FWString(filename);
+    FWString Name = FWString(Filename);
 
-    textureMap[name] = std::make_shared<FTexture>(textureView, texture2D, SamplerState, name, width, height);
+    TextureMap[Name] = std::make_shared<FTexture>(TextureView, Texture2D, SamplerState, Name, Width, Height);
 
     FConsole::GetInstance().AddLog(ELogLevel::Warning, "Texture File Load Successs");
 

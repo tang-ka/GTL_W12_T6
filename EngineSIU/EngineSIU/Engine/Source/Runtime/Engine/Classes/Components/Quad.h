@@ -1,15 +1,15 @@
 #pragma once
 #include "Define.h"
 
-FVertexTexture quadVertices[] =
+inline FVertexTexture QuadVertices[] =
 {
     {-1.f, 1.f, 0.f, 0.f, 0.f},
     {1.f, 1.f, 0.f, 1.f, 0.f },
     {-1.f, -1.f, 0.f, 0.f, 1.f},
     {1.f, -1.f, 0.f, 1.f, 1.f}
 };
-    
-uint32 quadIndices[] =
+
+inline uint32 QuadIndices[] =
 {
     0,1,2,
     2,1,3

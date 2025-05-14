@@ -36,7 +36,7 @@ void FLightHeatMapRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGr
 void FLightHeatMapRenderPass::CreateShader()
 {
     // 입력 레이아웃 정의: POSITION과 TEXCOORD
-    D3D11_INPUT_ELEMENT_DESC fogInputLayout[] =
+    D3D11_INPUT_ELEMENT_DESC FogInputLayout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
@@ -47,8 +47,8 @@ void FLightHeatMapRenderPass::CreateShader()
         L"FogVertexShader",
         L"Shaders/FogVertexShader.hlsl",
         "mainVS",
-        fogInputLayout,
-        ARRAYSIZE(fogInputLayout)
+        FogInputLayout,
+        ARRAYSIZE(FogInputLayout)
     );
     // 픽셀 셰이더 생성
     /*hr = ShaderManager->AddPixelShader(
@@ -86,8 +86,8 @@ void FLightHeatMapRenderPass::ClearRenderArr()
 {
     FogComponents.Empty();
 
-    ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-    Graphics->DeviceContext->PSSetShaderResources(3, 1, nullSRV); // Compute Shader SRV 해제
+    ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+    Graphics->DeviceContext->PSSetShaderResources(3, 1, NullSRV); // Compute Shader SRV 해제
 }
 
 void FLightHeatMapRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -115,11 +115,11 @@ void FLightHeatMapRenderPass::Render(const std::shared_ptr<FEditorViewportClient
 
     BufferManager->GetQuadBuffer(VertexInfo, IndexInfo);
 
-    UINT offset = 0;
+    constexpr UINT Offset = 0;
 
     for (const auto& Fog : FogComponents)
     {
-        Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &offset);
+        Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &Offset);
         Graphics->DeviceContext->IASetIndexBuffer(IndexInfo.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
         Graphics->DeviceContext->IASetInputLayout(InputLayout);
 
@@ -135,22 +135,22 @@ void FLightHeatMapRenderPass::Render(const std::shared_ptr<FEditorViewportClient
 
 void FLightHeatMapRenderPass::CreateBlendState()
 {
-    D3D11_BLEND_DESC blendDesc = {};
-    blendDesc.AlphaToCoverageEnable = FALSE;
-    blendDesc.IndependentBlendEnable = FALSE;
-    blendDesc.RenderTarget[0].BlendEnable = TRUE;
-    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    D3D11_BLEND_DESC BlendDesc = {};
+    BlendDesc.AlphaToCoverageEnable = FALSE;
+    BlendDesc.IndependentBlendEnable = FALSE;
+    BlendDesc.RenderTarget[0].BlendEnable = TRUE;
+    BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-    HRESULT hr = Graphics->Device->CreateBlendState(&blendDesc, &FogBlendState);
+    HRESULT hr = Graphics->Device->CreateBlendState(&BlendDesc, &FogBlendState);
     if (FAILED(hr))
     {
-        MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(nullptr, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }
 }
 
@@ -161,9 +161,9 @@ void FLightHeatMapRenderPass::FinalRender()
 
     BufferManager->GetQuadBuffer(VertexInfo, IndexInfo);
 
-    UINT offset = 0;
+    constexpr UINT Offset = 0;
 
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &offset);
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &Offset);
     Graphics->DeviceContext->IASetIndexBuffer(IndexInfo.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
     Graphics->DeviceContext->IASetInputLayout(InputLayout);
 

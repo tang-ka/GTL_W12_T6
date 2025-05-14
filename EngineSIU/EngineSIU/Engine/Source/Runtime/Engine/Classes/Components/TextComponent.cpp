@@ -89,16 +89,16 @@ void UTextComponent::ClearText()
    // vertexTextureArr.Empty();
 }
 
-void UTextComponent::SetText(const FWString& text)
+void UTextComponent::SetText(const FWString& InText)
 {
-    Text = text;
+    Text = InText;
   
 }
 
-void UTextComponent::SetRowColumnCount(int cellsPerRow, int cellsPerColumn)
+void UTextComponent::SetRowColumnCount(int CellsPerRow, int CellsPerColumn)
 {
-    RowCount = cellsPerRow;
-    ColumnCount = cellsPerColumn;
+    RowCount = CellsPerRow;
+    ColumnCount = CellsPerColumn;
 }
 
 int UTextComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const

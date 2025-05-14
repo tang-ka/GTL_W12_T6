@@ -134,11 +134,11 @@ void UWorld::BeginPlay()
         GameMode->SetActorLabel(TEXT("OBJ_GAMEMODE"));
         GameMode->InitializeComponent();
 
-        for (const auto iter : TObjectRange<UTextComponent>())
+        for (const auto Iter : TObjectRange<UTextComponent>())
         {
-            if (iter->GetWorld() == GEngine->ActiveWorld)
+            if (Iter->GetWorld() == GEngine->ActiveWorld)
             {
-                MainTextComponent = iter;
+                MainTextComponent = Iter;
             }
         }
 
@@ -303,11 +303,11 @@ APlayer* UWorld::GetMainPlayer() const
     }
     
     //메인플레이어 설정안하면 있는거중 한개
-    for (const auto iter: TObjectRange<APlayer>())
+    for (const auto Iter: TObjectRange<APlayer>())
     {
-        if (iter->GetWorld() == GEngine->ActiveWorld)
+        if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            return iter;
+            return Iter;
         }
     }
     
@@ -322,11 +322,11 @@ APlayerController* UWorld::GetPlayerController() const
     }
 
     //메인플레이어컨트롤러 설정안하면 있는거중 한개
-    for (const auto iter: TObjectRange<APlayerController>())
+    for (const auto Iter: TObjectRange<APlayerController>())
     {
-        if (iter->GetWorld() == GEngine->ActiveWorld)
+        if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            return iter;
+            return Iter;
         }
     }
 

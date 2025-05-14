@@ -14,7 +14,7 @@ UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
     NewComponent->StaticMesh = StaticMesh;
-    NewComponent->selectedSubMeshIndex = selectedSubMeshIndex;
+    NewComponent->SelectedSubMeshIndex = SelectedSubMeshIndex;
 
     return NewComponent;
 }

@@ -8,7 +8,7 @@ enum class EShapeType : uint8
     Sphere,
     Capsule,
 
-    MAX,
+    Max,
 };
 
 class UShapeComponent : public UPrimitiveComponent
@@ -26,5 +26,5 @@ public:
     EShapeType GetShapeType() const { return ShapeType; }
 
 protected:
-    EShapeType ShapeType = EShapeType::MAX;
+    EShapeType ShapeType = EShapeType::Max;
 };

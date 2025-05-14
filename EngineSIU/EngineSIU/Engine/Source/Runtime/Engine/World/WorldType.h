@@ -17,26 +17,31 @@ enum class EWorldType
 enum class EWorldTypeBitFlag
 {
     None = 0,
-    Game = 1<<0,
-    Editor = 1<<1,
-    PIE = 1<<2,
-    EditorPreview = 1<<3,
-    GamePreview = 1<<4,
-    GameRPC = 1<<5,
-    SkeletalViewer = 1<<6,
-    Inactive = 1<<7
+    Game = 1 << 0,
+    Editor = 1 << 1,
+    PIE = 1 << 2,
+    EditorPreview = 1 << 3,
+    GamePreview = 1 << 4,
+    GameRPC = 1 << 5,
+    SkeletalViewer = 1 << 6,
+    Inactive = 1 << 7
 };
 
-inline EWorldTypeBitFlag operator|(EWorldTypeBitFlag a, EWorldTypeBitFlag b) {
+inline EWorldTypeBitFlag operator|(EWorldTypeBitFlag A, EWorldTypeBitFlag B)
+{
     return static_cast<EWorldTypeBitFlag>(
-        uint32(a) | uint32(b)
-        );
+        static_cast<uint32>(A) | static_cast<uint32>(B)
+    );
 }
-inline EWorldTypeBitFlag operator&(EWorldTypeBitFlag a, EWorldTypeBitFlag b) {
+
+inline EWorldTypeBitFlag operator&(EWorldTypeBitFlag A, EWorldTypeBitFlag B)
+{
     return static_cast<EWorldTypeBitFlag>(
-        uint32(a) & uint32(b)
-        );
+        static_cast<uint32>(A) & static_cast<uint32>(B)
+    );
 }
-inline bool HasFlag(EWorldTypeBitFlag mask, EWorldTypeBitFlag flag) {
-    return (uint32(mask) & uint32(flag)) != 0;
+
+inline bool HasFlag(EWorldTypeBitFlag Mask, EWorldTypeBitFlag Flag)
+{
+    return (static_cast<uint32>(Mask) & static_cast<uint32>(Flag)) != 0;
 }

@@ -29,23 +29,23 @@ ATransformGizmo::ATransformGizmo()
         AddComponent<USceneComponent>()
     );
 
-    UGizmoArrowComponent* locationX = AddComponent<UGizmoArrowComponent>();
-    locationX->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationX.obj"));
-    locationX->SetupAttachment(RootComponent);
-    locationX->SetGizmoType(UGizmoBaseComponent::ArrowX);
-    ArrowArr.Add(locationX);
+    UGizmoArrowComponent* LocationX = AddComponent<UGizmoArrowComponent>();
+    LocationX->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationX.obj"));
+    LocationX->SetupAttachment(RootComponent);
+    LocationX->SetGizmoType(UGizmoBaseComponent::ArrowX);
+    ArrowArr.Add(LocationX);
 
-    UGizmoArrowComponent* locationY = AddComponent<UGizmoArrowComponent>();
-    locationY->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationY.obj"));
-    locationY->SetupAttachment(RootComponent);
-    locationY->SetGizmoType(UGizmoBaseComponent::ArrowY);
-    ArrowArr.Add(locationY);
+    UGizmoArrowComponent* LocationY = AddComponent<UGizmoArrowComponent>();
+    LocationY->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationY.obj"));
+    LocationY->SetupAttachment(RootComponent);
+    LocationY->SetGizmoType(UGizmoBaseComponent::ArrowY);
+    ArrowArr.Add(LocationY);
 
-    UGizmoArrowComponent* locationZ = AddComponent<UGizmoArrowComponent>();
-    locationZ->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationZ.obj"));
-    locationZ->SetupAttachment(RootComponent);
-    locationZ->SetGizmoType(UGizmoBaseComponent::ArrowZ);
-    ArrowArr.Add(locationZ);
+    UGizmoArrowComponent* LocationZ = AddComponent<UGizmoArrowComponent>();
+    LocationZ->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoTranslationZ.obj"));
+    LocationZ->SetupAttachment(RootComponent);
+    LocationZ->SetGizmoType(UGizmoBaseComponent::ArrowZ);
+    ArrowArr.Add(LocationZ);
 
     UGizmoRectangleComponent* ScaleX = AddComponent<UGizmoRectangleComponent>();
     ScaleX->SetStaticMesh(FObjManager::GetStaticMesh(L"Assets/GizmoScaleX.obj"));

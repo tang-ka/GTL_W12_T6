@@ -14,9 +14,12 @@ UObject* UStaticMesh::Duplicate(UObject* InOuter)
 
 uint32 UStaticMesh::GetMaterialIndex(FName MaterialSlotName) const
 {
-    for (uint32 materialIndex = 0; materialIndex < materials.Num(); materialIndex++) {
-        if (materials[materialIndex]->MaterialSlotName == MaterialSlotName)
-            return materialIndex;
+    for (uint32 MaterialIndex = 0; MaterialIndex < Materials.Num(); MaterialIndex++)
+    {
+        if (Materials[MaterialIndex]->MaterialSlotName == MaterialSlotName)
+        {
+            return MaterialIndex;
+        }
     }
 
     return -1;
@@ -24,7 +27,7 @@ uint32 UStaticMesh::GetMaterialIndex(FName MaterialSlotName) const
 
 void UStaticMesh::GetUsedMaterials(TArray<UMaterial*>& OutMaterial) const
 {
-    for (const FStaticMaterial* Material : materials)
+    for (const FStaticMaterial* Material : Materials)
     {
         OutMaterial.Emplace(Material->Material);
     }
@@ -39,15 +42,15 @@ void UStaticMesh::SetData(FStaticMeshRenderData* InRenderData)
 {
     RenderData = InRenderData;
 
-    for (int materialIndex = 0; materialIndex < RenderData->Materials.Num(); materialIndex++)
+    for (int MaterialIndex = 0; MaterialIndex < RenderData->Materials.Num(); MaterialIndex++)
     {
-        FStaticMaterial* newMaterialSlot = new FStaticMaterial();
-        UMaterial* newMaterial = FObjManager::CreateMaterial(RenderData->Materials[materialIndex]);
+        FStaticMaterial* NewMaterialSlot = new FStaticMaterial();
+        UMaterial* NewMaterial = FObjManager::CreateMaterial(RenderData->Materials[MaterialIndex]);
 
-        newMaterialSlot->Material = newMaterial;
-        newMaterialSlot->MaterialSlotName = RenderData->Materials[materialIndex].MaterialName;
+        NewMaterialSlot->Material = NewMaterial;
+        NewMaterialSlot->MaterialSlotName = RenderData->Materials[MaterialIndex].MaterialName;
 
-        materials.Add(newMaterialSlot);
+        Materials.Add(NewMaterialSlot);
     }
 }
 

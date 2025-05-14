@@ -3,14 +3,17 @@
 #define DISC_RESOLUTION 128
 
 
-bool UGizmoCircleComponent::IntersectsRay(const FVector& rayOrigin, const FVector& rayDir, float& dist)
+bool UGizmoCircleComponent::IntersectsRay(const FVector& RayOrigin, const FVector& RayDir, float& Dist)
 {
-    if (rayDir.Y == 0) return false; // normal to normal vector of plane
+    if (FMath::IsNearlyZero(RayDir.Y))
+    {
+        return false; // normal to normal vector of plane
+    }
 
-    dist = -rayOrigin.Y / rayDir.Y;
+    Dist = -RayOrigin.Y / RayDir.Y;
 
-    FVector intersectionPoint = rayOrigin + rayDir * dist;
-    float intersectionToDiscCenterSquared = intersectionPoint.Length();
+    const FVector IntersectionPoint = RayOrigin + RayDir * Dist;
+    const float IntersectionToDiscCenterSquared = IntersectionPoint.Length();
 
-    return (inner * inner < intersectionToDiscCenterSquared && intersectionToDiscCenterSquared < 1);
+    return (Inner * Inner < IntersectionToDiscCenterSquared && IntersectionToDiscCenterSquared < 1);
 }

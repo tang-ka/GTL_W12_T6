@@ -42,7 +42,7 @@ public:
     static FGraphicsDevice GraphicDevice;
     static FRenderer Renderer;
     static UPrimitiveDrawBatch PrimitiveDrawBatch;
-    static FResourceMgr ResourceManager;
+    static FResourceManager ResourceManager;
     static uint32 TotalAllocationBytes;
     static uint32 TotalAllocationCount;
 
@@ -52,7 +52,7 @@ public:
     FEngineProfiler EngineProfiler;
 
 private:
-    UImGuiManager* UIMgr;
+    UImGuiManager* UIManager;
     //TODO: GWorld 제거, Editor들 EditorEngine으로 넣기
 
     std::unique_ptr<FSlateAppMessageHandler> AppMessageHandler;

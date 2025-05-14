@@ -233,11 +233,11 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAs
 
 void UEditorEngine::BindEssentialObjects()
 {
-    for (const auto iter: TObjectRange<APlayer>())
+    for (const auto Iter: TObjectRange<APlayer>())
     {
-        if (iter->GetWorld() == ActiveWorld)
+        if (Iter->GetWorld() == ActiveWorld)
         {
-            ActiveWorld->SetMainPlayer(iter);
+            ActiveWorld->SetMainPlayer(Iter);
             break;
         }
     }

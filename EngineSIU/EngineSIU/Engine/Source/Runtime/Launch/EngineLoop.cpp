@@ -17,18 +17,18 @@
 
 #include "SoundManager.h"
 
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 FGraphicsDevice FEngineLoop::GraphicDevice;
 FRenderer FEngineLoop::Renderer;
 UPrimitiveDrawBatch FEngineLoop::PrimitiveDrawBatch;
-FResourceMgr FEngineLoop::ResourceManager;
+FResourceManager FEngineLoop::ResourceManager;
 uint32 FEngineLoop::TotalAllocationBytes = 0;
 uint32 FEngineLoop::TotalAllocationCount = 0;
 
 FEngineLoop::FEngineLoop()
     : AppWnd(nullptr)
-    , UIMgr(nullptr)
+    , UIManager(nullptr)
     , LevelEditor(nullptr)
     , UnrealEditor(nullptr)
     , BufferManager(nullptr)
@@ -49,7 +49,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 
     UnrealEditor = new UnrealEd();
     BufferManager = new FDXDBufferManager();
-    UIMgr = new UImGuiManager;
+    UIManager = new UImGuiManager;
     AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
     LevelEditor = new SLevelEditor();
 
@@ -83,7 +83,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     BufferManager->Initialize(GraphicDevice.Device, GraphicDevice.DeviceContext);
     Renderer.Initialize(&GraphicDevice, BufferManager, &GPUTimingManager);
     PrimitiveDrawBatch.Initialize(&GraphicDevice);
-    UIMgr->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
+    UIManager->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
     ResourceManager.Initialize(&Renderer, &GraphicDevice);
     
     uint32 ClientWidth = 0;
@@ -111,16 +111,16 @@ void FEngineLoop::Render() const
     
     if (LevelEditor->IsMultiViewport())
     {
-        std::shared_ptr<FEditorViewportClient> ActiveViewportCache = GetLevelEditor()->GetActiveViewportClient();
-        for (int i = 0; i < 4; ++i)
+        const std::shared_ptr<FEditorViewportClient> ActiveViewportCache = GetLevelEditor()->GetActiveViewportClient();
+        for (int Idx = 0; Idx < 4; ++Idx)
         {
-            LevelEditor->SetActiveViewportClient(i);
+            LevelEditor->SetActiveViewportClient(Idx);
             Renderer.Render(LevelEditor->GetActiveViewportClient());
         }
         
-        for (int i = 0; i < 4; ++i)
+        for (int Idx = 0; Idx < 4; ++Idx)
         {
-            LevelEditor->SetActiveViewportClient(i);
+            LevelEditor->SetActiveViewportClient(Idx);
             Renderer.RenderViewport(LevelEditor->GetActiveViewportClient());
         }
         GetLevelEditor()->SetActiveViewportClient(ActiveViewportCache);
@@ -172,13 +172,13 @@ void FEngineLoop::Tick()
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
         Render();
-        UIMgr->BeginFrame();
+        UIManager->BeginFrame();
         UnrealEditor->Render();
 
         FConsole::GetInstance().Draw();
         EngineProfiler.Render(GraphicDevice.DeviceContext, GraphicDevice.ScreenWidth, GraphicDevice.ScreenHeight);
 
-        UIMgr->EndFrame();
+        UIManager->EndFrame();
 
         // Pending 처리된 오브젝트 제거
         GUObjectArray.ProcessPendingDestroyObjects();
@@ -211,7 +211,7 @@ void FEngineLoop::GetClientSize(uint32& OutWidth, uint32& OutHeight) const
 void FEngineLoop::Exit()
 {
     LevelEditor->Release();
-    UIMgr->Shutdown();
+    UIManager->Shutdown();
     ResourceManager.Release(&Renderer);
     Renderer.Release();
     GraphicDevice.Release();
@@ -220,7 +220,7 @@ void FEngineLoop::Exit()
 
     delete UnrealEditor;
     delete BufferManager;
-    delete UIMgr;
+    delete UIManager;
     delete LevelEditor;
 }
 
@@ -230,13 +230,13 @@ void FEngineLoop::WindowInit(HINSTANCE hInstance)
 
     WCHAR Title[] = L"Game Tech Lab";
 
-    WNDCLASSW wc{};
-    wc.lpfnWndProc = AppWndProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = WindowClass;
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+    WNDCLASSW Wc{};
+    Wc.lpfnWndProc = AppWndProc;
+    Wc.hInstance = hInstance;
+    Wc.lpszClassName = WindowClass;
+    Wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 
-    RegisterClassW(&wc);
+    RegisterClassW(&Wc);
 
     AppWnd = CreateWindowExW(
         0, WindowClass, Title, WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,

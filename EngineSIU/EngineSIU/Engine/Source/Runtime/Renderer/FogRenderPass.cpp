@@ -64,11 +64,11 @@ void FFogRenderPass::ReleaseShader()
 
 void FFogRenderPass::PrepareRenderArr()
 {
-    for (const auto iter : TObjectRange<UHeightFogComponent>())
+    for (const auto Iter : TObjectRange<UHeightFogComponent>())
     {
-        if (iter->GetWorld() == GEngine->ActiveWorld)
+        if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            FogComponents.Add(iter);
+            FogComponents.Add(Iter);
         }
     }
 }
@@ -153,22 +153,22 @@ void FFogRenderPass::UpdateFogConstant(UHeightFogComponent* Fog)
 
 void FFogRenderPass::CreateBlendState()
 {
-    D3D11_BLEND_DESC blendDesc = {};
-    blendDesc.AlphaToCoverageEnable = FALSE;
-    blendDesc.IndependentBlendEnable = FALSE;
-    blendDesc.RenderTarget[0].BlendEnable = TRUE;
-    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    D3D11_BLEND_DESC BlendDesc = {};
+    BlendDesc.AlphaToCoverageEnable = FALSE;
+    BlendDesc.IndependentBlendEnable = FALSE;
+    BlendDesc.RenderTarget[0].BlendEnable = TRUE;
+    BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-    HRESULT hr = Graphics->Device->CreateBlendState(&blendDesc, &BlendState);
+    HRESULT hr = Graphics->Device->CreateBlendState(&BlendDesc, &BlendState);
     if (FAILED(hr))
     {
-        MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(nullptr, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }
 }
 

@@ -9,11 +9,11 @@ class UGizmoCircleComponent : public UGizmoBaseComponent
 public:
     UGizmoCircleComponent() = default;
 
-    virtual bool IntersectsRay(const FVector& rayOrigin, const FVector& rayDir, float& dist);
+    virtual bool IntersectsRay(const FVector& RayOrigin, const FVector& RayDir, float& Dist);
 
-    float GetInnerRadius() const { return inner; }
-    void SetInnerRadius(float value) { inner = value; }
+    float GetInnerRadius() const { return Inner; }
+    void SetInnerRadius(float Value) { Inner = Value; }
 
 private:
-    float inner = 1.0f;
+    float Inner = 1.0f;
 };

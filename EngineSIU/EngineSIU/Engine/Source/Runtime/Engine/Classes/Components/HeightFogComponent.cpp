@@ -7,34 +7,34 @@ UHeightFogComponent::UHeightFogComponent(float Density, float HeightFalloff, flo
     FogInscatteringColor = FLinearColor::White;
 }
 
-void UHeightFogComponent::SetFogDensity(float value)
+void UHeightFogComponent::SetFogDensity(float Value)
 {
-    FogDensity = value;
+    FogDensity = Value;
 }
 
-void UHeightFogComponent::SetFogHeightFalloff(float value)
+void UHeightFogComponent::SetFogHeightFalloff(float Value)
 {
-    FogHeightFalloff = value; 
+    FogHeightFalloff = Value; 
 }
 
-void UHeightFogComponent::SetStartDistance(float value)
+void UHeightFogComponent::SetStartDistance(float Value)
 {
-    StartDistance = value;
+    StartDistance = Value;
 }
 
-void UHeightFogComponent::SetFogDistanceWeight(float value)
+void UHeightFogComponent::SetFogDistanceWeight(float Value)
 {
-    FogDistanceWeight = value;
+    FogDistanceWeight = Value;
 }
 
-void UHeightFogComponent::SetEndDistance(float value)
+void UHeightFogComponent::SetEndDistance(float Value)
 {
-    EndDistance = value;
+    EndDistance = Value;
 }
 
-void UHeightFogComponent::SetFogColor(FLinearColor color)
+void UHeightFogComponent::SetFogColor(FLinearColor Color)
 {
-    FogInscatteringColor = color;
+    FogInscatteringColor = Color;
 }
 
 UObject* UHeightFogComponent::Duplicate(UObject* InOuter)

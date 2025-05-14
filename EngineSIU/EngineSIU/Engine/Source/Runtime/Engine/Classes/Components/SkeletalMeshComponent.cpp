@@ -14,7 +14,7 @@
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 
-bool USkeletalMeshComponent::bCPUSkinning = false;
+bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
 USkeletalMeshComponent::USkeletalMeshComponent()
     : AnimationMode(EAnimationMode::AnimationSingleNode)
@@ -307,14 +307,14 @@ const FSkeletalMeshRenderData* USkeletalMeshComponent::GetCPURenderData() const
     return CPURenderData.get();
 }
 
-void USkeletalMeshComponent::SetCPUSkinning(bool flag)
+void USkeletalMeshComponent::SetCPUSkinning(bool Flag)
 {
-    bCPUSkinning = flag;
+    bIsCPUSkinning = Flag;
 }
 
 bool USkeletalMeshComponent::GetCPUSkinning()
 {
-    return bCPUSkinning;
+    return bIsCPUSkinning;
 }
 
 void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
@@ -376,7 +376,7 @@ bool USkeletalMeshComponent::NeedToSpawnAnimScriptInstance() const
 
 void USkeletalMeshComponent::CPUSkinning(bool bForceUpdate)
 {
-    if (bCPUSkinning || bForceUpdate)
+    if (bIsCPUSkinning || bForceUpdate)
     {
          QUICK_SCOPE_CYCLE_COUNTER(SkinningPass_CPU)
          const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();

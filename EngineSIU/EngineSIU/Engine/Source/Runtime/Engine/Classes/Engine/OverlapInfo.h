@@ -22,7 +22,7 @@ struct FOverlapInfo
     int32 GetBodyIndex() const { return OverlapInfo.Item; }
 
     //This function completely ignores SweepResult information. It seems that places that use this function do not care, but it still seems risky
-    friend bool operator == (const FOverlapInfo& LHS, const FOverlapInfo& RHS) { return LHS.OverlapInfo.Component == RHS.OverlapInfo.Component && LHS.OverlapInfo.Item == RHS.OverlapInfo.Item; }
+    friend bool operator == (const FOverlapInfo& Lhs, const FOverlapInfo& Rhs) { return Lhs.OverlapInfo.Component == Rhs.OverlapInfo.Component && Lhs.OverlapInfo.Item == Rhs.OverlapInfo.Item; }
     bool bFromSweep;
 
     /** Information for both sweep and overlap queries. Different parts are valid depending on bFromSweep.

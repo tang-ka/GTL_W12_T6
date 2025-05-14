@@ -19,7 +19,7 @@ public:
 protected:
     bool IsOverlapped(const UPrimitiveComponent* Component, const UPrimitiveComponent* OtherComponent, FOverlapResult& OutResult) const;
 
-    static constexpr SIZE_T NUM_TYPES = static_cast<SIZE_T>(EShapeType::MAX);
+    static constexpr SIZE_T NUM_TYPES = static_cast<SIZE_T>(EShapeType::Max);
     
     CollisionFunc CollisionMatrix[NUM_TYPES + 1][NUM_TYPES + 1];
 

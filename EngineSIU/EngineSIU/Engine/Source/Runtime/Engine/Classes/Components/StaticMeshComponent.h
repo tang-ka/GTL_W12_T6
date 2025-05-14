@@ -13,13 +13,13 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
-    
-    void GetProperties(TMap<FString, FString>& OutProperties) const override;
-    
-    void SetProperties(const TMap<FString, FString>& InProperties) override;
 
-    void SetselectedSubMeshIndex(const int& value) { selectedSubMeshIndex = value; }
-    int GetselectedSubMeshIndex() const { return selectedSubMeshIndex; };
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+
+    void SetselectedSubMeshIndex(const int& Value) { SelectedSubMeshIndex = Value; }
+    int GetselectedSubMeshIndex() const { return SelectedSubMeshIndex; };
 
     virtual uint32 GetNumMaterials() const override;
     virtual UMaterial* GetMaterial(uint32 ElementIndex) const override;
@@ -30,9 +30,9 @@ public:
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
     
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
-    void SetStaticMesh(UStaticMesh* value)
+    void SetStaticMesh(UStaticMesh* Value)
     { 
-        StaticMesh = value;
+        StaticMesh = Value;
         if (StaticMesh == nullptr)
         {
             OverrideMaterials.SetNum(0);
@@ -40,12 +40,12 @@ public:
         }
         else
         {
-            OverrideMaterials.SetNum(value->GetMaterials().Num());
+            OverrideMaterials.SetNum(Value->GetMaterials().Num());
             AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
         }
     }
 
 protected:
     UStaticMesh* StaticMesh = nullptr;
-    int selectedSubMeshIndex = -1;
+    int SelectedSubMeshIndex = -1;
 };
