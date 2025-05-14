@@ -263,10 +263,10 @@ void FStaticMeshRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, con
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
-void FStaticMeshRenderPass::UpdateLitUnlitConstant(int32 isLit) const
+void FStaticMeshRenderPass::UpdateLitUnlitConstant(int32 IsLit) const
 {
     FLitUnlitConstants Data;
-    Data.bIsLit = isLit;
+    Data.bIsLit = IsLit;
     BufferManager->UpdateConstantBuffer(TEXT("FLitUnlitConstants"), Data);
 }
 
@@ -320,21 +320,21 @@ void FStaticMeshRenderPass::RenderPrimitive(FStaticMeshRenderData* RenderData, T
     }
 }
 
-void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const
+void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pBuffer, UINT NumVertices) const
 {
     UINT Stride = sizeof(FStaticMeshVertex);
     UINT Offset = 0;
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pBuffer, &Stride, &Offset);
-    Graphics->DeviceContext->Draw(numVertices, 0);
+    Graphics->DeviceContext->Draw(NumVertices, 0);
 }
 
-void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const
+void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices) const
 {
     UINT Stride = sizeof(FStaticMeshVertex);
     UINT Offset = 0;
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &Offset);
     Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
+    Graphics->DeviceContext->DrawIndexed(NumIndices, 0, 0);
 }
 
 void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport)

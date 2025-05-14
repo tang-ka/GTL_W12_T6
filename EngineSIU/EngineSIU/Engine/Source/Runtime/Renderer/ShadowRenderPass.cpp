@@ -101,10 +101,10 @@ void FShadowRenderPass::PrepareRenderArr()
     }
 }
 
-void FShadowRenderPass::UpdateIsShadowConstant(int32 isShadow) const
+void FShadowRenderPass::UpdateIsShadowConstant(int32 IsShadow) const
 {
     FIsShadowConstants ShadowData;
-    ShadowData.bIsShadow = isShadow;
+    ShadowData.bIsShadow = IsShadow;
     BufferManager->UpdateConstantBuffer(TEXT("FIsShadowConstants"), ShadowData);
 }
 

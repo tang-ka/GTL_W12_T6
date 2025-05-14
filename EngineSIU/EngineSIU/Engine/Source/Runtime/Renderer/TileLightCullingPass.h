@@ -1,7 +1,6 @@
 #pragma once
 #include "IRenderPass.h"
 #include "EngineBaseTypes.h"
-#include "Container/Set.h"
 
 #include "Define.h"
 #include <d3d11.h>
@@ -13,18 +12,20 @@ class FDXDBufferManager;
 class USpotLightComponent;
 class UPointLightComponent;
 
-struct FPointLightGPU {
+struct FPointLightGPU
+{
     FVector Position;
     float Radius;
     FVector Direction;
     float Padding; // 16바이트 정렬용
 };
 
-struct FSpotLightGPU {
-    FVector Position;   
-    float Radius;       // SpotLight가 뻗는 최대 길이 - Attenuation Rad
-    FVector Direction;  
-    float Angle;        // Outer Angle(도) : 최대 각도
+struct FSpotLightGPU
+{
+    FVector Position;
+    float Radius; // SpotLight가 뻗는 최대 길이 - Attenuation Rad
+    FVector Direction;
+    float Angle; // Outer Angle(도) : 최대 각도
 };
 
 struct TileLightCullSettings
@@ -47,8 +48,8 @@ struct TileLightCullSettings
 class FTileLightCullingPass : public IRenderPass
 {
 public:
-    FTileLightCullingPass();
-    ~FTileLightCullingPass();
+    FTileLightCullingPass() = default;
+
     void ResizeTiles(UINT InWidth, UINT InHeight);
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;
@@ -127,8 +128,8 @@ private:
 
     ID3D11Buffer* TileLightConstantBuffer;
 
-    const uint32 TILE_SIZE = 16;
-    const uint32 MAX_LIGHTS_PER_TILE = 1024;
+    static constexpr uint32 TILE_SIZE = 16;
+    static constexpr uint32 MAX_LIGHTS_PER_TILE = 1024;
     
     uint32 TILE_COUNT_X;
     uint32 TILE_COUNT_Y;

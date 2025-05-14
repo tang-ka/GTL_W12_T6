@@ -31,13 +31,13 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
     {
         const FReferenceSkeleton& RefSkeleton = MeshComp->GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
         
-        for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
+        for (int32 Idx = 0; Idx < RefSkeleton.RawRefBoneInfo.Num(); ++Idx)
         {
             UStaticMeshComponent* Dot = AddComponent<UStaticMeshComponent>();
             Dot->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/SpherePrimitive.obj"));
             DotComponents.Add(Dot);
             
-            int32 ParentIndex = RefSkeleton.RawRefBoneInfo[i].ParentIndex;
+            int32 ParentIndex = RefSkeleton.RawRefBoneInfo[Idx].ParentIndex;
             if (ParentIndex != INDEX_NONE)
             {
                 Dot->AttachToComponent(DotComponents[ParentIndex]);
@@ -47,7 +47,7 @@ void ASkeletalMeshActorTest::PostSpawnInitialize()
                 Dot->AttachToComponent(RootComponent);
             }
             
-            Dot->SetRelativeTransform(RefSkeleton.RawRefBonePose[i]);
+            Dot->SetRelativeTransform(RefSkeleton.RawRefBonePose[Idx]);
             Dot->SetWorldScale3D(FVector(1.f));
         }
     }

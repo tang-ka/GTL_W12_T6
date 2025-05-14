@@ -341,12 +341,12 @@ void FEditorRenderPass::LazyLoad()
 {
     // Resourcemanager에서 로드된 texture의 포인터를 가져옴
     // FResourceMgr::Initialize에 이미 추가되어 있어야 함
-    Resources.IconTextures[IconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
-    Resources.IconTextures[IconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
-    Resources.IconTextures[IconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
-    Resources.IconTextures[IconType::AmbientLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AmbientLight_64x.png");
-    Resources.IconTextures[IconType::ExponentialFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
-    Resources.IconTextures[IconType::AtmosphericFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AtmosphericFog_64.png");
+    Resources.IconTextures[EIconType::DirectionalLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
+    Resources.IconTextures[EIconType::PointLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
+    Resources.IconTextures[EIconType::SpotLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
+    Resources.IconTextures[EIconType::AmbientLight] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AmbientLight_64x.png");
+    Resources.IconTextures[EIconType::ExponentialFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/ExponentialHeightFog_64.png");
+    Resources.IconTextures[EIconType::AtmosphericFog] = FEngineLoop::ResourceManager.GetTexture(L"Assets/Editor/Icon/AtmosphericFog_64.png");
 
     // Gizmo arrow 로드
     FStaticMeshRenderData* RenderData = FObjManager::GetStaticMesh(L"Assets/GizmoTranslationZ.obj")->GetRenderData();
@@ -553,19 +553,19 @@ void FEditorRenderPass::RenderIcons(const UWorld* World, std::shared_ptr<FEditor
     //
     //     if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
     //     {
-    //         UpdateTextureIcon(IconType::PointLight);
+    //         UpdateTextureIcon(EIconType::PointLight);
     //     }
     //     else if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
     //     {
-    //         UpdateTextureIcon(IconType::SpotLight);
+    //         UpdateTextureIcon(EIconType::SpotLight);
     //     }
     //     else if (UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(LightComp))
     //     {
-    //         UpdateTextureIcon(IconType::DirectionalLight);
+    //         UpdateTextureIcon(EIconType::DirectionalLight);
     //     }
     //     else if (UAmbientLightComponent* AmbientLightComp = Cast<UAmbientLightComponent>(LightComp))
     //     {
-    //         UpdateTextureIcon(IconType::AmbientLight);
+    //         UpdateTextureIcon(EIconType::AmbientLight);
     //     }
     //     else
     //     {
@@ -581,14 +581,14 @@ void FEditorRenderPass::RenderIcons(const UWorld* World, std::shared_ptr<FEditor
     //     b.Position = FogComp->GetWorldLocation();
     //     b.Scale = IconScale;
     //     BufferManager->UpdateConstantBuffer<FConstantBufferDebugIcon>(TEXT("IconConstantBuffer"), b);
-    //     UpdateTextureIcon(IconType::ExponentialFog);
+    //     UpdateTextureIcon(EIconType::ExponentialFog);
     //
     //     Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
     // }
 }
 
 // 사용 안함
-void FEditorRenderPass::UpdateTextureIcon(IconType type)
+void FEditorRenderPass::UpdateTextureIcon(EIconType type)
 {
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &Resources.IconTextures[type]->TextureSRV);
     Graphics->DeviceContext->PSSetSamplers(0, 1, &Resources.IconTextures[type]->SamplerState);

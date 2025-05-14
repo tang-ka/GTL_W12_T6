@@ -67,17 +67,17 @@ struct FShadowCubeMapArrayRHI
     void Release()
     {
         // ImGui용 개별 면 SRV 해제
-        for (auto& faceSrvArray : ShadowFaceSRVs)
+        for (auto& FaceSrvArray : ShadowFaceSRVs)
         {
-            for (auto& srv : faceSrvArray)
+            for (auto& Srv : FaceSrvArray)
             {
-                if (srv)
+                if (Srv)
                 {
-                    srv->Release();
-                    srv = nullptr;
+                    Srv->Release();
+                    Srv = nullptr;
                 }
             }
-            faceSrvArray.Empty(); // 내부 배열 비우기
+            FaceSrvArray.Empty(); // 내부 배열 비우기
         }
         ShadowFaceSRVs.Empty(); // 외부 배열 비우기
 
@@ -141,36 +141,36 @@ public:
 
     /**
      * 특정 스포트라이트 섀도우 맵 렌더링 패스를 시작하기 위해 DSV와 뷰포트를 설정하고 클리어합니다.
-     * @param sliceIndex 렌더링할 Texture2DArray의 슬라이스 인덱스
+     * @param SliceIndex 렌더링할 Texture2DArray의 슬라이스 인덱스
      */
-    void BeginSpotShadowPass(uint32_t sliceIndex);
+    void BeginSpotShadowPass(uint32_t SliceIndex);
 
     /**
   * 특정 포인트 라이트 섀도우 맵 렌더링 패스를 시작합니다.
-  * @param sliceIndex 렌더링할 포인트 라이트의 인덱스 (DSV 선택용)
+  * @param SliceIndex 렌더링할 포인트 라이트의 인덱스 (DSV 선택용)
   */
-    void BeginPointShadowPass(uint32_t sliceIndex); // << 추가
+    void BeginPointShadowPass(uint32_t SliceIndex); // << 추가
 
     /**
      * 특정 방향성 광원 캐스케이드 섀도우 맵 렌더링 패스를 시작하기 위해 DSV와 뷰포트를 설정하고 클리어합니다.
-     * @param cascadeIndex 렌더링할 캐스케이드 인덱스
+     * @param CascadeIndex 렌더링할 캐스케이드 인덱스
      */
-    void BeginDirectionalShadowCascadePass(uint32_t cascadeIndex);
+    void BeginDirectionalShadowCascadePass(uint32_t CascadeIndex);
 
     /**
      * 메인 렌더링 패스에서 픽셀 셰이더가 섀도우 맵을 샘플링할 수 있도록 관련 리소스를 바인딩합니다.
-     * @param spotShadowSlot 스포트라이트 섀도우 맵 SRV 슬롯
-     * @param pointShadowSlot 포인트 라이트 섀도우 맵 SRV 슬롯 << 추가
-     * @param directionalShadowSlot 방향성 광원 섀도우 맵 SRV 슬롯
-     * @param samplerCmpSlot 비교 샘플러 슬롯
-     * @param samplerPointSlot 포인트 샘플러 슬롯 (필요시)
+     * @param SpotShadowSlot 스포트라이트 섀도우 맵 SRV 슬롯
+     * @param PointShadowSlot 포인트 라이트 섀도우 맵 SRV 슬롯 << 추가
+     * @param DirectionalShadowSlot 방향성 광원 섀도우 맵 SRV 슬롯
+     * @param SamplerCmpSlot 비교 샘플러 슬롯
+     * @param SamplerPointSlot 포인트 샘플러 슬롯 (필요시)
      */
     void BindResourcesForSampling(
-        uint32_t spotShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_SpotLight), // 예시 슬롯 번호 조정
-        uint32_t pointShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_PointLight), // << 추가
-        uint32_t directionalShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_DirectionalLight),
-        uint32_t samplerCmpSlot = 10, // 예시 샘플러 슬롯
-        uint32_t samplerPointSlot = 11 // 예시 샘플러 슬롯
+        uint32_t SpotShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_SpotLight), // 예시 슬롯 번호 조정
+        uint32_t PointShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_PointLight), // << 추가
+        uint32_t DirectionalShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_DirectionalLight),
+        uint32_t SamplerCmpSlot = 10, // 예시 샘플러 슬롯
+        uint32_t SamplerPointSlot = 11 // 예시 샘플러 슬롯
         );
     
     FShadowDepthRHI* GetSpotShadowDepthRHI() const { return SpotShadowDepthRHI; }

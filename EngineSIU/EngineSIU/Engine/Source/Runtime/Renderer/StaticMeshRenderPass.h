@@ -40,13 +40,13 @@ public:
     
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
   
-    void UpdateLitUnlitConstant(int32 isLit) const;
+    void UpdateLitUnlitConstant(int32 IsLit) const;
 
     void RenderPrimitive(FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const;
     
-    void RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const;
+    void RenderPrimitive(ID3D11Buffer* pBuffer, UINT NumVertices) const;
 
-    void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const;
+    void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices) const;
 
     // Shader 관련 함수 (생성/해제 등)
     void CreateShader();

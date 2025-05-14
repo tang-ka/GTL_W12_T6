@@ -113,10 +113,10 @@ void FShadowManager::Release()
     D3DContext = nullptr;
 }
 
-void FShadowManager::BeginSpotShadowPass(uint32_t sliceIndex)
+void FShadowManager::BeginSpotShadowPass(uint32_t SliceIndex)
 {
     // 유효성 검사
-    if (!D3DContext || sliceIndex >= (uint32_t)SpotShadowDepthRHI->ShadowDSVs.Num() || !SpotShadowDepthRHI->ShadowDSVs[sliceIndex])
+    if (!D3DContext || SliceIndex >= (uint32_t)SpotShadowDepthRHI->ShadowDSVs.Num() || !SpotShadowDepthRHI->ShadowDSVs[SliceIndex])
     {
         // UE_LOG(LogTemp, Warning, TEXT("BeginSpotShadowPass: Invalid slice index or DSV."));
         return;
@@ -124,7 +124,7 @@ void FShadowManager::BeginSpotShadowPass(uint32_t sliceIndex)
 
     // 렌더 타겟 설정 (DSV만 설정)
     ID3D11RenderTargetView* nullRTV = nullptr;
-    D3DContext->OMSetRenderTargets(1, &nullRTV, SpotShadowDepthRHI->ShadowDSVs[sliceIndex]);
+    D3DContext->OMSetRenderTargets(1, &nullRTV, SpotShadowDepthRHI->ShadowDSVs[SliceIndex]);
 
     // 뷰포트 설정
     D3D11_VIEWPORT vp = {};
@@ -137,12 +137,12 @@ void FShadowManager::BeginSpotShadowPass(uint32_t sliceIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어
-    D3DContext->ClearDepthStencilView(SpotShadowDepthRHI->ShadowDSVs[sliceIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    D3DContext->ClearDepthStencilView(SpotShadowDepthRHI->ShadowDSVs[SliceIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-void FShadowManager::BeginPointShadowPass(uint32_t sliceIndex)
+void FShadowManager::BeginPointShadowPass(uint32_t SliceIndex)
 {
-    if (!D3DContext || !PointShadowCubeMapRHI || sliceIndex >= (uint32_t)PointShadowCubeMapRHI->ShadowDSVs.Num() || !PointShadowCubeMapRHI->ShadowDSVs[sliceIndex])
+    if (!D3DContext || !PointShadowCubeMapRHI || SliceIndex >= (uint32_t)PointShadowCubeMapRHI->ShadowDSVs.Num() || !PointShadowCubeMapRHI->ShadowDSVs[SliceIndex])
     {
         // UE_LOG(LogTemp, Warning, TEXT("BeginPointShadowPass: Invalid slice index (%u) or DSV."), sliceIndex);
         return; // 유효성 검사
@@ -150,7 +150,7 @@ void FShadowManager::BeginPointShadowPass(uint32_t sliceIndex)
 
     // 포인트 라이트의 DSV 바인딩 (이 DSV는 TextureCubeArray의 특정 슬라이스(큐브맵)를 가리킴)
     ID3D11RenderTargetView* nullRTV = nullptr;
-    D3DContext->OMSetRenderTargets(1, &nullRTV, PointShadowCubeMapRHI->ShadowDSVs[sliceIndex]);
+    D3DContext->OMSetRenderTargets(1, &nullRTV, PointShadowCubeMapRHI->ShadowDSVs[SliceIndex]);
 
     // 뷰포트 설정 (큐브맵 한 면의 해상도)
     D3D11_VIEWPORT vp = {};
@@ -160,14 +160,14 @@ void FShadowManager::BeginPointShadowPass(uint32_t sliceIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어 (바인딩된 큐브맵 슬라이스의 모든 면을 클리어)
-    D3DContext->ClearDepthStencilView(PointShadowCubeMapRHI->ShadowDSVs[sliceIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    D3DContext->ClearDepthStencilView(PointShadowCubeMapRHI->ShadowDSVs[SliceIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 
-void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
+void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t CascadeIndex)
 {
     // 유효성 검사
-    if (!D3DContext || cascadeIndex >= (uint32_t)DirectionalShadowCascadeDepthRHI->ShadowDSVs.Num() || !DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex])
+    if (!D3DContext || CascadeIndex >= (uint32_t)DirectionalShadowCascadeDepthRHI->ShadowDSVs.Num() || !DirectionalShadowCascadeDepthRHI->ShadowDSVs[CascadeIndex])
     {
          UE_LOG(ELogLevel::Warning, TEXT("BeginDirectionalShadowCascadePass: Invalid cascade index or DSV."));
         return;
@@ -175,7 +175,7 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
 
     // 렌더 타겟 설정 (DSV만 설정)
     ID3D11RenderTargetView* nullRTV = nullptr;
-    D3DContext->OMSetRenderTargets(1, &nullRTV, DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex]);
+    D3DContext->OMSetRenderTargets(1, &nullRTV, DirectionalShadowCascadeDepthRHI->ShadowDSVs[CascadeIndex]);
 
     // 뷰포트 설정
     D3D11_VIEWPORT vp = {};
@@ -188,27 +188,27 @@ void FShadowManager::BeginDirectionalShadowCascadePass(uint32_t cascadeIndex)
     D3DContext->RSSetViewports(1, &vp);
 
     // DSV 클리어
-    D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[cascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
+    D3DContext->ClearDepthStencilView(DirectionalShadowCascadeDepthRHI->ShadowDSVs[CascadeIndex], D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void FShadowManager::BindResourcesForSampling(
-    uint32_t spotShadowSlot, uint32_t pointShadowSlot, uint32_t directionalShadowSlot, // << pointShadowSlot 추가
-    uint32_t samplerCmpSlot, uint32_t samplerPointSlot)
+    uint32_t SpotShadowSlot, uint32_t PointShadowSlot, uint32_t DirectionalShadowSlot, // << pointShadowSlot 추가
+    uint32_t SamplerCmpSlot, uint32_t SamplerPointSlot)
 {
     if (!D3DContext) return;
 
     // SRV 바인딩
     if (SpotShadowDepthRHI && SpotShadowDepthRHI->ShadowSRV)
     {
-        D3DContext->PSSetShaderResources(spotShadowSlot, 1, &SpotShadowDepthRHI->ShadowSRV);
+        D3DContext->PSSetShaderResources(SpotShadowSlot, 1, &SpotShadowDepthRHI->ShadowSRV);
     }
     if (PointShadowCubeMapRHI && PointShadowCubeMapRHI->ShadowSRV) // << 추가
     {
-        D3DContext->PSSetShaderResources(pointShadowSlot, 1, &PointShadowCubeMapRHI->ShadowSRV);
+        D3DContext->PSSetShaderResources(PointShadowSlot, 1, &PointShadowCubeMapRHI->ShadowSRV);
     }
     if (DirectionalShadowCascadeDepthRHI && DirectionalShadowCascadeDepthRHI->ShadowSRV)
     {
-        D3DContext->PSSetShaderResources(directionalShadowSlot, 1, &DirectionalShadowCascadeDepthRHI->ShadowSRV);
+        D3DContext->PSSetShaderResources(DirectionalShadowSlot, 1, &DirectionalShadowCascadeDepthRHI->ShadowSRV);
 
         FCascadeConstantBuffer CascadeData = {};
         CascadeData.World = FMatrix::Identity;
@@ -235,11 +235,11 @@ void FShadowManager::BindResourcesForSampling(
     // 샘플러 바인딩
     if (ShadowSamplerCmp)
     {
-        D3DContext->PSSetSamplers(samplerCmpSlot, 1, &ShadowSamplerCmp);
+        D3DContext->PSSetSamplers(SamplerCmpSlot, 1, &ShadowSamplerCmp);
     }
     if (ShadowPointSampler)
     {
-        D3DContext->PSSetSamplers(samplerPointSlot, 1, &ShadowPointSampler);
+        D3DContext->PSSetSamplers(SamplerPointSlot, 1, &ShadowPointSampler);
     }
 }
 

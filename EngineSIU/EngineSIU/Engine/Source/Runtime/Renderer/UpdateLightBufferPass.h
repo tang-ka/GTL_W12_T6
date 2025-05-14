@@ -92,7 +92,7 @@ private:
 
     ID3D11Buffer* TileConstantBuffer;
 
-    const uint32 MAX_NUM_POINTLIGHTS = 50000;
-    const uint32 MAX_NUM_SPOTLIGHTS = 50000;
-    const uint32 MAX_TILE = 10000;
+    static constexpr uint32 MAX_NUM_POINTLIGHTS = 50000;
+    static constexpr uint32 MAX_NUM_SPOTLIGHTS = 50000;
+    static constexpr uint32 MAX_TILE = 10000;
 };

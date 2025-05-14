@@ -18,12 +18,12 @@
 #define FCONSTANT_TOSTRING(x) FCONSTANT_STRINGIFY(x)
 
 // hlsl파일에 들어갈 macro define
-const D3D_SHADER_MACRO defines[] =
+constexpr D3D_SHADER_MACRO Defines[] =
 {
     "FCONSTANT_NUM_DIRLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_MAX_DIRLIGHT),
     "FCONSTANT_NUM_POINTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_MAX_POINTLIGHT),
     "FCONSTANT_NUM_SPOTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT),
-    NULL, NULL
+    nullptr, nullptr
 };
 
 
@@ -139,10 +139,10 @@ struct alignas(16) FConstantBufferLights
     FConstantBufferLightDir DirLights[MACRO_FCONSTANT_NUM_MAX_DIRLIGHT];
     FConstantBufferLightPoint PointLights[MACRO_FCONSTANT_NUM_MAX_POINTLIGHT];
     FConstantBufferLightSpot SpotLights[MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT];
-    UINT isLit = 1;
+    UINT IsLit = 1;
     UINT NumPointLights;
     UINT NumDirLights;
-    float _pad0;
+    float pad0;
 };
 
 /////////////////////////////////////////////////////////////////////////

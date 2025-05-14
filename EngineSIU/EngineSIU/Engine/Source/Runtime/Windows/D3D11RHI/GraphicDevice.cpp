@@ -31,19 +31,19 @@ void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
     SwapchainDesc.Windowed = TRUE;                                // 창 모드
     SwapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;     // 스왑 방식
 
-    uint32 FLAG = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+    uint32 Flag = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #if _DEBUG
-    FLAG |= D3D11_CREATE_DEVICE_DEBUG;
+    Flag |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
     // 디바이스와 스왑 체인 생성
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(
+    const HRESULT Result = D3D11CreateDeviceAndSwapChain(
         nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-        FLAG,
+        Flag,
         FeatureLevels, ARRAYSIZE(FeatureLevels), D3D11_SDK_VERSION,
         &SwapchainDesc, &SwapChain, &Device, nullptr, &DeviceContext
     );
 
-    if (FAILED(hr))
+    if (FAILED(Result))
     {
         MessageBox(hWindow, L"CreateDeviceAndSwapChain failed!", L"Error", MB_ICONERROR | MB_OK);
         return;
@@ -69,9 +69,9 @@ ID3D11Texture2D* FGraphicsDevice::CreateTexture2D(const D3D11_TEXTURE2D_DESC& De
     Data.SysMemPitch = Description.Width * 4;
     
     ID3D11Texture2D* Texture2D;
-    HRESULT hr = Device->CreateTexture2D(&Description, InitialData ? &Data : nullptr, &Texture2D);
+    const HRESULT Result = Device->CreateTexture2D(&Description, InitialData ? &Data : nullptr, &Texture2D);
     
-    if (FAILED(hr))
+    if (FAILED(Result))
     {
         return nullptr;
     }
@@ -107,8 +107,8 @@ void FGraphicsDevice::CreateDepthStencilState()
     DepthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
     //// DepthStencil 상태 생성
-    HRESULT hr = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState);
-    if (FAILED(hr))
+    const HRESULT Result = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState);
+    if (FAILED(Result))
     {
         // 오류 처리
         return;
@@ -172,8 +172,8 @@ void FGraphicsDevice::CreateBackBuffer()
     BackBufferRTVDesc.Format = BackBufferRTVFormat;
     BackBufferRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-    HRESULT hr = Device->CreateRenderTargetView(BackBufferTexture, &BackBufferRTVDesc, &BackBufferRTV);
-    if (FAILED(hr))
+    const HRESULT Result = Device->CreateRenderTargetView(BackBufferTexture, &BackBufferRTVDesc, &BackBufferRTV);
+    if (FAILED(Result))
     {
         return;
     }
@@ -251,9 +251,8 @@ void FGraphicsDevice::Resize(HWND hWindow)
     }
 
     // SwapChain 크기 조정
-    HRESULT hr = S_OK;
-    hr = SwapChain->ResizeBuffers(0, 0, 0, BackBufferFormat, 0); // DXGI_FORMAT_B8G8R8A8_UNORM으로 시도
-    if (FAILED(hr))
+    const HRESULT Result = SwapChain->ResizeBuffers(0, 0, 0, BackBufferFormat, 0); // DXGI_FORMAT_B8G8R8A8_UNORM으로 시도
+    if (FAILED(Result))
     {
         MessageBox(hWindow, L"failed", L"ResizeBuffers failed ", MB_ICONERROR | MB_OK);
         return;
@@ -277,20 +276,20 @@ void FGraphicsDevice::Resize(HWND hWindow)
 
 void FGraphicsDevice::CreateAlphaBlendState()
 {
-    D3D11_BLEND_DESC blendDesc = {};
-    blendDesc.AlphaToCoverageEnable = FALSE;
-    blendDesc.IndependentBlendEnable = FALSE;
-    blendDesc.RenderTarget[0].BlendEnable = TRUE;
-    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    D3D11_BLEND_DESC BlendDesc = {};
+    BlendDesc.AlphaToCoverageEnable = FALSE;
+    BlendDesc.IndependentBlendEnable = FALSE;
+    BlendDesc.RenderTarget[0].BlendEnable = TRUE;
+    BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-    HRESULT hr = Device->CreateBlendState(&blendDesc, &AlphaBlendState);
-    if (FAILED(hr))
+    const HRESULT Result = Device->CreateBlendState(&BlendDesc, &AlphaBlendState);
+    if (FAILED(Result))
     {
         MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }

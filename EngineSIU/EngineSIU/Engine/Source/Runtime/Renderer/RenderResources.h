@@ -59,7 +59,7 @@ struct FDebugPrimitiveData
 };
 
 // Icon
-enum class IconType
+enum class EIconType
 {
     None,
     DirectionalLight,
@@ -92,5 +92,5 @@ struct FRenderResourcesDebug
         FDebugPrimitiveData Capsule;
     } Primitives;
 
-    TMap<IconType, std::shared_ptr<FTexture>> IconTextures; // 사용 X
+    TMap<EIconType, std::shared_ptr<FTexture>> IconTextures; // 사용 X
 };

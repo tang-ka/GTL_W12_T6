@@ -129,7 +129,7 @@ ID3D11Buffer* FDXDBufferManager::GetConstantBuffer(const FString& InName) const
 
 void FDXDBufferManager::CreateQuadBuffer()
 {
-    TArray<QuadVertex> Vertices =
+    const TArray<QuadVertex> Vertices =
     {
         { {-1.0f,  1.0f, 0.0f}, {0.0f, 0.0f} },
         { { 1.0f,  1.0f, 0.0f}, {1.0f, 0.0f} },
@@ -140,7 +140,7 @@ void FDXDBufferManager::CreateQuadBuffer()
     FVertexInfo VertexInfo;
     CreateVertexBuffer(TEXT("QuadBuffer"), Vertices, VertexInfo);
 
-    TArray<short> Indices =
+    const TArray<short> Indices =
     {
         0, 1, 2,
         0, 2, 3
@@ -175,60 +175,60 @@ HRESULT FDXDBufferManager::CreateUnicodeTextBuffer(const FWString& Text, FBuffer
     TArray<FVertexTexture> Vertices;
 
     // 각 글자에 대한 기본 쿼드 크기 (폭과 높이)
-    const float quadWidth = 2.0f;
-    const float quadHeight = 2.0f;
+    constexpr float QuadWidth = 2.0f;
+    [[maybe_unused]] constexpr float QuadHeight = 2.0f;
 
     // 전체 텍스트의 너비
-    float totalTextWidth = quadWidth * Text.size();
+    const float TotalTextWidth = QuadWidth * Text.size();
     // 텍스트의 중앙으로 정렬하기 위한 오프셋
-    float centerOffset = totalTextWidth / 2.0f;
+    const float CenterOffset = TotalTextWidth / 2.0f;
 
-    float CellWidth = float(BitmapWidth) / ColCount; // 컬럼별 셀 폭
-    float CellHeight = float(BitmapHeight) / RowCount; // 행별 셀 높이
+    const float CellWidth = BitmapWidth / ColCount;                       // 컬럼별 셀 폭
+    const float CellHeight = BitmapHeight / RowCount; // 행별 셀 높이
 
-    float nTexelUOffset = CellWidth / BitmapWidth;
-    float nTexelVOffset = CellHeight / BitmapHeight;
+    const float TexelUOffset = CellWidth / BitmapWidth;
+    const float TexelVOffset = CellHeight / BitmapHeight;
 
-    for (int i = 0; i < Text.size(); i++)
+    for (int Idx = 0; Idx < Text.size(); Idx++)
     {
         // 각 글자에 대해 기본적인 사각형 좌표 설정 (원점은 -1.0f부터 시작)
-        FVertexTexture leftUP = { -1.0f,  1.0f, 0.0f, 0.0f, 0.0f };
-        FVertexTexture rightUP = { 1.0f,  1.0f, 0.0f, 1.0f, 0.0f };
-        FVertexTexture leftDown = { -1.0f, -1.0f, 0.0f, 0.0f, 1.0f };
-        FVertexTexture rightDown = { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f };
+        FVertexTexture LeftUp = { -1.0f,  1.0f, 0.0f, 0.0f, 0.0f };
+        FVertexTexture RightUp = { 1.0f,  1.0f, 0.0f, 1.0f, 0.0f };
+        FVertexTexture LeftDown = { -1.0f, -1.0f, 0.0f, 0.0f, 1.0f };
+        FVertexTexture RightDown = { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f };
 
         // UV 좌표 관련 보정 (nTexel 오프셋 적용)
-        rightUP.u *= nTexelUOffset;
-        leftDown.v *= nTexelVOffset;
-        rightDown.u *= nTexelUOffset;
-        rightDown.v *= nTexelVOffset;
+        RightUp.u *= TexelUOffset;
+        LeftDown.v *= TexelVOffset;
+        RightDown.u *= TexelUOffset;
+        RightDown.v *= TexelVOffset;
 
         // 각 글자의 x 좌표에 대해 오프셋 적용 (중앙 정렬을 위해 centerOffset 만큼 빼줌)
-        float xOffset = quadWidth * i - centerOffset;
-        leftUP.x += xOffset;
-        rightUP.x += xOffset;
-        leftDown.x += xOffset;
-        rightDown.x += xOffset;
+        const float XOffset = QuadWidth * Idx - CenterOffset;
+        LeftUp.x += XOffset;
+        RightUp.x += XOffset;
+        LeftDown.x += XOffset;
+        RightDown.x += XOffset;
 
         FVector2D UVOffset;
-        SetStartUV(Text[i], UVOffset);
+        SetStartUV(Text[Idx], UVOffset);
 
-        leftUP.u += (nTexelUOffset * UVOffset.X);
-        leftUP.v += (nTexelVOffset * UVOffset.Y);
-        rightUP.u += (nTexelUOffset * UVOffset.X);
-        rightUP.v += (nTexelVOffset * UVOffset.Y);
-        leftDown.u += (nTexelUOffset * UVOffset.X);
-        leftDown.v += (nTexelVOffset * UVOffset.Y);
-        rightDown.u += (nTexelUOffset * UVOffset.X);
-        rightDown.v += (nTexelVOffset * UVOffset.Y);
+        LeftUp.u += (TexelUOffset * UVOffset.X);
+        LeftUp.v += (TexelVOffset * UVOffset.Y);
+        RightUp.u += (TexelUOffset * UVOffset.X);
+        RightUp.v += (TexelVOffset * UVOffset.Y);
+        LeftDown.u += (TexelUOffset * UVOffset.X);
+        LeftDown.v += (TexelVOffset * UVOffset.Y);
+        RightDown.u += (TexelUOffset * UVOffset.X);
+        RightDown.v += (TexelVOffset * UVOffset.Y);
 
         // 각 글자의 쿼드를 두 개의 삼각형으로 생성
-        Vertices.Add(leftUP);
-        Vertices.Add(rightUP);
-        Vertices.Add(leftDown);
-        Vertices.Add(rightUP);
-        Vertices.Add(rightDown);
-        Vertices.Add(leftDown);
+        Vertices.Add(LeftUp);
+        Vertices.Add(RightUp);
+        Vertices.Add(LeftDown);
+        Vertices.Add(RightUp);
+        Vertices.Add(RightDown);
+        Vertices.Add(LeftDown);
     }
 
     CreateVertexBuffer(Text, Vertices, OutBufferInfo.VertexInfo);
@@ -237,49 +237,49 @@ HRESULT FDXDBufferManager::CreateUnicodeTextBuffer(const FWString& Text, FBuffer
     return S_OK;
 }
 
-void FDXDBufferManager::SetStartUV(wchar_t hangul, FVector2D& UVOffset)
+void FDXDBufferManager::SetStartUV(wchar_t Hangul, FVector2D& UVOffset)
 {
     //대문자만 받는중
     int StartU = 0;
     int StartV = 0;
-    int offset = -1;
+    int Offset = -1;
 
-    if (hangul == L' ') {
+    if (Hangul == L' ') {
         UVOffset = FVector2D(0, 0);  // Space는 특별히 UV 좌표를 (0,0)으로 설정
-        offset = 0;
+        Offset = 0;
         return;
     }
-    else if (hangul >= L'A' && hangul <= L'Z') {
+    else if (Hangul >= L'A' && Hangul <= L'Z') {
 
         StartU = 11;
         StartV = 0;
-        offset = hangul - L'A'; // 대문자 위치
+        Offset = Hangul - L'A'; // 대문자 위치
     }
-    else if (hangul >= L'a' && hangul <= L'z') {
+    else if (Hangul >= L'a' && Hangul <= L'z') {
         StartU = 37;
         StartV = 0;
-        offset = (hangul - L'a'); // 소문자는 대문자 다음 위치
+        Offset = (Hangul - L'a'); // 소문자는 대문자 다음 위치
     }
-    else if (hangul >= L'0' && hangul <= L'9') {
+    else if (Hangul >= L'0' && Hangul <= L'9') {
         StartU = 1;
         StartV = 0;
-        offset = (hangul - L'0'); // 숫자는 소문자 다음 위치
+        Offset = (Hangul - L'0'); // 숫자는 소문자 다음 위치
     }
-    else if (hangul >= L'가' && hangul <= L'힣')
+    else if (Hangul >= L'가' && Hangul <= L'힣')
     {
         StartU = 63;
         StartV = 0;
-        offset = hangul - L'가'; // 대문자 위치
+        Offset = Hangul - L'가'; // 대문자 위치
     }
 
-    if (offset == -1)
+    if (Offset == -1)
     {
         UE_LOG(ELogLevel::Warning, "Text Error");
     }
 
-    int offsetV = (offset + StartU) / 106;
-    int offsetU = (offset + StartU) % 106;
+    const int OffsetV = (Offset + StartU) / 106;
+    const int OffsetU = (Offset + StartU) % 106;
 
-    UVOffset = FVector2D(offsetU, StartV + offsetV);
+    UVOffset = FVector2D(OffsetU, StartV + OffsetV);
 
 }

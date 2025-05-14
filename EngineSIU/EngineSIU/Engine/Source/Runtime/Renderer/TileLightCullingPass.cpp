@@ -17,13 +17,6 @@
 
 #define PRINTDEBUG FALSE
 
-FTileLightCullingPass::FTileLightCullingPass()
-{
-}
-
-FTileLightCullingPass::~FTileLightCullingPass()
-{
-}
 
 void FTileLightCullingPass::ResizeTiles(const UINT InWidth, const UINT InHeight)
 {

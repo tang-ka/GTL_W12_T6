@@ -42,15 +42,15 @@ namespace MaterialUtils
         ID3D11ShaderResourceView* SRVs[9] = {};
         ID3D11SamplerState* Samplers[9] = {};
 
-        for (uint8 i = 0; i < static_cast<uint8>(EMaterialTextureSlots::MTS_MAX); ++i)
+        for (uint8 Idx = 0; Idx < static_cast<uint8>(EMaterialTextureSlots::MTS_MAX); ++Idx)
         {
-            if (MaterialInfo.TextureFlag & (1 << i)) // EMaterialTextureFlags와 EMaterialTextureSlots의 순서가 일치한다는 전제 조건.
+            if (MaterialInfo.TextureFlag & (1 << Idx)) // EMaterialTextureFlags와 EMaterialTextureSlots의 순서가 일치한다는 전제 조건.
             {
-                std::shared_ptr<FTexture> Texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.TextureInfos[i].TexturePath);
-                SRVs[i] = Texture->TextureSRV;
-                Samplers[i] = Texture->SamplerState;
+                std::shared_ptr<FTexture> Texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.TextureInfos[Idx].TexturePath);
+                SRVs[Idx] = Texture->TextureSRV;
+                Samplers[Idx] = Texture->SamplerState;
 
-                if (i == static_cast<uint8>(EMaterialTextureSlots::MTS_Diffuse))
+                if (Idx == static_cast<uint8>(EMaterialTextureSlots::MTS_Diffuse))
                 {
                     // for Gouraud shading
                     Graphics->DeviceContext->VSSetShaderResources(0, 1, &Texture->TextureSRV);

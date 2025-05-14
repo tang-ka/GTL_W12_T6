@@ -25,9 +25,10 @@ struct FShaderReloadInfo {
     std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
 
     FShaderReloadInfo() = default;
-    FShaderReloadInfo(const std::wstring& InKey, const std::wstring& InFilePath,
-        const std::string& InEntryPoint, bool bIsVS)
-        : Key(InKey), FilePath(InFilePath), EntryPoint(InEntryPoint), IsVertexShader(bIsVS) {
+    FShaderReloadInfo(
+        std::wstring InKey, std::wstring InFilePath,
+        std::string InEntryPoint, bool bIsVS)
+        : Key(std::move(InKey)), FilePath(std::move(InFilePath)), EntryPoint(std::move(InEntryPoint)), IsVertexShader(bIsVS) {
     }
 };
 
@@ -55,7 +56,7 @@ private:
 public:
     HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName);
     HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
-    HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* defines);
+    HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines);
     HRESULT AddInputLayout(const std::wstring& Key, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize);
     HRESULT AddComputeShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
     HRESULT AddGeometryShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
@@ -63,7 +64,7 @@ public:
     HRESULT AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize);
     HRESULT AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize, const D3D_SHADER_MACRO* defines);
     HRESULT AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
-    HRESULT AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* defines);
+    HRESULT AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines);
 	ID3D11InputLayout* GetInputLayoutByKey(const std::wstring& Key) const;
 	ID3D11VertexShader* GetVertexShaderByKey(const std::wstring& Key) const;
 	ID3D11PixelShader* GetPixelShaderByKey(const std::wstring& Key) const;
