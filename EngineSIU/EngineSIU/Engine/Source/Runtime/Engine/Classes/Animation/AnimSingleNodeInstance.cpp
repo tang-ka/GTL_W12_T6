@@ -116,12 +116,12 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseCon
             if (!bReverse && ElapsedTime >= EndTime)
             {
                 ElapsedTime = StartTime;
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+                SkeletalMeshComp->SetPlaying(false);
             }
             else if (bReverse && ElapsedTime <= StartTime)
             {
                 ElapsedTime = EndTime;
-                SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+                SkeletalMeshComp->SetPlaying(false);
             }
         }
     }

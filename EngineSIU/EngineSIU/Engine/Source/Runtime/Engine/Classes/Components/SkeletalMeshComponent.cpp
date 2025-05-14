@@ -9,6 +9,7 @@
 #include "Misc/FrameTime.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimTypes.h"
+#include "Contents/AnimInstance/MyAnimInstance.h"
 #include "Engine/Engine.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
@@ -20,7 +21,7 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     , SkeletalMeshAsset(nullptr)
     , AnimClass(nullptr)
     , AnimScriptInstance(nullptr)
-    , bPlayAnimation(false)
+    , bPlayAnimation(true)
     ,BonePoseContext(nullptr)
 {
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
@@ -47,14 +48,16 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
     if (AnimationMode == EAnimationMode::AnimationBlueprint)
     {
         NewComponent->SetAnimClass(AnimClass);
+        UMyAnimInstance* AnimInstance = Cast<UMyAnimInstance>(NewComponent->GetAnimInstance());
+        AnimInstance->SetPlaying(Cast<UMyAnimInstance>(AnimScriptInstance)->IsPlaying());
         // TODO: 애님 인스턴스 세팅하기
     }
     else
     {
         NewComponent->SetAnimation(GetAnimation());
     }
-    NewComponent->Play(true);
-
+    NewComponent->SetLooping(this->IsLooping());
+    NewComponent->SetPlaying(this->IsPlaying());
     return NewComponent;
 }
 

@@ -344,7 +344,6 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
         if (ImGui::Button((!bPlayAnimation||!bPlaying)?"Play":"Pause")) {
             if (!bPlayAnimation)
             {
-                RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(true);
                 RefSkeletalMeshComponent->SetPlaying(true);
             }
             else if (!bPlaying)
@@ -358,7 +357,6 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
         }
         ImGui::SameLine();
         if (ImGui::Button("Stop")) {
-            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
             RefSkeletalMeshComponent->SetPlaying(false);
         }
         ImGui::SameLine();

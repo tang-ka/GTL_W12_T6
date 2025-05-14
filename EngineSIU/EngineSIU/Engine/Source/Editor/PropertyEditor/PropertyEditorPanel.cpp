@@ -580,7 +580,20 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (CompClasses.IsValidIndex(SelectedIndex))
             {
                 UClass* SelectedClass = CompClasses[SelectedIndex];
-                UAnimInstance* AnimInstance = SkeletalMeshComp->GetAnimInstance();
+                UMyAnimInstance* AnimInstance = Cast<UMyAnimInstance>(SkeletalMeshComp->GetAnimInstance());
+
+                bool bPlaying = AnimInstance->IsPlaying();
+                if (ImGui::Checkbox("Playing", &bPlaying))
+                {
+                    if (bPlaying)
+                    {
+                        AnimInstance->SetPlaying(true);
+                    }
+                    else
+                    {
+                        AnimInstance->SetPlaying(false);
+                    }
+                }
                 if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
                 {                    
                     UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
@@ -605,16 +618,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                     }
                     
                     AnimInstance->SetAnimState(AnimStateMachine->GetState());
-                    
-                    if (ImGui::Button("[DEBUG] Play Animation"))
-                    {
-                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("[DEBUG] Stop Animation"))
-                    {
-                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
-                    }
                 }
             }
         }
