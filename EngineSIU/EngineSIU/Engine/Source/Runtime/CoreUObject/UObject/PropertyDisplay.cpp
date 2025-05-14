@@ -454,13 +454,6 @@ void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
     }
 }
 
-void FObjectBaseProperty::DisplayInImGui(UObject* Object) const
-{
-    FProperty::DisplayInImGui(Object);
-
-    // 띄울 정보가 딱히 없는듯
-}
-
 void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
@@ -469,13 +462,35 @@ void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
     {
         UObject** Object = static_cast<UObject**>(DataPtr);
 
-        // 포인터가 가리키는것을 수정할 때, 보통 UObject의 인스턴스
-        if (HasFlag(Flags, EPropertyFlags::EditAnywhere))
+        if (const UClass* ObjectClass = IsValid(*Object) ? (*Object)->GetClass() : nullptr)
         {
-        }
-        else if (HasFlag(Flags, EPropertyFlags::VisibleAnywhere))
-        {
-            if (const UClass* ObjectClass = IsValid(*Object) ? (*Object)->GetClass() : nullptr)
+            // 포인터가 가리키는것을 수정할 때, 보통 UObject의 인스턴스
+            if (HasFlag(Flags, EPropertyFlags::EditAnywhere))
+            {
+                TArray<UObject*> ChildObjects;
+                GetObjectsOfClass(ObjectClass, ChildObjects, true);
+
+                if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), ObjectClass->GetName().ToAnsiString().c_str()))
+                {
+                    for (UObject* ChildObject : ChildObjects)
+                    {
+                        const std::string ObjectName = ChildObject->GetName().ToAnsiString();
+                        const bool bIsSelected = ChildObject == *Object;
+                        if (ImGui::Selectable(ObjectName.c_str(), bIsSelected))
+                        {
+                            // TODO: 나중에 수정, 지금은 목록만 보여주고, 설정은 안함
+                            // *Object = ChildObject;
+                        }
+                        if (bIsSelected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::Separator();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            else if (HasFlag(Flags, EPropertyFlags::VisibleAnywhere))
             {
                 for (const FProperty* Prop : ObjectClass->GetProperties())
                 {
