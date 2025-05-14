@@ -193,8 +193,10 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName)
 
     
     FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
+    CameraLocation = Camera.GetLocation();
+    CameraRotation = Camera.GetRotation();
+    
     Camera.SetRotation(FVector(0.0f, 30, 180));
-
     if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(MeshComp))
     {
         float FOV = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetCameraFOV();
@@ -282,10 +284,13 @@ void UEditorEngine::EndSkeletalMeshViewer()
         GUObjectArray.MarkRemoveObject(SkeletalMeshViewerWorld);
         SkeletalMeshViewerWorld = nullptr;
         
+        FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
+        Camera.SetLocation(CameraLocation);
+        Camera.SetRotation(CameraRotation);
+        
         DeselectActor(GetSelectedActor());
         DeselectComponent(GetSelectedComponent());
     }
-    
     ActiveWorld = EditorWorld;
 }
 

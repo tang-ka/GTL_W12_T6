@@ -83,6 +83,7 @@ void ControlEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Control Panel", nullptr, PanelFlags);
 
+    
     CreateMenuButton(IconSize, IconFont);
     ImGui::SameLine();
     CreateFlagButton();
@@ -109,6 +110,10 @@ void ControlEditorPanel::Render()
 
 void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
+    if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+    {
+        return;
+    }
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9ad", ButtonSize)) // Menu
     {
@@ -565,6 +570,10 @@ void ControlEditorPanel::CreateFlagButton()
 
 void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
+    if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+    {
+        return;
+    }
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
     {
@@ -651,6 +660,10 @@ void ControlEditorPanel::OnResize(const HWND hWnd)
 
 void ControlEditorPanel::CreateLightSpawnButton(const ImVec2 InButtonSize, ImFont* IconFont)
 {
+    if (GEngine->ActiveWorld->WorldType == EWorldType::SkeletalViewer)
+    {
+        return;
+    }
     UWorld* World = GEngine->ActiveWorld;
     const ImVec2 WindowSize = ImGui::GetIO().DisplaySize;
 
