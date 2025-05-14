@@ -10,7 +10,10 @@ FTransform::FTransform()
     : Translation(FVector::ZeroVector)
     , Rotation(FQuat::Identity)
     , Scale3D(FVector::OneVector)
-{}
+{
+    // 스태틱 변수의 초기화 순서 때문에 별도로 지정
+    Scale3D = FVector(1.f, 1.f, 1.f);
+}
 
 FTransform::FTransform(const FQuat& InRotation, const FVector& InTranslation, const FVector& InScale3D)
     : Translation(InTranslation)
@@ -28,19 +31,25 @@ FTransform::FTransform(const FVector& InTranslation)
     : Translation(InTranslation)
     , Rotation(FQuat::Identity)
     , Scale3D(FVector::OneVector)
-{}
+{
+    Scale3D = FVector(1.f, 1.f, 1.f);
+}
 
 FTransform::FTransform(const FQuat& InRotation)
     : Translation(FVector::ZeroVector)
     , Rotation(InRotation)
     , Scale3D(FVector::OneVector)
-{}
+{
+    Scale3D = FVector(1.f, 1.f, 1.f);
+}
 
 FTransform::FTransform(const FRotator& InRotation)
     : Translation(FVector::ZeroVector)
     , Rotation(InRotation.Quaternion())
     , Scale3D(FVector::OneVector)
-{}
+{
+    Scale3D = FVector(1.f, 1.f, 1.f);
+}
 
 FTransform::FTransform(const FMatrix& InMatrix)
     : Translation(FVector::ZeroVector)

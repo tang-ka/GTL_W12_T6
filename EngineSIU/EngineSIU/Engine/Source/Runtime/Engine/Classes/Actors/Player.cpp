@@ -13,6 +13,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 #include "Engine/EditorEngine.h"
+#include "Engine/SkeletalMesh.h"
 
 
 void AEditorPlayer::Tick(float DeltaTime)
@@ -626,4 +627,40 @@ UObject* APlayer::Duplicate(UObject* InOuter)
 void APlayer::Tick(float DeltaTime)
 {
     AActor::Tick(DeltaTime);
+}
+
+ASequencerPlayer::ASequencerPlayer()
+{
+}
+
+void ASequencerPlayer::PostSpawnInitialize()
+{
+    APlayer::PostSpawnInitialize();
+    
+    RootComponent = AddComponent<USceneComponent>();
+
+    CameraComponent = AddComponent<UCameraComponent>();
+    CameraComponent->SetupAttachment(RootComponent);
+}
+
+void ASequencerPlayer::Tick(float DeltaTime)
+{
+    APlayer::Tick(DeltaTime);
+
+    if (SkeletalMeshComponent)
+    {
+        const FTransform SocketTransform = SkeletalMeshComponent->GetSocketTransform(Socket);
+        SetActorRotation(SocketTransform.GetRotation().Rotator());
+        SetActorLocation(SocketTransform.GetTranslation());
+    }
+}
+
+UObject* ASequencerPlayer::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewActor->Socket = Socket;
+    NewActor->SkeletalMeshComponent = nullptr;
+
+    return NewActor;
 }

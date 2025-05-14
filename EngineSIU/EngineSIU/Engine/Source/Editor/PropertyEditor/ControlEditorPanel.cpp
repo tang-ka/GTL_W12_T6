@@ -437,6 +437,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             {.Label = "Coin", .OBJ = OBJ_COIN},
             {.Label = "TriggerBox", .OBJ = OBJ_TRIGGERBOX},
             {.Label = "SkeletalMeshActor", .OBJ = OBJ_SKELETALMESH},
+            {.Label = "SequencerPlayer", .OBJ = OBJ_SEQUENCERPLAYER},
         };
 
         for (const auto& primitive : primitives)
@@ -574,6 +575,11 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                         SpawnedActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
                     }
                     break;
+                case OBJ_SEQUENCERPLAYER:
+                {
+                    SpawnedActor = World->SpawnActor<ASequencerPlayer>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_SEQUENCERPLAYER"));
+                }
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
                 case OBJ_END:

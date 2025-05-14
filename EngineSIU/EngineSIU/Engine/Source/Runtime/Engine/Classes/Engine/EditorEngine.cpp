@@ -185,17 +185,6 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAs
 
 void UEditorEngine::BindEssentialObjects()
 {
-    // TODO: 플레이어 컨트롤러가 먼저 만들어져야 함.
-    //실수로 안만들면 넣어주기
-    if (ActiveWorld->GetMainPlayer() == nullptr)
-    {
-        APlayer* TempPlayer = ActiveWorld->SpawnActor<APlayer>();
-        TempPlayer->SetActorLabel(TEXT("OBJ_PLAYER"));
-        TempPlayer->SetActorTickInEditor(false);
-        ActiveWorld->SetMainPlayer(TempPlayer);
-    }
-    
-    //마찬가지
     for (const auto iter: TObjectRange<APlayer>())
     {
         if (iter->GetWorld() == ActiveWorld)
@@ -205,12 +194,20 @@ void UEditorEngine::BindEssentialObjects()
         }
     }
     
+    //실수로 안만들면 넣어주기
+    if (ActiveWorld->GetMainPlayer() == nullptr)
+    {
+        APlayer* TempPlayer = ActiveWorld->SpawnActor<APlayer>();
+        TempPlayer->SetActorLabel(TEXT("OBJ_PLAYER"));
+        TempPlayer->SetActorTickInEditor(false);
+        ActiveWorld->SetMainPlayer(TempPlayer);
+    }
+    
     //무조건 PIE들어갈때 만들어주기
     APlayerController* PlayerController = ActiveWorld->SpawnActor<APlayerController>();
     PlayerController->SetActorLabel(TEXT("OBJ_PLAYER_CONTROLLER"));
     PlayerController->SetActorTickInEditor(false);
     ActiveWorld->SetPlayerController(PlayerController);
-
     
     ActiveWorld->GetPlayerController()->Possess(ActiveWorld->GetMainPlayer());
 }
@@ -220,7 +217,6 @@ void UEditorEngine::EndPIE()
     if (PIEWorld)
     {
         this->ClearActorSelection(); // PIE World 기준 Select Actor 해제 
-        //WorldList.Remove(*GetWorldContextFromWorld(PIEWorld.get()));
         WorldList.Remove(GetWorldContextFromWorld(PIEWorld));
         PIEWorld->Release();
         GUObjectArray.MarkRemoveObject(PIEWorld);

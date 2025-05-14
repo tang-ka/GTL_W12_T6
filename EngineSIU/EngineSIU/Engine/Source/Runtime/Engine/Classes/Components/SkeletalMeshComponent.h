@@ -1,5 +1,6 @@
 #pragma once
 #include "SkinnedMeshComponent.h"
+#include "Actors/Player.h"
 #include "Engine/AssetManager.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Template/SubclassOf.h"
@@ -47,6 +48,8 @@ public:
     USkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMeshAsset; }
 
     void SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshAsset);
+
+    FTransform GetSocketTransform(FName SocketName) const;
 
     TArray<FTransform> RefBonePoseTransforms; // 원본 BindPose에서 복사해온 에디팅을 위한 Transform
 

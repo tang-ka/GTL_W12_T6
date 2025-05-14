@@ -170,6 +170,21 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
     CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
 }
 
+FTransform USkeletalMeshComponent::GetSocketTransform(FName SocketName) const
+{
+    FTransform Transform = FTransform::Identity;
+
+    if (USkeleton* Skeleton = GetSkeletalMeshAsset()->GetSkeleton())
+    {
+        int32 BoneIndex = Skeleton->FindBoneIndex(SocketName);
+
+        TArray<FMatrix> GlobalBoneMatrices;
+        GetCurrentGlobalBoneMatrices(GlobalBoneMatrices);
+        Transform = FTransform(GlobalBoneMatrices[BoneIndex]);
+    }
+    return Transform;
+}
+
 void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const
 {
     const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
