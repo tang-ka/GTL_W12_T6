@@ -221,6 +221,11 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAs
         // 카메라 위치 설정
         Camera.SetLocation(WorldCenter - Camera.GetForwardVector() * Distance);
     }
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_LOCAL);
+    }
 }
 
 void UEditorEngine::BindEssentialObjects()
@@ -292,6 +297,11 @@ void UEditorEngine::EndSkeletalMeshViewer()
         DeselectComponent(GetSelectedComponent());
     }
     ActiveWorld = EditorWorld;
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_WORLD);
+    }
 }
 
 FWorldContext& UEditorEngine::GetEditorWorldContext(/*bool bEnsureIsGWorld*/)

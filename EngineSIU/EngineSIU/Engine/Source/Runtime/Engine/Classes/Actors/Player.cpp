@@ -215,7 +215,7 @@ void AEditorPlayer::AddControlMode()
     ControlMode = static_cast<EControlMode>((ControlMode + 1) % CM_END);
 }
 
-void AEditorPlayer::AddCoordiMode()
+void AEditorPlayer::AddCoordMode()
 {
     CoordMode = static_cast<ECoordMode>((CoordMode + 1) % CDM_END);
 }

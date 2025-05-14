@@ -315,7 +315,7 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
 
         if (ImGui::Button(CoordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
         {
-            Player->AddCoordiMode();
+            Player->AddCoordMode();
         }
          
         ImGui::TreePop();
