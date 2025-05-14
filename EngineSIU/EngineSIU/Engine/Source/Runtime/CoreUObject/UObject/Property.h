@@ -26,7 +26,7 @@ struct FProperty
         EPropertyType InType,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : OwnerClass(InOwnerClass)
         , Name(InPropertyName)
@@ -159,7 +159,7 @@ struct FNumericProperty : public FProperty
         EPropertyType InType,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, InType, InSize, InOffset, InFlags)
     {
@@ -173,7 +173,7 @@ struct FInt8Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int8, InSize, InOffset, InFlags)
     {
@@ -189,7 +189,7 @@ struct FInt16Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int16, InSize, InOffset, InFlags)
     {
@@ -205,7 +205,7 @@ struct FInt32Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int32, InSize, InOffset, InFlags)
     {
@@ -221,7 +221,7 @@ struct FInt64Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Int64, InSize, InOffset, InFlags)
     {
@@ -237,7 +237,7 @@ struct FUInt8Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt8, InSize, InOffset, InFlags)
     {
@@ -253,7 +253,7 @@ struct FUInt16Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt16, InSize, InOffset, InFlags)
     {
@@ -269,7 +269,7 @@ struct FUInt32Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt32, InSize, InOffset, InFlags)
     {
@@ -285,7 +285,7 @@ struct FUInt64Property : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::UInt64, InSize, InOffset, InFlags)
     {
@@ -301,7 +301,7 @@ struct FFloatProperty : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Float, InSize, InOffset, InFlags)
     {
@@ -317,7 +317,7 @@ struct FDoubleProperty : public FNumericProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FNumericProperty(InOwnerClass, InPropertyName, EPropertyType::Double, InSize, InOffset, InFlags)
     {
@@ -333,7 +333,7 @@ struct FBoolProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Bool, InSize, InOffset, InFlags)
     {
@@ -349,7 +349,7 @@ struct FStrProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::String, InSize, InOffset, InFlags)
     {
@@ -365,7 +365,7 @@ struct FNameProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Name, InSize, InOffset, InFlags)
     {}
@@ -380,7 +380,7 @@ struct FVector2DProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Vector2D, InSize, InOffset, InFlags)
     {
@@ -396,7 +396,7 @@ struct FVectorProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Vector, InSize, InOffset, InFlags)
     {
@@ -412,7 +412,7 @@ struct FVector4Property : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Vector4, InSize, InOffset, InFlags)
     {
@@ -428,7 +428,7 @@ struct FRotatorProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Rotator, InSize, InOffset, InFlags)
     {
@@ -444,7 +444,7 @@ struct FQuatProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Quat, InSize, InOffset, InFlags)
     {
@@ -460,7 +460,7 @@ struct FTransformProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Transform, InSize, InOffset, InFlags)
     {
@@ -476,7 +476,7 @@ struct FMatrixProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Matrix, InSize, InOffset, InFlags)
     {
@@ -492,7 +492,7 @@ struct FColorProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Color, InSize, InOffset, InFlags)
     {
@@ -508,7 +508,7 @@ struct FLinearColorProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags)
     {
@@ -529,7 +529,7 @@ struct TArrayProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Array, InSize, InOffset, InFlags)
     {
@@ -646,7 +646,7 @@ struct TMapProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Map, InSize, InOffset, InFlags)
     {
@@ -794,7 +794,7 @@ struct TSetProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Set, InSize, InOffset, InFlags)
     {
@@ -915,7 +915,7 @@ struct TEnumProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Enum, InSize, InOffset, InFlags)
     {
@@ -960,7 +960,7 @@ struct FSubclassOfProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::SubclassOf, InSize, InOffset, InFlags)
     {
@@ -977,7 +977,7 @@ struct FObjectBaseProperty : public FProperty
         EPropertyType InType,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, InType, InSize, InOffset, InFlags)
     {
@@ -993,7 +993,7 @@ struct FObjectProperty : public FObjectBaseProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FObjectBaseProperty(InOwnerClass, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
     {
@@ -1007,7 +1007,7 @@ struct FUnresolvedPtrProperty : public FObjectBaseProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FObjectBaseProperty(InOwnerClass, InPropertyName, EPropertyType::UnresolvedPointer, InSize, InOffset, InFlags)
     {
@@ -1024,7 +1024,7 @@ struct FStructProperty : public FProperty
         const char* InPropertyName,
         int32 InSize,
         int32 InOffset,
-        EPropertyFlags InFlags = EPropertyFlags::None
+        EPropertyFlags InFlags = EPropertyFlags::PropertyNone
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Struct, InSize, InOffset, InFlags)
     {
@@ -1046,7 +1046,7 @@ FProperty* MakeProperty(
     UClass* InOwnerClass,
     const char* InPropertyName,
     int32 InOffset,
-    EPropertyFlags InFlags = EPropertyFlags::None
+    EPropertyFlags InFlags = EPropertyFlags::PropertyNone
 )
 {
     constexpr EPropertyType TypeEnum = GetPropertyType<T>();

@@ -128,11 +128,11 @@ consteval EPropertyType GetPropertyType()
 
 enum class EPropertyFlags : uint32  // NOLINT(performance-enum-size)
 {
-    None            = 0,         // 플래그 없음
-    ImGuiReadOnly   = 1 << 0,    // ImGui에서 읽기 전용으로 표시
-    ImGuiReadWrite  = 1 << 1,    // ImGui에서 읽기/쓰기 가능 (기본값으로 사용 가능)
-    LuaBindable     = 1 << 2,    // Lua에 자동으로 바인딩
-    HiddenInEditor  = 1 << 3,    // 에디터(ImGui)에 표시하지 않음
+    PropertyNone    = 0,         // 플래그 없음
+    VisibleAnywhere = 1 << 0,    // ImGui에서 읽기 전용으로 표시
+    EditAnywhere    = 1 << 1,    // ImGui에서 읽기/쓰기 가능
+    LuaReadOnly     = 1 << 2,    // Lua에 읽기 전용으로 바인딩
+    LuaReadWrite    = 1 << 3,    // Lua에 읽기/쓰기로 바인딩
     // ... 필요한 다른 플래그들 (예: SaveGame, Replicated 등)
 };
 
@@ -144,29 +144,29 @@ struct magic_enum::customize::enum_range<EPropertyFlags>
 };
 
 // 비트 플래그 연산을 위한 헬퍼 함수들
-inline EPropertyFlags operator|(EPropertyFlags Lhs, EPropertyFlags Rhs)
+constexpr EPropertyFlags operator|(EPropertyFlags Lhs, EPropertyFlags Rhs)
 {
     return static_cast<EPropertyFlags>(static_cast<uint32>(Lhs) | static_cast<uint32>(Rhs));
 }
 
-inline EPropertyFlags& operator|=(EPropertyFlags& Lhs, EPropertyFlags Rhs)
+constexpr EPropertyFlags& operator|=(EPropertyFlags& Lhs, EPropertyFlags Rhs)
 {
     Lhs = Lhs | Rhs;
     return Lhs;
 }
 
-inline bool HasFlag(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
+constexpr bool HasFlag(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
 {
     return (static_cast<uint32>(Flags) & static_cast<uint32>(FlagToCheck)) != 0;
 }
 
 // 특정 플래그만 제외하는 연산자
-inline EPropertyFlags operator~(EPropertyFlags Flags)
+constexpr EPropertyFlags operator~(EPropertyFlags Flags)
 {
     return static_cast<EPropertyFlags>(~static_cast<uint32>(Flags));
 }
 
-inline EPropertyFlags operator&(EPropertyFlags Lhs, EPropertyFlags Rhs)
+constexpr EPropertyFlags operator&(EPropertyFlags Lhs, EPropertyFlags Rhs)
 {
     return static_cast<EPropertyFlags>(static_cast<uint32>(Lhs) & static_cast<uint32>(Rhs));
 }

@@ -81,7 +81,7 @@ public: \
     } InVarName##_PropRegistrar_PRIVATE{};
 
 #define UPROPERTY_DEFAULT(InType, InVarName, ...) \
-    UPROPERTY_WITH_FLAGS(EPropertyFlags::None, InType, InVarName, __VA_ARGS__)
+    UPROPERTY_WITH_FLAGS(EPropertyFlags::PropertyNone, InType, InVarName, __VA_ARGS__)
 
 #define EXPAND_PROPERTY_MACRO(x) x
 #define GET_OVERLOADED_PROPERTY_MACRO(_1, _2, _3, _4, NAME, ...) NAME
