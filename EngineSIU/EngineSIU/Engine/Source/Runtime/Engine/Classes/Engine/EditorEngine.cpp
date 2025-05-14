@@ -191,6 +191,8 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAs
 
     MeshComp->SetAnimationMode(EAnimationMode::AnimationSingleNode);
     MeshComp->PlayAnimation(AnimAsset, true);
+    MeshComp->DEBUG_SetAnimationEnabled(true);
+    MeshComp->SetPlaying(true);
     
     ADirectionalLight* DirectionalLight = SkeletalMeshViewerWorld->SpawnActor<ADirectionalLight>();
     DirectionalLight->SetActorRotation(FRotator(45.f, 45.f, 0.f));

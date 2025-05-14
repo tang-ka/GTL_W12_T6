@@ -273,17 +273,9 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
 
     if (RefSkeletalMeshComponent)
     {
-        if (RefSkeletalMeshComponent->GetAnimation())
+        if (RefSkeletalMeshComponent->GetAnimation() && RefSkeletalMeshComponent->GetAnimationMode() == EAnimationMode::AnimationSingleNode)
         {
             AnimSeq = Cast<UAnimSequence>(RefSkeletalMeshComponent->GetAnimation());
-        }
-        else if (RefSkeletalMeshComponent->GetAnimationMode() == EAnimationMode::AnimationBlueprint)
-        {
-            UAnimInstance* AnimInstance = RefSkeletalMeshComponent->GetAnimInstance();
-            if (AnimInstance)
-            {
-                AnimSeq = AnimInstance->GetCurrAnim();
-            }
         }
     }
     if (!AnimSeq)
