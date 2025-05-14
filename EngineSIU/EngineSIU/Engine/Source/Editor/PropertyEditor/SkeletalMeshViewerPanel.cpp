@@ -455,8 +455,9 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
                         if (ImGui::MenuItem("Add Notify"))
                         {
                             AnimSeq->AddNotifyEvent(TrackIdx, Elapsed, 0, "New Notify", newIndex);
-                            if (AnimSeq->GetNotifyEvent(newIndex)->GetNotify())
-                            AnimSeq->GetNotifyEvent(newIndex)->SetAnimNotify(FObjectFactory::ConstructObject<UAnimSoundNotify>(nullptr));
+                            FAnimNotifyEvent* NotifyEvent = AnimSeq->GetNotifyEvent(newIndex);
+                            if (NotifyEvent->GetNotify())
+                            NotifyEvent->SetAnimNotify(FObjectFactory::ConstructObject<UAnimSoundNotify>(nullptr));
                         }
                         ImGui::EndPopup();
                     }

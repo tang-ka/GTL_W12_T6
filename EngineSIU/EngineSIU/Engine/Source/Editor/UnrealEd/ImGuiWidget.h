@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 
 #include "ImGui/imgui.h"
@@ -23,6 +23,7 @@ struct FImGuiWidget
     static bool DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
     static void DrawDragInt(const std::string& label, int& value, int min = 0, int max = 0, float width = 100.0f);
     static void DrawDragFloat(const std::string& label, float& value, float min = 0.0f, float max = 0.0f, float width = 100.0f);
+
     template <size_t N>
     static bool DisplayNControl(
         const std::string& Label,
