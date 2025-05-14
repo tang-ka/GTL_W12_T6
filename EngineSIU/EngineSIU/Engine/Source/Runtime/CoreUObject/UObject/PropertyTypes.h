@@ -126,7 +126,7 @@ consteval EPropertyType GetPropertyType()
     }
 }
 
-enum class EPropertyFlags : uint32  // NOLINT(performance-enum-size)
+enum EPropertyFlags : uint32  // NOLINT(performance-enum-size)
 {
     PropertyNone    = 0,         // 플래그 없음
     VisibleAnywhere = 1 << 0,    // ImGui에서 읽기 전용으로 표시
