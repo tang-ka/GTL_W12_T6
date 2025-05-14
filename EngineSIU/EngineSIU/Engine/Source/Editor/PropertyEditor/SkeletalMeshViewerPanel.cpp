@@ -12,6 +12,7 @@
 #include "Engine/Classes/Animation/AnimTypes.h"
 #include "UnrealEd/ImGuiWidget.h"
 #include "Contents/AnimInstance/MyAnimInstance.h"
+#include "Animation/AnimSoundNotify.h"
 
 SkeletalMeshViewerPanel::SkeletalMeshViewerPanel()
 {
@@ -460,6 +461,8 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
                         if (ImGui::MenuItem("Add Notify"))
                         {
                             AnimSeq->AddNotifyEvent(TrackIdx, Elapsed, 0, "New Notify", newIndex);
+                            if (AnimSeq->GetNotifyEvent(newIndex)->GetNotify())
+                            AnimSeq->GetNotifyEvent(newIndex)->SetAnimNotify(FObjectFactory::ConstructObject<UAnimSoundNotify>(nullptr));
                         }
                         ImGui::EndPopup();
                     }

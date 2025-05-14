@@ -23,7 +23,11 @@ struct FAnimNotifyEvent
     bool bStateActive = false;
     
     bool IsState() const { return Duration > 0.f; }
-    float GetEndTime() const { return Time + Duration; }
+    float GetEndTime() const { return Time + Duration;}
+    UAnimNotify* GetNotify() const { return Notify; }
+    UAnimNotifyState* GetNotifyState() const { return NotifyState; }
+    void SetAnimNotify(class UAnimNotify* InNotify);
+    void SetAnimNotifyState(class UAnimNotifyState* InNotifyState);
 };
 
 // FAnimNotifyTrack:노티파이 트랙 단위

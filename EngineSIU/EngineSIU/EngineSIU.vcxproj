@@ -282,6 +282,83 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSingleNodeInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSoundNotify.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableVectorLength>NotSet</EnableVectorLength>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</ModuleDependenciesFile>
+      <ModuleOutputFile>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\EngineSIU.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\EngineSIU.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\Intermediate\Build\x64\Debug\</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;FBXSDK_SHARED;_UNICODE;UNICODE;</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Editor;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Core;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\CoreUObject;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Engine;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Engine\Classes;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\InputCore;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Physics;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\InteractiveToolsFramework;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Launch;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Renderer;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Serialization;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Slate;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\SlateCore;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\Runtime\Windows;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\tinyfiledialogs\include;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\Json\include;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\DirectXTK\Include;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\ImGui\include;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\Lua\include;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\sol2\include;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\fmod\inc;C:\Users\Jungle\Desktop\TechLab\Week10\GTL_W10_T8\EngineSIU\EngineSIU\Engine\Source\ThirdParty\FBX\include;C:\vcpkg-master\installed\x64-windows\include</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 /bigobj /w34996 </AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LinkCompiled>true</LinkCompiled>
+    </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimTypes.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.cpp" />
@@ -599,6 +676,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSingleNodeInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSoundNotify.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.h" />
