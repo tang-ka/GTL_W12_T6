@@ -14,7 +14,7 @@ public:
     virtual void TickComponent(float DeltaTime) override;
     void FollowMainPlayer();
 
-    float ViewFOV = 90.0f;
+    float ViewFOV = 70.0f;
     float NearClip = 0.1f;
     float FarClip = 1000.0f;
 

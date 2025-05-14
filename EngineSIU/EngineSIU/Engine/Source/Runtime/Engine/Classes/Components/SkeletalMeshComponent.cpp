@@ -9,6 +9,7 @@
 #include "Misc/FrameTime.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimTypes.h"
+#include "Engine/Engine.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 
@@ -41,9 +42,17 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-    NewComponent->SetAnimationMode(AnimationMode);
     NewComponent->SetSkeletalMeshAsset(SkeletalMeshAsset);
-    //NewComponent->SetAnimation(AnimSequence);
+    NewComponent->SetAnimationMode(AnimationMode);
+    if (AnimationMode == EAnimationMode::AnimationBlueprint)
+    {
+        NewComponent->SetAnimClass(AnimClass);
+        // TODO: 애님 인스턴스 세팅하기
+    }
+    else
+    {
+        NewComponent->SetAnimation(GetAnimation());
+    }
     NewComponent->Play(true);
 
     return NewComponent;
@@ -86,7 +95,11 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 bool USkeletalMeshComponent::ShouldTickAnimation() const
 {
-    return bPlayAnimation && GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
+    if (GEngine->GetWorldContextFromWorld(GetWorld())->WorldType == EWorldType::Editor)
+    {
+        return false;
+    }
+    return GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
 }
 
 bool USkeletalMeshComponent::InitializeAnimScriptInstance()
@@ -104,7 +117,7 @@ bool USkeletalMeshComponent::InitializeAnimScriptInstance()
     }
     else
     {
-        bool bShouldSpawnSingleNodeInstance = SkelMesh && SkelMesh->GetSkeleton() && AnimationMode == EAnimationMode::AnimationSingleNode;
+        bool bShouldSpawnSingleNodeInstance = !AnimScriptInstance && SkelMesh && SkelMesh->GetSkeleton();
         if (bShouldSpawnSingleNodeInstance)
         {
             AnimScriptInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(this);
@@ -155,6 +168,21 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
     CPURenderData->Indices = InSkeletalMeshAsset->GetRenderData()->Indices;
     CPURenderData->ObjectName = InSkeletalMeshAsset->GetRenderData()->ObjectName;
     CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
+}
+
+FTransform USkeletalMeshComponent::GetSocketTransform(FName SocketName) const
+{
+    FTransform Transform = FTransform::Identity;
+
+    if (USkeleton* Skeleton = GetSkeletalMeshAsset()->GetSkeleton())
+    {
+        int32 BoneIndex = Skeleton->FindBoneIndex(SocketName);
+
+        TArray<FMatrix> GlobalBoneMatrices;
+        GetCurrentGlobalBoneMatrices(GlobalBoneMatrices);
+        Transform = FTransform(GlobalBoneMatrices[BoneIndex]);
+    }
+    return Transform;
 }
 
 void USkeletalMeshComponent::GetCurrentGlobalBoneMatrices(TArray<FMatrix>& OutBoneMatrices) const
@@ -343,9 +371,9 @@ bool USkeletalMeshComponent::NeedToSpawnAnimScriptInstance() const
     return false;
 }
 
-void USkeletalMeshComponent::CPUSkinning()
+void USkeletalMeshComponent::CPUSkinning(bool bForceUpdate)
 {
-    if (bCPUSkinning)
+    if (bCPUSkinning || bForceUpdate)
     {
          const FReferenceSkeleton& RefSkeleton = SkeletalMeshAsset->GetSkeleton()->GetReferenceSkeleton();
          TArray<FMatrix> CurrentGlobalBoneMatrices;
@@ -461,6 +489,8 @@ void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
     {
         SingleNodeInstance->SetAnimationAsset(NewAnimToPlay, false);
         SingleNodeInstance->SetPlaying(false);
+
+        // TODO: Force Update Pose and CPU Skinning
     }
 }
 

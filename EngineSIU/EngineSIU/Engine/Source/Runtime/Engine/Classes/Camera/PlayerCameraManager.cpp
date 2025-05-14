@@ -82,7 +82,7 @@ void APlayerCameraManager::InitializeFor(APlayerController* PC)
     VignetteRadius = 0.5f;
     VignetteSmoothness = 0.5f;
     VignetteIntensity = 0.0f;
-    LetterBoxWidth = 2.35f;
+    LetterBoxWidth = 2.0f;
     LetterBoxHeight = 1.0f;
 }
 

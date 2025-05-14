@@ -93,6 +93,9 @@ public:
     void AddAnimation(const FName& Key, UAnimationAsset* Animation);
 
 private:
+    double FbxLoadTime = 0.0;
+    double BinaryLoadTime = 0.0;
+    
     void LoadContentFiles();
 
     void HandleFBX(const FAssetInfo& AssetInfo);

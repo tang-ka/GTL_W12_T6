@@ -105,6 +105,27 @@ void PropertyEditorPanel::Render()
     if (SelectedActor)
     {
         RenderForActor(SelectedActor, TargetComponent);
+
+        if (ASequencerPlayer* SP = Cast<ASequencerPlayer>(SelectedActor))
+        {
+            FString Label = SP->Socket.ToString();
+            if (ImGui::InputText("##Socket", GetData(Label), 256))
+            {
+                SP->Socket = Label;
+            }
+
+            if (ImGui::BeginCombo("##Parent", "Parent", ImGuiComboFlags_None))
+            {
+                for (auto It : TObjectRange<USkeletalMeshComponent>())
+                {
+                    if (ImGui::Selectable(GetData(It->GetName()), false))
+                    {
+                        SP->SkeletalMeshComponent = It;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
     }
     
     if (UAmbientLightComponent* LightComponent = GetTargetComponent<UAmbientLightComponent>(SelectedActor, SelectedComponent))
@@ -294,7 +315,7 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
 
         if (ImGui::Button(CoordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
         {
-            Player->AddCoordiMode();
+            Player->AddCoordMode();
         }
          
         ImGui::TreePop();
@@ -700,7 +721,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             }
             if (SkeletalMeshComp->GetSkeletalMeshAsset())
             {
-                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName), SkeletalMeshComp->GetAnimation());
             }
         }
         ImGui::TreePop();

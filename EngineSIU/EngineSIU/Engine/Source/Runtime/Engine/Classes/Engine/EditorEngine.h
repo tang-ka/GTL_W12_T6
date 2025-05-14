@@ -29,7 +29,7 @@ public:
     
 
     void StartPIE();
-    void StartSkeletalMeshViewer(FName SkeletalMeshName);
+    void StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset);
     void BindEssentialObjects();
     void EndPIE();
     void EndSkeletalMeshViewer();
