@@ -64,7 +64,7 @@ public:
     bool IsA(const UClass* SomeBase) const;
 
     template <typename T>
-        requires std::derived_from<T, UObject>
+        // requires std::derived_from<T, UObject>
     bool IsA() const
     {
         return IsA(T::StaticClass());
