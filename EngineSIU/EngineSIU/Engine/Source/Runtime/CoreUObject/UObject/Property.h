@@ -4,6 +4,7 @@
 
 #include "Object.h"
 #include "PropertyTypes.h"
+#include "Container/Queue.h"
 #include "Templates/TemplateUtilities.h"
 #include "Templates/TypeUtilities.h"
 
@@ -538,6 +539,13 @@ struct TArrayProperty : public FProperty
     {
         FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
+        enum class EArrayElementOption : uint8
+        {
+            Insert,
+            Remove,
+            Duplicate,
+        };
+
         if (ImGui::TreeNode(PropertyLabel))
         {
             TArray<ElementType>* Data = static_cast<TArray<ElementType>*>(DataPtr);
@@ -545,7 +553,7 @@ struct TArrayProperty : public FProperty
             const ImGuiIO& IO = ImGui::GetIO();
             ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
 
-            ImGui::Text("Num Of Elements: %d", Data->Num());
+            ImGui::Text("Num of Elements: %d", Data->Num());
 
             ImGui::SameLine();
             ImGui::PushFont(IconFont);
@@ -565,6 +573,7 @@ struct TArrayProperty : public FProperty
             ImGui::PopFont();
             ImGui::SetItemTooltip("Remove All Elements");
 
+            TQueue<TPair<EArrayElementOption, int32>> OptionQueue;
             for (int32 Index = 0; Index < Data->Num(); ++Index)
             {
                 ElementProperty->DisplayRawDataInImGui(std::format("Idx [{}]", Index).c_str(), &((*Data)[Index]));
@@ -580,17 +589,41 @@ struct TArrayProperty : public FProperty
                 {
                     if (ImGui::Selectable("Insert"))
                     {
-                        Data->Insert(ElementType{}, Index);
+                        OptionQueue.Enqueue(MakePair(EArrayElementOption::Insert, Index));
                     }
                     else if (ImGui::Selectable("Remove"))
                     {
-                        Data->RemoveAt(Index);
+                        OptionQueue.Enqueue(MakePair(EArrayElementOption::Remove, Index));
                     }
                     else if (ImGui::Selectable("Duplicate"))
                     {
-                        Data->Insert((*Data)[Index], Index);
+                        OptionQueue.Enqueue(MakePair(EArrayElementOption::Duplicate, Index));
                     }
                     ImGui::EndPopup();
+                }
+            }
+
+            TPair<EArrayElementOption, int32> Option;
+            while (OptionQueue.Dequeue(Option))
+            {
+                switch (Option.Key)
+                {
+                case EArrayElementOption::Insert:
+                {
+                    Data->Insert(ElementType{}, Option.Value);
+                    break;
+                }
+                case EArrayElementOption::Remove:
+                {
+                    Data->RemoveAt(Option.Value);
+                    break;
+                }
+                case EArrayElementOption::Duplicate:
+                {
+                    Data->Insert((*Data)[Option.Value], Option.Value);
+                }
+                default:
+                    break;
                 }
             }
 
