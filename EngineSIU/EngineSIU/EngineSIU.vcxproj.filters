@@ -1674,6 +1674,10 @@
     <ClCompile Include="Engine\Source\ThirdParty\ImGui\include\ImGui\imgui_neo_internal.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\ImGui\include\ImGui\imgui_neo_sequencer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\BonePose.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotifyState.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1726,6 +1730,10 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\WindowsFileDialog.h" />
     <ClInclude Include="Engine\Source\ThirdParty\ImGui\include\ImGui\imgui_neo_internal.h" />
     <ClInclude Include="Engine\Source\ThirdParty\ImGui\include\ImGui\imgui_neo_sequencer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotifyState.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />

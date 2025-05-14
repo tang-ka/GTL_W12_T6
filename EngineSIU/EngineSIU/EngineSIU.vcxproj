@@ -210,7 +210,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Contents\Actors\PlatformActor.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\TriggerBox.cpp" />
-    <ClCompile Include="Engine\Source\Contents\Animation\MyAnimInstance.cpp" />
     <ClCompile Include="Engine\Source\Contents\Components\FishBodyComponent.cpp" />
     <ClCompile Include="Engine\Source\Contents\Components\FishTailComponent.cpp" />
     <ClCompile Include="Engine\Source\Contents\Objects\DamageCameraShake.cpp" />
@@ -497,7 +496,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Contents\Actors\PlatformActor.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\TriggerBox.h" />
-    <ClInclude Include="Engine\Source\Contents\Animation\MyAnimInstance.h" />
     <ClInclude Include="Engine\Source\Contents\Components\FishBodyComponent.h" />
     <ClInclude Include="Engine\Source\Contents\Components\FishTailComponent.h" />
     <ClInclude Include="Engine\Source\Contents\Objects\DamageCameraShake.h" />
