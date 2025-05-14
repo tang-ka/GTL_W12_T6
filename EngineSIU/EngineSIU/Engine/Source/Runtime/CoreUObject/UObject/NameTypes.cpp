@@ -419,8 +419,18 @@ FName::FName(const WIDECHAR* Name)
 {
 }
 
+FName::FName(const WIDECHAR* Name, uint32 Len)
+	: FName(FNameHelper::MakeFName(Name, Len))
+{
+}
+
 FName::FName(const ANSICHAR* Name)
 	: FName(FNameHelper::MakeFName(Name))
+{
+}
+
+FName::FName(const ANSICHAR* Name, uint32 Len)
+	: FName(FNameHelper::MakeFName(Name, Len))
 {
 }
 

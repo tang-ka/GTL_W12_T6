@@ -157,6 +157,46 @@ void PropertyEditorPanel::Render()
         RenderForSpringArmComponent(SpringArmComponent);
     }
 
+    if (SelectedActor)
+    {
+        ImGui::Separator();
+        const UClass* Class = SelectedActor->GetClass();
+
+        for (; Class; Class = Class->GetSuperClass())
+        {
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
+
+            for (const FProperty* Prop : Properties)
+            {
+                Prop->DisplayInImGui(SelectedActor);
+            }
+        }
+    }
+
+    if (SelectedComponent)
+    {
+        ImGui::Separator();
+        const UClass* Class = GetTargetComponent<USceneComponent>(SelectedActor, SelectedComponent)->GetClass();
+
+        for (; Class; Class = Class->GetSuperClass())
+        {
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
+
+            for (const FProperty* Prop : Properties)
+            {
+                Prop->DisplayInImGui(SelectedComponent);
+            }
+        }
+    }
+
     ImGui::End();
 }
 
@@ -234,7 +274,7 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
         FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
         ImGui::Spacing();
 
-        FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
+        FImGuiWidget::DrawVec3Control("Scale", Scale, 1, 85);
         ImGui::Spacing();
 
         SceneComponent->SetRelativeTransform(FTransform(Rotation, Location, Scale));
