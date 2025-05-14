@@ -58,3 +58,43 @@ bool FImGuiWidget::DrawRot3Control(const std::string& Label, FRotator& Values, f
         }
     }});
 }
+
+void FImGuiWidget::DrawDragInt(const std::string& label, int& value, int min, int max, float width)
+{
+    ImGui::PushID(label.c_str());
+    
+
+    if (!label.empty())
+    {
+        ImGui::Text("%s", label.c_str());
+        ImGui::SameLine();
+    }
+    ImGui::SetNextItemWidth(width);
+    if (min == max)
+        ImGui::DragInt("##DragInt", &value, 1.0f);
+    else
+        ImGui::DragInt("##DragInt", &value, 1.0f, min, max);
+
+    ImGui::PopID();
+}
+
+void FImGuiWidget::DrawDragFloat(const std::string& label, float& value, float min, float max, float width)
+{
+    ImGui::PushID(label.c_str());
+    
+
+    if (!label.empty())
+    {
+        ImGui::Text("%s", label.c_str());
+        ImGui::SameLine();
+    }
+    ImGui::SetNextItemWidth(width);
+    if (min == max)
+        ImGui::DragFloat("##DragFloat", &value, 0.1f, 0.0f, 0.0f, "%.2f");
+    else
+        ImGui::DragFloat("##DragFloat", &value, 0.1f, min, max, "%.2f");
+
+    ImGui::PopID();
+}
+
+

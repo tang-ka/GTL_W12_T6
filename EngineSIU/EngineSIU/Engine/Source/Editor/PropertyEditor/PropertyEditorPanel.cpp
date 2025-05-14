@@ -9,6 +9,7 @@
 #include "Actors/Player.h"
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/Light/LightComponent.h"
@@ -27,6 +28,7 @@
 #include "Components/ProjectileMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Contents/AnimInstance/MyAnimInstance.h"
 #include "Engine/AssetManager.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
@@ -41,10 +43,11 @@
 #include "imgui/imgui_bezier.h"
 #include "imgui/imgui_curve.h"
 #include "Math/Transform.h"
+#include "Animation/AnimStateMachine.h"
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
-    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE|EWorldTypeBitFlag::SkeletalViewer);
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE);
 }
 
 void PropertyEditorPanel::Render()
@@ -507,7 +510,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         // Begin Animation
         ImGui::Text("Animation Mode");
         ImGui::SameLine();
-        
         EAnimationMode CurrentAnimationMode = SkeletalMeshComp->GetAnimationMode();
         FString AnimModeStr = CurrentAnimationMode == EAnimationMode::AnimationBlueprint ? "Animation Instance" : "Animation Asset";
         if (ImGui::BeginCombo("##AnimationMode", GetData(AnimModeStr), ImGuiComboFlags_None))
@@ -515,18 +517,85 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (ImGui::Selectable("Animation Instance", CurrentAnimationMode == EAnimationMode::AnimationBlueprint))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+                CurrentAnimationMode = EAnimationMode::AnimationBlueprint;
+                SkeletalMeshComp->SetAnimClass(UClass::FindClass(FName("UMyAnimInstance")));
             }
             if (ImGui::Selectable("Animation Asset", CurrentAnimationMode == EAnimationMode::AnimationSingleNode))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+                CurrentAnimationMode = EAnimationMode::AnimationSingleNode;
             }
             ImGui::EndCombo();
         }
 
-        CurrentAnimationMode = SkeletalMeshComp->GetAnimationMode();
         if (CurrentAnimationMode == EAnimationMode::AnimationBlueprint)
         {
-            
+            TArray<UClass*> CompClasses;
+            GetChildOfClass(UAnimInstance::StaticClass(), CompClasses);
+            static int SelectedIndex = 0;
+
+            // AnimInstance 목록 텍스트
+            ImGui::Text("AnimInstance List");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##AnimInstance List Combo", *CompClasses[SelectedIndex]->GetName()))
+            {
+                for (int i = 0; i < CompClasses.Num(); ++i)
+                {
+                    if (CompClasses[i] == UAnimInstance::StaticClass() || CompClasses[i] == UAnimSingleNodeInstance::StaticClass())
+                    {
+                        continue;
+                    }
+                    bool bIsSelected = (SelectedIndex == i);
+                    if (ImGui::Selectable(*CompClasses[i]->GetName(), bIsSelected))
+                    {
+                        SelectedIndex = i;
+                    }
+                    if (bIsSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            if (CompClasses.IsValidIndex(SelectedIndex))
+            {
+                UClass* SelectedClass = CompClasses[SelectedIndex];
+                UAnimInstance* AnimInstance = SkeletalMeshComp->GetAnimInstance();
+                if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
+                {                    
+                    UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
+                    if(ImGui::Button("MoveFast"))
+                    {
+                        AnimStateMachine->MoveFast();
+                    }
+                    ImGui::SameLine();
+                    if(ImGui::Button("MoveSlow"))
+                    {
+                        AnimStateMachine->MoveSlow();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Dance"))
+                    {
+                        AnimStateMachine->Dance();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("StopDance"))
+                    {
+                        AnimStateMachine->StopDance();
+                    }
+                    
+                    AnimInstance->SetAnimState(AnimStateMachine->GetState());
+                    
+                    if (ImGui::Button("[DEBUG] Play Animation"))
+                    {
+                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("[DEBUG] Stop Animation"))
+                    {
+                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+                    }
+                }
+            }
         }
         else
         {
@@ -629,7 +698,10 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             {
                 return;
             }
-            Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+            if (SkeletalMeshComp->GetSkeletalMeshAsset())
+            {
+                Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+            }
         }
         ImGui::TreePop();
     }

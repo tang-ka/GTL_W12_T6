@@ -131,7 +131,8 @@ private:
     FViewportResource* ViewportResourceCache = nullptr;
 
 public:
-    
+    FViewportCamera* GetPerspectiveCamera() { return &PerspectiveCamera; }
+
     //카메라
     /** Viewport camera transform data for perspective viewports */
     FViewportCamera PerspectiveCamera;

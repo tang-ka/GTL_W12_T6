@@ -7,10 +7,10 @@ class USkeletalMesh;
 class FReferenceSkeleton;
 class USkeletalMeshComponent;
 class UAnimDataModel;
-class BoneHierarchyViewerPanel : public UEditorPanel
+class SkeletalMeshViewerPanel : public UEditorPanel
 {
 public:
-    BoneHierarchyViewerPanel();
+    SkeletalMeshViewerPanel();
 
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
@@ -31,7 +31,7 @@ private:
     void RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine);
 
     void RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine); // 
-    
+    void RenderAnimationPanel(float PanelPosX, float PanelTopY, float PanelWidth, float PanelHeight);
     FString GetCleanBoneName(const FString& InFullName);
 
     ID3D11ShaderResourceView* BoneIconSRV = nullptr;

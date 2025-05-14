@@ -4,7 +4,7 @@
 #include "PropertyEditor/ControlEditorPanel.h"
 #include "PropertyEditor/OutlinerEditorPanel.h"
 #include "PropertyEditor/PropertyEditorPanel.h"
-#include "PropertyEditor/BoneHierarchyViewerPanel.h"
+#include "PropertyEditor/SkeletalMeshViewerPanel.h"
 #include "World/World.h"
 void UnrealEd::Initialize()
 {
@@ -18,7 +18,7 @@ void UnrealEd::Initialize()
     Panels["PropertyPanel"] = PropertyPanel;
 
     // TODO : SkeletalViewe 전용 UI 분리
-    auto BoneHierarchyPanel = std::make_shared<BoneHierarchyViewerPanel>();
+    auto BoneHierarchyPanel = std::make_shared<SkeletalMeshViewerPanel>();
     Panels["BoneHierarchyPaenl"] = BoneHierarchyPanel;
 }
 

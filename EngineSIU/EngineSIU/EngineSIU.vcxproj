@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -119,7 +119,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -147,7 +147,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -177,7 +177,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -210,6 +210,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Contents\Actors\PlatformActor.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.cpp" />
     <ClCompile Include="Engine\Source\Contents\Actors\TriggerBox.cpp" />
+    <ClCompile Include="Engine\Source\Contents\AnimInstance\MyAnimInstance.cpp" />
     <ClCompile Include="Engine\Source\Contents\Components\FishBodyComponent.cpp" />
     <ClCompile Include="Engine\Source\Contents\Components\FishTailComponent.cpp" />
     <ClCompile Include="Engine\Source\Contents\Objects\DamageCameraShake.cpp" />
@@ -221,7 +222,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ShowFlags.cpp" />
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\BoneHierarchyViewerPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\SkeletalMeshViewerPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
@@ -282,6 +283,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSingleNodeInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSoundNotify.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimTypes.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.cpp" />
@@ -496,6 +499,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Contents\Actors\PlatformActor.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\SkeletalMeshActorTest.h" />
     <ClInclude Include="Engine\Source\Contents\Actors\TriggerBox.h" />
+    <ClInclude Include="Engine\Source\Contents\AnimInstance\MyAnimInstance.h" />
     <ClInclude Include="Engine\Source\Contents\Components\FishBodyComponent.h" />
     <ClInclude Include="Engine\Source\Contents\Components\FishTailComponent.h" />
     <ClInclude Include="Engine\Source\Contents\Objects\DamageCameraShake.h" />
@@ -510,7 +514,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ShowFlags.h" />
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\BoneHierarchyViewerPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\SkeletalMeshViewerPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.h" />
@@ -603,6 +607,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequence.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSingleNodeInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSoundNotify.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimStateMachine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\SkeletalMeshActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.h" />

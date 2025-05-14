@@ -1,8 +1,9 @@
-#include "BoneHierarchyViewerPanel.h"
+#include "SkeletalMeshViewerPanel.h"
 #include "Engine/EditorEngine.h"
 #include <ReferenceSkeleton.h>
 
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
@@ -10,13 +11,17 @@
 #include "ThirdParty/ImGui/include/ImGui/imgui_neo_sequencer.h"
 #include "Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Engine/Classes/Animation/AnimTypes.h"
+#include "UnrealEd/ImGuiWidget.h"
+#include "Contents/AnimInstance/MyAnimInstance.h"
+#include "Animation/AnimSoundNotify.h"
+#include "SoundManager.h"
 
-BoneHierarchyViewerPanel::BoneHierarchyViewerPanel()
+SkeletalMeshViewerPanel::SkeletalMeshViewerPanel()
 {
     SetSupportedWorldTypes(EWorldTypeBitFlag::SkeletalViewer);
 }
 
-void BoneHierarchyViewerPanel::Render()
+void SkeletalMeshViewerPanel::Render()
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     if (!Engine)
@@ -30,13 +35,13 @@ void BoneHierarchyViewerPanel::Render()
 
     /* Pre Setup */
     float PanelWidth = (Width) * 0.2f - 6.0f;
-    float PanelHeight = (Height) * 0.3f;
+    float PanelHeight = (Height) * 0.7f;
 
     float PanelPosX = (Width) * 0.8f+5.0f;
     float PanelPosY = 5.0f;
 
     ImVec2 MinSize(140, 100);
-    ImVec2 MaxSize(FLT_MAX, 500);
+    ImVec2 MaxSize(FLT_MAX, 1000);
 
     /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
@@ -83,6 +88,8 @@ void BoneHierarchyViewerPanel::Render()
             ImGui::End();
         }
         
+        RenderAnimationPanel(PanelPosX, PanelPosY, PanelWidth, PanelHeight);
+        
         if (CopiedRefSkeleton) {
             RenderAnimationSequence(*CopiedRefSkeleton, Engine);
         }
@@ -118,7 +125,7 @@ void BoneHierarchyViewerPanel::Render()
     }
 }
 
-void BoneHierarchyViewerPanel::OnResize(HWND hWnd)
+void SkeletalMeshViewerPanel::OnResize(HWND hWnd)
 {
     RECT ClientRect;
     GetClientRect(hWnd, &ClientRect);
@@ -126,17 +133,17 @@ void BoneHierarchyViewerPanel::OnResize(HWND hWnd)
     Height = ClientRect.bottom - ClientRect.top;
 }
 
-void BoneHierarchyViewerPanel::SetSkeletalMesh(USkeletalMesh* SMesh)
+void SkeletalMeshViewerPanel::SetSkeletalMesh(USkeletalMesh* SMesh)
 {
     SkeletalMesh = SMesh;
 }
 
-int32 BoneHierarchyViewerPanel::GetSelectedBoneIndex() const
+int32 SkeletalMeshViewerPanel::GetSelectedBoneIndex() const
 {
     return SelectedBoneIndex;
 }
 
-FString BoneHierarchyViewerPanel::GetSelectedBoneName() const
+FString SkeletalMeshViewerPanel::GetSelectedBoneName() const
 {
     if (SelectedBoneIndex == INDEX_NONE || !SkeletalMesh)
         return TEXT("");
@@ -144,22 +151,30 @@ FString BoneHierarchyViewerPanel::GetSelectedBoneName() const
     return RefSkel.RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
 }
 
-void BoneHierarchyViewerPanel::ClearRefSkeletalMeshComponent()
+void SkeletalMeshViewerPanel::ClearRefSkeletalMeshComponent()
 {
     if (RefSkeletalMeshComponent)
     {
         RefSkeletalMeshComponent = nullptr;
     }
+    if (CopiedRefSkeleton)
+    {
+        CopiedRefSkeleton = nullptr;
+    }
+    if (PrevAnimDataModel)
+    {
+        PrevAnimDataModel = nullptr;
+    }
 }
 
-void BoneHierarchyViewerPanel::LoadBoneIcon()
+void SkeletalMeshViewerPanel::LoadBoneIcon()
 {
     BoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/Bone_16x.PNG")->TextureSRV;
     NonWeightBoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/BoneNonWeighted_16x.PNG")->TextureSRV;
 
 }
 
-void BoneHierarchyViewerPanel::CopyRefSkeleton()
+void SkeletalMeshViewerPanel::CopyRefSkeleton()
 {
     UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     const FReferenceSkeleton& OrigRef = Engine->SkeletalMeshViewerWorld
@@ -175,7 +190,7 @@ void BoneHierarchyViewerPanel::CopyRefSkeleton()
     RefSkeletalMeshComponent = Engine->SkeletalMeshViewerWorld->GetSkeletalMeshComponent();
 }
 
-void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine /*, const FString& SearchFilter */)
+void SkeletalMeshViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine /*, const FString& SearchFilter */)
 {
     const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
     const FString& ShortBoneName = GetCleanBoneName(BoneInfo.Name.ToString());
@@ -252,13 +267,29 @@ void BoneHierarchyViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkele
     ImGui::PopID(); // ID 스택 복원
 }
 
-void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
+void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine)
 {
-    if (!RefSkeletalMeshComponent || !RefSkeletalMeshComponent->GetAnimation())
+    UAnimSequence* AnimSeq = nullptr;
+
+    if (RefSkeletalMeshComponent)
+    {
+        if (RefSkeletalMeshComponent->GetAnimation())
+        {
+            AnimSeq = Cast<UAnimSequence>(RefSkeletalMeshComponent->GetAnimation());
+        }
+        else if (RefSkeletalMeshComponent->GetAnimationMode() == EAnimationMode::AnimationBlueprint)
+        {
+            UAnimInstance* AnimInstance = RefSkeletalMeshComponent->GetAnimInstance();
+            if (AnimInstance)
+            {
+                AnimSeq = AnimInstance->GetCurrAnim();
+            }
+        }
+    }
+    if (!AnimSeq)
     {
         return;
     }
-    UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimSequence();
     UAnimDataModel* DataModel = AnimSeq->GetDataModel();
     
     ImVec2 windowSize = ImVec2(Width*0.7, Height*0.3);
@@ -337,33 +368,29 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         if (ImGui::Button("Stop")) {
             RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
         }
-
-        ImGui::Separator();
-
-        if (ImGui::SliderFloat("Play Rate", &PlayRate, 0.1f, 3.0f, "%.1fx"))
-        {
-            RefSkeletalMeshComponent->SetPlayRate(PlayRate);
-        }
-
+        ImGui::SameLine();
         if (ImGui::Checkbox("Looping", &bLooping))
         {
             RefSkeletalMeshComponent->SetLooping(bLooping);
         }
-
+        ImGui::SameLine();
         if (ImGui::Checkbox("Play Reverse", &bReverse))
         {
             RefSkeletalMeshComponent->SetReverse(bReverse);
         }
-
-        if (ImGui::SliderInt("Loop Start", &LoopStart, 0, NumFrames - 2))
-        {
-            RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
-        }
-
-        if (ImGui::SliderInt("Loop End", &LoopEnd, LoopStart + 1, NumFrames - 1))
-        {
-            RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
-        }
+        ImGui::SameLine();
+        FImGuiWidget::DrawDragFloat("Play Rate", PlayRate, 0.f,3.0,84);
+        RefSkeletalMeshComponent->SetPlayRate(PlayRate);
+        ImGui::Separator();
+        ImGui::Text("Frame: %d / %d", CurrentFrame, NumFrames -1);
+        ImGui::SameLine();
+        ImGui::Text("Time: %.2fs", RefSkeletalMeshComponent->GetElapsedTime());
+        ImGui::Separator();
+        FImGuiWidget::DrawDragInt("Loop Start", LoopStart, 0, NumFrames - 2,84);
+        RefSkeletalMeshComponent->SetLoopStartFrame(LoopStart);
+        ImGui::SameLine();
+        FImGuiWidget::DrawDragInt("Loop End", LoopEnd, LoopStart + 1, NumFrames - 1,84);
+        RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
         
         LoopStart = FMath::Clamp(LoopStart, 0, NumFrames - 2);
         LoopEnd = FMath::Clamp(LoopEnd, LoopStart + 1, NumFrames - 1);
@@ -375,11 +402,6 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
             RefSkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
         }
         ImGui::Separator();
-        ImGui::Text("Frame: %d / %d", CurrentFrame, NumFrames -1);
-        ImGui::SameLine();
-        ImGui::Text("Time: %.2fs", RefSkeletalMeshComponent->GetElapsedTime());
-        ImGui::Separator();
-
         if (ImGui::Button("Add New Notify Track")) {
             int32 NewTrackIdx = INDEX_NONE;
             int suffix = 0;
@@ -433,6 +455,9 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                         if (ImGui::MenuItem("Add Notify"))
                         {
                             AnimSeq->AddNotifyEvent(TrackIdx, Elapsed, 0, "New Notify", newIndex);
+                            FAnimNotifyEvent* NotifyEvent = AnimSeq->GetNotifyEvent(newIndex);
+                            if (NotifyEvent->GetNotify())
+                            NotifyEvent->SetAnimNotify(FObjectFactory::ConstructObject<UAnimSoundNotify>(nullptr));
                         }
                         ImGui::EndPopup();
                     }
@@ -506,9 +531,30 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                     }
                     if (ImGui::BeginPopupModal("Edit Notify", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
                     {
+                        static std::string SelectedSoundName;
+                        static int SoundDropdownIndex = 0;
+                        
                         ImGui::Text("Rename Notify and Duration");
                         ImGui::InputText("Name", RenameNotifyBuffer, sizeof(RenameNotifyBuffer) / sizeof(TCHAR));
                         ImGui::InputFloat("Duration", &RenameNotifyDuration, 0.1f);
+
+                        if (UAnimSoundNotify* Notify = Cast<UAnimSoundNotify>(AnimSeq->GetNotifyEvent(SelectedNotifyGlobalIndex_ForRename)->GetNotify()))
+                        {
+                            const auto& SoundNames = FSoundManager::GetInstance().GetAllSoundNames();
+                            if (!SoundNames.IsEmpty())
+                            {
+                                TArray<const char*> SoundNameCStrs;
+                                for (const auto& name : SoundNames)
+                                    SoundNameCStrs.Add(name.c_str());
+
+                                ImGui::Text("Sound");
+                                if (ImGui::Combo("##SoundCombo", &SoundDropdownIndex, SoundNameCStrs.GetData(), static_cast<int>(SoundNameCStrs.Num())))
+                                {
+                                    SelectedSoundName = SoundNames[SoundDropdownIndex];
+                                    Notify->SetSoundName(FName(SelectedSoundName));
+                                }
+                            }
+                        }
 
                         if (ImGui::Button("OK", ImVec2(120, 0)))
                         {
@@ -543,9 +589,6 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
                         }
                         ImGui::EndPopup();
                     }
-
-
-
                     ImGui::EndNeoGroup();
                 }
                 ImGui::PopID();
@@ -558,10 +601,11 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
         }
     }
     ImGui::End();
+    
 }
 
 
-FString BoneHierarchyViewerPanel::GetCleanBoneName(const FString& InFullName)
+FString SkeletalMeshViewerPanel::GetCleanBoneName(const FString& InFullName)
 {
     // 1) 계층 구분자 '|' 뒤 이름만 취하기
     int32 barIdx = InFullName.FindChar(TEXT('|'),
@@ -581,3 +625,158 @@ FString BoneHierarchyViewerPanel::GetCleanBoneName(const FString& InFullName)
     }
     return name;
 }
+
+void SkeletalMeshViewerPanel::RenderAnimationPanel(float PanelPosX, float PanelPosY, float PanelWidth, float PanelHeight)
+{
+    if (!RefSkeletalMeshComponent)
+        return;
+
+    EAnimationMode CurrentAnimationMode = RefSkeletalMeshComponent->GetAnimationMode();
+    FString AnimModeStr = CurrentAnimationMode == EAnimationMode::AnimationBlueprint ? "Animation Instance" : "Animation Asset";
+
+    ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY + PanelHeight + 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(PanelWidth, 250), ImGuiCond_Always);
+
+    if (ImGui::Begin("Anim Settings", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+    {
+        // Animation Mode 선택
+        if (ImGui::BeginCombo("Animation Mode", GetData(AnimModeStr)))
+        {
+            if (ImGui::Selectable("Animation Instance", CurrentAnimationMode == EAnimationMode::AnimationBlueprint))
+            {
+                RefSkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+                CurrentAnimationMode = EAnimationMode::AnimationBlueprint;
+                RefSkeletalMeshComponent->SetAnimClass(UClass::FindClass(FName("UMyAnimInstance")));
+            }
+            if (ImGui::Selectable("Animation Asset", CurrentAnimationMode == EAnimationMode::AnimationSingleNode))
+            {
+                RefSkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+                CurrentAnimationMode = EAnimationMode::AnimationSingleNode;
+            }
+            ImGui::EndCombo();
+        }
+
+        const TMap<FName, FAssetInfo>& AnimAssets = UAssetManager::Get().GetAssetRegistry();
+
+        if (CurrentAnimationMode == EAnimationMode::AnimationBlueprint)
+        {
+            UAnimInstance* AnimInstance = RefSkeletalMeshComponent->GetAnimInstance();
+            if (AnimInstance)
+            {
+                TArray<UClass*> CompClasses;
+                GetChildOfClass(UAnimInstance::StaticClass(), CompClasses);
+                static int SelectedIndex = 0;
+
+                // AnimInstance 목록 텍스트
+                ImGui::Text("AnimInstance List");
+                ImGui::SameLine();
+                if (ImGui::BeginCombo("##AnimInstance List Combo", *CompClasses[SelectedIndex]->GetName()))
+                {
+                    for (int i = 0; i < CompClasses.Num(); ++i)
+                    {
+                        if (CompClasses[i] == UAnimInstance::StaticClass() || CompClasses[i] == UAnimSingleNodeInstance::StaticClass())
+                        {
+                            continue;
+                        }
+                        bool bIsSelected = (SelectedIndex == i);
+                        if (ImGui::Selectable(*CompClasses[i]->GetName(), bIsSelected))
+                        {
+                            SelectedIndex = i;
+                        }
+                        if (bIsSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                if (CompClasses.IsValidIndex(SelectedIndex))
+                {
+                    // CurrAnim (AnimA)
+                    FString CurrAnimName = AnimInstance->GetCurrAnim() ? AnimInstance->GetCurrAnim()->GetName() : TEXT("None");
+                    ImGui::Text("CurrAnim: %s", *CurrAnimName);
+
+                    // PrevAnim (AnimB)
+                    FString PrevAnimName = AnimInstance->GetPrevAnim() ? AnimInstance->GetPrevAnim()->GetName() : TEXT("None");
+                    ImGui::Text("PrevAnim: %s", *PrevAnimName);
+
+
+                    float BlendDuration = AnimInstance->GetBlendDuration();
+                    if (ImGui::SliderFloat("Blend Duration", &BlendDuration, 0.f, 1.f))
+                        AnimInstance->SetBlendDuration(BlendDuration);
+                    
+                    UClass* SelectedClass = CompClasses[SelectedIndex];
+                    if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
+                    {                    
+                        UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
+                        if(ImGui::Button("MoveFast"))
+                        {
+                            AnimStateMachine->MoveFast();
+                        }
+                        ImGui::SameLine();
+                        if(ImGui::Button("MoveSlow"))
+                        {
+                            AnimStateMachine->MoveSlow();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Dance"))
+                        {
+                            AnimStateMachine->Dance();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("StopDance"))
+                        {
+                            AnimStateMachine->StopDance();
+                        }
+                        
+                        AnimInstance->SetAnimState(AnimStateMachine->GetState());
+                        
+                        if (ImGui::Button("[DEBUG] Play Animation"))
+                        {
+                            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(true);
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("[DEBUG] Stop Animation"))
+                        {
+                            RefSkeletalMeshComponent->DEBUG_SetAnimationEnabled(false);
+                        }
+                    }
+                }
+            }
+        }
+        else if (CurrentAnimationMode == EAnimationMode::AnimationSingleNode)
+        {
+            FString SelectedAnimationName = RefSkeletalMeshComponent->GetAnimation()
+                ? RefSkeletalMeshComponent->GetAnimation()->GetName()
+                : TEXT("None");
+
+            ImGui::Text("Anim To Play");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##AnimAsset", *SelectedAnimationName))
+            {
+                if (ImGui::Selectable("None"))
+                    RefSkeletalMeshComponent->SetAnimation(nullptr);
+
+                for (const auto& Pair : AnimAssets)
+                {
+                    if (Pair.Value.AssetType != EAssetType::Animation)
+                        continue;
+
+                    FString FullPath = Pair.Value.PackagePath.ToString() + "/" + Pair.Value.AssetName.ToString();
+                    bool bIsSelected = RefSkeletalMeshComponent->GetAnimation()
+                        && RefSkeletalMeshComponent->GetAnimation()->GetName() == Pair.Value.AssetName.ToString();
+
+                    if (ImGui::Selectable(*Pair.Value.AssetName.ToString(), bIsSelected))
+                    {
+                        UAnimationAsset* AnimAsset = UAssetManager::Get().GetAnimation(FName(*FullPath));
+                        RefSkeletalMeshComponent->SetAnimation(Cast<UAnimSequence>(AnimAsset));
+                    }
+                }
+
+                ImGui::EndCombo();
+            }
+        }
+    }
+    ImGui::End();
+}
+
+

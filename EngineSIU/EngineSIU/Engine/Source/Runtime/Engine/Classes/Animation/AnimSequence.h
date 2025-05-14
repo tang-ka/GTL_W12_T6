@@ -2,6 +2,7 @@
 #include "AnimSequenceBase.h"
 #include "UObject/ObjectMacros.h"
 
+struct FPoseContext;
 struct FTransform;
 struct FBoneAnimationTrack;
 struct FAnimationPoseData;
@@ -15,9 +16,9 @@ public:
     UAnimSequence();
     virtual ~UAnimSequence() override = default;
     
-    virtual void GetAnimationPose(FAnimationPoseData& OutAnimationPoseData, const FAnimExtractContext& ExtractionContext);
+    virtual void GetAnimationPose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext);
     
-    void GetBonePose(FAnimationPoseData& OutAnimationPoseData, const FAnimExtractContext& ExtractionContext);
-
+    void GetBonePose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext);
+    
     virtual void SerializeAsset(FArchive& Ar) override;
 };
