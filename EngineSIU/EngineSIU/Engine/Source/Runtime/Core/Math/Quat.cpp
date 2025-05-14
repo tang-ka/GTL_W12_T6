@@ -133,6 +133,21 @@ FQuat FQuat::operator*(const FQuat& Other) const
     };
 }
 
+FQuat FQuat::operator*(float Scale) const
+{
+    return FQuat{
+        Scale * X,
+        Scale * Y,
+        Scale * Z,
+        Scale * W
+    };
+}
+
+float FQuat::operator|(const FQuat& Other) const
+{
+    return X * Other.X + Y * Other.Y + Z * Other.Z + W * Other.W;
+}
+
 bool FQuat::operator==(const FQuat& Q) const
 {
     return Equals(Q, SMALL_NUMBER);

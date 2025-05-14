@@ -113,8 +113,6 @@ public:
     EAnimationMode GetAnimationMode() const { return AnimationMode; }
 
     virtual void InitAnim();
-
-    UAnimSequence* GetAnimSequence() const {return AnimSequence;}
     
 protected:
     bool NeedToSpawnAnimScriptInstance() const;
@@ -126,13 +124,13 @@ private:
     
     USkeletalMesh* SkeletalMeshAsset;
 
-    UAnimSequence* AnimSequence;
-    
     bool bPlayAnimation;
 
     std::unique_ptr<FSkeletalMeshRenderData> CPURenderData;
 
     static bool bCPUSkinning;
+
+    void CPUSkinning();
 
 public:
     TSubclassOf<UAnimInstance> AnimClass;
@@ -140,4 +138,10 @@ public:
     UAnimInstance* AnimScriptInstance;
 
     UAnimSingleNodeInstance* GetSingleNodeInstance() const;
+
+    void SetAnimClass(UClass* NewClass);
+    
+    UClass* GetAnimClass();
+    
+    void SetAnimInstanceClass(class UClass* NewClass);
 };

@@ -9,6 +9,7 @@
 #include "Actors/Player.h"
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/Light/LightComponent.h"
@@ -27,6 +28,7 @@
 #include "Components/ProjectileMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Contents/AnimInstance/MyAnimInstance.h"
 #include "Engine/AssetManager.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Asset/SkeletalMeshAsset.h"
@@ -467,7 +469,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         // Begin Animation
         ImGui::Text("Animation Mode");
         ImGui::SameLine();
-        
         EAnimationMode CurrentAnimationMode = SkeletalMeshComp->GetAnimationMode();
         FString AnimModeStr = CurrentAnimationMode == EAnimationMode::AnimationBlueprint ? "Animation Instance" : "Animation Asset";
         if (ImGui::BeginCombo("##AnimationMode", GetData(AnimModeStr), ImGuiComboFlags_None))
@@ -475,6 +476,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (ImGui::Selectable("Animation Instance", CurrentAnimationMode == EAnimationMode::AnimationBlueprint))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+                SkeletalMeshComp->SetAnimClass(UClass::FindClass(FName("UMyAnimInstance")));
             }
             if (ImGui::Selectable("Animation Asset", CurrentAnimationMode == EAnimationMode::AnimationSingleNode))
             {
@@ -483,10 +485,140 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             ImGui::EndCombo();
         }
 
-        CurrentAnimationMode = SkeletalMeshComp->GetAnimationMode();
         if (CurrentAnimationMode == EAnimationMode::AnimationBlueprint)
         {
-            
+            TArray<UClass*> CompClasses;
+            GetChildOfClass(UAnimInstance::StaticClass(), CompClasses);
+            static int SelectedIndex = 0;
+
+            // AnimInstance 목록 텍스트
+            ImGui::Text("AnimInstance List");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##AnimInstance List Combo", *CompClasses[SelectedIndex]->GetName()))
+            {
+                for (int i = 0; i < CompClasses.Num(); ++i)
+                {
+                    if (CompClasses[i] == UAnimInstance::StaticClass() || CompClasses[i] == UAnimSingleNodeInstance::StaticClass())
+                        continue;
+                    bool bIsSelected = (SelectedIndex == i);
+                    if (ImGui::Selectable(*CompClasses[i]->GetName(), bIsSelected))
+                    {
+                        SelectedIndex = i;
+                    }
+                    if (bIsSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            if (CompClasses.IsValidIndex(SelectedIndex))
+            {
+                UClass* SelectedClass = CompClasses[SelectedIndex];
+                UMyAnimInstance* AnimInstance = Cast<UMyAnimInstance>(SkeletalMeshComp->GetAnimInstance()); //형 변환 하드코딩 말고 가능한지 몰라서 일단 둠
+                if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
+                {
+                    // 블렌딩 알파 텍스트
+                    ImGui::Text("Blend Alpha");
+                    ImGui::SameLine();
+                    static float BlendAlpha = 0.0f;
+                    if (ImGui::SliderFloat("##BlendAlphaSlider", &BlendAlpha, 0.0f, 1.0f, "%.2f"))
+                    {
+                        AnimInstance->BlendAlpha = BlendAlpha;
+                    }
+
+                    // AnimA 콤보박스 텍스트
+                    ImGui::Text("AnimA");
+                    ImGui::SameLine();
+                    const TMap<FName, FAssetInfo> AnimationAssets = UAssetManager::Get().GetAssetRegistry();
+                    FString SelectedAnimAName = AnimInstance->AnimA ? AnimInstance->AnimA->GetName() : TEXT("None");
+                    if (ImGui::BeginCombo("##AnimA Combo", *SelectedAnimAName))
+                    {
+                        if (ImGui::Selectable("None", !AnimInstance->AnimA))
+                        {
+                            AnimInstance->AnimA = nullptr;
+                        }
+                        for (const auto& Asset : AnimationAssets)
+                        {
+                            if (Asset.Value.AssetType != EAssetType::Animation)
+                                continue;
+
+                            FString AssetName = Asset.Value.AssetName.ToString();
+                            bool bIsSelected = (AnimInstance->AnimA && AnimInstance->AnimA->GetName() == AssetName);
+                            if (ImGui::Selectable(*AssetName, bIsSelected))
+                            {
+                                FString AssetPath = Asset.Value.PackagePath.ToString() + "/" + AssetName;
+                                UAnimationAsset* Animation = UAssetManager::Get().GetAnimation(FName(*AssetPath));
+                                if (Animation)
+                                {
+                                    AnimInstance->AnimA = Cast<UAnimSequence>(Animation);
+                                }
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    // AnimB 콤보박스 텍스트
+                    ImGui::Text("AnimB");
+                    ImGui::SameLine();
+                    FString SelectedAnimBName = AnimInstance->AnimB ? AnimInstance->AnimB->GetName() : TEXT("None");
+                    if (ImGui::BeginCombo("##AnimB Combo", *SelectedAnimBName))
+                    {
+                        if (ImGui::Selectable("None", !AnimInstance->AnimB))
+                        {
+                            AnimInstance->AnimB = nullptr;
+                        }
+                        for (const auto& Asset : AnimationAssets)
+                        {
+                            if (Asset.Value.AssetType != EAssetType::Animation)
+                                continue;
+
+                            FString AssetName = Asset.Value.AssetName.ToString();
+                            bool bIsSelected = (AnimInstance->AnimB && AnimInstance->AnimB->GetName() == AssetName);
+                            if (ImGui::Selectable(*AssetName, bIsSelected))
+                            {
+                                FString AssetPath = Asset.Value.PackagePath.ToString() + "/" + AssetName;
+                                UAnimationAsset* Animation = UAssetManager::Get().GetAnimation(FName(*AssetPath));
+                                if (Animation)
+                                {
+                                    AnimInstance->AnimB = Cast<UAnimSequence>(Animation);
+                                }
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    
+                    bool bLooping = AnimInstance->IsLooping();
+                    if (ImGui::Checkbox("Looping", &bLooping))
+                    {
+                        AnimInstance->SetLooping(bLooping);
+                    }
+
+                    bool bPlaying = AnimInstance->IsPlaying();
+                    if (ImGui::Checkbox("Playing", &bPlaying))
+                    {
+                        if (bPlaying)
+                        {
+                            AnimInstance->SetPlaying(true);
+                        }
+                        else
+                        {
+                            AnimInstance->SetPlaying(false);
+                        }
+                    }
+                    
+                    if (ImGui::Button("[DEBUG] Play Animation"))
+                    {
+                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(true);
+                    }
+        
+                    ImGui::SameLine();
+        
+                    if (ImGui::Button("[DEBUG] Stop Animation"))
+                    {
+                        SkeletalMeshComp->DEBUG_SetAnimationEnabled(false);
+                    }
+                }
+            }
         }
         else
         {

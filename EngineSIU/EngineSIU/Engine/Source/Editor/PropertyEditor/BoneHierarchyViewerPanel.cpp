@@ -150,6 +150,14 @@ void BoneHierarchyViewerPanel::ClearRefSkeletalMeshComponent()
     {
         RefSkeletalMeshComponent = nullptr;
     }
+    if (CopiedRefSkeleton)
+    {
+        CopiedRefSkeleton = nullptr;
+    }
+    if (PrevAnimDataModel)
+    {
+        PrevAnimDataModel = nullptr;
+    }
 }
 
 void BoneHierarchyViewerPanel::LoadBoneIcon()
@@ -258,7 +266,7 @@ void BoneHierarchyViewerPanel::RenderAnimationSequence(const FReferenceSkeleton&
     {
         return;
     }
-    UAnimSequence* AnimSeq = RefSkeletalMeshComponent->GetAnimSequence();
+    UAnimSequence* AnimSeq = Cast<UAnimSequence>(RefSkeletalMeshComponent->GetAnimation());
     UAnimDataModel* DataModel = AnimSeq->GetDataModel();
     
     ImVec2 windowSize = ImVec2(Width*0.7, Height*0.3);
