@@ -221,6 +221,8 @@ void UAssetManager::LoadContentFiles()
             HandleFBX(AssetInfo);
         }
     }
+
+    OutputDebugStringA(std::format("FBX Load Time: {:.2f} s\nBinary Load Time: {:.2f} s", FbxLoadTime / 1000.0, BinaryLoadTime / 1000.0).c_str());
 }
 
 void UAssetManager::HandleFBX(const FAssetInfo& AssetInfo)
@@ -255,19 +257,44 @@ void UAssetManager::HandleFBX(const FAssetInfo& AssetInfo)
             bIsBinaryValid = true;
         }
     }
-
+    
     FAssetLoadResult Result;
     if (bIsBinaryValid)
     {
+        LARGE_INTEGER StartTime;
+        LARGE_INTEGER EndTime;
+        
+        QueryPerformanceCounter(&StartTime);
+
         // bin 파일 읽기
         bIsBinaryValid = LoadFbxBinary(BinFilePath, Result, BaseName, FolderPath);
+        
+        QueryPerformanceCounter(&EndTime);
+
+        LARGE_INTEGER Frequency;
+        QueryPerformanceFrequency(&Frequency);
+        if (bIsBinaryValid)
+        {
+            BinaryLoadTime += (static_cast<double>(EndTime.QuadPart - StartTime.QuadPart) * 1000.f / static_cast<double>(Frequency.QuadPart));
+        }
     }
     
     if (!bIsBinaryValid)
     {
+        LARGE_INTEGER StartTime;
+        LARGE_INTEGER EndTime;
+        
+        QueryPerformanceCounter(&StartTime);
+        
         // FBX 로더로 파일 읽기
         FFbxLoader Loader;
         Result = Loader.LoadFBX(AssetInfo.SourceFilePath);
+
+        QueryPerformanceCounter(&EndTime);
+
+        LARGE_INTEGER Frequency;
+        QueryPerformanceFrequency(&Frequency);
+        FbxLoadTime += (static_cast<double>(EndTime.QuadPart - StartTime.QuadPart) * 1000.f / static_cast<double>(Frequency.QuadPart));
     }
 
     // 로드된 에셋 등록
