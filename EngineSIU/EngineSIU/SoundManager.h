@@ -69,7 +69,6 @@ public:
 
     void Update() {
         system->update();
-
         // ä�� ����Ʈ���� ����� ���� ä�� ����
         activeChannels.erase(
             std::remove_if(activeChannels.begin(), activeChannels.end(),
