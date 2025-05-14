@@ -69,9 +69,6 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& Ou
         BlendAlpha = 1.f;
     }
     
-    FPoseContext PrevPose(this);
-    FPoseContext CurrPose(this);
-
     // TODO: FPoseContext의 BoneContainer로 바꾸기
     const FReferenceSkeleton& RefSkeleton = this->GetCurrentSkeleton()->GetReferenceSkeleton();
     
@@ -79,6 +76,9 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& Ou
     {
         return;
     }
+    
+    FPoseContext PrevPose(this);
+    FPoseContext CurrPose(this);
     
     PrevPose.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
     CurrPose.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
