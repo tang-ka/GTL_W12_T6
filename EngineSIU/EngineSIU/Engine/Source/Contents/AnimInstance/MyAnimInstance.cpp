@@ -11,18 +11,18 @@
 #include "UObject/ObjectFactory.h"
 
 UMyAnimInstance::UMyAnimInstance()
-    : CurrentAsset(nullptr)
+    : AnimA(nullptr)
+    , AnimB(nullptr)
+    , CurrentAsset(nullptr)
     , ElapsedTime(0.f)
+    , PreviousTime(0.f)
     , PlayRate(1.f)
     , bLooping(true)
     , bPlaying(true)
     , bReverse(false)
-    , PreviousTime(0.f)
     , LoopStartFrame(0)
     , LoopEndFrame(0)
     , CurrentKey(0)
-    , AnimA(nullptr)
-    , AnimB(nullptr)
 {
     StateMachine = FObjectFactory::ConstructObject<UAnimStateMachine>(this);
 }
@@ -68,7 +68,9 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& Ou
     USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();
     
     if (!AnimA || !AnimB || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
+    {
         return;
+    }
 
     ElapsedTime += DeltaSeconds;
     

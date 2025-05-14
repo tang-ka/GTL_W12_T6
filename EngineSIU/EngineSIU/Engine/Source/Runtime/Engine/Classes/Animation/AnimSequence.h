@@ -19,4 +19,6 @@ public:
     virtual void GetAnimationPose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext);
     
     void GetBonePose(FPoseContext& OutPoseContext, const FAnimExtractContext& ExtractionContext);
+    
+    virtual void SerializeAsset(FArchive& Ar) override;
 };

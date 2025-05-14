@@ -24,6 +24,12 @@ struct FMeshBoneInfo
     {
         return(Name == B.Name);
     }
+
+    friend FArchive& operator<<(FArchive& Ar, FMeshBoneInfo& Info)
+    {
+        return Ar << Info.Name 
+                  << Info.ParentIndex;
+    }
 };
 
 struct FReferenceSkeleton
@@ -117,4 +123,11 @@ public:
         return GetParentIndexInternal(BoneIndex, RawRefBoneInfo);
     }
 
+    void Serialize(FArchive& Ar)
+    {
+        Ar << RawRefBoneInfo
+           << RawRefBonePose
+           << InverseBindPoseMatrices
+           << RawNameToIndexMap;
+    }
 };

@@ -104,4 +104,11 @@ struct FTransform
     static void BlendFromIdentityAndAccumulate(FTransform& OutTransform, const FTransform& InTransform, float Alpha);
     
     void AccumulateWithShortestRotation(const FTransform& DeltaAtom, float BlendWeight);
+
+    inline friend FArchive& operator<<(FArchive& Ar, FTransform& Transform)
+    {
+        return Ar << Transform.Translation
+                  << Transform.Rotation
+                  << Transform.Scale3D;
+    }
 };

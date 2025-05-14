@@ -24,6 +24,9 @@ public:
     }
 
     int32 FindBoneIndex(const FName& BoneName) const;
+
+    virtual void SerializeAsset(FArchive& Ar) override;
+
 protected:
     FReferenceSkeleton ReferenceSkeleton;
     

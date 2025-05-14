@@ -10,3 +10,8 @@ UObject* UMaterial::Duplicate(UObject* InOuter)
 
     return NewMaterial;
 }
+
+void UMaterial::SerializeAsset(FArchive& Ar)
+{
+    MaterialInfo.Serialize(Ar);
+}

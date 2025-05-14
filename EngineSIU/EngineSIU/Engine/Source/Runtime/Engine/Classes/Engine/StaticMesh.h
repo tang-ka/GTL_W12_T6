@@ -25,6 +25,8 @@ public:
 
     void SetData(FStaticMeshRenderData* InRenderData);
 
+    virtual void SerializeAsset(FArchive& Ar) override;
+
 private:
     FStaticMeshRenderData* RenderData = nullptr;
     TArray<FStaticMaterial*> materials;

@@ -23,9 +23,10 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
     
     int32 NumBones = OutPoseContext.Pose.GetNumBones();
     
-    float TargetKeyFrame = ExtractionContext.CurrentTime * static_cast<float>(FrameRate);
+    float TargetKeyFrame = static_cast<float>(ExtractionContext.CurrentTime) * static_cast<float>(FrameRate);
     const int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (NumberOfFrames - 1);
-    float Alpha = TargetKeyFrame - static_cast<float>(CurrentFrame);
+    float Alpha = TargetKeyFrame - static_cast<float>(static_cast<int32>(TargetKeyFrame));
+    
     FFrameTime FrameTime(CurrentFrame, Alpha);
 
     for (int32 BoneIndex = 0; BoneIndex < NumBones; ++BoneIndex)
@@ -35,3 +36,7 @@ void UAnimSequence::GetBonePose(FPoseContext& OutPoseContext, const FAnimExtract
     }
 }
 
+void UAnimSequence::SerializeAsset(FArchive& Ar)
+{
+    Super::SerializeAsset(Ar);
+}
