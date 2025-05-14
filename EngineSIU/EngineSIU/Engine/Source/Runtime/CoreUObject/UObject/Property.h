@@ -164,6 +164,8 @@ struct FNumericProperty : public FProperty
         : FProperty(InOwnerClass, InPropertyName, InType, InSize, InOffset, InFlags)
     {
     }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
 };
 
 struct FInt8Property : public FNumericProperty
@@ -339,6 +341,7 @@ struct FBoolProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -355,6 +358,7 @@ struct FStrProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -386,6 +390,7 @@ struct FVector2DProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -402,6 +407,7 @@ struct FVectorProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -418,6 +424,7 @@ struct FVector4Property : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -434,6 +441,7 @@ struct FRotatorProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -450,6 +458,7 @@ struct FQuatProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -498,6 +507,7 @@ struct FColorProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -514,6 +524,7 @@ struct FLinearColorProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -548,85 +559,88 @@ struct TArrayProperty : public FProperty
 
         if (ImGui::TreeNode(PropertyLabel))
         {
-            TArray<ElementType>* Data = static_cast<TArray<ElementType>*>(DataPtr);
-
-            const ImGuiIO& IO = ImGui::GetIO();
-            ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
-
-            ImGui::Text("Num of Elements: %d", Data->Num());
-
-            ImGui::SameLine();
-            ImGui::PushFont(IconFont);
-            if (ImGui::Button("\ue9c8"))
+            ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
             {
-                Data->AddDefaulted();
-            }
-            ImGui::PopFont();
-            ImGui::SetItemTooltip("Add Element");
+                TArray<ElementType>* Data = static_cast<TArray<ElementType>*>(DataPtr);
 
-            ImGui::SameLine();
-            ImGui::PushFont(IconFont);
-            if (ImGui::Button("\ue9f6"))
-            {
-                Data->Empty();
-            }
-            ImGui::PopFont();
-            ImGui::SetItemTooltip("Remove All Elements");
+                const ImGuiIO& IO = ImGui::GetIO();
+                ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
 
-            TQueue<TPair<EArrayElementOption, int32>> OptionQueue;
-            for (int32 Index = 0; Index < Data->Num(); ++Index)
-            {
-                ElementProperty->DisplayRawDataInImGui(std::format("Idx [{}]", Index).c_str(), &((*Data)[Index]));
+                ImGui::Text("Num of Elements: %d", Data->Num());
 
-                std::string PopupLabel = std::format("ArrayElementOption##{}", Index);
                 ImGui::SameLine();
-                if (ImGui::Button(std::format("...##{}", Index).c_str()))
+                ImGui::PushFont(IconFont);
+                if (ImGui::Button("\ue9c8"))
                 {
-                    ImGui::OpenPopup(PopupLabel.c_str());
+                    Data->AddDefaulted();
+                }
+                ImGui::PopFont();
+                ImGui::SetItemTooltip("Add Element");
+
+                ImGui::SameLine();
+                ImGui::PushFont(IconFont);
+                if (ImGui::Button("\ue9f6"))
+                {
+                    Data->Empty();
+                }
+                ImGui::PopFont();
+                ImGui::SetItemTooltip("Remove All Elements");
+
+                TQueue<TPair<EArrayElementOption, int32>> OptionQueue;
+                for (int32 Index = 0; Index < Data->Num(); ++Index)
+                {
+                    ElementProperty->DisplayRawDataInImGui(std::format("Idx [{}]", Index).c_str(), &((*Data)[Index]));
+
+                    std::string PopupLabel = std::format("ArrayElementOption##{}", Index);
+                    ImGui::SameLine();
+                    if (ImGui::Button(std::format("...##{}", Index).c_str()))
+                    {
+                        ImGui::OpenPopup(PopupLabel.c_str());
+                    }
+
+                    if (ImGui::BeginPopup(PopupLabel.c_str()))
+                    {
+                        if (ImGui::Selectable("Insert"))
+                        {
+                            OptionQueue.Enqueue(MakePair(EArrayElementOption::Insert, Index));
+                        }
+                        else if (ImGui::Selectable("Remove"))
+                        {
+                            OptionQueue.Enqueue(MakePair(EArrayElementOption::Remove, Index));
+                        }
+                        else if (ImGui::Selectable("Duplicate"))
+                        {
+                            OptionQueue.Enqueue(MakePair(EArrayElementOption::Duplicate, Index));
+                        }
+                        ImGui::EndPopup();
+                    }
                 }
 
-                if (ImGui::BeginPopup(PopupLabel.c_str()))
+                TPair<EArrayElementOption, int32> Option;
+                while (OptionQueue.Dequeue(Option))
                 {
-                    if (ImGui::Selectable("Insert"))
+                    switch (Option.Key)
                     {
-                        OptionQueue.Enqueue(MakePair(EArrayElementOption::Insert, Index));
-                    }
-                    else if (ImGui::Selectable("Remove"))
+                    case EArrayElementOption::Insert:
                     {
-                        OptionQueue.Enqueue(MakePair(EArrayElementOption::Remove, Index));
+                        Data->Insert(ElementType{}, Option.Value);
+                        break;
                     }
-                    else if (ImGui::Selectable("Duplicate"))
+                    case EArrayElementOption::Remove:
                     {
-                        OptionQueue.Enqueue(MakePair(EArrayElementOption::Duplicate, Index));
+                        Data->RemoveAt(Option.Value);
+                        break;
                     }
-                    ImGui::EndPopup();
+                    case EArrayElementOption::Duplicate:
+                    {
+                        Data->Insert((*Data)[Option.Value], Option.Value);
+                    }
+                    default:
+                        break;
+                    }
                 }
             }
-
-            TPair<EArrayElementOption, int32> Option;
-            while (OptionQueue.Dequeue(Option))
-            {
-                switch (Option.Key)
-                {
-                case EArrayElementOption::Insert:
-                {
-                    Data->Insert(ElementType{}, Option.Value);
-                    break;
-                }
-                case EArrayElementOption::Remove:
-                {
-                    Data->RemoveAt(Option.Value);
-                    break;
-                }
-                case EArrayElementOption::Duplicate:
-                {
-                    Data->Insert((*Data)[Option.Value], Option.Value);
-                }
-                default:
-                    break;
-                }
-            }
-
+            ImGui::EndDisabled();
             ImGui::TreePop();
         }
     }
@@ -665,118 +679,121 @@ struct TMapProperty : public FProperty
 
         if (ImGui::TreeNode(PropertyLabel))
         {
-            const ImGuiIO& IO = ImGui::GetIO();
-            ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
-
-            ImGui::Text("Num of Elements: %d", Data->Num());
-
-            ImGui::SameLine();
-            ImGui::PushFont(IconFont);
-            if (ImGui::Button("\ue9c8"))
+            ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
             {
-                const KeyType DefaultKeyToAdd = KeyType{};
-                if (Data->Contains(DefaultKeyToAdd))
-                {
-                    ImGui::OpenPopup("Duplicate Key Warning");
-                }
-                else
-                {
-                    Data->Add(DefaultKeyToAdd, ValueType{});
-                }
-            }
-            ImGui::PopFont();
-            ImGui::SetItemTooltip("Add Element");
+                const ImGuiIO& IO = ImGui::GetIO();
+                ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
 
-            // --- 중복 키 경고 팝업 정의 ---
-            // "Duplicate Key Warning" ID는 위 ImGui::OpenPopup 호출과 일치해야 함
-            if (ImGui::BeginPopupModal("Duplicate Key Warning", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Text("The key you are trying to add already exists in the map.\nPlease use a unique key.");
-                ImGui::Separator();
+                ImGui::Text("Num of Elements: %d", Data->Num());
 
-                // 팝업을 닫는 OK 버튼
-                if (ImGui::Button("OK", ImVec2(120, 0)))
-                {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SetItemDefaultFocus(); // OK 버튼에 기본 포커스
-                ImGui::EndPopup();
-            }
-            // --- 중복 키 경고 팝업 정의 ---
-
-            ImGui::SameLine();
-            ImGui::PushFont(IconFont);
-            if (ImGui::Button("\ue9f6"))
-            {
-                Data->Empty();
-            }
-            ImGui::PopFont();
-            ImGui::SetItemTooltip("Remove All Elements");
-
-            TQueue<TPair<EMapElementOption, KeyType>> OptionQueue;
-            for (int32 Idx = 0; auto& Pair : *Data)
-            {
-                ImGui::PushID(&Pair);
-
-                const bool bIsOpen = ImGui::TreeNode(std::format("Elem [{}]", Idx).c_str());
-
-                std::string PopupLabel = std::format("MapElementOption##{}", Idx);
                 ImGui::SameLine();
-                if (ImGui::Button(std::format("...##{}", Idx).c_str()))
+                ImGui::PushFont(IconFont);
+                if (ImGui::Button("\ue9c8"))
                 {
-                    ImGui::OpenPopup(PopupLabel.c_str());
-                }
-
-                if (ImGui::BeginPopup(PopupLabel.c_str()))
-                {
-                    if (ImGui::Selectable("Remove"))
+                    const KeyType DefaultKeyToAdd = KeyType{};
+                    if (Data->Contains(DefaultKeyToAdd))
                     {
-                        OptionQueue.Enqueue(MakePair(EMapElementOption::Remove, Pair.Key));
+                        ImGui::OpenPopup("Duplicate Key Warning");
                     }
+                    else
+                    {
+                        Data->Add(DefaultKeyToAdd, ValueType{});
+                    }
+                }
+                ImGui::PopFont();
+                ImGui::SetItemTooltip("Add Element");
+
+                // --- 중복 키 경고 팝업 정의 ---
+                // "Duplicate Key Warning" ID는 위 ImGui::OpenPopup 호출과 일치해야 함
+                if (ImGui::BeginPopupModal("Duplicate Key Warning", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+                {
+                    ImGui::Text("The key you are trying to add already exists in the map.\nPlease use a unique key.");
+                    ImGui::Separator();
+
+                    // 팝업을 닫는 OK 버튼
+                    if (ImGui::Button("OK", ImVec2(120, 0)))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SetItemDefaultFocus(); // OK 버튼에 기본 포커스
                     ImGui::EndPopup();
                 }
+                // --- 중복 키 경고 팝업 정의 ---
 
-                if (bIsOpen)
+                ImGui::SameLine();
+                ImGui::PushFont(IconFont);
+                if (ImGui::Button("\ue9f6"))
                 {
-                    constexpr std::string_view KeyTypeNameView = GetTypeName<KeyType>();
-                    std::string KeyTypeName = std::string(KeyTypeNameView);
-                    if (ImGui::TreeNode(std::format("Key ({})", KeyTypeName).c_str()))
+                    Data->Empty();
+                }
+                ImGui::PopFont();
+                ImGui::SetItemTooltip("Remove All Elements");
+
+                TQueue<TPair<EMapElementOption, KeyType>> OptionQueue;
+                for (int32 Idx = 0; auto& Pair : *Data)
+                {
+                    ImGui::PushID(&Pair);
+
+                    const bool bIsOpen = ImGui::TreeNode(std::format("Elem [{}]", Idx).c_str());
+
+                    std::string PopupLabel = std::format("MapElementOption##{}", Idx);
+                    ImGui::SameLine();
+                    if (ImGui::Button(std::format("...##{}", Idx).c_str()))
                     {
-                        // TODO: 겹치는 Key에 대해서는 나중에 수정해야함
-                        KeyProperty->DisplayRawDataInImGui("", &const_cast<KeyType&>(Pair.Key));
+                        ImGui::OpenPopup(PopupLabel.c_str());
+                    }
+
+                    if (ImGui::BeginPopup(PopupLabel.c_str()))
+                    {
+                        if (ImGui::Selectable("Remove"))
+                        {
+                            OptionQueue.Enqueue(MakePair(EMapElementOption::Remove, Pair.Key));
+                        }
+                        ImGui::EndPopup();
+                    }
+
+                    if (bIsOpen)
+                    {
+                        constexpr std::string_view KeyTypeNameView = GetTypeName<KeyType>();
+                        std::string KeyTypeName = std::string(KeyTypeNameView);
+                        if (ImGui::TreeNode(std::format("Key ({})", KeyTypeName).c_str()))
+                        {
+                            // TODO: 겹치는 Key에 대해서는 나중에 수정해야함
+                            KeyProperty->DisplayRawDataInImGui("", &const_cast<KeyType&>(Pair.Key));
+                            ImGui::TreePop();
+                        }
+
+                        constexpr std::string_view ValueTypeNameView = GetTypeName<ValueType>();
+                        std::string ValueTypeName = std::string(ValueTypeNameView);
+                        if (ImGui::TreeNode(std::format("Value ({})", ValueTypeName).c_str()))
+                        {
+                            ValueProperty->DisplayRawDataInImGui("##Value", &Pair.Value);
+                            ImGui::TreePop();
+                        }
+
                         ImGui::TreePop();
                     }
 
-                    constexpr std::string_view ValueTypeNameView = GetTypeName<ValueType>();
-                    std::string ValueTypeName = std::string(ValueTypeNameView);
-                    if (ImGui::TreeNode(std::format("Value ({})", ValueTypeName).c_str()))
+                    ImGui::PopID();
+                    ++Idx;
+                }
+
+                TPair<EMapElementOption, KeyType> Option;
+                while (OptionQueue.Dequeue(Option))
+                {
+                    switch (Option.Key)
                     {
-                        ValueProperty->DisplayRawDataInImGui("##Value", &Pair.Value);
-                        ImGui::TreePop();
+                    case EMapElementOption::Remove:
+                    {
+                        Data->Remove(Option.Value);
+                        break;
                     }
-
-                    ImGui::TreePop();
-                }
-
-                ImGui::PopID();
-                ++Idx;
-            }
-
-            TPair<EMapElementOption, KeyType> Option;
-            while (OptionQueue.Dequeue(Option))
-            {
-                switch (Option.Key)
-                {
-                case EMapElementOption::Remove:
-                {
-                    Data->Remove(Option.Value);
-                    break;
-                }
-                default:
-                    break;
+                    default:
+                        break;
+                    }
                 }
             }
-
+            ImGui::EndDisabled();
             ImGui::TreePop();
         }
     }
@@ -813,93 +830,96 @@ struct TSetProperty : public FProperty
     
         if (ImGui::TreeNode(PropertyLabel))
         {
-            const ImGuiIO& IO = ImGui::GetIO();
-            ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
-    
-            ImGui::Text("Num of Elements: %d", Data->Num());
-    
-            ImGui::SameLine();
-            ImGui::PushFont(IconFont);
-            if (ImGui::Button("\ue9c8"))
+            ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
             {
-                const ElementType DefaultElementToAdd = ElementType{};
-                if (Data->Contains(DefaultElementToAdd))
-                {
-                    ImGui::OpenPopup("Duplicate Element Warning");
-                }
-                else
-                {
-                    Data->Add(DefaultElementToAdd);
-                }
-            }
-            ImGui::PopFont();
-            ImGui::SetItemTooltip("Add Element");
+                const ImGuiIO& IO = ImGui::GetIO();
+                ImFont* IconFont = IO.Fonts->Fonts[1]; // FEATHER_FONT = 1
     
-            if (ImGui::BeginPopupModal("Duplicate Element Warning", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Text("The element you are trying to add already exists in the set.\nPlease use a unique element.");
-                ImGui::Separator();
+                ImGui::Text("Num of Elements: %d", Data->Num());
     
-                if (ImGui::Button("OK", ImVec2(120, 0)))
-                {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SetItemDefaultFocus();
-                ImGui::EndPopup();
-            }
-    
-            ImGui::SameLine();
-            ImGui::PushFont(IconFont);
-            if (ImGui::Button("\ue9f6"))
-            {
-                Data->Empty();
-            }
-            ImGui::PopFont();
-            ImGui::SetItemTooltip("Remove All Elements");
-    
-            TQueue<TPair<ESetElementOption, ElementType>> OptionQueue;
-            for (int32 Idx = 0; auto& Element : *Data)
-            {
-                ImGui::PushID(&Element);
-
-                // TODO: 겹치는 Key에 대해서는 나중에 수정해야함
-                ElementProperty->DisplayRawDataInImGui(std::format("Elem [{}]", Idx).c_str(), &const_cast<ElementType&>(Element));
-
-                std::string PopupLabel = std::format("SetElementOption##{}", Idx);
                 ImGui::SameLine();
-                if (ImGui::Button(std::format("...##{}", Idx).c_str()))
+                ImGui::PushFont(IconFont);
+                if (ImGui::Button("\ue9c8"))
                 {
-                    ImGui::OpenPopup(PopupLabel.c_str());
-                }
-    
-                if (ImGui::BeginPopup(PopupLabel.c_str()))
-                {
-                    if (ImGui::Selectable("Remove"))
+                    const ElementType DefaultElementToAdd = ElementType{};
+                    if (Data->Contains(DefaultElementToAdd))
                     {
-                        OptionQueue.Enqueue(MakePair(ESetElementOption::Remove, Element));
+                        ImGui::OpenPopup("Duplicate Element Warning");
                     }
+                    else
+                    {
+                        Data->Add(DefaultElementToAdd);
+                    }
+                }
+                ImGui::PopFont();
+                ImGui::SetItemTooltip("Add Element");
+    
+                if (ImGui::BeginPopupModal("Duplicate Element Warning", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+                {
+                    ImGui::Text("The element you are trying to add already exists in the set.\nPlease use a unique element.");
+                    ImGui::Separator();
+    
+                    if (ImGui::Button("OK", ImVec2(120, 0)))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SetItemDefaultFocus();
                     ImGui::EndPopup();
                 }
     
-                ImGui::PopID();
-                ++Idx;
-            }
-    
-            TPair<ESetElementOption, ElementType> Option;
-            while (OptionQueue.Dequeue(Option))
-            {
-                switch (Option.Key)
+                ImGui::SameLine();
+                ImGui::PushFont(IconFont);
+                if (ImGui::Button("\ue9f6"))
                 {
-                case ESetElementOption::Remove:
-                {
-                    Data->Remove(Option.Value);
-                    break;
+                    Data->Empty();
                 }
-                default:
-                    break;
+                ImGui::PopFont();
+                ImGui::SetItemTooltip("Remove All Elements");
+    
+                TQueue<TPair<ESetElementOption, ElementType>> OptionQueue;
+                for (int32 Idx = 0; auto& Element : *Data)
+                {
+                    ImGui::PushID(&Element);
+
+                    // TODO: 겹치는 Key에 대해서는 나중에 수정해야함
+                    ElementProperty->DisplayRawDataInImGui(std::format("Elem [{}]", Idx).c_str(), &const_cast<ElementType&>(Element));
+
+                    std::string PopupLabel = std::format("SetElementOption##{}", Idx);
+                    ImGui::SameLine();
+                    if (ImGui::Button(std::format("...##{}", Idx).c_str()))
+                    {
+                        ImGui::OpenPopup(PopupLabel.c_str());
+                    }
+    
+                    if (ImGui::BeginPopup(PopupLabel.c_str()))
+                    {
+                        if (ImGui::Selectable("Remove"))
+                        {
+                            OptionQueue.Enqueue(MakePair(ESetElementOption::Remove, Element));
+                        }
+                        ImGui::EndPopup();
+                    }
+    
+                    ImGui::PopID();
+                    ++Idx;
+                }
+    
+                TPair<ESetElementOption, ElementType> Option;
+                while (OptionQueue.Dequeue(Option))
+                {
+                    switch (Option.Key)
+                    {
+                    case ESetElementOption::Remove:
+                    {
+                        Data->Remove(Option.Value);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
                 }
             }
-    
+            ImGui::EndDisabled();
             ImGui::TreePop();
         }
     }
@@ -919,6 +939,15 @@ struct TEnumProperty : public FProperty
     )
         : FProperty(InOwnerClass, InPropertyName, EPropertyType::Enum, InSize, InOffset, InFlags)
     {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override
+    {
+        ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+        {
+            FProperty::DisplayInImGui(Object);
+        }
+        ImGui::EndDisabled();
     }
 
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override
@@ -966,6 +995,7 @@ struct FSubclassOfProperty : public FProperty
     {
     }
 
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
@@ -1049,12 +1079,12 @@ FProperty* MakeProperty(
 )
 {
     // Flags 검사
-    if constexpr (HasFlag<InFlags>(EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
+    if constexpr (HasAllFlags<InFlags>(EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
     {
         // EditAnywhere와 VisibleAnywhere는 서로 같이 사용할 수 없음!!
         static_assert(TAlwaysFalse<T>, "EditAnywhere and VisibleAnywhere cannot be set at the same time.");
     }
-    else if constexpr (HasFlag<InFlags>(EPropertyFlags::LuaReadOnly | EPropertyFlags::LuaReadWrite))
+    else if constexpr (HasAllFlags<InFlags>(EPropertyFlags::LuaReadOnly | EPropertyFlags::LuaReadWrite))
     {
         // LuaReadOnly와 LuaReadWrite는 서로 같이 사용할 수 없음!!
         static_assert(TAlwaysFalse<T>, "LuaReadOnly and LuaReadWrite cannot be set at the same time.");

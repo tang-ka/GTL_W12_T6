@@ -155,9 +155,31 @@ constexpr EPropertyFlags& operator|=(EPropertyFlags& Lhs, EPropertyFlags Rhs)
     return Lhs;
 }
 
-constexpr bool HasFlag(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
+constexpr bool HasAllFlags(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
 {
     return (static_cast<uint32>(Flags) & static_cast<uint32>(FlagToCheck)) == static_cast<uint32>(FlagToCheck);
+}
+
+template <EPropertyFlags Flags>
+constexpr bool HasAllFlags(EPropertyFlags FlagToCheck)
+{
+    return HasAllFlags(Flags, FlagToCheck);
+}
+
+constexpr bool HasAnyFlags(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
+{
+    return (static_cast<uint32>(Flags) & static_cast<uint32>(FlagToCheck)) != 0;
+}
+
+template <EPropertyFlags Flags>
+constexpr bool HasAnyFlags(EPropertyFlags FlagToCheck)
+{
+    return HasAnyFlags(Flags, FlagToCheck);
+}
+
+constexpr bool HasFlag(EPropertyFlags Flags, EPropertyFlags FlagToCheck)
+{
+    return HasAllFlags(Flags, FlagToCheck);
 }
 
 template <EPropertyFlags Flags>

@@ -48,12 +48,26 @@ struct FPropertyUIHelper
 
 void FProperty::DisplayInImGui(UObject* Object) const
 {
+    if (!HasAnyFlags(Flags, EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
+    {
+        return;
+    }
+
     void* Data = GetPropertyData(Object);
     DisplayRawDataInImGui(Name, Data);
 }
 
 void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
+}
+
+void FNumericProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
 }
 
 void FInt8Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -126,11 +140,29 @@ void FDoubleProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     FPropertyUIHelper::DisplayNumericDragN<double>(PropertyLabel, DataPtr, 1);
 }
 
+void FBoolProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
 void FBoolProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
     ImGui::Checkbox(PropertyLabel, static_cast<bool*>(DataPtr));
+}
+
+void FStrProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
 }
 
 void FStrProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -168,11 +200,29 @@ void FNameProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
     ImGui::EndDisabled();
 }
 
+void FVector2DProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
 void FVector2DProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
+}
+
+void FVectorProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
 }
 
 void FVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -182,6 +232,15 @@ void FVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
 }
 
+void FVector4Property::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
 void FVector4Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
@@ -189,11 +248,29 @@ void FVector4Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Da
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
 }
 
+void FRotatorProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
 void FRotatorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
+}
+
+void FQuatProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
 }
 
 void FQuatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -209,14 +286,18 @@ void FTransformProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* 
 
     if (ImGui::TreeNode(PropertyLabel))
     {
-        FTransform* Data = static_cast<FTransform*>(DataPtr);
-        FRotator Rotation = Data->Rotator();
+        ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+        {
+            FTransform* Data = static_cast<FTransform*>(DataPtr);
+            FRotator Rotation = Data->Rotator();
 
-        FImGuiWidget::DrawVec3Control("Location", Data->Translation);
-        FImGuiWidget::DrawRot3Control("Rotation", Rotation);
-        FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f);
+            FImGuiWidget::DrawVec3Control("Location", Data->Translation);
+            FImGuiWidget::DrawRot3Control("Rotation", Rotation);
+            FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f);
 
-        Data->Rotation = Rotation.Quaternion();
+            Data->Rotation = Rotation.Quaternion();
+        }
+        ImGui::EndDisabled();
         ImGui::TreePop();
     }
 }
@@ -231,32 +312,49 @@ void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
         bool bChanged = false;
         FMatrix* Data = static_cast<FMatrix*>(DataPtr);
 
-        FTransform Transform = FTransform(*Data);
-        FRotator Rotation = Transform.Rotator();
-
-        bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation);
-        bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
-        bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f);
-
-        if (bChanged)
+        ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
         {
-            *Data =
-                FMatrix::CreateScaleMatrix(Transform.Scale3D)
-                * FMatrix::CreateRotationMatrix(Rotation.Quaternion())
-                * FMatrix::CreateTranslationMatrix(Transform.Translation);
+            FTransform Transform = FTransform(*Data);
+            FRotator Rotation = Transform.Rotator();
+
+            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation);
+            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
+            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f);
+
+            if (bChanged)
+            {
+                *Data =
+                    FMatrix::CreateScaleMatrix(Transform.Scale3D)
+                    * FMatrix::CreateRotationMatrix(Rotation.Quaternion())
+                    * FMatrix::CreateTranslationMatrix(Transform.Translation);
+            }
         }
+        ImGui::EndDisabled();
 
         if (ImGui::TreeNode("Advanced"))
         {
-            ImGui::DragFloat4("##1", Data->M[0], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
-            ImGui::DragFloat4("##2", Data->M[1], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
-            ImGui::DragFloat4("##3", Data->M[2], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
-            ImGui::DragFloat4("##4", Data->M[3], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+            ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+            {
+                ImGui::DragFloat4("##1", Data->M[0], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+                ImGui::DragFloat4("##2", Data->M[1], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+                ImGui::DragFloat4("##3", Data->M[2], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+                ImGui::DragFloat4("##4", Data->M[3], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
+            }
+            ImGui::EndDisabled();
             ImGui::TreePop();
         }
 
         ImGui::TreePop();
     }
+}
+
+void FColorProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
 }
 
 void FColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -280,6 +378,15 @@ void FColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     }
 }
 
+void FLinearColorProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
 void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
@@ -295,6 +402,15 @@ void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void
     ImGui::Text("%s", PropertyLabel);
     ImGui::SameLine();
     ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), Flags);
+}
+
+void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
 }
 
 void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
