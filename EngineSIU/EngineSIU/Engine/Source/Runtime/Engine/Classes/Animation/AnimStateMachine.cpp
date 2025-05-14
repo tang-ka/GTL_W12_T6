@@ -89,7 +89,22 @@ void UAnimStateMachine::ProcessState()
     {
         if (!bIsDancing)
         {
-            CurrentState = EAnimState::AS_Idle;
+            if (MoveSpeed == 0)
+            {
+                CurrentState = EAnimState::AS_Idle;
+            }
+            if (MoveSpeed == 1)
+            {
+                CurrentState = EAnimState::AS_SlowRun;
+            }
+            if (MoveSpeed == 2)
+            {
+                CurrentState = EAnimState::AS_NarutoRun;
+            }
+            if (MoveSpeed == 3)
+            {
+                CurrentState = EAnimState::AS_FastRun;           
+            }
         }
     }
     if (bIsDancing)
