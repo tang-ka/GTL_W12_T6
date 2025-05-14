@@ -137,7 +137,8 @@ void UEditorEngine::StartPIE()
         UE_LOG(ELogLevel::Warning, TEXT("PIEWorld already exists!"));
         return;
     }
-    this->ClearActorSelection(); // Editor World 기준 Select Actor 해제 
+    this->ClearActorSelection(); // Editor World 기준 Select Actor 해제
+    this->ClearComponentSelection();
     
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
 
