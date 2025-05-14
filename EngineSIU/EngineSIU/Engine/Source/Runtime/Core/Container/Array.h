@@ -8,13 +8,13 @@
 #include "Serialization/Archive.h"
 
 
-template <typename T, typename Allocator = FDefaultAllocator<T>>
+template <typename T, typename AllocatorType = FDefaultAllocator<T>>
 class TArray
 {
 public:
-    using SizeType = typename Allocator::SizeType;
+    using SizeType = typename AllocatorType::SizeType;
     using ElementType = T;
-    using ArrayType = std::vector<ElementType, Allocator>;
+    using ArrayType = std::vector<ElementType, AllocatorType>;
 
 private:
     ArrayType ContainerPrivate;
@@ -71,6 +71,33 @@ public:
      * @param Source 다른 TArray 객체
      */
     void Append(const TArray& Source);
+
+    /**
+     * InitList에 있는 요소들을 InIndex 위치에 삽입합니다.
+     * @param InitList 삽입할 요소들의 초기화 리스트
+     * @param InIndex 삽입 시작 위치의 인덱스
+     * @return 삽입된 첫 번째 요소의 인덱스
+     */
+    SizeType Insert(std::initializer_list<ElementType> InitList, SizeType InIndex);
+
+    /**
+     * 다른 TArray의 요소들을 현재 배열의 특정 위치에 삽입합니다.
+     * 
+     * @param Items 삽입할 요소들이 포함된 TArray
+     * @param InIndex 요소들을 삽입할 인덱스 위치 
+     * @return 삽입된 첫 번째 요소의 인덱스
+     */
+    template <typename OtherAllocatorType>
+    SizeType Insert(const TArray<ElementType, OtherAllocatorType>& Items, SizeType InIndex);
+
+    /**
+     * 하나의 요소를 특정 인덱스 위치에 삽입합니다.
+     *
+     * @param Item 삽입할 요소
+     * @param InIndex 삽입 위치의 인덱스
+     * @return 삽입된 요소의 인덱스
+     */
+    SizeType Insert(const ElementType& Item, SizeType InIndex);
 
     /**
      * 포인터가 가리키는 C-스타일 배열의 요소들을 이 배열의 끝에 추가합니다.
@@ -152,28 +179,7 @@ public:
      * @returns Index to the first matching element, or INDEX_NONE if none is found.
      */
     template <typename Predicate>
-    SizeType IndexOfByPredicate(Predicate Pred) const
-    {
-        /* 기존 언리얼 코드
-        const ElementType* Start = GetData();
-        for (const ElementType* Data = Start, DataEnd = (Start + Num()); Data != DataEnd; ++Data)
-        {
-            if (std::invoke(Pred, *Data))
-            {
-                return static_cast<SizeType>(Data - Start);
-            }
-        }
-        */
-        for (int32 i = 0; i < Num(); ++i)
-        {
-            const ElementType* Data = &ContainerPrivate[i];
-            if (std::invoke(Pred, *Data))
-            {
-                return static_cast<SizeType>(i);
-            }
-        }
-        return INDEX_NONE;
-    }
+    SizeType IndexOfByPredicate(Predicate Pred) const;
 
     /** 요소가 존재하는지 확인합니다. */
     bool Contains(const T& Item) const;
@@ -223,58 +229,58 @@ public:
 };
 
 
-template <typename T, typename Allocator>
-T& TArray<T, Allocator>::operator[](SizeType Index)
+template <typename T, typename AllocatorType>
+T& TArray<T, AllocatorType>::operator[](SizeType Index)
 {
     return ContainerPrivate[Index];
 }
 
-template <typename T, typename Allocator>
-const T& TArray<T, Allocator>::operator[](SizeType Index) const
+template <typename T, typename AllocatorType>
+const T& TArray<T, AllocatorType>::operator[](SizeType Index) const
 {
     return ContainerPrivate[Index];
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::operator+=(const TArray& OtherArray)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::operator+=(const TArray& OtherArray)
 {
     ContainerPrivate.insert(end(), OtherArray.begin(), OtherArray.end());
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator> TArray<T, Allocator>::operator+(const TArray& OtherArray) const
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType> TArray<T, AllocatorType>::operator+(const TArray& OtherArray) const
 {
     TArray Result(*this);
     Result += OtherArray;
     return Result;
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator>::TArray()
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>::TArray()
     : ContainerPrivate()
 {
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator>::TArray(std::initializer_list<T> InitList)
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>::TArray(std::initializer_list<T> InitList)
     : ContainerPrivate(InitList)
 {
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator>::TArray(const TArray& Other)
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>::TArray(const TArray& Other)
     : ContainerPrivate(Other.ContainerPrivate)
 {
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator>::TArray(TArray&& Other) noexcept
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>::TArray(TArray&& Other) noexcept
     : ContainerPrivate(std::move(Other.ContainerPrivate))
 {
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator>& TArray<T, Allocator>::operator=(const TArray& Other)
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>& TArray<T, AllocatorType>::operator=(const TArray& Other)
 {
     if (this != &Other)
     {
@@ -283,8 +289,8 @@ TArray<T, Allocator>& TArray<T, Allocator>::operator=(const TArray& Other)
     return *this;
 }
 
-template <typename T, typename Allocator>
-TArray<T, Allocator>& TArray<T, Allocator>::operator=(TArray&& Other) noexcept
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>& TArray<T, AllocatorType>::operator=(TArray&& Other) noexcept
 {
     if (this != &Other)
     {
@@ -293,26 +299,26 @@ TArray<T, Allocator>& TArray<T, Allocator>::operator=(TArray&& Other) noexcept
     return *this;
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Init(const T& Element, SizeType Number)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Init(const T& Element, SizeType Number)
 {
     ContainerPrivate.assign(Number, Element);
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Add(const T& Item)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Add(const T& Item)
 {
     return Emplace(Item);
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Add(T&& Item)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Add(T&& Item)
 {
     return Emplace(std::move(Item));
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddUnique(const T& Item)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddUnique(const T& Item)
 {
     if (SizeType Index; Find(Item, Index))
     {
@@ -321,16 +327,16 @@ typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddUnique(const T&
     return Add(Item);
 }
 
-template <typename T, typename Allocator>
+template <typename T, typename AllocatorType>
 template <typename... Args>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Emplace(Args&&... Item)
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Emplace(Args&&... Item)
 {
     ContainerPrivate.emplace_back(std::forward<Args>(Item)...);
     return Num()-1;
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Append(const TArray& Source)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Append(const TArray& Source)
 {
     // 추가할 요소가 없으면 바로 반환
     if (Source.IsEmpty())
@@ -354,9 +360,35 @@ void TArray<T, Allocator>::Append(const TArray& Source)
         Source.ContainerPrivate.end()    // 복사할 끝 이터레이터
     );
 }
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(std::initializer_list<ElementType> InitList, const SizeType InIndex)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, InitList);
+    return InIndex;
+}
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Append(const ElementType* Ptr, SizeType Count)
+template <typename T, typename AllocatorType>
+template <typename OtherAllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(
+    const TArray<ElementType, OtherAllocatorType>& Items, const SizeType InIndex
+)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, Items.begin(), Items.end());
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(const ElementType& Item, SizeType InIndex)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, Item);
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Append(const ElementType* Ptr, SizeType Count)
 {
     // 추가할 요소가 없거나 포인터가 유효하지 않으면 바로 반환
     if (Count <= 0)
@@ -387,14 +419,14 @@ void TArray<T, Allocator>::Append(const ElementType* Ptr, SizeType Count)
     );
 }
 
-template <typename T, typename Allocator>
-bool TArray<T, Allocator>::IsEmpty() const
+template <typename T, typename AllocatorType>
+bool TArray<T, AllocatorType>::IsEmpty() const
 {
     return ContainerPrivate.empty();
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Empty(SizeType Slack)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Empty(SizeType Slack)
 {
     ContainerPrivate.clear();
 
@@ -412,16 +444,16 @@ void TArray<T, Allocator>::Empty(SizeType Slack)
     }
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Remove(const T& Item)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Remove(const T& Item)
 {
     auto oldSize = ContainerPrivate.size();
     ContainerPrivate.erase(std::remove(ContainerPrivate.begin(), ContainerPrivate.end(), Item), ContainerPrivate.end());
     return static_cast<SizeType>(oldSize - ContainerPrivate.size());
 }
 
-template <typename T, typename Allocator>
-bool TArray<T, Allocator>::RemoveSingle(const T& Item)
+template <typename T, typename AllocatorType>
+bool TArray<T, AllocatorType>::RemoveSingle(const T& Item)
 {
     auto it = std::find(ContainerPrivate.begin(), ContainerPrivate.end(), Item);
     if (it != ContainerPrivate.end())
@@ -432,8 +464,8 @@ bool TArray<T, Allocator>::RemoveSingle(const T& Item)
     return false;
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::RemoveAt(SizeType Index)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::RemoveAt(SizeType Index)
 {
     if (Index >= 0 && static_cast<SizeType>(Index) < ContainerPrivate.size())
     {
@@ -441,74 +473,99 @@ void TArray<T, Allocator>::RemoveAt(SizeType Index)
     }
 }
 
-template <typename T, typename Allocator>
+template <typename T, typename AllocatorType>
 template <typename Predicate>
     requires std::is_invocable_r_v<bool, Predicate, const T&>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::RemoveAll(const Predicate& Pred)
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::RemoveAll(const Predicate& Pred)
 {
     auto oldSize = ContainerPrivate.size();
     ContainerPrivate.erase(std::remove_if(ContainerPrivate.begin(), ContainerPrivate.end(), Pred), ContainerPrivate.end());
     return static_cast<SizeType>(oldSize - ContainerPrivate.size());
 }
 
-template <typename T, typename Allocator>
-T* TArray<T, Allocator>::GetData()
+template <typename T, typename AllocatorType>
+T* TArray<T, AllocatorType>::GetData()
 {
     return ContainerPrivate.data();
 }
 
-template <typename T, typename Allocator>
-const T* TArray<T, Allocator>::GetData() const
+template <typename T, typename AllocatorType>
+const T* TArray<T, AllocatorType>::GetData() const
 {
     return ContainerPrivate.data();
 }
 
-template <typename T, typename Allocator>
-T& TArray<T, Allocator>::First()
+template <typename T, typename AllocatorType>
+T& TArray<T, AllocatorType>::First()
 {
     assert(!IsEmpty());
     return ContainerPrivate.front();
 }
 
-template <typename T, typename Allocator>
-const T& TArray<T, Allocator>::First() const
+template <typename T, typename AllocatorType>
+const T& TArray<T, AllocatorType>::First() const
 {
     assert(!IsEmpty());
     return ContainerPrivate.front();
 }
 
-template <typename T, typename Allocator>
-T& TArray<T, Allocator>::Last(int32 IndexFromTheEnd)
+template <typename T, typename AllocatorType>
+T& TArray<T, AllocatorType>::Last(int32 IndexFromTheEnd)
 {
     assert(!IsEmpty());
     assert(IndexFromTheEnd >= 0 && IndexFromTheEnd < Num()); // 유효한 인덱스인지 확인
     return ContainerPrivate[Num() - 1 - IndexFromTheEnd];
 }
 
-template <typename T, typename Allocator>
-const T& TArray<T, Allocator>::Last(int32 IndexFromTheEnd) const
+template <typename T, typename AllocatorType>
+const T& TArray<T, AllocatorType>::Last(int32 IndexFromTheEnd) const
 {
     assert(!IsEmpty());
     assert(IndexFromTheEnd >= 0 && IndexFromTheEnd < Num()); // 유효한 인덱스인지 확인
     return ContainerPrivate[Num() - 1 - IndexFromTheEnd];
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Find(const T& Item)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Find(const T& Item)
 {
     const auto it = std::find(ContainerPrivate.begin(), ContainerPrivate.end(), Item);
     return it != ContainerPrivate.end() ? std::distance(ContainerPrivate.begin(), it) : INDEX_NONE;
 }
 
-template <typename T, typename Allocator>
-bool TArray<T, Allocator>::Find(const T& Item, SizeType& Index)
+template <typename T, typename AllocatorType>
+bool TArray<T, AllocatorType>::Find(const T& Item, SizeType& Index)
 {
     Index = Find(Item);
     return (Index != INDEX_NONE);
 }
 
-template <typename T, typename Allocator>
-bool TArray<T, Allocator>::Contains(const T& Item) const
+template <typename T, typename AllocatorType>
+template <typename Predicate>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::IndexOfByPredicate(Predicate Pred) const
+{
+    /* 기존 언리얼 코드
+        const ElementType* Start = GetData();
+        for (const ElementType* Data = Start, DataEnd = (Start + Num()); Data != DataEnd; ++Data)
+        {
+            if (std::invoke(Pred, *Data))
+            {
+                return static_cast<SizeType>(Data - Start);
+            }
+        }
+        */
+    for (int32 i = 0; i < Num(); ++i)
+    {
+        const ElementType* Data = &ContainerPrivate[i];
+        if (std::invoke(Pred, *Data))
+        {
+            return static_cast<SizeType>(i);
+        }
+    }
+    return INDEX_NONE;
+}
+
+template <typename T, typename AllocatorType>
+bool TArray<T, AllocatorType>::Contains(const T& Item) const
 {
     for (const T* Data = GetData(), *DataEnd = Data + Num(); Data != DataEnd; ++Data)
     {
@@ -520,32 +577,32 @@ bool TArray<T, Allocator>::Contains(const T& Item) const
     return false;
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Num() const
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Num() const
 {
     return ContainerPrivate.size();
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Max() const
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Max() const
 {
     return ContainerPrivate.capacity();
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::SetNum(SizeType Number)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::SetNum(SizeType Number)
 {
     ContainerPrivate.resize(Number);
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Reserve(SizeType Number)
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Reserve(SizeType Number)
 {
     ContainerPrivate.reserve(Number);
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddUninitialized(SizeType Count)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddUninitialized(SizeType Count)
 {
     if (Count <= 0)
     {
@@ -562,8 +619,8 @@ typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddUninitialized(S
     return StartIndex;
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddDefaulted()
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddDefaulted()
 {
     // 새 요소들이 시작될 인덱스 (현재 크기)
     const SizeType StartIndex = Num();
@@ -571,8 +628,8 @@ typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddDefaulted()
     return StartIndex;
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddDefaulted(SizeType Count)
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddDefaulted(SizeType Count)
 {
     if (Count <= 0)
     {
@@ -589,45 +646,45 @@ typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::AddDefaulted(SizeT
     return StartIndex;
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Shrink()
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Shrink()
 {
     ContainerPrivate.shrink_to_fit();
 }
 
-template <typename T, typename Allocator>
-void TArray<T, Allocator>::Sort()
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Sort()
 {
     std::sort(ContainerPrivate.begin(), ContainerPrivate.end());
 }
 
-template <typename T, typename Allocator>
+template <typename T, typename AllocatorType>
 template <typename Compare>
     requires std::is_invocable_r_v<bool, Compare, const T&, const T&>
-void TArray<T, Allocator>::Sort(const Compare& CompFn)
+void TArray<T, AllocatorType>::Sort(const Compare& CompFn)
 {
     std::sort(ContainerPrivate.begin(), ContainerPrivate.end(), CompFn);
 }
 
-template <typename T, typename Allocator>
-bool TArray<T, Allocator>::IsValidIndex(uint32 ElementIndex) const
+template <typename T, typename AllocatorType>
+bool TArray<T, AllocatorType>::IsValidIndex(uint32 ElementIndex) const
 {
     // uint32라서 0미만은 검사 안함
     return ElementIndex < Num();
 }
 
-template <typename T, typename Allocator>
-typename TArray<T, Allocator>::ElementType TArray<T, Allocator>::Pop()
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::ElementType TArray<T, AllocatorType>::Pop()
 {
     ElementType Element = ContainerPrivate.back();
     ContainerPrivate.pop_back();
     return Element;
 }
 
-template <typename ElementType, typename Allocator>
-FArchive& operator<<(FArchive& Ar, TArray<ElementType, Allocator>& Array)
+template <typename ElementType, typename AllocatorType>
+FArchive& operator<<(FArchive& Ar, TArray<ElementType, AllocatorType>& Array)
 {
-    using SizeType = typename TArray<ElementType, Allocator>::SizeType;
+    using SizeType = typename TArray<ElementType, AllocatorType>::SizeType;
 
     // 배열 크기 직렬화
     SizeType ArraySize = Array.Num();
@@ -647,3 +704,13 @@ FArchive& operator<<(FArchive& Ar, TArray<ElementType, Allocator>& Array)
 
     return Ar;
 }
+
+template <typename T> constexpr bool TIsTArray_V = false;
+
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<               TArray<InElementType, InAllocatorType>> = true;
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<const          TArray<InElementType, InAllocatorType>> = true;
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<      volatile TArray<InElementType, InAllocatorType>> = true;
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<const volatile TArray<InElementType, InAllocatorType>> = true;
+
+template <typename T>
+concept TIsTArray = TIsTArray_V<T>;

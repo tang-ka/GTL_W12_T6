@@ -21,25 +21,26 @@ public:
         ClassConstructorType InCTOR
     );
 
+    virtual ~UClass() override;
+
     // 복사 & 이동 생성자 제거
     UClass(const UClass&) = delete;
     UClass& operator=(const UClass&) = delete;
     UClass(UClass&&) = delete;
     UClass& operator=(UClass&&) = delete;
 
-    static TMap<FName, UClass*>& GetClassMap()
-    {
-        static TMap<FName, UClass*> ClassMap;
-        return ClassMap;
-    }
-    static UClass* FindClass(const FName& ClassName)
-    {
-        auto It = GetClassMap().Find(ClassName);
-        if (It)
-            return *It;
-        return nullptr;
-    }
+public:
+    static TMap<FName, UClass*>& GetClassMap();
+    static UClass* FindClass(const FName& ClassName);
 
+    /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 런타임에 검사합니다. */
+    static void ResolvePendingProperties();
+
+private:
+    /** 컴파일 타임에 알 수 없는 프로퍼티 목록들 */
+    static TArray<FProperty*>& GetUnresolvedProperties();
+
+public:
     uint32 GetClassSize() const { return ClassSize; }
     uint32 GetClassAlignment() const { return ClassAlignment; }
 
@@ -63,20 +64,19 @@ public:
         requires std::derived_from<T, UObject>
     T* GetDefaultObject() const;
 
-    const TArray<FProperty>& GetProperties() const { return Properties; }
+    const TArray<FProperty*>& GetProperties() const { return Properties; }
 
     /**
      * UClass에 Property를 추가합니다
      * @param Prop 추가할 Property
      */
-    void RegisterProperty(const FProperty& Prop);
+    void RegisterProperty(FProperty* Prop);
 
     /** 바이너리 직렬화 함수 */
     void SerializeBin(FArchive& Ar, void* Data);
 
 protected:
     virtual UObject* CreateDefaultObject();
-
 
 public:
     ClassConstructorType ClassCTOR;
@@ -88,7 +88,7 @@ private:
     UClass* SuperClass = nullptr;
     UObject* ClassDefaultObject = nullptr;
 
-    TArray<FProperty> Properties;
+    TArray<FProperty*> Properties;
 };
 
 template <typename T>

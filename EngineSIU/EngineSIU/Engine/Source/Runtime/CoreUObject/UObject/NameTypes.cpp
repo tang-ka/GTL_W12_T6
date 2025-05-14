@@ -6,6 +6,7 @@
 #include <mutex>
 #include "Core/Container/Map.h"
 #include "Core/Container/String.h"
+#include "Templates/TemplateUtilities.h"
 
 
 enum ENameCase : uint8
@@ -376,7 +377,7 @@ struct FNameHelper
 		}
 		else
 		{
-			//static_assert(false, "Invalid Character type");
+			static_assert(TAlwaysFalse<CharType>, "Invalid Character type");
 			return {};
 		}
 	}
@@ -419,8 +420,18 @@ FName::FName(const WIDECHAR* Name)
 {
 }
 
+FName::FName(const WIDECHAR* Name, uint32 Len)
+	: FName(FNameHelper::MakeFName(Name, Len))
+{
+}
+
 FName::FName(const ANSICHAR* Name)
 	: FName(FNameHelper::MakeFName(Name))
+{
+}
+
+FName::FName(const ANSICHAR* Name, uint32 Len)
+	: FName(FNameHelper::MakeFName(Name, Len))
 {
 }
 
