@@ -41,9 +41,17 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-    NewComponent->SetAnimationMode(AnimationMode);
     NewComponent->SetSkeletalMeshAsset(SkeletalMeshAsset);
-    //NewComponent->SetAnimation(AnimSequence);
+    NewComponent->SetAnimationMode(AnimationMode);
+    if (AnimationMode == EAnimationMode::AnimationBlueprint)
+    {
+        NewComponent->SetAnimClass(AnimClass);
+        // TODO: 애님 인스턴스 세팅하기
+    }
+    else
+    {
+        NewComponent->SetAnimation(GetAnimation());
+    }
     NewComponent->Play(true);
 
     return NewComponent;
@@ -86,7 +94,7 @@ void USkeletalMeshComponent::TickAnimInstances(float DeltaTime)
 
 bool USkeletalMeshComponent::ShouldTickAnimation() const
 {
-    return bPlayAnimation && GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
+    return GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
 }
 
 bool USkeletalMeshComponent::InitializeAnimScriptInstance()
@@ -104,7 +112,7 @@ bool USkeletalMeshComponent::InitializeAnimScriptInstance()
     }
     else
     {
-        bool bShouldSpawnSingleNodeInstance = SkelMesh && SkelMesh->GetSkeleton();
+        bool bShouldSpawnSingleNodeInstance = !AnimScriptInstance && SkelMesh && SkelMesh->GetSkeleton();
         if (bShouldSpawnSingleNodeInstance)
         {
             AnimScriptInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(this);
