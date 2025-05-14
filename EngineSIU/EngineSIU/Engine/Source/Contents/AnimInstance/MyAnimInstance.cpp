@@ -8,14 +8,13 @@
 #include "Engine/SkeletalMesh.h"
 #include "Misc/FrameTime.h"
 #include "Animation/AnimStateMachine.h"
+#include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 
 UMyAnimInstance::UMyAnimInstance()
-    : AnimA(nullptr)
-    , AnimB(nullptr)
-    , CurrentAsset(nullptr)
+    : PrevAnim(nullptr)
+    , CurrAnim(nullptr)
     , ElapsedTime(0.f)
-    , PreviousTime(0.f)
     , PlayRate(1.f)
     , bLooping(true)
     , bPlaying(true)
@@ -23,36 +22,17 @@ UMyAnimInstance::UMyAnimInstance()
     , LoopStartFrame(0)
     , LoopEndFrame(0)
     , CurrentKey(0)
+    , BlendAlpha(0.f)
+    , BlendStartTime(0.f)
+    , BlendDuration(0.2f)
+    , bIsBlending(false)
 {
     StateMachine = FObjectFactory::ConstructObject<UAnimStateMachine>(this);
-}
-
-void UMyAnimInstance::SetAnimationAsset(UAnimationAsset* NewAsset, bool bIsLooping, float InPlayRate)
-{
-    if (NewAsset != CurrentAsset)
-    {
-        CurrentAsset = NewAsset;
-    }
-
-    USkeletalMeshComponent* MeshComponent = GetSkelMeshComponent();
-    if (MeshComponent)
-    {
-        if (MeshComponent->GetSkeletalMeshAsset() == nullptr)
-        {
-            CurrentAsset = nullptr;
-        }
-        else if (CurrentAsset != nullptr)
-        {
-            if (CurrentAsset->GetSkeleton() == nullptr)
-            {
-                CurrentAsset = nullptr;
-            }
-        }
-    }
-    
-    bLooping = bIsLooping;
-    PlayRate = InPlayRate;
-    ElapsedTime = 0.f;
+    IDLE = UAssetManager::Get().GetAnimation(FString("Contents/Asset/Idle"));
+    Dance = UAssetManager::Get().GetAnimation(FString("Contents/Asset/GangnamStyle"));
+    SlowRun = UAssetManager::Get().GetAnimation(FString("Contents/Asset/SlowRun"));
+    NarutoRun = UAssetManager::Get().GetAnimation(FString("Contents/Asset/NarutoRun"));
+    FastRun = UAssetManager::Get().GetAnimation(FString("Contents/Asset/FastRun"));
 }
 
 void UMyAnimInstance::NativeInitializeAnimation()
@@ -67,32 +47,74 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds, FPoseContext& Ou
 #pragma region MyAnim
     USkeletalMeshComponent* SkeletalMeshComp = GetSkelMeshComponent();
     
-    if (!AnimA || !AnimB || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
+    if (!PrevAnim || !CurrAnim || !SkeletalMeshComp->GetSkeletalMeshAsset() || !SkeletalMeshComp->GetSkeletalMeshAsset()->GetSkeleton())
     {
         return;
     }
 
     ElapsedTime += DeltaSeconds;
+
+    if (bIsBlending)
+    {
+        float BlendElapsed = ElapsedTime - BlendStartTime;
+        BlendAlpha = FMath::Clamp(BlendElapsed / BlendDuration, 0.f, 1.f);
+
+        if (BlendAlpha >= 1.f)
+        {
+            bIsBlending = false;
+        }
+    }
+    else
+    {
+        BlendAlpha = 1.f;
+    }
     
-    FPoseContext PoseA(this);
-    FPoseContext PoseB(this);
+    FPoseContext PrevPose(this);
+    FPoseContext CurrPose(this);
 
     // TODO: FPoseContext의 BoneContainer로 바꾸기
     const FReferenceSkeleton& RefSkeleton = this->GetCurrentSkeleton()->GetReferenceSkeleton();
-    PoseA.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
-    PoseB.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
+    PrevPose.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
+    CurrPose.Pose.InitBones(RefSkeleton.RawRefBoneInfo.Num());
     for (int32 BoneIdx = 0; BoneIdx < RefSkeleton.RawRefBoneInfo.Num(); ++BoneIdx)
     {
-        PoseA.Pose[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx];
-        PoseB.Pose[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx];
+        PrevPose.Pose[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx];
+        CurrPose.Pose[BoneIdx] = RefSkeleton.RawRefBonePose[BoneIdx];
     }
     
     FAnimExtractContext ExtractA(GetElapsedTime(), false);
     FAnimExtractContext ExtractB(GetElapsedTime(), false);
 
-    AnimA->GetAnimationPose(PoseA, ExtractA);
-    AnimB->GetAnimationPose(PoseB, ExtractB);
+    PrevAnim->GetAnimationPose(PrevPose, ExtractA);
+    CurrAnim->GetAnimationPose(CurrPose, ExtractB);
 
-    FAnimationRuntime::BlendTwoPosesTogether(PoseA.Pose, PoseB.Pose, BlendAlpha, OutPose.Pose);
+    FAnimationRuntime::BlendTwoPosesTogether(CurrPose.Pose, PrevPose.Pose, BlendAlpha, OutPose.Pose);
 #pragma endregion
+}
+
+void UMyAnimInstance::SetAnimState(EAnimState InAnimState)
+{
+    if (CurrAnim != GetAnimForState(InAnimState))
+    {
+        PrevAnim = CurrAnim;
+        CurrAnim = GetAnimForState(InAnimState);
+
+        BlendAlpha = 0.f;
+        BlendStartTime = ElapsedTime;
+
+        bIsBlending = true;
+    }
+}
+
+UAnimSequence* UMyAnimInstance::GetAnimForState(EAnimState InAnimState)
+{
+    switch (InAnimState)
+    {
+    case AS_Idle:      return Cast<UAnimSequence>(IDLE);
+    case AS_Dance:     return Cast<UAnimSequence>(Dance);
+    case AS_SlowRun:   return Cast<UAnimSequence>(SlowRun);
+    case AS_NarutoRun: return Cast<UAnimSequence>(NarutoRun);
+    case AS_FastRun:   return Cast<UAnimSequence>(FastRun);
+    default:           return nullptr;
+    }
 }

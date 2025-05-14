@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Animation/Animinstance.h"
+#include "Animation/AnimStateMachine.h"
 #include "UObject/ObjectMacros.h"
 
 class UAnimSequence;
@@ -12,22 +13,9 @@ class UMyAnimInstance : public UAnimInstance
 public:
     UMyAnimInstance();
     
-    UAnimSequence* AnimA;
-    
-    UAnimSequence* AnimB;
-    
-    float BlendAlpha = 0.f;
-    
-    virtual void SetAnimationAsset(UAnimationAsset* NewAsset, bool bIsLooping=true, float InPlayRate=1.f);
-    
     virtual void NativeInitializeAnimation() override;
 
     virtual void NativeUpdateAnimation(float DeltaSeconds, FPoseContext& OutPose) override;
-    
-    UAnimationAsset* GetAnimationAsset() const
-    {
-        return CurrentAsset;
-    }
     
     void SetPlaying(bool bIsPlaying)
     {
@@ -108,13 +96,18 @@ public:
     {
         CurrentKey = InCurrentKey;
     }
+
+    void SetAnimState(EAnimState InAnimState);
+
+    UAnimSequence* GetAnimForState(EAnimState InAnimState);
 private:
-    UAnimationAsset* CurrentAsset;
-    //어차피 상속받아서 직접 만든 클래스니까 상태별로 Asset 저장해두고 써도 되지 않을까 싶음.
+    UAnimationAsset* IDLE;
+    UAnimationAsset* Dance;
+    UAnimationAsset* SlowRun;
+    UAnimationAsset* NarutoRun;
+    UAnimationAsset* FastRun;
 
     float ElapsedTime;
-
-    float PreviousTime;
     
     float PlayRate;
     
@@ -129,4 +122,16 @@ private:
     int32 LoopEndFrame;
 
     int CurrentKey;
+    
+    UAnimSequence* PrevAnim;
+    
+    UAnimSequence* CurrAnim;
+    
+    float BlendAlpha;
+
+    float BlendStartTime;
+    
+    float BlendDuration;
+
+    bool bIsBlending;
 };
