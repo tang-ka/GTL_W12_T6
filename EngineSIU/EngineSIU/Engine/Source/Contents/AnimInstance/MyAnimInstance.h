@@ -97,9 +97,19 @@ public:
         CurrentKey = InCurrentKey;
     }
 
-    void SetAnimState(EAnimState InAnimState);
+    virtual void SetAnimState(EAnimState InAnimState) override;
 
     UAnimSequence* GetAnimForState(EAnimState InAnimState);
+
+    virtual UAnimStateMachine* GetStateMachine() const override { return StateMachine; }
+
+    virtual UAnimSequence* GetCurrAnim() const override { return CurrAnim; }
+
+    virtual UAnimSequence* GetPrevAnim() const override { return PrevAnim; }
+
+    virtual float GetBlendDuration() const override { return BlendDuration; }
+
+    virtual void SetBlendDuration(float InBlendDuration) override { BlendDuration = InBlendDuration; }
 private:
     UAnimationAsset* IDLE;
     UAnimationAsset* Dance;
@@ -134,4 +144,6 @@ private:
     float BlendDuration;
 
     bool bIsBlending;
+    
+    UAnimStateMachine* StateMachine;
 };

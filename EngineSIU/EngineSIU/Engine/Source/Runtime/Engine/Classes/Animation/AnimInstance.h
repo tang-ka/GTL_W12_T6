@@ -1,7 +1,10 @@
 ﻿#pragma once
+#include "AnimStateMachine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class UAnimSequence;
+class UAnimationAsset;
 class USkeleton;
 class USkeletalMeshComponent;
 class UAnimStateMachine;
@@ -29,11 +32,18 @@ public:
     void TriggerAnimNotifies(float DeltaSeconds);
 
     USkeleton* GetCurrentSkeleton() const { return CurrentSkeleton; }
+    
+    virtual void SetAnimState(EAnimState InAnimState);
 
-    UAnimStateMachine* GetStateMachine() const { return StateMachine; }
+    virtual UAnimStateMachine* GetStateMachine() const;
 
-public:
-    UAnimStateMachine* StateMachine;
+    virtual UAnimSequence* GetCurrAnim() const;
+
+    virtual UAnimSequence* GetPrevAnim() const;
+
+    virtual float GetBlendDuration() const;
+
+    virtual void SetBlendDuration(float InBlendDuration);
 private:
     USkeleton* CurrentSkeleton;
     

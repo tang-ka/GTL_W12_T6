@@ -104,7 +104,7 @@ bool USkeletalMeshComponent::InitializeAnimScriptInstance()
     }
     else
     {
-        bool bShouldSpawnSingleNodeInstance = SkelMesh && SkelMesh->GetSkeleton();
+        bool bShouldSpawnSingleNodeInstance = SkelMesh && SkelMesh->GetSkeleton() && AnimationMode == EAnimationMode::AnimationSingleNode;
         if (bShouldSpawnSingleNodeInstance)
         {
             AnimScriptInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(this);

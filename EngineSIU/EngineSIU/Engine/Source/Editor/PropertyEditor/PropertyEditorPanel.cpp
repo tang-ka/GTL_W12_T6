@@ -477,11 +477,13 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (ImGui::Selectable("Animation Instance", CurrentAnimationMode == EAnimationMode::AnimationBlueprint))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+                CurrentAnimationMode = EAnimationMode::AnimationBlueprint;
                 SkeletalMeshComp->SetAnimClass(UClass::FindClass(FName("UMyAnimInstance")));
             }
             if (ImGui::Selectable("Animation Asset", CurrentAnimationMode == EAnimationMode::AnimationSingleNode))
             {
                 SkeletalMeshComp->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+                CurrentAnimationMode = EAnimationMode::AnimationSingleNode;
             }
             ImGui::EndCombo();
         }
@@ -500,7 +502,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                 for (int i = 0; i < CompClasses.Num(); ++i)
                 {
                     if (CompClasses[i] == UAnimInstance::StaticClass() || CompClasses[i] == UAnimSingleNodeInstance::StaticClass())
+                    {
                         continue;
+                    }
                     bool bIsSelected = (SelectedIndex == i);
                     if (ImGui::Selectable(*CompClasses[i]->GetName(), bIsSelected))
                     {
@@ -515,27 +519,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             if (CompClasses.IsValidIndex(SelectedIndex))
             {
                 UClass* SelectedClass = CompClasses[SelectedIndex];
-                UMyAnimInstance* AnimInstance = Cast<UMyAnimInstance>(SkeletalMeshComp->GetAnimInstance()); //형 변환 하드코딩 말고 가능한지 몰라서 일단 둠
+                UAnimInstance* AnimInstance = SkeletalMeshComp->GetAnimInstance();
                 if (AnimInstance && AnimInstance->GetClass()->IsChildOf(SelectedClass))
                 {                    
-                    bool bLooping = AnimInstance->IsLooping();
-                    if (ImGui::Checkbox("Looping", &bLooping))
-                    {
-                        AnimInstance->SetLooping(bLooping);
-                    }
-
-                    bool bPlaying = AnimInstance->IsPlaying();
-                    if (ImGui::Checkbox("Playing", &bPlaying))
-                    {
-                        if (bPlaying)
-                        {
-                            AnimInstance->SetPlaying(true);
-                        }
-                        else
-                        {
-                            AnimInstance->SetPlaying(false);
-                        }
-                    }
                     UAnimStateMachine* AnimStateMachine = AnimInstance->GetStateMachine();
                     if(ImGui::Button("MoveFast"))
                     {
