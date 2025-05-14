@@ -109,7 +109,7 @@ void PropertyEditorPanel::Render()
         if (ASequencerPlayer* SP = Cast<ASequencerPlayer>(SelectedActor))
         {
             FString Label = SP->Socket.ToString();
-            if (ImGui::InputText("Socket", GetData(Label), Label.Len()))
+            if (ImGui::InputText("##Socket", GetData(Label), 256))
             {
                 SP->Socket = Label;
             }
