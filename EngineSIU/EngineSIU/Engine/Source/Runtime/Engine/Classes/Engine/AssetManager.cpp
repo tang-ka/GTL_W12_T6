@@ -478,7 +478,7 @@ bool UAssetManager::SerializeVersion(FArchive& Ar)
 
     if (FileVersion != Version)
     {
-        UE_LOG_FMT(ELogLevel::Error, "MeshAsset version mismatch: {} != {}", FileVersion, Version);
+        UE_LOGFMT(ELogLevel::Error, "MeshAsset version mismatch: {} != {}", FileVersion, Version);
         return false;
     }
 

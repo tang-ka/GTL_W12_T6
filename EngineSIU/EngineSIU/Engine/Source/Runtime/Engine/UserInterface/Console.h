@@ -25,7 +25,7 @@ static consteval const char* GetFileName(const char* Path)
 #define UE_LOG(Level, Fmt, ...) FConsole::GetInstance().AddLog(Level, "[%s:%d] " Fmt, FILENAME, __LINE__, __VA_ARGS__)
 
 // TODO: 테스트 해야함
-#define UE_LOG_FMT(Level, Fmt, ...) FConsole::GetInstance().AddLog(Level, std::format("[{}:{}] " Fmt, FILENAME, __LINE__, __VA_ARGS__))
+#define UE_LOGFMT(Level, Fmt, ...) FConsole::GetInstance().AddLog(Level, std::format("[{}:{}] " Fmt, FILENAME, __LINE__, __VA_ARGS__))
 
 
 enum class ELogLevel : uint8
