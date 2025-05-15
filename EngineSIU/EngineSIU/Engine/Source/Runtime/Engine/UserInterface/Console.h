@@ -152,7 +152,7 @@ private:
     template <typename T>
     auto ConvertIfFString(T&& Arg)
     {
-        if constexpr (std::same_as<T, FString>)
+        if constexpr (std::same_as<std::decay_t<T>, FString>)
         {
             return Arg.ToAnsiString();
         }
