@@ -109,23 +109,23 @@ int UTextComponent::CheckRayIntersection(const FVector& InRayOrigin, const FVect
     }
     
     //TODO: quadWidth 고정으로 font사이즈 변경시 문제 발생할 수 있음
-    const float quadWidth = 2.0f;
-    float totalTextWidth = quadWidth * Text.size();
-    float centerOffset = totalTextWidth / 2.0f;
+    constexpr float QuadWidth = 2.0f;
+    const float TotalTextWidth = QuadWidth * Text.size();
+    const float CenterOffset = TotalTextWidth / 2.0f;
 
-    for (int i = 0; i < Text.size(); i++)
+    for (int Idx = 0; Idx < Text.size(); Idx++)
     {
-        float offsetX = quadWidth * i - centerOffset;
+        const float OffsetX = QuadWidth * Idx - CenterOffset;
         TArray<FVector> LetterQuad;
-        LetterQuad.Add(FVector(-1.0f + offsetX, 1.0f, 0.0f));
-        LetterQuad.Add(FVector(1.0f + offsetX, 1.0f, 0.0f));
-        LetterQuad.Add(FVector(1.0f + offsetX, -1.0f, 0.0f));
-        LetterQuad.Add(FVector(-1.0f + offsetX, -1.0f, 0.0f));
+        LetterQuad.Add(FVector(-1.0f + OffsetX, 1.0f, 0.0f));
+        LetterQuad.Add(FVector(1.0f + OffsetX, 1.0f, 0.0f));
+        LetterQuad.Add(FVector(1.0f + OffsetX, -1.0f, 0.0f));
+        LetterQuad.Add(FVector(-1.0f + OffsetX, -1.0f, 0.0f));
 
-        float hitDistance = 0.0f;
-        if (CheckPickingOnNDC(LetterQuad, hitDistance))
+        float HitDistance = 0.0f;
+        if (CheckPickingOnNDC(LetterQuad, HitDistance))
         {
-            OutHitDistance = hitDistance;
+            OutHitDistance = HitDistance;
             return 1;
         }
     }

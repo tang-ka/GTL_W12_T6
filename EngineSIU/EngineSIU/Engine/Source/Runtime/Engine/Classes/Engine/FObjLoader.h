@@ -14,7 +14,7 @@ struct FStaticMeshRenderData;
 struct FObjLoader
 {
     // Obj Parsing (*.obj to FObjInfo)
-    static bool ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo);
+    static bool ParseObj(const FString& ObjFilePath, FObjInfo& OutObjInfo);
 
     // Material Parsing (*.obj to MaterialInfo)
     static bool ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutStaticMeshRenderData);

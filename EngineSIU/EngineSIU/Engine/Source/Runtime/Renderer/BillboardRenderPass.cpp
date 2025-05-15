@@ -204,7 +204,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
         }
         else
         {
-            UpdateSubUVConstant(FVector2D(BillboardComp->finalIndexU, BillboardComp->finalIndexV), FVector2D(1, 1));
+            UpdateSubUVConstant(FVector2D(BillboardComp->FinalIndexU, BillboardComp->FinalIndexV), FVector2D(1, 1));
 
             RenderTexturePrimitive(
                 VertexInfo.VertexBuffer,

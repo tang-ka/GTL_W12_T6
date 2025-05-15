@@ -131,13 +131,17 @@ TArray<FName> UStaticMeshComponent::GetMaterialSlotNames() const
 
 void UStaticMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
 {
-    if (StaticMesh == nullptr) return;
-    StaticMesh->GetUsedMaterials(Out);
-    for (int materialIndex = 0; materialIndex < GetNumMaterials(); materialIndex++)
+    if (StaticMesh == nullptr)
     {
-        if (OverrideMaterials[materialIndex] != nullptr)
+        return;
+    }
+
+    StaticMesh->GetUsedMaterials(Out);
+    for (int MaterialIndex = 0; MaterialIndex < GetNumMaterials(); MaterialIndex++)
+    {
+        if (OverrideMaterials[MaterialIndex] != nullptr)
         {
-            Out[materialIndex] = OverrideMaterials[materialIndex];
+            Out[MaterialIndex] = OverrideMaterials[MaterialIndex];
         }
     }
 }
@@ -185,12 +189,12 @@ int UStaticMeshComponent::CheckRayIntersection(const FVector& InRayOrigin, const
         }
 
         // 각 삼각형의 버텍스 위치를 FVector로 불러옵니다.
-        FVector v0 = FVector(Vertices[Idx0].X, Vertices[Idx0].Y, Vertices[Idx0].Z);
-        FVector v1 = FVector(Vertices[Idx1].X, Vertices[Idx1].Y, Vertices[Idx1].Z);
-        FVector v2 = FVector(Vertices[Idx2].X, Vertices[Idx2].Y, Vertices[Idx2].Z);
+        FVector V0 = FVector(Vertices[Idx0].X, Vertices[Idx0].Y, Vertices[Idx0].Z);
+        FVector V1 = FVector(Vertices[Idx1].X, Vertices[Idx1].Y, Vertices[Idx1].Z);
+        FVector V2 = FVector(Vertices[Idx2].X, Vertices[Idx2].Y, Vertices[Idx2].Z);
 
         float HitDistance = FLT_MAX;
-        if (IntersectRayTriangle(InRayOrigin, InRayDirection, v0, v1, v2, HitDistance))
+        if (IntersectRayTriangle(InRayOrigin, InRayDirection, V0, V1, V2, HitDistance))
         {
             OutHitDistance = FMath::Min(HitDistance, OutHitDistance);
             IntersectionNum++;

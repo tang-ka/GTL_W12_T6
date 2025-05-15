@@ -24,8 +24,8 @@ UObject* UBillboardComponent::Duplicate(UObject* InOuter)
     UBillboardComponent* NewComponent = Cast<UBillboardComponent>(Super::Duplicate(InOuter));
     if (NewComponent)
     {
-        NewComponent->finalIndexU = finalIndexU;
-        NewComponent->finalIndexV = finalIndexV;
+        NewComponent->FinalIndexU = FinalIndexU;
+        NewComponent->FinalIndexV = FinalIndexV;
         NewComponent->Texture = FEngineLoop::ResourceManager.GetTexture(TexturePath.ToWideString());
         NewComponent->TexturePath = TexturePath;
         NewComponent->UUIDParent = UUIDParent;
@@ -37,8 +37,8 @@ UObject* UBillboardComponent::Duplicate(UObject* InOuter)
 void UBillboardComponent::GetProperties(TMap<FString, FString>& OutProperties) const
 {
     Super::GetProperties(OutProperties);
-    OutProperties.Add(TEXT("FinalIndexU"), FString::Printf(TEXT("%f"), finalIndexU));
-    OutProperties.Add(TEXT("FinalIndexV"), FString::Printf(TEXT("%f"), finalIndexV));
+    OutProperties.Add(TEXT("FinalIndexU"), FString::Printf(TEXT("%f"), FinalIndexU));
+    OutProperties.Add(TEXT("FinalIndexV"), FString::Printf(TEXT("%f"), FinalIndexV));
     OutProperties.Add(TEXT("BufferKey"), TexturePath);
 }
 
@@ -49,12 +49,12 @@ void UBillboardComponent::SetProperties(const TMap<FString, FString>& InProperti
     TempStr = InProperties.Find(TEXT("FinalIndexU"));
     if (TempStr)
     {
-        finalIndexU = FString::ToFloat(*TempStr);
+        FinalIndexU = FString::ToFloat(*TempStr);
     }
     TempStr = InProperties.Find(TEXT("FinalIndexV"));
     if (TempStr)
     {
-        finalIndexV = FString::ToFloat(*TempStr);
+        FinalIndexV = FString::ToFloat(*TempStr);
     }
     TempStr = InProperties.Find(TEXT("BufferKey"));
     if (TempStr)
@@ -127,57 +127,57 @@ FMatrix UBillboardComponent::CreateBillboardMatrix() const
 }
 
 
-bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& quadVertices, float& hitDistance) const
+bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& QuadVertices, float& HitDistance) const
 {
     // TODO: 이 로직으로는 멀티 뷰포트에서 빌보드 피킹 안됨.
     
     // 마우스 위치를 클라이언트 좌표로 가져온 후 NDC 좌표로 변환
-    POINT mousePos;
-    GetCursorPos(&mousePos);
-    ScreenToClient(GEngineLoop.AppWnd, &mousePos);
+    POINT MousePos;
+    GetCursorPos(&MousePos);
+    ScreenToClient(GEngineLoop.AppWnd, &MousePos);
 
-    D3D11_VIEWPORT viewport;
-    UINT numViewports = 1;
-    FEngineLoop::GraphicDevice.DeviceContext->RSGetViewports(&numViewports, &viewport);
+    D3D11_VIEWPORT Viewport;
+    UINT NumViewports = 1;
+    FEngineLoop::GraphicDevice.DeviceContext->RSGetViewports(&NumViewports, &Viewport);
 
     // NDC 좌표 계산: X, Y는 [-1,1] 범위로 매핑
-    float ndcX = (2.0f * mousePos.x / viewport.Width) - 1.0f;
-    float ndcY = -((2.0f * mousePos.y / viewport.Height) - 1.0f);
+    const float NdcX = (2.0f * MousePos.x / Viewport.Width) - 1.0f;
+    const float NdcY = -((2.0f * MousePos.y / Viewport.Height) - 1.0f);
 
     // MVP 행렬 계산
-    std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
-    FMatrix M = CreateBillboardMatrix();
-    FMatrix V = ActiveViewport->GetViewMatrix();
-    FMatrix P = ActiveViewport->GetProjectionMatrix();
-    FMatrix MVP = M * V * P;
+    const std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
+    const FMatrix M = CreateBillboardMatrix();
+    const FMatrix V = ActiveViewport->GetViewMatrix();
+    const FMatrix P = ActiveViewport->GetProjectionMatrix();
+    const FMatrix MVP = M * V * P;
 
     // quadVertices를 MVP로 변환하여 NDC 공간에서의 최소/최대값 구하기
-    float minX = FLT_MAX, maxX = -FLT_MAX;
-    float minY = FLT_MAX, maxY = -FLT_MAX;
-    float avgZ = 0.0f;
+    float MinX = FLT_MAX, MaxX = -FLT_MAX;
+    float MinY = FLT_MAX, MaxY = -FLT_MAX;
+    float AvgZ = 0.0f;
 
-    for (const FVector& v : quadVertices)
+    for (const FVector& V : QuadVertices)
     {
-        FVector4 clipPos = FMatrix::TransformVector(FVector4(v, 1.0f), MVP);
-        if (clipPos.W != 0.0f)
+        FVector4 ClipPos = FMatrix::TransformVector(FVector4(V, 1.0f), MVP);
+        if (ClipPos.W != 0.0f)
         {
-            clipPos = clipPos / clipPos.W;
+            ClipPos = ClipPos / ClipPos.W;
         }
-        minX = FMath::Min(minX, clipPos.X);
-        maxX = FMath::Max(maxX, clipPos.X);
-        minY = FMath::Min(minY, clipPos.Y);
-        maxY = FMath::Max(maxY, clipPos.Y);
-        avgZ += clipPos.Z;
+        MinX = FMath::Min(MinX, ClipPos.X);
+        MaxX = FMath::Max(MaxX, ClipPos.X);
+        MinY = FMath::Min(MinY, ClipPos.Y);
+        MaxY = FMath::Max(MaxY, ClipPos.Y);
+        AvgZ += ClipPos.Z;
     }
 
-    avgZ /= quadVertices.Num();
+    AvgZ /= QuadVertices.Num();
 
     // 마우스 NDC 좌표가 quad의 NDC 경계 사각형 내에 있는지 검사
-    if (ndcX >= minX && ndcX <= maxX && ndcY >= minY && ndcY <= maxY)
+    if (NdcX >= MinX && NdcX <= MaxX && NdcY >= MinY && NdcY <= MaxY)
     {
         const FVector WorldLocation = GetComponentLocation();
         const FVector CameraLocation = ActiveViewport->GetCameraLocation();
-        hitDistance = (WorldLocation - CameraLocation).Length();
+        HitDistance = (WorldLocation - CameraLocation).Length();
         return true;
     }
     return false;

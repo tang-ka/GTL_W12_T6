@@ -24,8 +24,8 @@ public:
     FMatrix CreateBillboardMatrix() const;
     FString GetTexturePath() const { return TexturePath; }
 
-    float finalIndexU = 0.0f;
-    float finalIndexV = 0.0f;
+    float FinalIndexU = 0.0f;
+    float FinalIndexV = 0.0f;
     std::shared_ptr<FTexture> Texture;
 
     bool bIsEditorBillboard = false;
@@ -35,6 +35,6 @@ protected:
     FString TexturePath = TEXT("default");
 
     // NDC 픽킹을 위한 내부 함수 : quadVertices는 월드 공간 정점 배열
-    bool CheckPickingOnNDC(const TArray<FVector>& quadVertices, float& hitDistance) const;
+    bool CheckPickingOnNDC(const TArray<FVector>& QuadVertices, float& HitDistance) const;
 
 };

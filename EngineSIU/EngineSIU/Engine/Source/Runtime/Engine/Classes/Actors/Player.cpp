@@ -36,7 +36,7 @@ void AEditorPlayer::Input()
 
             POINT mousePos;
             GetCursorPos(&mousePos);
-            GetCursorPos(&m_LastMousePos);
+            GetCursorPos(&LastMousePos);
             ScreenToClient(GEngineLoop.AppWnd, &mousePos);
 
             /*
@@ -159,7 +159,7 @@ bool AEditorPlayer::PickGizmo(FVector& pickPosition, FEditorViewportClient* InAc
     return isPickedGizmo;
 }
 
-void AEditorPlayer::PickActor(const FVector& pickPosition)
+void AEditorPlayer::PickActor(const FVector& PickPosition)
 {
     if (!(ShowFlags::GetInstance().CurrentFlags & EEngineShowFlags::SF_Primitives)) return;
 
@@ -182,7 +182,7 @@ void AEditorPlayer::PickActor(const FVector& pickPosition)
         {
             float Distance = 0.0f;
             int currentIntersectCount = 0;
-            if (RayIntersectsObject(pickPosition, pObj, Distance, currentIntersectCount))
+            if (RayIntersectsObject(PickPosition, pObj, Distance, currentIntersectCount))
             {
                 if (Distance < minDistance)
                 {
@@ -306,8 +306,8 @@ void AEditorPlayer::PickedObjControl()
     {
         POINT CurrentMousePos;
         GetCursorPos(&CurrentMousePos);
-        const float DeltaX = static_cast<float>(CurrentMousePos.x - m_LastMousePos.x);
-        const float DeltaY = static_cast<float>(CurrentMousePos.y - m_LastMousePos.y);
+        const float DeltaX = static_cast<float>(CurrentMousePos.x - LastMousePos.x);
+        const float DeltaY = static_cast<float>(CurrentMousePos.y - LastMousePos.y);
 
         USceneComponent* TargetComponent = Engine->GetSelectedComponent();
         if (!TargetComponent)
@@ -338,7 +338,7 @@ void AEditorPlayer::PickedObjControl()
         default:
             break;
         }
-        m_LastMousePos = CurrentMousePos;
+        LastMousePos = CurrentMousePos;
     }
 }
 
@@ -351,8 +351,8 @@ void AEditorPlayer::PickedBoneControl()
         
         POINT CurrentMousePos;
         GetCursorPos(&CurrentMousePos);
-        const float DeltaX = static_cast<float>(CurrentMousePos.x - m_LastMousePos.x);
-        const float DeltaY = static_cast<float>(CurrentMousePos.y - m_LastMousePos.y);
+        const float DeltaX = static_cast<float>(CurrentMousePos.x - LastMousePos.x);
+        const float DeltaY = static_cast<float>(CurrentMousePos.y - LastMousePos.y);
 
         if (DeltaX > 1.f)
         {
@@ -407,7 +407,7 @@ void AEditorPlayer::PickedBoneControl()
             //SkeletalMeshComp->BoneTransforms[BoneIndex] = GlobalBoneTransform;
         }
         
-        m_LastMousePos = CurrentMousePos;
+        LastMousePos = CurrentMousePos;
     }
 }
 

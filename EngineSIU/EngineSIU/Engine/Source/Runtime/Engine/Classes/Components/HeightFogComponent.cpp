@@ -2,7 +2,7 @@
 #include <UObject/Casts.h>
 
 UHeightFogComponent::UHeightFogComponent(float Density, float HeightFalloff, float StartDist, float EndDist, float DistanceWeight)
-    :FogDensity(Density), FogHeightFalloff(HeightFalloff), StartDistance(StartDist), EndDistance(EndDist), FogDistanceWeight(DistanceWeight)
+    :FogDensity(Density), FogHeightFalloff(HeightFalloff), StartDistance(StartDist), FogDistanceWeight(DistanceWeight), EndDistance(EndDist)
 {
     FogInscatteringColor = FLinearColor::White;
 }

@@ -415,12 +415,12 @@ void USkeletalMeshComponent::CPUSkinning(bool bForceUpdate)
                      
                      // 본 행렬 적용 (BoneMatrices는 이미 최종 스키닝 행렬)
                      // FBX SDK에서 가져온 역바인드 포즈 행렬이 이미 포함됨
-                     FVector pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
-                     FVector4 norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
-                     FVector norm(norm4.X, norm4.Y, norm4.Z);
+                     FVector Pos = FinalBoneMatrices[BoneIdx].TransformPosition(FVector(Vertex.X, Vertex.Y, Vertex.Z));
+                     FVector4 Norm4 = FinalBoneMatrices[BoneIdx].TransformFVector4(FVector4(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ, 0.0f));
+                     FVector Norm(Norm4.X, Norm4.Y, Norm4.Z);
                      
-                     SkinnedPosition += pos * Weight;
-                     SkinnedNormal += norm * Weight;
+                     SkinnedPosition += Pos * Weight;
+                     SkinnedNormal += Norm * Weight;
                  }
              }
     

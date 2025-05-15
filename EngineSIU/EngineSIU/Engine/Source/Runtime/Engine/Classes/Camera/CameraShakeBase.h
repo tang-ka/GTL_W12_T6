@@ -11,8 +11,8 @@ struct FCameraShakePatternUpdateParams
     FCameraShakePatternUpdateParams()
     {}
 
-    FCameraShakePatternUpdateParams(const FMinimalViewInfo& InPOV)
-        : POV(InPOV)
+    FCameraShakePatternUpdateParams(FMinimalViewInfo InPOV)
+        : POV(std::move(InPOV))
     {}
 
     /** The time elapsed since last update */

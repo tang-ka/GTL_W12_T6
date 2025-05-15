@@ -22,9 +22,9 @@ public:
         const FVector& RayOrigin, const FVector& RayDirection,
         const FVector& v0, const FVector& v1, const FVector& v2, float& OutHitDistance
     ) const;
-    
-    void GetProperties(TMap<FString, FString>& OutProperties) const override;
-    void SetProperties(const TMap<FString, FString>& InProperties) override;
+
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
     
     FBoundingBox AABB;
 
@@ -109,9 +109,9 @@ private:
 public:
     FString GetType() { return m_Type; }
 
-    void SetType(const FString& _Type)
+    void SetType(const FString& InType)
     {
-        m_Type = _Type;
+        m_Type = InType;
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
     

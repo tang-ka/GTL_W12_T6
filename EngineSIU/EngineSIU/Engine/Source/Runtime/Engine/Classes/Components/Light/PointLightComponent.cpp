@@ -186,41 +186,41 @@ void UPointLightComponent::InitShadowDebugView()
 {
     for (int i = 0; i < 6; ++i)
     {
-        D3D11_TEXTURE2D_DESC texDesc = {};
-        texDesc.Width = ShadowMapWidth;
-        texDesc.Height = ShadowMapHeight;
-        texDesc.MipLevels = 1;
-        texDesc.ArraySize = 1;
-        texDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        texDesc.SampleDesc.Count = 1;
-        texDesc.Usage = D3D11_USAGE_DEFAULT;
-        texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        texDesc.CPUAccessFlags = 0;
-        texDesc.MiscFlags = 0;
+        D3D11_TEXTURE2D_DESC TexDesc = {};
+        TexDesc.Width = ShadowMapWidth;
+        TexDesc.Height = ShadowMapHeight;
+        TexDesc.MipLevels = 1;
+        TexDesc.ArraySize = 1;
+        TexDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        TexDesc.SampleDesc.Count = 1;
+        TexDesc.Usage = D3D11_USAGE_DEFAULT;
+        TexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        TexDesc.CPUAccessFlags = 0;
+        TexDesc.MiscFlags = 0;
 
-        ID3D11Texture2D* texture = nullptr;
-        auto hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&texDesc, nullptr, &texture);
+        ID3D11Texture2D* Texture = nullptr;
+        auto hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&TexDesc, nullptr, &Texture);
         if (FAILED(hr))
         {
             UE_LOG(ELogLevel::Error, TEXT("Failed to create shadow debug texture!"));
             return;
         }
-        OutputTextures.Add(texture);
+        OutputTextures.Add(Texture);
 
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Texture2D.MipLevels = 1;
+        D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+        SrvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        SrvDesc.Texture2D.MostDetailedMip = 0;
+        SrvDesc.Texture2D.MipLevels = 1;
 
-        ID3D11ShaderResourceView* srv = nullptr;
-        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(texture, &srvDesc, &srv);
+        ID3D11ShaderResourceView* Srv = nullptr;
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SrvDesc, &Srv);
         if (FAILED(hr))
         {
             UE_LOG(ELogLevel::Error, TEXT("Failed to create shadow debug SRV!"));
             return;
         }
-        OutputSRVs.Add(srv);
+        OutputSRVs.Add(Srv);
     }
 }
 

@@ -9,10 +9,10 @@
 #include <fstream>
 #include <sstream>
 
-bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
+bool FObjLoader::ParseObj(const FString& ObjFilePath, FObjInfo& OutObjInfo)
 {
-    std::ifstream OBJ(ObjFilePath.ToWideString());
-    if (!OBJ)
+    std::ifstream Obj(ObjFilePath.ToWideString());
+    if (!Obj)
     {
         return false;
     }
@@ -20,18 +20,18 @@ bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
     OutObjInfo.FilePath = ObjFilePath.ToWideString().substr(0, ObjFilePath.ToWideString().find_last_of(L"\\/") + 1);
     OutObjInfo.ObjectName = ObjFilePath.ToWideString();
     // ObjectName은 wstring 타입이므로, 이를 string으로 변환 (간단한 ASCII 변환의 경우)
-    std::wstring wideName = OutObjInfo.ObjectName.substr(ObjFilePath.ToWideString().find_last_of(L"\\/") + 1);
-    std::string fileName(wideName.begin(), wideName.end());
+    std::wstring WideName = OutObjInfo.ObjectName.substr(ObjFilePath.ToWideString().find_last_of(L"\\/") + 1);
+    std::string FileName(WideName.begin(), WideName.end());
 
     // 마지막 '.'을 찾아 확장자를 제거
-    size_t dotPos = fileName.find_last_of('.');
-    if (dotPos != std::string::npos)
+    size_t DotPos = FileName.find_last_of('.');
+    if (DotPos != std::string::npos)
     {
-        OutObjInfo.DisplayName = fileName.substr(0, dotPos);
+        OutObjInfo.DisplayName = FileName.substr(0, DotPos);
     }
     else
     {
-        OutObjInfo.DisplayName = fileName;
+        OutObjInfo.DisplayName = FileName;
     }
 
     /**
@@ -48,10 +48,12 @@ bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
 
     std::string Line;
 
-    while (std::getline(OBJ, Line))
+    while (std::getline(Obj, Line))
     {
         if (Line.empty() || Line[0] == '#')
+        {
             continue;
+        }
 
         std::istringstream LineStream(Line);
         std::string Token;
@@ -125,16 +127,16 @@ bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
                 std::string Part;
                 TArray<std::string> FacePieces;
 
-                uint32 vertexIndex = 0;
-                uint32 textureIndex = UINT32_MAX;
-                uint32 normalIndex = UINT32_MAX;
+                uint32 VertexIndex = 0;
+                uint32 TextureIndex = UINT32_MAX;
+                uint32 NormalIndex = UINT32_MAX;
 
                 // v
                 if (std::getline(TokenStream, Part, '/'))
                 {
                     if (!Part.empty())
                     {
-                        vertexIndex = std::stoi(Part) - 1;
+                        VertexIndex = std::stoi(Part) - 1;
                     }
                 }
 
@@ -143,7 +145,7 @@ bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
                 {
                     if (!Part.empty())
                     {
-                        textureIndex = std::stoi(Part) - 1;
+                        TextureIndex = std::stoi(Part) - 1;
                     }
                 }
 
@@ -152,13 +154,13 @@ bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
                 {
                     if (!Part.empty())
                     {
-                        normalIndex = std::stoi(Part) - 1;
+                        NormalIndex = std::stoi(Part) - 1;
                     }
                 }
 
-                FaceVertexIndices.Add(vertexIndex);
-                FaceUVIndices.Add(textureIndex);
-                FaceNormalIndices.Add(normalIndex);
+                FaceVertexIndices.Add(VertexIndex);
+                FaceUVIndices.Add(TextureIndex);
+                FaceNormalIndices.Add(NormalIndex);
             }
 
             if (FaceVertexIndices.Num() == 3) // 삼각형
@@ -233,7 +235,9 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
     while (std::getline(MtlFile, Line))
     {
         if (Line.empty() || Line[0] == '#')
+        {
             continue;
+        }
 
         std::istringstream LineStream(Line);
         std::string Token;
@@ -256,64 +260,64 @@ bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, FStaticMeshRenderData& OutS
 
         if (Token == "Kd")
         {
-            float x, y, z;
-            LineStream >> x >> y >> z;
-            OutStaticMeshRenderData.Materials[MaterialIndex].DiffuseColor = FVector(x, y, z);
+            float X, Y, Z;
+            LineStream >> X >> Y >> Z;
+            OutStaticMeshRenderData.Materials[MaterialIndex].DiffuseColor = FVector(X, Y, Z);
         }
         if (Token == "Ks")
         {
-            float x, y, z;
-            LineStream >> x >> y >> z;
-            OutStaticMeshRenderData.Materials[MaterialIndex].SpecularColor = FVector(x, y, z);
+            float X, Y, Z;
+            LineStream >> X >> Y >> Z;
+            OutStaticMeshRenderData.Materials[MaterialIndex].SpecularColor = FVector(X, Y, Z);
         }
         if (Token == "Ka")
         {
-            float x, y, z;
-            LineStream >> x >> y >> z;
-            OutStaticMeshRenderData.Materials[MaterialIndex].AmbientColor = FVector(x, y, z);
+            float X, Y, Z;
+            LineStream >> X >> Y >> Z;
+            OutStaticMeshRenderData.Materials[MaterialIndex].AmbientColor = FVector(X, Y, Z);
         }
         if (Token == "Ke")
         {
-            float x, y, z;
-            LineStream >> x >> y >> z;
-            OutStaticMeshRenderData.Materials[MaterialIndex].EmissiveColor = FVector(x, y, z);
+            float X, Y, Z;
+            LineStream >> X >> Y >> Z;
+            OutStaticMeshRenderData.Materials[MaterialIndex].EmissiveColor = FVector(X, Y, Z);
         }
         if (Token == "Ns")
         {
-            float x;
-            LineStream >> x;
-            OutStaticMeshRenderData.Materials[MaterialIndex].Shininess = x;
+            float X;
+            LineStream >> X;
+            OutStaticMeshRenderData.Materials[MaterialIndex].Shininess = X;
         }
         if (Token == "Ni")
         {
-            float x;
-            LineStream >> x;
-            OutStaticMeshRenderData.Materials[MaterialIndex].IOR = x;
+            float X;
+            LineStream >> X;
+            OutStaticMeshRenderData.Materials[MaterialIndex].IOR = X;
         }
         if (Token == "d" || Token == "Tr")
         {
-            float x;
-            LineStream >> x;
-            OutStaticMeshRenderData.Materials[MaterialIndex].Transparency = (Token == "Tr") ? x : 1.f - x;
+            float X;
+            LineStream >> X;
+            OutStaticMeshRenderData.Materials[MaterialIndex].Transparency = (Token == "Tr") ? X : 1.f - X;
             OutStaticMeshRenderData.Materials[MaterialIndex].bTransparent = true;
         }
         if (Token == "illum")
         {
-            uint32 x;
-            LineStream >> x;
-            OutStaticMeshRenderData.Materials[MaterialIndex].IlluminanceModel = x;
+            uint32 X;
+            LineStream >> X;
+            OutStaticMeshRenderData.Materials[MaterialIndex].IlluminanceModel = X;
         }
         if (Token == "Pm")
         {
-            float x;
-            LineStream >> x;
-            OutStaticMeshRenderData.Materials[MaterialIndex].Metallic = x;
+            float X;
+            LineStream >> X;
+            OutStaticMeshRenderData.Materials[MaterialIndex].Metallic = X;
         }
         if (Token == "Pr")
         {
-            float x;
-            LineStream >> x;
-            OutStaticMeshRenderData.Materials[MaterialIndex].Roughness = x;
+            float X;
+            LineStream >> X;
+            OutStaticMeshRenderData.Materials[MaterialIndex].Roughness = X;
         }
 
         if (Token == "map_Kd")
@@ -462,17 +466,17 @@ bool FObjLoader::ConvertToStaticMesh(const FObjInfo& RawData, FStaticMeshRenderD
     // 고유 정점을 기반으로 FVertexSimple 배열 생성
     TMap<std::string, uint32> IndexMap; // 중복 체크용
 
-    for (int32 i = 0; i < RawData.VertexIndices.Num(); i++)
+    for (int32 Idx = 0; Idx < RawData.VertexIndices.Num(); Idx++)
     {
-        const uint32 VertexIndex = RawData.VertexIndices[i];
-        const uint32 UVIndex = RawData.UVIndices[i];
-        const uint32 NormalIndex = RawData.NormalIndices[i];
+        const uint32 VertexIndex = RawData.VertexIndices[Idx];
+        const uint32 UVIndex = RawData.UVIndices[Idx];
+        const uint32 NormalIndex = RawData.NormalIndices[Idx];
 
         uint32 MaterialIndex = 0;
-        for (int32 j = 0; j < OutStaticMesh.MaterialSubsets.Num(); j++)
+        for (int32 SubsetIdx = 0; SubsetIdx < OutStaticMesh.MaterialSubsets.Num(); SubsetIdx++)
         {
-            const FMaterialSubset& Subset = OutStaticMesh.MaterialSubsets[j];
-            if (Subset.IndexStart <= i && i < Subset.IndexStart + Subset.IndexCount)
+            const FMaterialSubset& Subset = OutStaticMesh.MaterialSubsets[SubsetIdx];
+            if (Subset.IndexStart <= Idx && Idx < Subset.IndexStart + Subset.IndexCount)
             {
                 MaterialIndex = Subset.MaterialIndex;
                 break;
@@ -519,11 +523,11 @@ bool FObjLoader::ConvertToStaticMesh(const FObjInfo& RawData, FStaticMeshRenderD
     }
 
     // Tangent
-    for (int32 i = 0; i < OutStaticMesh.Indices.Num(); i += 3)
+    for (int32 Idx = 0; Idx < OutStaticMesh.Indices.Num(); Idx += 3)
     {
-        FStaticMeshVertex& Vertex0 = OutStaticMesh.Vertices[OutStaticMesh.Indices[i]];
-        FStaticMeshVertex& Vertex1 = OutStaticMesh.Vertices[OutStaticMesh.Indices[i + 1]];
-        FStaticMeshVertex& Vertex2 = OutStaticMesh.Vertices[OutStaticMesh.Indices[i + 2]];
+        FStaticMeshVertex& Vertex0 = OutStaticMesh.Vertices[OutStaticMesh.Indices[Idx]];
+        FStaticMeshVertex& Vertex1 = OutStaticMesh.Vertices[OutStaticMesh.Indices[Idx + 1]];
+        FStaticMeshVertex& Vertex2 = OutStaticMesh.Vertices[OutStaticMesh.Indices[Idx + 2]];
 
         CalculateTangent(Vertex0, Vertex1, Vertex2);
         CalculateTangent(Vertex1, Vertex2, Vertex0);
@@ -558,15 +562,15 @@ void FObjLoader::ComputeBoundingBox(const TArray<FStaticMeshVertex>& InVertices,
     FVector MinVector = { FLT_MAX, FLT_MAX, FLT_MAX };
     FVector MaxVector = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
-    for (int32 i = 0; i < InVertices.Num(); i++)
+    for (int32 Idx = 0; Idx < InVertices.Num(); Idx++)
     {
-        MinVector.X = std::min(MinVector.X, InVertices[i].X);
-        MinVector.Y = std::min(MinVector.Y, InVertices[i].Y);
-        MinVector.Z = std::min(MinVector.Z, InVertices[i].Z);
+        MinVector.X = std::min(MinVector.X, InVertices[Idx].X);
+        MinVector.Y = std::min(MinVector.Y, InVertices[Idx].Y);
+        MinVector.Z = std::min(MinVector.Z, InVertices[Idx].Z);
 
-        MaxVector.X = std::max(MaxVector.X, InVertices[i].X);
-        MaxVector.Y = std::max(MaxVector.Y, InVertices[i].Y);
-        MaxVector.Z = std::max(MaxVector.Z, InVertices[i].Z);
+        MaxVector.X = std::max(MaxVector.X, InVertices[Idx].X);
+        MaxVector.Y = std::max(MaxVector.Y, InVertices[Idx].Y);
+        MaxVector.Z = std::max(MaxVector.Z, InVertices[Idx].Z);
     }
 
     OutMinVector = MinVector;
@@ -655,7 +659,7 @@ FStaticMeshRenderData* FObjManager::LoadObjStaticMeshAsset(const FString& PathFi
 
     // Parse OBJ
     FObjInfo NewObjInfo;
-    bool Result = FObjLoader::ParseOBJ(PathFileName, NewObjInfo);
+    bool Result = FObjLoader::ParseObj(PathFileName, NewObjInfo);
 
     if (!Result)
     {
@@ -676,8 +680,8 @@ FStaticMeshRenderData* FObjManager::LoadObjStaticMeshAsset(const FString& PathFi
 
         CombineMaterialIndex(*NewStaticMesh);
 
-        for (int materialIndex = 0; materialIndex < NewStaticMesh->Materials.Num(); materialIndex++) {
-            CreateMaterial(NewStaticMesh->Materials[materialIndex]);
+        for (int MaterialIndex = 0; MaterialIndex < NewStaticMesh->Materials.Num(); MaterialIndex++) {
+            CreateMaterial(NewStaticMesh->Materials[MaterialIndex]);
         }
     }
 
@@ -696,14 +700,14 @@ FStaticMeshRenderData* FObjManager::LoadObjStaticMeshAsset(const FString& PathFi
 
 void FObjManager::CombineMaterialIndex(FStaticMeshRenderData& OutFStaticMesh)
 {
-    for (int32 i = 0; i < OutFStaticMesh.MaterialSubsets.Num(); i++)
+    for (int32 Idx = 0; Idx < OutFStaticMesh.MaterialSubsets.Num(); Idx++)
     {
-        FString MatName = OutFStaticMesh.MaterialSubsets[i].MaterialName;
+        FString MatName = OutFStaticMesh.MaterialSubsets[Idx].MaterialName;
         for (int32 j = 0; j < OutFStaticMesh.Materials.Num(); j++)
         {
             if (OutFStaticMesh.Materials[j].MaterialName == MatName)
             {
-                OutFStaticMesh.MaterialSubsets[i].MaterialIndex = j;
+                OutFStaticMesh.MaterialSubsets[Idx].MaterialIndex = j;
                 break;
             }
         }
@@ -890,12 +894,14 @@ bool FObjManager::LoadStaticMeshFromBinary(const FWString& FilePath, FStaticMesh
 UMaterial* FObjManager::CreateMaterial(const FMaterialInfo& MaterialInfo)
 {
     if (MaterialMap[MaterialInfo.MaterialName] != nullptr)
+    {
         return MaterialMap[MaterialInfo.MaterialName];
+    }
 
-    UMaterial* newMaterial = FObjectFactory::ConstructObject<UMaterial>(nullptr); // Material은 Outer가 없이 따로 관리되는 객체이므로 Outer가 없음으로 설정. 추후 Garbage Collection이 추가되면 AssetManager를 생성해서 관리.
-    newMaterial->SetMaterialInfo(MaterialInfo);
-    MaterialMap.Add(MaterialInfo.MaterialName, newMaterial);
-    return newMaterial;
+    UMaterial* NewMaterial = FObjectFactory::ConstructObject<UMaterial>(nullptr); // Material은 Outer가 없이 따로 관리되는 객체이므로 Outer가 없음으로 설정. 추후 Garbage Collection이 추가되면 AssetManager를 생성해서 관리.
+    NewMaterial->SetMaterialInfo(MaterialInfo);
+    MaterialMap.Add(MaterialInfo.MaterialName, NewMaterial);
+    return NewMaterial;
 }
 
 UMaterial* FObjManager::GetMaterial(const FString& Name)
@@ -907,7 +913,10 @@ UStaticMesh* FObjManager::CreateStaticMesh(const FString& FilePath)
 {
     FStaticMeshRenderData* StaticMeshRenderData = FObjManager::LoadObjStaticMeshAsset(FilePath);
 
-    if (StaticMeshRenderData == nullptr) return nullptr;
+    if (StaticMeshRenderData == nullptr)
+    {
+        return nullptr;
+    }
 
     UStaticMesh* StaticMesh = GetStaticMesh(StaticMeshRenderData->ObjectName);
     if (StaticMesh != nullptr)

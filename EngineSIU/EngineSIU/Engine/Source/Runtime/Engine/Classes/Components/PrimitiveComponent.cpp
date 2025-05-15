@@ -246,11 +246,17 @@ void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperti
     }
 
     const FString* AABBminStr = InProperties.Find(TEXT("AABB_min"));
-    if (AABBminStr) AABB.MinLocation.InitFromString(*AABBminStr); 
+    if (AABBminStr)
+    {
+        AABB.MinLocation.InitFromString(*AABBminStr);
+    }
 
-    
+
     const FString* AABBmaxStr = InProperties.Find(TEXT("AABB_max"));
-    if (AABBmaxStr) AABB.MaxLocation.InitFromString(*AABBmaxStr); 
+    if (AABBmaxStr)
+    {
+        AABB.MaxLocation.InitFromString(*AABBmaxStr);
+    }
 }
 
 void UPrimitiveComponent::BeginComponentOverlap(const FOverlapInfo& OtherOverlap, bool bDoNotifies)

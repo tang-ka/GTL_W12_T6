@@ -278,17 +278,17 @@ FAssetLoadResult FFbxLoader::LoadFBX(const FString& InFilePath)
     ObjectName = InFilePath.ToWideString();
     FilePath = InFilePath.ToWideString().substr(0, InFilePath.ToWideString().find_last_of(L"\\/") + 1);
     // ObjectName은 wstring 타입이므로, 이를 string으로 변환 (간단한 ASCII 변환의 경우)
-    std::wstring wideName = ObjectName.substr(ObjectName.find_last_of(L"\\/") + 1);
-    std::string fileName(wideName.begin(), wideName.end());
+    std::wstring WideName = ObjectName.substr(ObjectName.find_last_of(L"\\/") + 1);
+    const std::string FileName(WideName.begin(), WideName.end());
     // 마지막 '.'을 찾아 확장자를 제거
-    size_t dotPos = fileName.find_last_of('.');
-    if (dotPos != std::string::npos)
+    size_t DotPos = FileName.find_last_of('.');
+    if (DotPos != std::string::npos)
     {
-        DisplayName = fileName.substr(0, dotPos);
+        DisplayName = FileName.substr(0, DotPos);
     }
     else
     {
-        DisplayName = fileName;
+        DisplayName = FileName;
     }
 
     ConvertSceneToLeftHandedZUpXForward();
@@ -903,11 +903,15 @@ USkeletalMesh* FFbxLoader::CreateSkeletalMeshFromNodes(const TArray<FbxNode*>& M
             FbxGeometryElementMaterial* MaterialElement = Mesh->GetElementMaterial();
             if (MaterialElement)
             {
-                auto mode = MaterialElement->GetMappingMode();
-                if (mode == FbxGeometryElement::eByPolygon)
+                auto Mode = MaterialElement->GetMappingMode();
+                if (Mode == FbxGeometryElement::eByPolygon)
+                {
                     MaterialIndex = MaterialElement->GetIndexArray().GetAt(i);
-                else if (mode == FbxGeometryElement::eAllSame)
+                }
+                else if (Mode == FbxGeometryElement::eAllSame)
+                {
                     MaterialIndex = MaterialElement->GetIndexArray().GetAt(0);
+                }
             }
 
             uint32 PolyIndices[3];
@@ -1105,11 +1109,15 @@ UStaticMesh* FFbxLoader::CreateStaticMesh(FbxNode* MeshNode, int32 GlobalMeshIdx
         FbxGeometryElementMaterial* MaterialElement = Mesh->GetElementMaterial();
         if (MaterialElement)
         {
-            auto mode = MaterialElement->GetMappingMode();
-            if (mode == FbxGeometryElement::eByPolygon)
+            auto Mode = MaterialElement->GetMappingMode();
+            if (Mode == FbxGeometryElement::eByPolygon)
+            {
                 MaterialIndex = MaterialElement->GetIndexArray().GetAt(i);
-            else if (mode == FbxGeometryElement::eAllSame)
+            }
+            else if (Mode == FbxGeometryElement::eAllSame)
+            {
                 MaterialIndex = MaterialElement->GetIndexArray().GetAt(0);
+            }
         }
 
         uint32 PolyIndices[3];

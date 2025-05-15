@@ -19,9 +19,9 @@ UObject* UParticleSubUVComponent::Duplicate(UObject* InOuter)
         NewComponent->bIsLoop = bIsLoop;
         NewComponent->CellsPerRow = CellsPerRow;
         NewComponent->CellsPerColumn = CellsPerColumn;
-        NewComponent->indexU = indexU;
-        NewComponent->indexV = indexV;
-        NewComponent->elapsedTime = elapsedTime;
+        NewComponent->IndexU = IndexU;
+        NewComponent->IndexV = IndexV;
+        NewComponent->ElapsedTime = ElapsedTime;
         NewComponent->FrameDuration = FrameDuration;
         NewComponent->UVScale = UVScale;
         NewComponent->UVOffset = UVOffset;
@@ -35,9 +35,9 @@ void UParticleSubUVComponent::GetProperties(TMap<FString, FString>& OutPropertie
     OutProperties.Add(TEXT("bIsLoop"), bIsLoop ? TEXT("true") : TEXT("false"));
     OutProperties.Add(TEXT("CellsPerRow"), FString::Printf(TEXT("%d"), CellsPerRow));
     OutProperties.Add(TEXT("CellsPerColumn"), FString::Printf(TEXT("%d"), CellsPerColumn));
-    OutProperties.Add(TEXT("IndexU"), FString::Printf(TEXT("%d"), indexU));
-    OutProperties.Add(TEXT("IndexV"), FString::Printf(TEXT("%d"), indexV));
-    OutProperties.Add(TEXT("ElapsedTime"), FString::Printf(TEXT("%f"), elapsedTime));
+    OutProperties.Add(TEXT("IndexU"), FString::Printf(TEXT("%d"), IndexU));
+    OutProperties.Add(TEXT("IndexV"), FString::Printf(TEXT("%d"), IndexV));
+    OutProperties.Add(TEXT("ElapsedTime"), FString::Printf(TEXT("%f"), ElapsedTime));
     OutProperties.Add(TEXT("FrameDuration"), FString::Printf(TEXT("%f"), FrameDuration));
     OutProperties.Add(TEXT("UVScale"), FString::Printf(TEXT("%s"), *UVScale.ToString()));
     OutProperties.Add(TEXT("UVOffset"), FString::Printf(TEXT("%s"), *UVOffset.ToString()));
@@ -66,17 +66,17 @@ void UParticleSubUVComponent::SetProperties(const TMap<FString, FString>& InProp
     TempStr = InProperties.Find(TEXT("IndexU"));
     if (TempStr)
     {
-        indexU = FString::ToFloat(*TempStr);
+        IndexU = FString::ToFloat(*TempStr);
     }
     TempStr = InProperties.Find(TEXT("IndexV"));
     if (TempStr)
     {
-        indexV = FString::ToFloat(*TempStr);
+        IndexV = FString::ToFloat(*TempStr);
     }
     TempStr = InProperties.Find(TEXT("ElapsedTime"));
     if (TempStr)
     {
-        elapsedTime = FString::ToFloat(*TempStr);
+        ElapsedTime = FString::ToFloat(*TempStr);
     }
     TempStr = InProperties.Find(TEXT("FrameDuration"));
     if (TempStr)
@@ -117,44 +117,44 @@ void UParticleSubUVComponent::TickComponent(float DeltaTime)
     float UVSaleY = 1.0f / static_cast<float>(CellsPerRow);
 
     // 시간 누적 후 프레임 전환
-    elapsedTime += (DeltaTime * 1000);
-    if (elapsedTime >= FrameDuration)
+    ElapsedTime += (DeltaTime * 1000);
+    if (ElapsedTime >= FrameDuration)
     {
-        indexU++;
-        elapsedTime = 0.0f;
+        IndexU++;
+        ElapsedTime = 0.0f;
     }
-    if (indexU >= CellsPerColumn)
+    if (IndexU >= CellsPerColumn)
     {
-        indexU = 0;
-        indexV++;
+        IndexU = 0;
+        IndexV++;
     }
-    if (indexV >= CellsPerRow)
+    if (IndexV >= CellsPerRow)
     {
-        indexU = 0;
-        indexV = 0;
+        IndexU = 0;
+        IndexV = 0;
         if (!bIsLoop)
         {
             Deactivate();
         }
     }
 
-    float UVOffsetX = static_cast<float>(indexU) * UVSaleX;
-    float UVOffsetY = static_cast<float>(indexV) * UVSaleY;
+    float UVOffsetX = static_cast<float>(IndexU) * UVSaleX;
+    float UVOffsetY = static_cast<float>(IndexV) * UVSaleY;
 
     UVScale = FVector2D(UVSaleX, UVSaleY);
     UVOffset = FVector2D(UVOffsetX, UVOffsetY);
 }
 
 // SetRowColumnCount: 셀 수 변경 시 버텍스 버퍼 재생성
-void UParticleSubUVComponent::SetRowColumnCount(int cellsPerRow, int cellsPerColumn)
+void UParticleSubUVComponent::SetRowColumnCount(int InCellsPerRow, int InCellsPerColumn)
 {
-    CellsPerRow = cellsPerRow;
-    CellsPerColumn = cellsPerColumn;
+    CellsPerRow = InCellsPerRow;
+    CellsPerColumn = InCellsPerColumn;
 }
 
-void UParticleSubUVComponent::SetTexture(const FWString& _fileName)
+void UParticleSubUVComponent::SetTexture(const FWString& FileName)
 {
-    Texture = FEngineLoop::ResourceManager.GetTexture(_fileName);
-    std::string str(_fileName.begin(), _fileName.end());
+    Texture = FEngineLoop::ResourceManager.GetTexture(FileName);
+    std::string Str(FileName.begin(), FileName.end());
 
 }

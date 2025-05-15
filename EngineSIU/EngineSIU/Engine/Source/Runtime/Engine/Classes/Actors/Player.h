@@ -25,7 +25,7 @@ class AEditorPlayer : public AActor
     void Input();
     bool PickGizmo(FVector& RayOrigin, FEditorViewportClient* InActiveViewport);
     void ProcessGizmoIntersection(UStaticMeshComponent* Component, const FVector& PickPosition, FEditorViewportClient* InActiveViewport, bool& bIsPickedGizmo);
-    void PickActor(const FVector& pickPosition);
+    void PickActor(const FVector& PickPosition);
     void AddControlMode();
     void AddCoordMode();
     void SetCoordMode(ECoordMode InMode) { CoordMode = InMode; }
@@ -45,7 +45,7 @@ private:
 
     bool bLeftMouseDown = false;
 
-    POINT m_LastMousePos;
+    POINT LastMousePos;
     EControlMode ControlMode = CM_TRANSLATION;
     ECoordMode CoordMode = CDM_WORLD;
     FQuat InitialBoneRotationForGizmo;
