@@ -23,5 +23,5 @@ public:
     virtual ~UParticleSystem() override = default;
 
 private:
-    TArray<UParticleEmitter> Emitters;
+    TArray<UParticleEmitter*> Emitters;
 };

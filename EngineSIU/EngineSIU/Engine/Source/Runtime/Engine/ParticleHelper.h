@@ -94,6 +94,101 @@ struct FBaseParticle
     float            Placeholder1;
 };
 
+/**
+ * Per-particle data sent to the GPU.
+ */
+struct FParticleSpriteVertex
+{
+    /** The position of the particle. */
+    FVector Position;
+    /** The relative time of the particle. */
+    float RelativeTime;
+    /** The previous position of the particle. */
+    FVector	OldPosition;
+    /** Value that remains constant over the lifetime of a particle. */
+    float ParticleId;
+    /** The size of the particle. */
+    FVector2D Size;
+    /** The rotation of the particle. */
+    float Rotation;
+    /** The sub-image index for the particle. */
+    float SubImageIndex;
+    /** The color of the particle. */
+    FLinearColor Color;
+};
+
+/**
+ * Per-particle data sent to the GPU.
+ */
+struct FParticleSpriteVertexNonInstanced
+{
+    /** The texture UVs. */
+    FVector2D UV;
+    /** The position of the particle. */
+    FVector Position;
+    /** The relative time of the particle. */
+    float RelativeTime;
+    /** The previous position of the particle. */
+    FVector	OldPosition;
+    /** Value that remains constant over the lifetime of a particle. */
+    float ParticleId;
+    /** The size of the particle. */
+    FVector2D Size;
+    /** The rotation of the particle. */
+    float Rotation;
+    /** The sub-image index for the particle. */
+    float SubImageIndex;
+    /** The color of the particle. */
+    FLinearColor Color;
+};
+
+/**
+ * Per-particle data sent to the GPU.
+ */
+struct FParticleSpriteVertexNonInstanced
+{
+    /** The texture UVs. */
+    FVector2D UV;
+    /** The position of the particle. */
+    FVector Position;
+    /** The relative time of the particle. */
+    float RelativeTime;
+    /** The previous position of the particle. */
+    FVector OldPosition;
+    /** Value that remains constant over the lifetime of a particle. */
+    float ParticleId;
+    /** The size of the particle. */
+    FVector2D Size; 
+    /** The rotation of the particle. */
+    float Rotation;
+    /** The sub-image index for the particle. */
+    float SubImageIndex;
+    /** The color of the particle. */
+    FLinearColor Color;
+};
+
+// Per-particle data sent to the GPU.
+struct FMeshParticleInstanceVertex
+{
+    /** The color of the particle. */
+    FLinearColor Color;
+
+    /** The instance to world transform of the particle. Translation vector is packed into W components. */
+    FVector4 Transform[3];
+
+    /** The velocity of the particle, XYZ: direction, W: speed. */
+    FVector4 Velocity;
+
+    /** The sub-image texture offsets for the particle. */
+    int16 SubUVParams[4];
+
+    /** The sub-image lerp value for the particle. */
+    float SubUVLerp;
+
+    /** The relative time of the particle. */
+    float RelativeTime;
+};
+
 enum EDynamicEmitterType
 {
     DET_Unknown = 0,
@@ -216,5 +311,62 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
 
     /** Serialization */
     virtual void Serialize( FArchive& Ar );
+};
 
+/** Base class for all emitter types */
+struct FDynamicEmitterDataBase
+{
+	FDynamicEmitterDataBase(const class UParticleModuleRequired* RequiredModule);
+	virtual ~FDynamicEmitterDataBase() = default;
+    
+	/** Returns the source data for this particle system */
+	virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
+
+	int32  EmitterIndex;
+};
+
+struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
+{
+    FDynamicSpriteEmitterDataBase(const UParticleModuleRequired* RequiredModule) : 
+        FDynamicEmitterDataBase(RequiredModule),
+        bUsesDynamicParameter( false )
+    {
+        MaterialResource = nullptr;
+    }
+
+    /**
+     *	Sort the given sprite particles
+     *
+     *	@param	SorceMode			The sort mode to utilize (EParticleSortMode)
+     *	@param	bLocalSpace			true if the emitter is using local space
+     *	@param	ParticleCount		The number of particles
+     *	@param	ParticleData		The actual particle data
+     *	@param	ParticleStride		The stride between entries in the ParticleData array
+     *	@param	ParticleIndices		Indirect index list into ParticleData
+     *	@param	View				The scene view being rendered
+     *	@param	LocalToWorld		The local to world transform of the component rendering the emitter
+     *	@param	ParticleOrder		The array to fill in with ordered indices
+     */
+    void SortSpriteParticles(int32 SortMode, bool bLocalSpace, 
+        int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
+        const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
+
+    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const = 0;
+
+};
+
+struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
+{
+    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type InFeatureLevel) const override
+    {
+        return sizeof(FParticleSpriteVertex);
+    }
+};
+
+struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
+{
+    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const override
+    {
+        return sizeof(FMeshParticleInstanceVertex);
+    }
 };
