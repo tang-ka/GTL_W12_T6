@@ -29,6 +29,9 @@ public:
     using ThisClass = UStruct;
 
 public:
+    /** 현재 구조체의 크기를 반환합니다. */
+    [[nodiscard]] uint32 GetStructSize() const { return StructSize; }
+
     /** 현재 구조체의 Property 총 크기를 반환합니다. */
     [[nodiscard]] uint32 GetPropertiesSize() const { return PropertiesSize; }
 
@@ -72,6 +75,7 @@ private:
     static TArray<FProperty*>& GetUnresolvedProperties();
 
 protected:
+    uint32 StructSize;
     uint32 PropertiesSize;
     uint32 MinAlignment;
     UStruct* SuperStruct;

@@ -28,7 +28,7 @@ UStruct::UStruct(
     uint32 InAlignment,
     UStruct* InSuperStruct
 )
-    : PropertiesSize(InStructSize)
+    : StructSize(InStructSize)
     , MinAlignment(InAlignment)
     , SuperStruct(InSuperStruct)
 {
@@ -74,6 +74,7 @@ void UStruct::AddProperty(FProperty* Prop)
         GetUnresolvedProperties().Add(Prop);
     }
 
+    PropertiesSize += Prop->Size;
     Properties.Add(Prop);
     PropertyMap.Add(FName(Prop->Name), Prop);
 }
