@@ -21,7 +21,6 @@
 #include "TileLightCullingPass.h"
 
 #include "CompositingPass.h"
-#include "LightHeatMapRenderPass.h"
 #include "PostProcessCompositingPass.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
@@ -62,7 +61,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     
     DepthPrePass = AddRenderPass<FDepthPrePass>();
     TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
-    LightHeatMapRenderPass = AddRenderPass<FLightHeatMapRenderPass>();
     
     CompositingPass = AddRenderPass<FCompositingPass>();
     PostProcessCompositingPass = AddRenderPass<FPostProcessCompositingPass>();
@@ -304,7 +302,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
         TileLightCullingPass->Render(Viewport);
 
         // 이후 패스에서 사용할 수 있도록 리소스 생성
-        LightHeatMapRenderPass->SetDebugHeatmapSRV(TileLightCullingPass->GetDebugHeatmapSRV());
         // @todo UpdateLightBuffer에서 병목 발생 -> 필요한 라이트에 대하여만 업데이트 필요, Tiled Culling으로 GPU->CPU 전송은 주객전도
         UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
                                 TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());

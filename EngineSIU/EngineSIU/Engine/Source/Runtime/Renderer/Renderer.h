@@ -112,7 +112,6 @@ public:
     
     FDepthPrePass* DepthPrePass = nullptr;
     FTileLightCullingPass* TileLightCullingPass = nullptr;
-    FLightHeatMapRenderPass* LightHeatMapRenderPass = nullptr;
 
     FCompositingPass* CompositingPass = nullptr;
     FPostProcessCompositingPass* PostProcessCompositingPass = nullptr;
