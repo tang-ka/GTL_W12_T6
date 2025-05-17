@@ -447,7 +447,6 @@ FString FName::ToString() const
 		return {TEXT("None")};
 	}
 
-	// TODO: WIDECHAR에 대응 해야함
 	FNameEntry Entry = FNamePool::Get().Resolve(DisplayIndex);
     if (Entry.Header.IsWide)
     {
