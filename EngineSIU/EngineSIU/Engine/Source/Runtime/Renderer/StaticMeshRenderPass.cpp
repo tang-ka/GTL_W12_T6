@@ -241,7 +241,6 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
     
-
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 
     const EResourceType ResourceType = EResourceType::ERT_Scene;
@@ -250,6 +249,8 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+
+    Graphics->DeviceContext->OMSetBlendState(Graphics->AlphaBlendState, nullptr, 0xffffffff);
 }
 
 void FStaticMeshRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const

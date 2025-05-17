@@ -279,14 +279,18 @@ void FGraphicsDevice::CreateAlphaBlendState()
     D3D11_BLEND_DESC BlendDesc = {};
     BlendDesc.AlphaToCoverageEnable = FALSE;
     BlendDesc.IndependentBlendEnable = FALSE;
-    BlendDesc.RenderTarget[0].BlendEnable = TRUE;
-    BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    D3D11_RENDER_TARGET_BLEND_DESC RtBlendDesc = {};
+    RtBlendDesc.BlendEnable = TRUE;
+    RtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    RtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    RtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+    RtBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+    RtBlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+    RtBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    RtBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    BlendDesc.RenderTarget[0] = RtBlendDesc;
 
     const HRESULT Result = Device->CreateBlendState(&BlendDesc, &AlphaBlendState);
     if (FAILED(Result))

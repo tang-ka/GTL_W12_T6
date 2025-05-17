@@ -35,7 +35,6 @@ public:
 
     void UpdateFogConstant(UHeightFogComponent* Fog);
 
-    void CreateBlendState();
     void CreateSampler();
 
 private:
@@ -47,8 +46,6 @@ private:
 
     ID3D11VertexShader* VertexShader = nullptr;
     ID3D11PixelShader* PixelShader = nullptr;
-
-    ID3D11BlendState* BlendState = nullptr;
 
     TArray<UHeightFogComponent*> FogComponents;
 };

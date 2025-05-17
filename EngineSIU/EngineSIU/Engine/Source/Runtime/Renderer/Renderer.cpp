@@ -399,10 +399,6 @@ void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& 
         QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
         QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
         FogRenderPass->Render(Viewport);
-        /**
-         * TODO: Fog 렌더 작업 해야 함.
-         * 여기에서는 씬 렌더가 적용된 뎁스 스텐실 뷰를 SRV로 전달하고, 뎁스 스텐실 뷰를 아래에서 다시 써야함.
-         */
     }
 
     // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
