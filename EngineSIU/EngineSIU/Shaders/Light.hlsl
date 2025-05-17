@@ -168,7 +168,9 @@ uint GetCascadeIndex(float viewDepth)
     {
         // splits 배열에는 [0]=near, [N]=far 까지 로그 스플릿 저장됨 ex)0..2..4..46..1000
         if (viewDepth <= CascadeSplits[i + 1])
+        {
             return i;
+        }
     }
     return MAX_CASCADE_NUM - 1;
 }
@@ -188,15 +190,13 @@ float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, uint csmIn
     {
         // TODO (offset, 0)에 배열(slice) 인덱스 넣기
         float2 offset = diskSamples64[i] * filterRadiusUV;
-        sum += DirectionShadowMapArray.SampleCmpLevelZero(
-            ShadowSamplerCmp, float3(uv + offset, csmIndex), zReceiverNdc);
+        sum += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(uv + offset, csmIndex), zReceiverNdc);
     }
     return sum / 64;
 }
 
 void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv,
                  float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld, uint csmIndex, FDirectionalLightInfo LightInfo)
-
 {
     float LightRadiusUV = LightRadiusWorld / LightInfo.OrthoWidth; // TO FIX!
     float searchRadius = LightRadiusUV * (zReceiverView - NEAR_PLANE) / zReceiverView; // TO FIX! NearPlane
@@ -381,6 +381,7 @@ float GetSpotLightAttenuation(float Distance, float Radius, float3 LightDir, flo
 ////////
 #define PI 3.14159265359
 
+#ifdef LIGHTING_MODEL_PBR
 inline float SchlickWeight(float u) // (1‑u)^5
 {
     float m = saturate(1.0 - u);
@@ -399,6 +400,7 @@ float DisneyDiffuse(float3 N, float3 L, float3 V, float Roughness)
 
     return (Fd * NdotL / PI);
 }
+#endif
 
 float LambertDiffuse(float3 N, float3 L)
 {
@@ -408,6 +410,7 @@ float LambertDiffuse(float3 N, float3 L)
 ////////
 /// Specular
 ////////
+#ifdef LIGHTING_MODEL_PBR
 float  D_GGX(float NdotH, float alpha)
 {
     float a2 = alpha * alpha;
@@ -447,7 +450,7 @@ float3 CookTorranceSpecular(
 
     return (D * G * F) * (NdotL / (4.0 * NdotV * NdotL + 1e-5));
 }
-
+#else
 float CalculateSpecular(float3 WorldNormal, float3 ToLightDir, float3 ViewDir, float Shininess, float SpecularStrength = 0.5)
 {
 #ifdef LIGHTING_MODEL_GOURAUD
@@ -459,6 +462,7 @@ float CalculateSpecular(float3 WorldNormal, float3 ToLightDir, float3 ViewDir, f
 #endif
     return Spec * SpecularStrength; 
 }
+#endif
 
 ////////
 /// BRDF

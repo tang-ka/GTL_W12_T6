@@ -194,7 +194,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type)
     NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
 
     D3D11_RENDER_TARGET_VIEW_DESC RTVDesc = {};
-    RTVDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM; // TODO: srgb 옵션 고려해보기
+    RTVDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
     RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(NewResource.Texture2D, &RTVDesc, &NewResource.RTV);
     if (FAILED(hr))
