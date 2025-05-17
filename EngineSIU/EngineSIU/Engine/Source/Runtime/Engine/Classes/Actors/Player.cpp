@@ -271,24 +271,24 @@ int AEditorPlayer::RayIntersectsObject(const FVector& PickPosition, USceneCompon
     }
     else
     {
-        FMatrix inverseMatrix = FMatrix::Inverse(WorldMatrix * ViewMatrix);
-        FVector cameraOrigin = { 0,0,0 };
-        FVector pickRayOrigin = inverseMatrix.TransformPosition(cameraOrigin);
-        // 퍼스펙티브 모드의 기존 로직 사용
-        FVector transformedPick = inverseMatrix.TransformPosition(PickPosition);
-        FVector rayDirection = (transformedPick - pickRayOrigin).GetSafeNormal();
+        FMatrix InverseMatrix = FMatrix::Inverse(WorldMatrix * ViewMatrix);
+        FVector CameraOrigin = { 0,0,0 };
+        FVector PickRayOrigin = InverseMatrix.TransformPosition(CameraOrigin);
         
-        IntersectCount = Component->CheckRayIntersection(pickRayOrigin, rayDirection, HitDistance);
+        // 퍼스펙티브 모드의 기존 로직 사용
+        FVector TransformedPick = InverseMatrix.TransformPosition(PickPosition);
+        FVector RayDirection = (TransformedPick - PickRayOrigin).GetSafeNormal();
+        
+        IntersectCount = Component->CheckRayIntersection(PickRayOrigin, RayDirection, HitDistance);
 
         if (IntersectCount > 0)
         {
-            FVector LocalHitPoint = pickRayOrigin + rayDirection * HitDistance;
+            FVector LocalHitPoint = PickRayOrigin + RayDirection * HitDistance;
 
             FVector WorldHitPoint = WorldMatrix.TransformPosition(LocalHitPoint);
 
-            FVector WorldRayOrigin;
             FMatrix InverseView = FMatrix::Inverse(ViewMatrix);
-            WorldRayOrigin = InverseView.TransformPosition(cameraOrigin);
+            FVector WorldRayOrigin = InverseView.TransformPosition(CameraOrigin);
 
             float WorldDistance = FVector::Distance(WorldRayOrigin, WorldHitPoint);
 
