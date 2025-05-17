@@ -333,7 +333,7 @@ public:
     const FNameEntry& Resolve(uint32 Hash) const
 	{
         const FNameEntry* Entry = DisplayPool.Find(Hash);
-        assert(Entry);
+        assert(Entry && "Failed to resolve FNameEntry for the given Hash. The Hash might not exist in the DisplayPool.");
         return *Entry;
 	}
 
