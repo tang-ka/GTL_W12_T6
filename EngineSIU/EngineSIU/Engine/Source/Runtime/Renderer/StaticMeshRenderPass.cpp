@@ -69,7 +69,7 @@ void FStaticMeshRenderPass::CreateShader()
         { GOURAUD, "1" },
         { nullptr, nullptr }
     };
-    hr = ShaderManager->AddPixelShader(L"GOURAUD_StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", DefinesGouraud);
+    hr = ShaderManager->AddPixelShader(L"GOURAUD_CommonMeshPixelShader", L"Shaders/CommonMeshPixelShader.hlsl", "mainPS", DefinesGouraud);
     if (FAILED(hr))
     {
         return;
@@ -80,7 +80,7 @@ void FStaticMeshRenderPass::CreateShader()
         { LAMBERT, "1" },
         { nullptr, nullptr }
     };
-    hr = ShaderManager->AddPixelShader(L"LAMBERT_StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", DefinesLambert);
+    hr = ShaderManager->AddPixelShader(L"LAMBERT_CommonMeshPixelShader", L"Shaders/CommonMeshPixelShader.hlsl", "mainPS", DefinesLambert);
     if (FAILED(hr))
     {
         return;
@@ -91,7 +91,7 @@ void FStaticMeshRenderPass::CreateShader()
         { PHONG, "1" },
         { nullptr, nullptr }
     };
-    hr = ShaderManager->AddPixelShader(L"PHONG_StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", DefinesBlinnPhong);
+    hr = ShaderManager->AddPixelShader(L"PHONG_CommonMeshPixelShader", L"Shaders/CommonMeshPixelShader.hlsl", "mainPS", DefinesBlinnPhong);
     if (FAILED(hr))
     {
         return;
@@ -102,7 +102,7 @@ void FStaticMeshRenderPass::CreateShader()
         { PBR, "1" },
         { nullptr, nullptr }
     };
-    hr = ShaderManager->AddPixelShader(L"PBR_StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", DefinesPBR);
+    hr = ShaderManager->AddPixelShader(L"PBR_CommonMeshPixelShader", L"Shaders/CommonMeshPixelShader.hlsl", "mainPS", DefinesPBR);
     if (FAILED(hr))
     {
         return;
@@ -126,32 +126,32 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
     case EViewModeIndex::VMI_Lit_Gouraud:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"GOURAUD_StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"GOURAUD_StaticMeshVertexShader");
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"GOURAUD_StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"GOURAUD_CommonMeshPixelShader");
         UpdateLitUnlitConstant(1);
         break;
     case EViewModeIndex::VMI_Lit_Lambert:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_CommonMeshPixelShader");
         UpdateLitUnlitConstant(1);
         break;
     case EViewModeIndex::VMI_Lit_BlinnPhong:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"PHONG_StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"PHONG_CommonMeshPixelShader");
         UpdateLitUnlitConstant(1);
         break;
     case EViewModeIndex::VMI_LIT_PBR:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"PBR_StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"PBR_CommonMeshPixelShader");
         UpdateLitUnlitConstant(1);
         break;
     case EViewModeIndex::VMI_Wireframe:
     case EViewModeIndex::VMI_Unlit:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_CommonMeshPixelShader");
         UpdateLitUnlitConstant(0);
         break;
     case EViewModeIndex::VMI_SceneDepth:
@@ -176,7 +176,7 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
     default:
         VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_CommonMeshPixelShader");
         UpdateLitUnlitConstant(1);
         break;
     }
@@ -418,8 +418,8 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     Graphics->DeviceContext->PSSetShaderResources(0, 14, NullSRVs2);
 
     // 상수버퍼 해제
-    ID3D11Buffer* NullPSBuffer[9] = { nullptr };
-    Graphics->DeviceContext->PSSetConstantBuffers(0, 9, NullPSBuffer);
+    ID3D11Buffer* NullPSBuffer[8] = { nullptr };
+    //Graphics->DeviceContext->PSSetConstantBuffers(0, 8, NullPSBuffer);
     ID3D11Buffer* NullVSBuffer[2] = { nullptr };
     Graphics->DeviceContext->VSSetConstantBuffers(0, 2, NullVSBuffer);
 }

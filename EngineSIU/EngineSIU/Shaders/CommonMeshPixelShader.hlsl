@@ -24,17 +24,23 @@ cbuffer TextureConstants : register(b4)
     float2 TexturePad0;
 }
 
-cbuffer DiffuseMultiplierConstants : register(b6)
+cbuffer TileLightCullSettings : register(b8)
 {
-    float DiffuseMultiplier;
-    float3 DiffuseOverrideColor;
+    uint2 ScreenSize; // 화면 해상도
+    uint2 TileSize; // 한 타일의 크기 (예: 16x16)
+
+    float NearZ; // 카메라 near plane
+    float FarZ; // 카메라 far plane
+
+    row_major matrix TileViewMatrix; // View 행렬
+    row_major matrix TileProjectionMatrix; // Projection 행렬
+    row_major matrix TileInverseProjection; // Projection^-1, 뷰스페이스 복원용
+
+    uint NumLights; // 총 라이트 수
+    uint Enable25DCulling; // 1이면 2.5D 컬링 사용
 }
 
-#ifdef LIGHTING_MODEL_PBR
-#include "LightPBR.hlsl"
-#else
 #include "Light.hlsl"
-#endif
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {
@@ -48,13 +54,6 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
             discard;
         }
         DiffuseColor = DiffuseColor4.rgb;
-        // W08
-        if (DiffuseMultiplier > 0.1)
-        {
-            float3 OtherColor = MaterialTextures[TEXTURE_SLOT_AMBIENT].Sample(MaterialSamplers[TEXTURE_SLOT_AMBIENT], Input.UV).rgb;
-            DiffuseColor = lerp(DiffuseColor, OtherColor, DiffuseMultiplier * DiffuseMultiplier);
-        }
-        //
     }
     
     // Normal
@@ -128,7 +127,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 #ifdef LIGHTING_MODEL_GOURAUD
         LitColor = Input.Color.rgb;
 #elif defined(LIGHTING_MODEL_PBR)
-        LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, Metallic, Roughness);
+        LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, Metallic, Roughness, FlatTileIndex);
 #else
         LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, SpecularColor, Shininess, FlatTileIndex);
 #endif

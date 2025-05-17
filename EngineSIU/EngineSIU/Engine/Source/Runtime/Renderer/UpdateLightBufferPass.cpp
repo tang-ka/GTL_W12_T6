@@ -71,8 +71,8 @@ void FUpdateLightBufferPass::PrepareRenderArr()
 
 void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    UpdateLightBuffer();
     Graphics->DeviceContext->PSSetConstantBuffers(8, 1, &TileConstantBuffer);
+    UpdateLightBuffer();
 
     // 전역 조명 리스트
     Graphics->DeviceContext->PSSetShaderResources(10, 1, &PointLightSRV);
