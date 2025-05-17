@@ -4,7 +4,7 @@
 #define CAMERA_NEAR 0.1f
 #define CAMERA_FAR  500.0f
 
-float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
+float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
     float Depth = length(Input.WorldPosition - ViewWorldLocation);
 

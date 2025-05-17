@@ -10,7 +10,7 @@ cbuffer MaterialConstants : register(b1)
     FMaterial Material;
 }
 
-float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
+float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
     float3 FinalColor = normalize(Input.WorldTangent.xyz);
     

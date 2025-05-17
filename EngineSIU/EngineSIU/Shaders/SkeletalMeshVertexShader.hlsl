@@ -22,9 +22,9 @@ cbuffer MaterialConstants : register(b1)
 #include "Light.hlsl"
 #endif
 
-PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
+PS_INPUT_CommonMesh mainVS(VS_INPUT_SkeletalMesh Input)
 {
-    PS_INPUT_SkeletalMesh Output;
+    PS_INPUT_CommonMesh Output;
 
     float4 SkinnedPosition = float4(0, 0, 0, 0);
     float3 SkinnedNormal = float3(0, 0, 0);
@@ -95,7 +95,6 @@ PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
     // End Tangent
 
     Output.UV = Input.UV;
-    Output.MaterialIndex = 0;
 
 #ifdef LIGHTING_MODEL_GOURAUD
     float3 DiffuseColor = Input.Color;

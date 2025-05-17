@@ -43,7 +43,7 @@ bool IsShaded(float3 SceneWorldPosition, float3 GizmoWorldPosition, float3 World
     return GizmoDistance > SceneDistance - Bias;
 }
 
-float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
+float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
     float4 FinalColor = float4(Material.DiffuseColor, 1);
     

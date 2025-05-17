@@ -42,7 +42,7 @@ cbuffer TileLightCullSettings : register(b8)
 
 #include "Light.hlsl"
 
-float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
+float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
