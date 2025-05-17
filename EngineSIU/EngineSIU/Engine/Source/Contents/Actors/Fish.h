@@ -9,6 +9,44 @@ class UFishTailComponent;
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFishHealthChanged, int32 /* CurrentHealth */, int32 /* MaxHealth */);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnFishDied, bool /* bZeroHealth */);
 
+enum class ETestEnum : uint8
+{
+    Test1,
+    Test2,
+    Test3
+};
+
+
+struct FTestStruct
+{
+    DECLARE_STRUCT(FTestStruct)
+
+    UPROPERTY(
+        EditAnywhere,
+        float, TestValue, = 0.0f;
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        ETestEnum, TestEnum, = ETestEnum::Test1;
+    )
+};
+
+struct FChildStruct : public FTestStruct
+{
+    DECLARE_STRUCT(FChildStruct, FTestStruct)
+
+    UPROPERTY(
+        EditAnywhere,
+        bool, bIsTrue, = true;
+    )
+    
+    UPROPERTY(
+        EditAnywhere,
+        TArray<FTestStruct>, TestStruct, {};
+    )
+};
+
 class AFish : public APlayer
 {
     DECLARE_CLASS(AFish, APlayer)
@@ -48,22 +86,38 @@ public:
     
 protected:
     UPROPERTY
-    (USphereComponent*, SphereComponent, = nullptr)
+    (EditAnywhere, USphereComponent*, SphereComponent, = nullptr)
 
     UPROPERTY
-    (UFishBodyComponent*, FishBody, = nullptr)
+    (EditAnywhere, UFishBodyComponent*, FishBody, = nullptr)
 
     UPROPERTY
-    (UFishTailComponent*, FishTail, = nullptr)
+    (EditAnywhere, UFishTailComponent*, FishTail, = nullptr)
 
-    FVector Velocity = FVector::ZeroVector;
+    UPROPERTY(
+        EditAnywhere,
+        FVector, Velocity, = FVector::ZeroVector;
+    )
 
-    float JumpZVelocity;
+    UPROPERTY(
+    EditAnywhere, float, JumpZVelocity, = 0;
+    )
 
     float Gravity;
 
-    bool bShouldApplyGravity;
+    UPROPERTY_WITH_FLAGS(EditAnywhere,
+    bool, bShouldApplyGravity);
 
+    UPROPERTY(
+        EditAnywhere,
+        FTestStruct, Struct1, {};
+    )
+    
+    UPROPERTY(
+        EditAnywhere,
+        FChildStruct, Struct2, {}
+    )
+    
     void Move(float DeltaTime);
 
     void RotateMesh();
