@@ -330,7 +330,7 @@ private:
 
 public:
 	/** Hash로 원본 문자열을 가져옵니다. */
-	FNameEntry Resolve(uint32 Hash) const
+    const FNameEntry& Resolve(uint32 Hash) const
 	{
 		return *DisplayPool.Find(Hash);
 	}
