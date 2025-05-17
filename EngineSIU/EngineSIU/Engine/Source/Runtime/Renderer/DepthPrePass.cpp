@@ -70,6 +70,8 @@ void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClie
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
+
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
 

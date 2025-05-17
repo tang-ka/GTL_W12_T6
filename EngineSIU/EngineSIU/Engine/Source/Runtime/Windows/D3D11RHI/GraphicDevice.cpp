@@ -82,7 +82,7 @@ ID3D11Texture2D* FGraphicsDevice::CreateTexture2D(const D3D11_TEXTURE2D_DESC& De
 void FGraphicsDevice::CreateDepthStencilState()
 {
     // DepthStencil 상태 설명 설정
-    D3D11_DEPTH_STENCIL_DESC DepthStencilStateDesc;
+    D3D11_DEPTH_STENCIL_DESC DepthStencilStateDesc = {};
 
     // Depth test parameters
     DepthStencilStateDesc.DepthEnable = true;
@@ -91,8 +91,8 @@ void FGraphicsDevice::CreateDepthStencilState()
 
     // Stencil test parameters
     DepthStencilStateDesc.StencilEnable = true;
-    DepthStencilStateDesc.StencilReadMask = 0xFF;
-    DepthStencilStateDesc.StencilWriteMask = 0xFF;
+    DepthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+    DepthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
     // Stencil operations if pixel is front-facing
     DepthStencilStateDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
@@ -107,8 +107,38 @@ void FGraphicsDevice::CreateDepthStencilState()
     DepthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
     //// DepthStencil 상태 생성
-    const HRESULT Result = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState);
-    if (FAILED(Result))
+    HRESULT hr = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState_Default);
+    if (FAILED(hr))
+    {
+        // 오류 처리
+        return;
+    }
+    
+    // Depth test parameters
+    DepthStencilStateDesc.DepthEnable = true;
+    DepthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    DepthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+    // Stencil test parameters
+    DepthStencilStateDesc.StencilEnable = true;
+    DepthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+    DepthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+
+    // Stencil operations if pixel is front-facing
+    DepthStencilStateDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    DepthStencilStateDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    // Stencil operations if pixel is back-facing
+    DepthStencilStateDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    DepthStencilStateDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    //// DepthStencil 상태 생성
+    hr = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState_DepthWriteDisabled);
+    if (FAILED(hr))
     {
         // 오류 처리
         return;
@@ -216,10 +246,15 @@ void FGraphicsDevice::ReleaseRasterizerState()
 void FGraphicsDevice::ReleaseDepthStencilResources()
 {
     // 깊이/스텐실 상태 해제
-    if (DepthStencilState)
+    if (DepthStencilState_Default)
     {
-        DepthStencilState->Release();
-        DepthStencilState = nullptr;
+        DepthStencilState_Default->Release();
+        DepthStencilState_Default = nullptr;
+    }
+    if (DepthStencilState_DepthWriteDisabled)
+    {
+        DepthStencilState_DepthWriteDisabled->Release();
+        DepthStencilState_DepthWriteDisabled = nullptr;
     }
 }
 
@@ -316,29 +351,6 @@ void FGraphicsDevice::ChangeRasterizer(EViewModeIndex ViewModeIndex)
         break;
     }
     DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
-}
-
-void FGraphicsDevice::CreateRTV(ID3D11Texture2D*& OutTexture, ID3D11RenderTargetView*& OutRTV)
-{
-    D3D11_TEXTURE2D_DESC TextureDesc = {};
-    TextureDesc.Width = ScreenWidth;
-    TextureDesc.Height = ScreenHeight;
-    TextureDesc.MipLevels = 1;
-    TextureDesc.ArraySize = 1;
-    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    TextureDesc.SampleDesc.Count = 1;
-    TextureDesc.SampleDesc.Quality = 0;
-    TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-    TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    TextureDesc.CPUAccessFlags = 0;
-    TextureDesc.MiscFlags = 0;
-    Device->CreateTexture2D(&TextureDesc, nullptr, &OutTexture);
-
-    D3D11_RENDER_TARGET_VIEW_DESC FogRTVDesc = {};
-    FogRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
-    FogRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
-
-    Device->CreateRenderTargetView(OutTexture, &FogRTVDesc, &OutRTV);
 }
 
 void FGraphicsDevice::Prepare()

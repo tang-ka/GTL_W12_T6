@@ -260,7 +260,6 @@ void FRenderer::BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewpo
     PrepareRender(ViewportResource);
 }
 
-
 void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     if (!GPUTimingManager || !GPUTimingManager->IsInitialized())

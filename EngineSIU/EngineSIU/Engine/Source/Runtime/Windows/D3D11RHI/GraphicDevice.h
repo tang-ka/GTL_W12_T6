@@ -29,7 +29,8 @@ public:
     ID3D11RasterizerState* RasterizerWireframeBack = nullptr;
     ID3D11RasterizerState* RasterizerShadow = nullptr;
 
-    ID3D11DepthStencilState* DepthStencilState = nullptr;
+    ID3D11DepthStencilState* DepthStencilState_Default = nullptr;
+    ID3D11DepthStencilState* DepthStencilState_DepthWriteDisabled = nullptr;
     
     ID3D11BlendState* AlphaBlendState = nullptr;
     
@@ -45,7 +46,7 @@ public:
     void Initialize(HWND hWindow);
     
     void ChangeRasterizer(EViewModeIndex ViewModeIndex);
-    void CreateRTV(ID3D11Texture2D*& OutTexture, ID3D11RenderTargetView*& OutRTV);
+    
     ID3D11Texture2D* CreateTexture2D(const D3D11_TEXTURE2D_DESC& Description, const void* InitialData);
     
     void Release();
