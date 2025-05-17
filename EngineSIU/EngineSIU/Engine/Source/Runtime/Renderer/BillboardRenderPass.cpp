@@ -115,28 +115,28 @@ void FBillboardRenderPass::CreateShader()
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"VertexBillboardShader", L"Shaders/VertexBillboardShader.hlsl", "main", TextureLayoutDesc, ARRAYSIZE(TextureLayoutDesc));
+    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"BillBoardVertexShader", L"Shaders/BillBoardVertexShader.hlsl", "main", TextureLayoutDesc, ARRAYSIZE(TextureLayoutDesc));
     if (FAILED(hr))
     {
         return;
     }
     
-    hr = ShaderManager->AddPixelShader(L"PixelBillboardShader", L"Shaders/PixelBillboardShader.hlsl", "main");
+    hr = ShaderManager->AddPixelShader(L"BillBoardPixelShader", L"Shaders/BillBoardPixelShader.hlsl", "main");
     if (FAILED(hr))
     {
         return;
     }
     
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader");
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
 }
 
 void FBillboardRenderPass::UpdateShader()
 {
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader");
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
 }
 
 void FBillboardRenderPass::ReleaseShader()
