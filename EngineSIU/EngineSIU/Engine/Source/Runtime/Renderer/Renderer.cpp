@@ -201,6 +201,12 @@ void FRenderer::CreateCommonShader() const
     {
         return;
     }
+    
+    hr = ShaderManager->AddVertexShaderAndInputLayout(L"GOURAUD_SkeletalMeshVertexShader", L"Shaders/SkeletalMeshVertexShader.hlsl", "mainVS", SkeletalMeshLayoutDesc, ARRAYSIZE(SkeletalMeshLayoutDesc), DefinesGouraud);
+    if (FAILED(hr))
+    {
+        return;
+    }
 #pragma endregion UberShader
 }
 
@@ -358,7 +364,7 @@ void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& V
     if (ShowFlag & EEngineShowFlags::SF_SkeletalMesh)
     {
         {
-            // QUICK_SCOPE_CYCLE_COUNTER(SkeletalMeshPass_CPU)
+            QUICK_SCOPE_CYCLE_COUNTER(SkinningPass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(SkinningPass_GPU, *GPUTimingManager)
             SkeletalMeshRenderPass->Render(Viewport);
         }

@@ -51,7 +51,8 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
     BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
 
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
-    BufferManager->BindConstantBuffer(TEXT("FCPUSkinningConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FCPUSkinningConstants"), 2, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
 
     ShadowManager->BindResourcesForSampling();
@@ -99,7 +100,7 @@ void FSkeletalMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
     switch (ViewMode)
     {
     case EViewModeIndex::VMI_Lit_Gouraud:
-        VertexShader = ShaderManager->GetVertexShaderByKey(L"SkeletalMeshVertexShader");
+        VertexShader = ShaderManager->GetVertexShaderByKey(L"GOURAUD_SkeletalMeshVertexShader");
         InputLayout = ShaderManager->GetInputLayoutByKey(L"SkeletalMeshVertexShader");
         PixelShader = ShaderManager->GetPixelShaderByKey(L"GOURAUD_StaticMeshPixelShader");
         UpdateLitUnlitConstant(1);

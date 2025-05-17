@@ -3,11 +3,24 @@
 
 StructuredBuffer<float4x4> BoneMatrices : register(t1);
 
-cbuffer FCPUSkinningConstants : register(b1)
+cbuffer FCPUSkinningConstants : register(b2)
 {
     bool bCPUSkinning;
     float3 pad0;
 }
+
+#ifdef LIGHTING_MODEL_GOURAUD
+SamplerState DiffuseSampler : register(s0);
+
+Texture2D DiffuseTexture : register(t0);
+
+cbuffer MaterialConstants : register(b1)
+{
+    FMaterial Material;
+}
+
+#include "Light.hlsl"
+#endif
 
 PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
 {
@@ -81,10 +94,20 @@ PS_INPUT_SkeletalMesh mainVS(VS_INPUT_SkeletalMesh Input)
     Output.WorldTangent = float4(WorldTangent, Input.Tangent.w);
     // End Tangent
 
-    Output.Color = Input.Color;
     Output.UV = Input.UV;
-
     Output.MaterialIndex = 0;
+
+#ifdef LIGHTING_MODEL_GOURAUD
+    float3 DiffuseColor = Input.Color;
+    if (Material.TextureFlag & TEXTURE_FLAG_DIFFUSE)
+    {
+        DiffuseColor = DiffuseTexture.SampleLevel(DiffuseSampler, Input.UV, 0).rgb;
+    }
+    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, DiffuseColor, Material.SpecularColor, Material.Shininess);
+    Output.Color = float4(Diffuse.rgb, 1.0);
+#else
+    Output.Color = Input.Color;
+#endif
 
     return Output;
 }

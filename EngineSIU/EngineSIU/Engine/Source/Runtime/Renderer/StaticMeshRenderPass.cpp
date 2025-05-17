@@ -250,7 +250,7 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
-    Graphics->DeviceContext->OMSetBlendState(Graphics->AlphaBlendState, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 }
 
 void FStaticMeshRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
