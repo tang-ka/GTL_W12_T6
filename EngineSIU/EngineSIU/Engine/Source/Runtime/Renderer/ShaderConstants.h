@@ -1,5 +1,5 @@
 // Shader에 들어가는 (특히 static mesh) 상수 버퍼 구조체의 정의입니다.
-// 추가하실 때 ShaderConstants.hlsli도 동일하게 맞춰주세요.
+// 추가하실 때 ShaderConstants.hlsli도 동일하게 맞춰주세요. <-- 삭제됨
 // 슬롯 13번은 디버그 전용입니다.
 // struct에 alignas가 붙어있으니 꼭 struct의 메모리 구조를 보면서 확인해주세요
 // hlsl에서는 float3 float3을 연속으로 struct에 넣으면 자동으로 padding 4byte가 붙습니다.

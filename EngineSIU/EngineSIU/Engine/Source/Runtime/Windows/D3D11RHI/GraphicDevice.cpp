@@ -262,16 +262,14 @@ void FGraphicsDevice::Resize(HWND hWindow)
     ScreenWidth = SwapchainDesc.BufferDesc.Width;
     ScreenHeight = SwapchainDesc.BufferDesc.Height;
 
-    Viewport.Width = ScreenWidth;
-    Viewport.Height = ScreenHeight;
+    Viewport.Width = static_cast<float>(ScreenWidth);
+    Viewport.Height = static_cast<float>(ScreenHeight);
     Viewport.MinDepth = 0.0f;
     Viewport.MaxDepth = 1.0f;
     Viewport.TopLeftX = 0;
     Viewport.TopLeftY = 0;
 
     CreateBackBuffer();
-
-    // TODO : Resize에 따른 Depth Pre-Pass 리사이징 필요
 }
 
 void FGraphicsDevice::CreateAlphaBlendState()

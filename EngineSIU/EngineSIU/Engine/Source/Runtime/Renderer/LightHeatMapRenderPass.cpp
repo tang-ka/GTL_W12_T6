@@ -79,7 +79,6 @@ void FLightHeatMapRenderPass::PrepareRenderArr()
             FogComponents.Add(iter);
         }
     }
-
 }
 
 void FLightHeatMapRenderPass::ClearRenderArr()
@@ -95,7 +94,6 @@ void FLightHeatMapRenderPass::PrepareRenderState(const std::shared_ptr<FEditorVi
     float Color[4] = { 0,0,0,0 };
     Graphics->DeviceContext->ClearRenderTargetView(FogRTV, Color);
     
-    // TODO: 이거는 뎁스 프리패스에서 마지막에 정리해줘야 함
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     
     Graphics->DeviceContext->VSSetShader(FogVertexShader, nullptr, 0);
