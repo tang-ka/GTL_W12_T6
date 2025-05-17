@@ -332,7 +332,9 @@ public:
 	/** Hash로 원본 문자열을 가져옵니다. */
     const FNameEntry& Resolve(uint32 Hash) const
 	{
-		return *DisplayPool.Find(Hash);
+        const FNameEntry* Entry = DisplayPool.Find(Hash);
+        assert(Entry);
+        return *Entry;
 	}
 
 	/**
