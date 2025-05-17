@@ -1,6 +1,6 @@
 #include "NameTypes.h"
 
-#include <assert.h>
+#include <cassert>
 #include <atomic>
 #include <cwchar>
 #include <mutex>
@@ -388,7 +388,7 @@ struct FNameHelper
 		// 문자열의 길이가 NAME_SIZE를 초과하면 None 반환
 		if (Len >= NAME_SIZE)
 		{
-		    assert(Len >= NAME_SIZE);
+            assert(0 && "FName size is too large");
 			return {};
 		}
 
