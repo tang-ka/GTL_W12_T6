@@ -16,7 +16,8 @@ struct FVertexShaderData
     ID3D11VertexShader* VertexShader;
 };
 
-struct FShaderReloadInfo {
+struct FShaderReloadInfo
+{
     std::wstring Key;
     std::wstring FilePath;
     std::string EntryPoint;
@@ -50,6 +51,7 @@ public:
     void BuildDependency(const FShaderReloadInfo& Info);
     bool IsOutdatedWithDependency(const FShaderReloadInfo& Info);
     void UpdateDependencyTimestamps();
+    
 private:
     ID3D11Device* DXDDevice;
 

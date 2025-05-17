@@ -584,7 +584,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
 
 HRESULT FDXDShaderManager::AddInputLayout(const std::wstring& Key, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
 {
-    return S_OK;
+    return E_NOTIMPL;
 }
 
 HRESULT FDXDShaderManager::AddComputeShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint)
