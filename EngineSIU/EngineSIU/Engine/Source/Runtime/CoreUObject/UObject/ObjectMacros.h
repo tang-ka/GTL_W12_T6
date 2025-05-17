@@ -2,6 +2,7 @@
 // ReSharper disable CppClangTidyClangDiagnosticPedantic
 // ReSharper disable CppClangTidyClangDiagnosticReservedMacroIdentifier
 #pragma once
+#include <concepts>
 #include "Class.h"
 #include "ScriptStruct.h"
 #include "UObjectHash.h"

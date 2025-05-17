@@ -515,7 +515,7 @@ void FStructProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     {
         if (ImGui::TreeNodeEx(PropertyLabel, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // TODO: Display 순서를 부모부터 띄우게 수정하기
+            // TODO: 나중에 Display 순서를 부모부터 띄우게 수정하기
             UStruct* CurrentStruct = *StructType;
             for (; CurrentStruct; CurrentStruct = CurrentStruct->GetSuperStruct())
             {
