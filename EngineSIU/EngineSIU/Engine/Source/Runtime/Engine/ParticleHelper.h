@@ -129,31 +129,6 @@ struct FParticleSpriteVertexNonInstanced
     /** The relative time of the particle. */
     float RelativeTime;
     /** The previous position of the particle. */
-    FVector	OldPosition;
-    /** Value that remains constant over the lifetime of a particle. */
-    float ParticleId;
-    /** The size of the particle. */
-    FVector2D Size;
-    /** The rotation of the particle. */
-    float Rotation;
-    /** The sub-image index for the particle. */
-    float SubImageIndex;
-    /** The color of the particle. */
-    FLinearColor Color;
-};
-
-/**
- * Per-particle data sent to the GPU.
- */
-struct FParticleSpriteVertexNonInstanced
-{
-    /** The texture UVs. */
-    FVector2D UV;
-    /** The position of the particle. */
-    FVector Position;
-    /** The relative time of the particle. */
-    float RelativeTime;
-    /** The previous position of the particle. */
     FVector OldPosition;
     /** Value that remains constant over the lifetime of a particle. */
     float ParticleId;
