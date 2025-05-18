@@ -6,6 +6,7 @@
 #include "Particles/ParticleLODLevel.h"
 #include "Particles/ParticleModule.h"
 #include "Particles/ParticleSystem.h"
+#include "Particles/Size/ParticleModuleSize.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
 
 ParticleViewerPanel::ParticleViewerPanel()
@@ -84,14 +85,17 @@ void ParticleViewerPanel::RenderDetailPanel()
         ImGui::Text(GetData(SelectedModule->ModuleName.ToString()));
         if (UParticleModuleSpawn* ModuleSpawn = dynamic_cast<UParticleModuleSpawn*>(SelectedModule)) // TODO: Cast는 안 되는데 dynamic_cast는 됨
         {
-            ImGui::BeginChild("BasicProps", ImVec2(DetailPanelWidth - 10, DetailPanelHeight - 10), true);
-            ImGui::Text("Basic Properties");
-    
-            ImGui::SliderFloat("Rate", &ModuleSpawn->Rate, 0.1f, 20.0f);
-            ImGui::SliderFloat("RateScale", &ModuleSpawn->RateScale, 0.1f, 10.0f);
-            ImGui::Separator();
-    
-            ImGui::EndChild();
+            for (const auto& Property  : ModuleSpawn->StaticClass()->GetProperties())
+            {
+                Property->DisplayInImGui(ModuleSpawn);
+            }
+        }
+        else if (UParticleModuleSize* ModuleSize = dynamic_cast<UParticleModuleSize*>(SelectedModule))
+        {
+            for (const auto& Property  : ModuleSize->StaticClass()->GetProperties())
+            {
+                Property->DisplayInImGui(ModuleSize);
+            }
         }
     }
     
@@ -314,7 +318,7 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     ImGui::PopID();
     ImGui::PopStyleVar();
 
-    const auto& Modules = Emitter->LODLevels[0]->Modules;
+    const auto& Modules = Emitter->LODLevels[0]->GetModules();
     for (const auto& Module : Modules)
     {
         ImGui::PushID(Module);

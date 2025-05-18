@@ -315,6 +315,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Material\Material.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\MeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionFloat.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionVector.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMesh.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSubUVComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponent.cpp" />
@@ -349,8 +350,10 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Size\ParticleModuleSize.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawn.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawnBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.cpp" />
@@ -654,6 +657,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Material\Material.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\MeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distribution\DistributionVector.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMesh.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSubUVComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponent.h" />
@@ -696,8 +700,10 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Size\ParticleModuleSize.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawn.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Spawn\ParticleModuleSpawnBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\ParticleEmitterInstance.h" />

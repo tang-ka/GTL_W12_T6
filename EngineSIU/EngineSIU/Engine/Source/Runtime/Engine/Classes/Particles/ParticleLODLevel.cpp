@@ -1,8 +1,24 @@
 ﻿#include "ParticleLODLevel.h"
 
 #include "UObject/Casts.h"
-
 #include "Spawn/ParticleModuleSpawn.h"
+#include "ParticleModuleRequired.h"
+#include "Size/ParticleModuleSize.h"
+
+UParticleLODLevel::UParticleLODLevel()
+{
+    RequiredModule = new UParticleModuleRequired();
+    RequiredModule->ModuleName = "RequiredModule";
+    Modules.Add(RequiredModule);
+
+    SpawnModule = new UParticleModuleSpawn();
+    SpawnModule->ModuleName = "SpawnModule";
+    Modules.Add(SpawnModule);
+
+    UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
+    InitialScaleModule->ModuleName = "InitialScaleModule";
+    Modules.Add(InitialScaleModule);
+}
 
 int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 {

@@ -11,7 +11,7 @@ class UParticleLODLevel : public UObject
     DECLARE_CLASS(UParticleLODLevel, UObject)
 
 public:
-    UParticleLODLevel() = default;
+    UParticleLODLevel();
     virtual ~UParticleLODLevel() override = default;
 
     int32 Level = 0;
@@ -21,10 +21,14 @@ public:
     UParticleModuleRequired* RequiredModule = nullptr;
 
     UParticleModuleSpawn* SpawnModule = nullptr;
-
-    TArray<UParticleModule*> Modules;
-
+    
     int32 PeakActiveParticles = 0;
 
     virtual int32 CalculateMaxActiveParticleCount();
+
+    TArray<UParticleModule*> GetModules() const { return Modules;}
+    void AddModule(UParticleModule* NewModule) { Modules.Add(NewModule); }
+
+private:
+    TArray<UParticleModule*> Modules;
 };
