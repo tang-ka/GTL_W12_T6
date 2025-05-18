@@ -13,6 +13,12 @@
 
 class FEditorViewportClient;
 
+enum class ESamplerType : uint8
+{
+    Point,
+    Linear,
+};
+
 class FGraphicsDevice
 {
 public:
@@ -62,6 +68,8 @@ public:
     
     ID3D11RasterizerState* GetCurrentRasterizer() const { return CurrentRasterizer; }
 
+    ID3D11SamplerState* GetSamplerState(ESamplerType SamplerType) const;
+    
     /*
     uint32 GetPixelUUID(POINT pt) const;
     uint32 DecodeUUIDColor(FVector4 UUIDColor) const;

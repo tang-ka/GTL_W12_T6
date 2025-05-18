@@ -186,7 +186,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 IndexInfo.IndexBuffer,
                 IndexInfo.NumIndices,
                 SubUVParticle->Texture->TextureSRV,
-                SubUVParticle->Texture->SamplerState
+                Graphics->GetSamplerState(SubUVParticle->Texture->SamplerType)
             );
         }
         else if (UTextComponent* TextComp = Cast<UTextComponent>(BillboardComp))
@@ -202,7 +202,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 Buffers.VertexInfo.VertexBuffer,
                 Buffers.VertexInfo.NumVertices,
                 TextComp->Texture->TextureSRV,
-                TextComp->Texture->SamplerState
+                Graphics->GetSamplerState(SubUVParticle->Texture->SamplerType)
             );
         }
         else
@@ -215,7 +215,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 IndexInfo.IndexBuffer,
                 IndexInfo.NumIndices,
                 BillboardComp->Texture->TextureSRV,
-                BillboardComp->Texture->SamplerState
+                Graphics->GetSamplerState(BillboardComp->Texture->SamplerType)
             );
         }
     }

@@ -12,7 +12,22 @@ void FGraphicsDevice::Initialize(HWND hWindow)
     CreateDepthStencilState();
     CreateRasterizerState();
     CreateAlphaBlendState();
+    CreateSamplerState();
+    
     CurrentRasterizer = RasterizerSolidBack;
+}
+
+ID3D11SamplerState* FGraphicsDevice::GetSamplerState(ESamplerType SamplerType) const
+{
+    if (SamplerType == ESamplerType::Linear)
+    {
+        return SamplerState_LinearWrap;
+    }
+    else if (SamplerType == ESamplerType::Point)
+    {
+        return SamplerState_PointWrap;
+    }
+    return nullptr;
 }
 
 void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
