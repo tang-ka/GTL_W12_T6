@@ -315,7 +315,8 @@ void FGraphicsDevice::CreateAlphaBlendState()
 
     D3D11_RENDER_TARGET_BLEND_DESC RtBlendDesc = {};
     RtBlendDesc.BlendEnable = TRUE;
-    RtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    // RtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA; // Alpha blend
+    RtBlendDesc.SrcBlend = D3D11_BLEND_ONE; // Premultiplied Alpha
     RtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
     RtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
     RtBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
@@ -325,7 +326,7 @@ void FGraphicsDevice::CreateAlphaBlendState()
 
     BlendDesc.RenderTarget[0] = RtBlendDesc;
 
-    const HRESULT Result = Device->CreateBlendState(&BlendDesc, &AlphaBlendState);
+    const HRESULT Result = Device->CreateBlendState(&BlendDesc, &BlendState_PremultipliedAlpha);
     if (FAILED(Result))
     {
         MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);

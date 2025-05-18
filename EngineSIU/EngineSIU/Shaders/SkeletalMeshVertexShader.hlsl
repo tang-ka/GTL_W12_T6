@@ -102,7 +102,11 @@ PS_INPUT_CommonMesh mainVS(VS_INPUT_SkeletalMesh Input)
     {
         DiffuseColor = DiffuseTexture.SampleLevel(DiffuseSampler, Input.UV, 0).rgb;
     }
-    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, DiffuseColor, Material.SpecularColor, Material.Shininess);
+    float3 Diffuse = Lighting(
+        Output.WorldPosition, Output.WorldNormal, ViewWorldLocation,
+        DiffuseColor, Material.SpecularColor, Material.Shininess,
+        1.0
+    );
     Output.Color = float4(Diffuse.rgb, 1.0);
 #else
     Output.Color = Input.Color;

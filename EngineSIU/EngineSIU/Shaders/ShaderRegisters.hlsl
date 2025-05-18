@@ -44,7 +44,7 @@ struct FMaterial
     float Shininess;
     
     float3 EmissiveColor;
-    float Opacity;
+    float Transparency;
     
     float Metallic;
     float Roughness;

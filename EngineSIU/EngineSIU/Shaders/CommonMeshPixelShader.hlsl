@@ -44,16 +44,23 @@ cbuffer TileLightCullSettings : register(b8)
 
 float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
+    float BaseAlpha = 1.0 - Material.Transparency;
+    BaseAlpha = 0.1;
+    
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
     if (Material.TextureFlag & TEXTURE_FLAG_DIFFUSE)
     {
         float4 DiffuseColor4 = MaterialTextures[TEXTURE_SLOT_DIFFUSE].Sample(MaterialSamplers[TEXTURE_SLOT_DIFFUSE], Input.UV);
-        if (DiffuseColor4.a < 0.1f)
-        {
-            discard;
-        }
         DiffuseColor = DiffuseColor4.rgb;
+        BaseAlpha = DiffuseColor4.a;
+    }
+
+    // Alpha
+    if (Material.TextureFlag & TEXTURE_FLAG_ALPHA)
+    {
+        float Alpha = MaterialTextures[TEXTURE_SLOT_ALPHA].Sample(MaterialSamplers[TEXTURE_SLOT_ALPHA], Input.UV).r;
+        BaseAlpha = Alpha;
     }
     
     // Normal
@@ -94,6 +101,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     {
         EmissiveColor = MaterialTextures[TEXTURE_SLOT_EMISSIVE].Sample(MaterialSamplers[TEXTURE_SLOT_EMISSIVE], Input.UV).rgb;
     }
+    EmissiveColor *= 5.0; // 5.0은 임의의 값
 
 #ifdef LIGHTING_MODEL_PBR
     // Metallic
@@ -110,7 +118,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
         Roughness = MaterialTextures[TEXTURE_SLOT_ROUGHNESS].Sample(MaterialSamplers[TEXTURE_SLOT_ROUGHNESS], Input.UV).g;
     }
 #endif
-
+    
     // Begin for Tile based light culled result
     // 현재 픽셀이 속한 타일 계산 (input.position = 화면 픽셀좌표계)
     uint2 PixelCoord = uint2(Input.Position.xy);
@@ -120,29 +128,47 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     // End for Tile based light culled result
     
     // Lighting
-    float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
+    float4 FinalPixelColor = float4(0.f, 0.f, 0.f, 1.f);
     if (IsLit)
     {
-        float3 LitColor = float3(0, 0, 0);
 #ifdef LIGHTING_MODEL_GOURAUD
-        LitColor = Input.Color.rgb;
-#elif defined(LIGHTING_MODEL_PBR)
-        LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, Metallic, Roughness, FlatTileIndex);
+        FinalPixelColor = float4(Input.Color.rgb, BaseAlpha);
+        // Gouraud 셰이딩은 Emissive 제외
 #else
-        LitColor = Lighting(Input.WorldPosition, WorldNormal, ViewWorldLocation, DiffuseColor, SpecularColor, Shininess, FlatTileIndex);
+        float4 LitResult = Lighting(
+                Input.WorldPosition,
+                WorldNormal,
+                ViewWorldLocation,
+                DiffuseColor,
+    #ifdef LIGHTING_MODEL_PBR
+                Metallic,
+                Roughness,
+    #else
+                SpecularColor,
+                Shininess,
+    #endif
+                BaseAlpha,
+                FlatTileIndex
+            );
+
+        // Apply Emissive
+        float3 FinalRGB = LitResult.rgb + EmissiveColor;
+        float FinalA = LitResult.a;
+        
+        FinalPixelColor = float4(FinalRGB, FinalA);
 #endif
-        LitColor += EmissiveColor * 5.f; // 5는 임의의 값
-        FinalColor = float4(LitColor, 1);
     }
     else
     {
-        FinalColor = float4(DiffuseColor, 1);
+        float3 UnlitRGB = DiffuseColor * BaseAlpha + EmissiveColor; // Premultiply Alpha 직접 적용
+
+        FinalPixelColor = float4(UnlitRGB, BaseAlpha);
     }
     
     if (bIsSelected)
     {
-        FinalColor += float4(0.01, 0.01, 0.0, 1);
+        FinalPixelColor.rgb += float3(0.01, 0.01, 0.0);
     }
 
-    return FinalColor;
+    return FinalPixelColor;
 }

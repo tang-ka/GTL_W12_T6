@@ -38,7 +38,7 @@ void FParticleRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& V
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
-    Graphics->DeviceContext->OMSetBlendState(Graphics->AlphaBlendState, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_PremultipliedAlpha, nullptr, 0xffffffff);
 
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 1);
 
