@@ -33,6 +33,7 @@ public:
     ID3D11DepthStencilState* DepthStencilState_DepthWriteDisabled = nullptr;
     
     ID3D11BlendState* BlendState_PremultipliedAlpha = nullptr;
+    ID3D11BlendState* BlendState_AlphaBlend = nullptr;
     
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
     
@@ -48,7 +49,7 @@ public:
     void ChangeRasterizer(EViewModeIndex ViewModeIndex);
     
     ID3D11Texture2D* CreateTexture2D(const D3D11_TEXTURE2D_DESC& Description, const void* InitialData);
-    
+
     void Release();
     
     void Prepare();
@@ -75,6 +76,7 @@ private:
     void ReleaseFrameBuffer();
     void ReleaseRasterizerState();
     void ReleaseDepthStencilResources();
+    void ReleaseBlendState();
     
     ID3D11RasterizerState* CurrentRasterizer = nullptr;
 

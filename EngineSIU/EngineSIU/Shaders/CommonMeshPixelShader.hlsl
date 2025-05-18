@@ -160,6 +160,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     else
     {
         float3 UnlitRGB = DiffuseColor * BaseAlpha + EmissiveColor; // Premultiply Alpha 직접 적용
+        //float3 UnlitRGB = DiffuseColor + EmissiveColor;
 
         FinalPixelColor = float4(UnlitRGB, BaseAlpha);
     }

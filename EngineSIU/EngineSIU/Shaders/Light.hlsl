@@ -786,19 +786,34 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularIntensity, LUMINANCE));
     }
 
-    
+    /*
     // 최종 알파 계산
     // ViewBasedFresnel (시야각)과 MaxObservedSpecularLuminance (실제 하이라이트 강도)를 결합
     // MaxObservedSpecularLuminance의 스케일 조절이 필요할 수 있음 (예: * 0.2f ~ 1.0f)
     // 이 값은 [0, 거의 무한대] 범위일 수 있으므로 saturate(MaxObservedSpecularLuminance * factor) 등으로 [0,1] 매핑
-    float HighlightFactor = saturate(MaxObservedSpecularLuminance * 0.5f); // 0.5f는 실험적 가중치
+    float HighlightFactor = saturate(MaxObservedSpecularLuminance * 1.0); // 0.5f는 실험적 가중치
     
     float FinalFresnelInfluence = max(ViewBasedFresnel, HighlightFactor); // 둘 중 더 강한 반사 요인을 선택
     // 또는 ViewBasedFresnel + highlightFactor * (1.0 - ViewBasedFresnel) 같은 블렌딩
     
     float EffectiveOpacity = FinalFresnelInfluence + (1.0 - FinalFresnelInfluence) * BaseAlpha;
     float FinalAlpha = saturate(EffectiveOpacity);
+    */
 
+    /*
+    float highlightThresholdLow = 0.2f;
+    float highlightThresholdHigh = 1.0f; // 이 값을 넘어서는 밝기는 모두 최대 영향
+    float normalizedHighlightStrength = saturate( (MaxObservedSpecularLuminance - highlightThresholdLow) / (highlightThresholdHigh - highlightThresholdLow) );
+
+    float opacityFromHighlight = pow(normalizedHighlightStrength, 2.0f); // [0, 1]
+
+    float fresnelContribution = ViewBasedFresnel * normalizedHighlightStrength * 0.5f; // 0.5는 가중치
+
+    float combinedOpacity = BaseAlpha + (1.0 - BaseAlpha) * opacityFromHighlight; // 하이라이트로 BaseAlpha에서 1까지 보간
+    combinedOpacity = saturate(combinedOpacity + fresnelContribution); // Fresnel 기여분 추가 (1을 넘지 않도록)
+
+    */
+    float FinalAlpha = BaseAlpha;
     
     // 앰비언트
 #ifdef LIGHTING_MODEL_PBR
@@ -810,7 +825,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     }
     FinalColorAccumulator += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
-    float3 AmbientLightColor = float3(0.03, 0.03, 0.03);
+    float3 AmbientLightColor = float3(0.025, 0.025, 0.025);
     
     if (AmbientLightsCount > 0)
     {
@@ -820,6 +835,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 #endif
     
     return float4(FinalColorAccumulator * FinalAlpha, FinalAlpha);
+    //return float4(FinalColorAccumulator, FinalAlpha);
 }
 
 
@@ -917,7 +933,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     }
     FinalColorAccumulator += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
-    float3 AmbientLightColor = float3(0.03, 0.03, 0.03);
+    float3 AmbientLightColor = float3(0.01, 0.01, 0.01);
     
     if (AmbientLightsCount > 0)
     {

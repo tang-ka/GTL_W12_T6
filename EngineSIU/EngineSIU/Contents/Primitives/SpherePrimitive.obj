@@ -1526,7 +1526,7 @@ vt 0.781250 0.437500
 vt 0.765625 1.000000
 vt 0.765625 0.000000
 s 1
-usemtl PrimitiveMaterial
+usemtl PrimitiveMaterial_Sphere
 f 479/1/479 19/2/19 480/3/480
 f 477/4/477 11/5/11 12/6/12
 f 480/3/480 20/7/20 481/8/481
