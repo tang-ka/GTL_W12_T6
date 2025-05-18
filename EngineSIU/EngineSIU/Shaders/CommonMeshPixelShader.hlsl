@@ -45,7 +45,6 @@ cbuffer TileLightCullSettings : register(b8)
 float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
     float BaseAlpha = 1.0 - Material.Transparency;
-    BaseAlpha = 0.1;
     
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
