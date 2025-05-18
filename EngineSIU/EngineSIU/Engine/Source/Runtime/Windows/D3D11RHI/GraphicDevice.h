@@ -32,7 +32,6 @@ public:
     ID3D11DepthStencilState* DepthStencilState_Default = nullptr;
     ID3D11DepthStencilState* DepthStencilState_DepthWriteDisabled = nullptr;
     
-    ID3D11BlendState* BlendState_PremultipliedAlpha = nullptr;
     ID3D11BlendState* BlendState_AlphaBlend = nullptr;
     
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;

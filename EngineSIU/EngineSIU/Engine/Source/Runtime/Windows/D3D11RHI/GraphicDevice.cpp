@@ -260,11 +260,6 @@ void FGraphicsDevice::ReleaseDepthStencilResources()
 
 void FGraphicsDevice::ReleaseBlendState()
 {
-    if (BlendState_PremultipliedAlpha)
-    {
-        BlendState_PremultipliedAlpha->Release();
-        BlendState_PremultipliedAlpha = nullptr;
-    }
     if (BlendState_AlphaBlend)
     {
         BlendState_AlphaBlend->Release();
@@ -330,7 +325,7 @@ void FGraphicsDevice::CreateAlphaBlendState()
 
     D3D11_RENDER_TARGET_BLEND_DESC RtBlendDesc = {};
     RtBlendDesc.BlendEnable = TRUE;
-    RtBlendDesc.SrcBlend = D3D11_BLEND_ONE; // Premultiplied Alpha
+    RtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA; // Alpha blend
     RtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
     RtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
     RtBlendDesc.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
@@ -340,16 +335,7 @@ void FGraphicsDevice::CreateAlphaBlendState()
 
     BlendDesc.RenderTarget[0] = RtBlendDesc;
 
-    HRESULT hr = Device->CreateBlendState(&BlendDesc, &BlendState_PremultipliedAlpha);
-    if (FAILED(hr))
-    {
-        MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
-    }
-
-    RtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA; // Alpha blend
-    BlendDesc.RenderTarget[0] = RtBlendDesc;
-    
-    hr = Device->CreateBlendState(&BlendDesc, &BlendState_AlphaBlend);
+    HRESULT hr = Device->CreateBlendState(&BlendDesc, &BlendState_AlphaBlend);
     if (FAILED(hr))
     {
         MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
