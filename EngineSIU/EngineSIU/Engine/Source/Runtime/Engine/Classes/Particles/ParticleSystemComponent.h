@@ -25,8 +25,11 @@ public:
 
     virtual void TickComponent(float DeltaTime) override;
 
+    UParticleSystem* GetParticleSystem() const { return Template; }
+    void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }
+
     float AccumTickTime;
     
 private:
-    UParticleSystem* Template;
+    UParticleSystem* Template = nullptr;
 };

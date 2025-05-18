@@ -253,7 +253,7 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
-    UMaterialInterface*                MaterialInterface;
+    // UMaterialInterface*                MaterialInterface;
     struct FParticleRequiredModule    *RequiredModule;
     FVector                            NormalsSphereCenter;
     FVector                            NormalsCylinderDirection;
@@ -302,12 +302,12 @@ struct FDynamicEmitterDataBase
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 {
-    FDynamicSpriteEmitterDataBase(const UParticleModuleRequired* RequiredModule) : 
-        FDynamicEmitterDataBase(RequiredModule),
-        bUsesDynamicParameter( false )
-    {
-        MaterialResource = nullptr;
-    }
+    // FDynamicSpriteEmitterDataBase(const UParticleModuleRequired* RequiredModule) : 
+        // FDynamicEmitterDataBase(RequiredModule),
+        // bUsesDynamicParameter( false )
+    // {
+        // MaterialResource = nullptr;
+    // }
 
     /**
      *	Sort the given sprite particles
@@ -322,26 +322,26 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
      *	@param	LocalToWorld		The local to world transform of the component rendering the emitter
      *	@param	ParticleOrder		The array to fill in with ordered indices
      */
-    void SortSpriteParticles(int32 SortMode, bool bLocalSpace, 
-        int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
-        const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
+    // void SortSpriteParticles(int32 SortMode, bool bLocalSpace, 
+        // int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
+        // const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
 
-    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const = 0;
+    // virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const = 0;
 
 };
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type InFeatureLevel) const override
-    {
-        return sizeof(FParticleSpriteVertex);
-    }
+    // virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type InFeatureLevel) const override
+    // {
+        // return sizeof(FParticleSpriteVertex);
+    // }
 };
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 {
-    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const override
-    {
-        return sizeof(FMeshParticleInstanceVertex);
-    }
+    // virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const override
+    // {
+        // return sizeof(FMeshParticleInstanceVertex);
+    // }
 };

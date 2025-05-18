@@ -6,15 +6,15 @@ void FParticleEmitterInstance::SpawnParticles(
 {
     for (int32 i = 0; i < Count; i++)
     {
-        DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * NextFreeIndex)
-        PreSpawn(Particle, InitialLocation, InitialVelocity);
+        // DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * NextFreeIndex) // TODO: 주석 풀기
+        // PreSpawn(Particle, InitialLocation, InitialVelocity);
 
-        for (int32 ModuleIndex = 0; ModuleIndex < LODLevel->SpawnModules.Num(); ModuleIndex++)
-        {
+        // for (int32 ModuleIndex = 0; ModuleIndex < LODLevel->SpawnModules.Num(); ModuleIndex++)
+        // {
             
-        }
+        // }
 
-        PostSpawn(Particle, Interp, SpawnTime);
+        // PostSpawn(Particle, Interp, SpawnTime);
     }
 }
 

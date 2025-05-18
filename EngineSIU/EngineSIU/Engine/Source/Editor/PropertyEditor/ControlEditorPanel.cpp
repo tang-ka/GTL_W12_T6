@@ -46,6 +46,7 @@
 #include "Renderer/CompositingPass.h"
 #include <Engine/FbxLoader.h>
 #include "Engine/Classes/Engine/AssetManager.h"
+#include "Particles/ParticleSystemComponent.h"
 
 ControlEditorPanel::ControlEditorPanel()
 {
@@ -330,6 +331,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             { .Label= "DirectionalLight", .OBJ= OBJ_DIRECTIONALLGIHT },
             { .Label= "AmbientLight", .OBJ= OBJ_AMBIENTLIGHT },
             { .Label= "Particle",  .OBJ= OBJ_PARTICLE },
+            { .Label= "ParticleSystem",  .OBJ= OBJ_PARTICLESYSTEM },
             { .Label= "Text",      .OBJ= OBJ_TEXT },
             { .Label= "Fireball",  .OBJ = OBJ_FIREBALL},
             { .Label= "Fog",       .OBJ= OBJ_FOG },
@@ -402,6 +404,14 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     ParticleComponent->SetRowColumnCount(6, 6);
                     ParticleComponent->SetRelativeScale3D(FVector(10.0f, 10.0f, 1.0f));
                     ParticleComponent->Activate();
+                    SpawnedActor->SetActorTickInEditor(true);
+                    break;
+                }
+                case OBJ_PARTICLESYSTEM:
+                {
+                    SpawnedActor = World->SpawnActor<AActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLESYSTEM"));
+                    UParticleSystemComponent* ParticleComponent = SpawnedActor->AddComponent<UParticleSystemComponent>();
                     SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }

@@ -14,6 +14,10 @@
 #include "Components/Light/DirectionalLightComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "PropertyEditor/ParticleViewerPanel.h"
+#include "UnrealEd/UnrealEd.h"
+#include "World/ParticleViewerWorld.h"
 
 extern FEngineLoop GEngineLoop;
 
@@ -229,6 +233,48 @@ void UEditorEngine::StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAs
     {
         Player->SetCoordMode(ECoordMode::CDM_LOCAL);
     }
+}
+
+void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* ParticleSystem)
+{
+    if (ParticleName == "")
+    {
+        return;
+    }
+    if (ParticleViewerWorld)
+    {
+        UE_LOG(ELogLevel::Warning, TEXT("SkeletalMeshViewerWorld already exists!"));
+    }
+    else
+    {
+        FWorldContext& WorldContext = CreateNewWorldContext(EWorldType::ParticleViewer);
+        ParticleViewerWorld = UParticleViewerWorld::CreateWorld(this);
+        WorldContext.SetCurrentWorld(ParticleViewerWorld);
+    }
+    
+    ActiveWorld = ParticleViewerWorld;
+    ParticleViewerWorld->WorldType = EWorldType::ParticleViewer;
+    
+    // 파티클 스폰
+    AActor* ParticleActor = ParticleViewerWorld->SpawnActor<AActor>();
+    ParticleActor->SetActorTickInEditor(true);
+    
+    UParticleSystemComponent* ParticleSystemComponent = ParticleActor->AddComponent<UParticleSystemComponent>();
+    ParticleSystemComponent->SetParticleSystem(ParticleSystem);
+    
+    ParticleActor->SetRootComponent(ParticleSystemComponent);
+    ParticleActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
+
+    // World와 Panel에 ParticleSystem 설정
+    ParticleViewerWorld->SetParticleSystem(ParticleSystemComponent);
+    auto editorPanel = GEngineLoop.GetUnrealEditor()->GetEditorPanel("ParticleViewerPanel");
+    auto particlePanel = std::dynamic_pointer_cast<ParticleViewerPanel>(editorPanel);
+    ParticleViewerPanel* ParticleViewerPanel = particlePanel.get();
+    ParticleViewerPanel->SetParticleSystem(ParticleSystem);
+
+    // ParticleActor 강제 설정
+    Cast<UEditorEngine>(GEngine)->SelectActor(ParticleActor);
+    Cast<UEditorEngine>(GEngine)->SelectComponent(ParticleSystemComponent);
 }
 
 void UEditorEngine::BindEssentialObjects()
