@@ -9,6 +9,8 @@
     내부적으로 PIE, Editor World 두 가지 형태로 관리.
 */
 
+class UParticleViewerWorld;
+class UParticleSystem;
 class AActor;
 class USceneComponent;
 
@@ -25,11 +27,13 @@ public:
 
     UWorld* PIEWorld = nullptr;
     USkeletalViewerWorld* SkeletalMeshViewerWorld = nullptr;
+    UParticleViewerWorld* ParticleViewerWorld = nullptr;
     UWorld* EditorWorld = nullptr;
     
 
     void StartPIE();
     void StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset);
+    void StartParticleViewer(FName ParticleName, UParticleSystem* ParticleSystem);
     void BindEssentialObjects();
     void EndPIE();
     void EndSkeletalMeshViewer();
@@ -49,7 +53,6 @@ public:
     AActor* GetSelectedActor() const;
 
     void HoverActor(AActor* InActor);
-
     
     void NewLevel();
 
