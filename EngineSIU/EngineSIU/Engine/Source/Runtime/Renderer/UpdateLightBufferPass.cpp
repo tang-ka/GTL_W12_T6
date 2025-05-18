@@ -71,7 +71,6 @@ void FUpdateLightBufferPass::PrepareRenderArr()
 
 void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    Graphics->DeviceContext->PSSetConstantBuffers(8, 1, &TileConstantBuffer);
     UpdateLightBuffer();
 
     // 전역 조명 리스트
@@ -226,13 +225,6 @@ void FUpdateLightBufferPass::SetLightData(const TArray<UPointLightComponent*>& I
     UpdatePointLightBuffer();
     UpdateSpotLightBuffer();
 }
-
-void FUpdateLightBufferPass::SetTileConstantBuffer(ID3D11Buffer* InTileConstantBuffer)
-{
-    TileConstantBuffer = InTileConstantBuffer;
-}
-
-
 
 void FUpdateLightBufferPass::CreatePointLightBuffer()
 {

@@ -266,6 +266,8 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     {
         return;
     }
+    
+    const uint64 ShowFlag = Viewport->GetShowFlag();
 
     QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
     QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
@@ -286,33 +288,43 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
      *   3. RTV -> SRV 전환 타이밍이 정확히 지켜짐
      */
 
-    if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
+    if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {
-        QUICK_SCOPE_CYCLE_COUNTER(DepthPrePass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthPrePass_GPU, *GPUTimingManager)
-        DepthPrePass->Render(Viewport);
-    }
+        if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(DepthPrePass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthPrePass_GPU, *GPUTimingManager)
+            DepthPrePass->Render(Viewport);
+        }
 
-    // Added Compute Shader Pass
-    if (TileLightCullingPass)
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(TileLightCulling_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(TileLightCulling_GPU, *GPUTimingManager)
-        TileLightCullingPass->Render(Viewport);
+        // Added Compute Shader Pass
+        if (TileLightCullingPass)
+        {
+            {
+                QUICK_SCOPE_CYCLE_COUNTER(TileLightCulling_CPU)
+                QUICK_GPU_SCOPE_CYCLE_COUNTER(TileLightCulling_GPU, *GPUTimingManager)
+                TileLightCullingPass->Render(Viewport);
+            }
 
-        // 이후 패스에서 사용할 수 있도록 리소스 생성
-        // @todo UpdateLightBuffer에서 병목 발생 -> 필요한 라이트에 대하여만 업데이트 필요, Tiled Culling으로 GPU->CPU 전송은 주객전도
-        UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
-                                TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
-        UpdateLightBufferPass->SetTileConstantBuffer(TileLightCullingPass->GetTileConstantBuffer());
-    }
+            // 이후 패스에서 사용할 수 있도록 리소스 생성
+            // @todo UpdateLightBuffer에서 병목 발생 -> 필요한 라이트에 대하여만 업데이트 필요, Tiled Culling으로 GPU->CPU 전송은 주객전도
+            UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
+                                    TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
 
-    if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
-        ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
-        ShadowRenderPass->Render(Viewport);
+            {
+                QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
+                QUICK_GPU_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_GPU, *GPUTimingManager)
+                UpdateLightBufferPass->Render(Viewport);
+            }
+        }
+
+        if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
+            ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
+            ShadowRenderPass->Render(Viewport);
+        }
     }
 
     RenderWorldScene(Viewport);
@@ -346,15 +358,6 @@ void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& V
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     
-    if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
-    {
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_GPU, *GPUTimingManager)
-            UpdateLightBufferPass->Render(Viewport);
-        }
-    }
-
     if (ShowFlag & EEngineShowFlags::SF_SkeletalMesh)
     {
         {
@@ -431,12 +434,6 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
     }
     
     // Render Editor Billboard
-    /**
-     * TODO: 에디터 전용 빌보드는 이런 방식 처럼 빌보드의 bool값을 바꿔서 렌더하기 보다는
-     *       빌보드가 나와야 하는 컴포넌트는 텍스처만 가지고있고, 쉐이더를 통해 쿼드를 생성하고
-     *       텍스처를 전달해서 렌더하는 방식이 더 좋음.
-     *       이렇게 하는 경우 필요없는 빌보드 컴포넌트가 아웃라이너에 나오지 않음.
-     */
     if (ShowFlag & EEngineShowFlags::SF_BillboardText)
     {
         QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
