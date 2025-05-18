@@ -82,7 +82,7 @@ struct FBaseParticle
     int32            Flags;                    // Flags indicating various particle states
 
     // 16 bytes
-    FLinearColor     Color;                    // Current color of particle.
+    FLinearColor     Color;                    // Current color of particle. 
 
     // 16 bytes
     FLinearColor     BaseColor;                // Base color of the particle

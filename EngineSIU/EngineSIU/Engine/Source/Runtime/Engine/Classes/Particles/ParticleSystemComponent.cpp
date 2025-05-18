@@ -55,7 +55,7 @@ void UParticleSystemComponent::InitializeSystem()
             Instance->ActiveParticles = 0;
             Instance->ParticleCounter = 0;
 
-            Instance->InitParticleData();
+            Instance->Initialize();
 
             EmitterInstances.Add(Instance);
         }

@@ -5,6 +5,7 @@
 class UParticleLODLevel;
 class UParticleSystemComponent;
 class UParticleEmitter;
+struct DistributionFloat;
 
 struct FParticleEmitterInstance
 {
@@ -38,12 +39,19 @@ public:
     int32 MaxActiveParticles;
     /** The fraction of time left over from spawning.                   */
 
-public:
-    void Tick(float DeltaTime);
-    void InitParticleData();
+    float AccumulatedTime = 0;
+    DistributionFloat* SpawnRateDistribution;
+    float SpawnFraction = 0;
 
-    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);
+public:
+    void Initialize();
+
+    void Tick(float DeltaTime);
+    void SpawnParticles(int32 Count, float StartTime, float Increment, 
+                        const FVector& InitialLocation, const FVector& InitialVelocity);
     void KillParticle(int32 Index);
+
+    int32 CalculateSpawnCount(float DeltaTime);
 
     void PreSpawn(FBaseParticle* Particle, const FVector& InitialLocation, const FVector& InitialVelocity);
     void PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime);
