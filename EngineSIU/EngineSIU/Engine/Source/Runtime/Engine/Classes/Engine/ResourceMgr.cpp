@@ -12,28 +12,13 @@
 
 void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
 {
-    //RegisterMesh(renderer, "Quad", quadVertices, sizeof(quadVertices) / sizeof(FVertexSimple), quadIndices, sizeof(quadIndices)/sizeof(uint32));
-
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowX.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowY.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowZ.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowX.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowY.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowZ.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleX.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleY.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
-    // FManagerLoadObjStaticMeshAsset("Assets/helloBlender.obj");
-
     LoadTextureFromDDS(Device->Device, Device->DeviceContext, L"Assets/Texture/font.dds");
     LoadTextureFromDDS(Device->Device, Device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
 
     LoadTextureFromFile(Device->Device, L"Assets/Texture/ocean_sky.jpg");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/font.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/emart.png");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/T_Explosion_SubUV.png");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/UUID_Font.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/spotLight.png");
 
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_Actor.PNG");
@@ -43,6 +28,7 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
+    
     LoadTextureFromFile(Device->Device, L"Assets/Viewer/Bone_16x.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Viewer/BoneNonWeighted_16x.PNG");
 }

@@ -267,6 +267,20 @@ void FGraphicsDevice::ReleaseBlendState()
     }
 }
 
+void FGraphicsDevice::ReleaseSamplerState()
+{
+    if (SamplerState_LinearWrap)
+    {
+        SamplerState_LinearWrap->Release();
+        SamplerState_LinearWrap = nullptr;
+    }
+    if (SamplerState_PointWrap)
+    {
+        SamplerState_PointWrap->Release();
+        SamplerState_PointWrap = nullptr;
+    }
+}
+
 void FGraphicsDevice::Release()
 {
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -338,7 +352,33 @@ void FGraphicsDevice::CreateAlphaBlendState()
     HRESULT hr = Device->CreateBlendState(&BlendDesc, &BlendState_AlphaBlend);
     if (FAILED(hr))
     {
-        MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(nullptr, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+    }
+}
+
+void FGraphicsDevice::CreateSamplerState()
+{
+    D3D11_SAMPLER_DESC SamplerDesc = {};
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    SamplerDesc.MinLOD = 0;
+    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    HRESULT hr = Device->CreateSamplerState(&SamplerDesc, &SamplerState_LinearWrap);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+    }
+
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+    hr = Device->CreateSamplerState(&SamplerDesc, &SamplerState_PointWrap);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }
 }
 

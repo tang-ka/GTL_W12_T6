@@ -152,6 +152,9 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     // 뎁스 비교는 렌더 타겟과는 상관 없이 항상 씬 기준으로
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->DSV);
 
+    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 1);
+    
     UpdateShader();
 
     PrepareTextureShader();
@@ -218,6 +221,9 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     }
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 }
 
 void FBillboardRenderPass::SetupVertexBuffer(ID3D11Buffer* pVertexBuffer, UINT NumVertices) const

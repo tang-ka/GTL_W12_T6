@@ -33,6 +33,9 @@ public:
     ID3D11DepthStencilState* DepthStencilState_DepthWriteDisabled = nullptr;
     
     ID3D11BlendState* BlendState_AlphaBlend = nullptr;
+
+    ID3D11SamplerState* SamplerState_LinearWrap = nullptr;
+    ID3D11SamplerState* SamplerState_PointWrap = nullptr;
     
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
     
@@ -70,12 +73,14 @@ private:
     void CreateDepthStencilState();
     void CreateRasterizerState();
     void CreateAlphaBlendState();
+    void CreateSamplerState();
     
     void ReleaseDeviceAndSwapChain();
     void ReleaseFrameBuffer();
     void ReleaseRasterizerState();
     void ReleaseDepthStencilResources();
     void ReleaseBlendState();
+    void ReleaseSamplerState();
     
     ID3D11RasterizerState* CurrentRasterizer = nullptr;
 
