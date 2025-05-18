@@ -225,8 +225,8 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
-    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_PremultipliedAlpha, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 0);
     //Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     //Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
