@@ -436,8 +436,7 @@ float  G_Smith(float NdotV, float NdotL, float alpha)
 float3 CookTorranceSpecular(
     float3  F0,        // base reflectance (metallic → albedo)
     float   Roughness,
-    float3  N, float3  V, float3  L,
-    out float3 OutFresnel
+    float3  N, float3  V, float3  L
 )
 {
     float3  H = normalize(V + L);
@@ -451,7 +450,6 @@ float3 CookTorranceSpecular(
     float   D = D_GGX(NdotH, alpha);
     float   G = G_Smith(NdotV, NdotL, alpha);
     float3  F = F_Schlick(F0, LdotH);
-    OutFresnel = F;
 
     return (D * G * F) / (4.0 * NdotV * NdotL + 1e-5);
 }
@@ -471,7 +469,6 @@ struct FBRDFResult
 {
     float3 DiffuseContribution;
     float3 SpecularContribution;
-    float FresnelFactor; // [0, 1]
 };
 
 FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
@@ -491,21 +488,11 @@ FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
     float3 Kd = BaseColor * KdScale;
 
     Result.DiffuseContribution = DisneyDiffuse(N, L, V, Roughness) * Kd;
-
-    float3 SpecularFresnel;
-    Result.SpecularContribution = CookTorranceSpecular(F0, Roughness, N, V, L, SpecularFresnel);
-
-    Result.FresnelFactor = SpecularFresnel.r;
+    Result.SpecularContribution = CookTorranceSpecular(F0, Roughness, N, V, L);
 #else
     Result.DiffuseContribution = DiffuseColor / PI; // BPR의 에너지 보존 결과와 유사한 밝기를 맞추기 위함
 #ifdef LIGHTING_MODEL_BLINN_PHONG
     Result.SpecularContribution = BlinnPhongSpecular(N, L, V, Shininess) * SpecularColor;
-    /**
-     * TODO: Blinn-Phong을 위해 Fresnel의 근사치를 계산해 줄 수 있음.
-     * e.g.
-     *   float3 F0 = SpecularColor; // 또는 float3(0.04, 0.04, 0.04);
-     *   Result.FresnelFactor = F_Schlick(F0, saturate(dot(N, V))).r; // NdotV는 시야각 기반, NdotL은 조명 기반. Phong에서는 시야각 기반으로.
-     */
 #endif
 #endif
     
@@ -519,7 +506,6 @@ struct FLightOutput
 {
     float3 DiffuseContribution;
     float3 SpecularContribution;
-    float LightFresnelFactor;
 };
 
 FLightOutput PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
@@ -577,7 +563,6 @@ FLightOutput PointLight(int Index, float3 WorldPosition, float3 WorldNormal, flo
 
     Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * Attenuation * Shadow * NdotL;
     Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * Attenuation * Shadow * NdotL;
-    Output.LightFresnelFactor = BRDF.FresnelFactor;
 
     return Output;
 }
@@ -638,7 +623,6 @@ FLightOutput SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, floa
 
     Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * SpotlightFactor * Shadow * NdotL;
     Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * SpotlightFactor * Shadow * NdotL;
-    Output.LightFresnelFactor = BRDF.FresnelFactor;
 
     return Output;
 }
@@ -692,7 +676,6 @@ FLightOutput DirectionalLight(int Index, float3 WorldPosition, float3 WorldNorma
 
     Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * Shadow * NdotL /* DebugCSMColor(csmIndex) */;
     Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * Shadow * NdotL;
-    Output.LightFresnelFactor = BRDF.FresnelFactor;
 
     return Output;
 }
@@ -717,8 +700,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     float3 AccumulatedDiffuseColor = float3(0.0, 0.0, 0.0);
     float3 AccumulatedSpecularColor = float3(0.0, 0.0, 0.0);
     
-    // 광원으로부터 계산된 스페큘러의 프레넬 값들 중 대표값 (또는 최대값)
-    float MaxLightFresnelFactor = 0.0f;
+    // 광원으로부터 계산된 스페큘러 값들 중 최대값
     float MaxObservedSpecularLuminance = 0.0f;
 
     
@@ -749,7 +731,6 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
                     AccumulatedDiffuseColor += Result.DiffuseContribution;
                     AccumulatedSpecularColor += Result.SpecularContribution;
                     
-                    MaxLightFresnelFactor = max(MaxLightFresnelFactor, Result.LightFresnelFactor);
                     MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
                 }
             }
@@ -769,7 +750,6 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
                     AccumulatedDiffuseColor += Result.DiffuseContribution;
                     AccumulatedSpecularColor += Result.SpecularContribution;
                     
-                    MaxLightFresnelFactor = max(MaxLightFresnelFactor, Result.LightFresnelFactor);
                     MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
                 }
             }
@@ -789,8 +769,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         );
         AccumulatedDiffuseColor += Result.DiffuseContribution;
         AccumulatedSpecularColor += Result.SpecularContribution;
-                    
-        MaxLightFresnelFactor = max(MaxLightFresnelFactor, Result.LightFresnelFactor);
+
         MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
     
@@ -825,17 +804,13 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 #else
     F0_View = SpecularColor; // Phong에서는 Specular 색상을 F0로 사용하거나 고정값 사용. 또는 float3(0.04, 0.04, 0.04);
 #endif
+    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(WorldNormal, V))).r;
 
-    float ViewFresnelScale = 0.4;
-    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(WorldNormal, V))).r * ViewFresnelScale ; // 시야각 기반 Fresnel (NdotV)
+    float HighlightOpacityContribution = saturate(MaxObservedSpecularLuminance);
+    float TotalReflectanceInfluence = max(ViewAngleFresnel, HighlightOpacityContribution);
 
-    float SpecularAlphaInfluenceScale = 0.6;
-    float HighlightOpacityContribution = saturate(MaxObservedSpecularLuminance * SpecularAlphaInfluenceScale);
-
-    float Reflectance = max(ViewAngleFresnel, HighlightOpacityContribution);
-
-    float FinalAlpha = Reflectance + (1.0 - Reflectance) * BaseAlpha;
-    FinalAlpha = saturate(FinalAlpha);
+    float FinalAlpha = lerp(BaseAlpha, 1.0f, TotalReflectanceInfluence);
+    FinalAlpha = saturate(FinalAlpha); // [0, 1]
 
     
     return float4(FinalRGB, FinalAlpha);
@@ -860,8 +835,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     float3 AccumulatedDiffuseColor = float3(0.0, 0.0, 0.0);
     float3 AccumulatedSpecularColor = float3(0.0, 0.0, 0.0);
     
-    // 광원으로부터 계산된 스페큘러의 프레넬 값들 중 대표값 (또는 최대값)
-    float MaxLightFresnelFactor = 0.0f;
+    // 광원으로부터 계산된 스페큘러 값들 중 최대값
     float MaxObservedSpecularLuminance = 0.0f;
     
 
@@ -880,8 +854,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         );
         AccumulatedDiffuseColor += Result.DiffuseContribution;
         AccumulatedSpecularColor += Result.SpecularContribution;
-                    
-        MaxLightFresnelFactor = max(MaxLightFresnelFactor, Result.LightFresnelFactor);
+
         MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
 
@@ -898,8 +871,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         );
         AccumulatedDiffuseColor += Result.DiffuseContribution;
         AccumulatedSpecularColor += Result.SpecularContribution;
-                    
-        MaxLightFresnelFactor = max(MaxLightFresnelFactor, Result.LightFresnelFactor);
+
         MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
     
@@ -916,8 +888,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         );
         AccumulatedDiffuseColor += Result.DiffuseContribution;
         AccumulatedSpecularColor += Result.SpecularContribution;
-                    
-        MaxLightFresnelFactor = max(MaxLightFresnelFactor, Result.LightFresnelFactor);
+
         MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
 
@@ -952,17 +923,13 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 #else
     F0_View = SpecularColor; // Phong에서는 Specular 색상을 F0로 사용하거나 고정값 사용. 또는 float3(0.04, 0.04, 0.04);
 #endif
+    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(WorldNormal, V))).r;
 
-    float ViewFresnelScale = 0.4;
-    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(WorldNormal, V))).r * ViewFresnelScale ; // 시야각 기반 Fresnel (NdotV)
+    float HighlightOpacityContribution = saturate(MaxObservedSpecularLuminance);
+    float TotalReflectanceInfluence = max(ViewAngleFresnel, HighlightOpacityContribution);
 
-    float SpecularAlphaInfluenceScale = 0.6;
-    float HighlightOpacityContribution = saturate(MaxObservedSpecularLuminance * SpecularAlphaInfluenceScale);
-
-    float Reflectance = max(ViewAngleFresnel, HighlightOpacityContribution);
-
-    float FinalAlpha = Reflectance + (1.0 - Reflectance) * BaseAlpha;
-    FinalAlpha = saturate(FinalAlpha);
+    float FinalAlpha = lerp(BaseAlpha, 1.0f, TotalReflectanceInfluence);
+    FinalAlpha = saturate(FinalAlpha); // [0, 1]
 
     
     return float4(FinalRGB, FinalAlpha);
