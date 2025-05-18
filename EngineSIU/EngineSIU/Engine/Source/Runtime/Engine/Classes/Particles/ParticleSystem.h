@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -21,6 +21,8 @@ class UParticleSystem : public UFXSystemAsset
 public:
     UParticleSystem() = default;
     virtual ~UParticleSystem() override = default;
+
+    TArray<UParticleEmitter*> GetEmitters() const;
 
 private:
     TArray<UParticleEmitter*> Emitters;

@@ -1,4 +1,4 @@
-﻿#include "ParticleEmitter.h"
+#include "ParticleEmitter.h"
 
 #include "ParticleHelper.h"
 
@@ -8,4 +8,13 @@ void UParticleEmitter::CacheEmitterModuleInfo()
     
 	ParticleSize = sizeof(FBaseParticle);
 	
+}
+
+UParticleLODLevel* UParticleEmitter::GetLODLevel(int32 LODIndex) const
+{
+    if (LODLevels.IsValidIndex(LODIndex))
+    {
+        return LODLevels[LODIndex];
+    }
+    return nullptr;
 }

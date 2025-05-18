@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -19,15 +19,19 @@ public:
     UParticleEmitter() = default;
     virtual ~UParticleEmitter() override = default;
 
+    void CacheEmitterModuleInfo();
+
+    TArray<UParticleLODLevel*> GetLODLevels() const { return LODLevels; }
+    UParticleLODLevel* GetLODLevel(int32 LODIndex) const;
+
+public:
     FName EmitterName;
-
-    TArray<UParticleLODLevel*> LODLevels; // 현재는 Level 0만 사용
-
     int32 PeakActiveParticles = 0;
 
     // Below is information udpated by calling CacheEmitterModuleInfo
     
     int32 ParticleSize;
 
-    void CacheEmitterModuleInfo();
+private:
+    TArray<UParticleLODLevel*> LODLevels; // 현재는 Level 0만 사용
 };

@@ -1,4 +1,9 @@
-﻿#include "ParticleEmitterInstance.h"
+#include "ParticleEmitterInstance.h"
+#include "ParticleLODLevel.h"
+
+void FParticleEmitterInstance::Tick(float DeltaTime)
+{
+}
 
 void FParticleEmitterInstance::SpawnParticles(
     int32 Count, float StartTime, float Increment,
@@ -9,7 +14,7 @@ void FParticleEmitterInstance::SpawnParticles(
         DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * NextFreeIndex)
         PreSpawn(Particle, InitialLocation, InitialVelocity);
 
-        for (int32 ModuleIndex = 0; ModuleIndex < LODLevel->SpawnModules.Num(); ModuleIndex++)
+        for (int32 ModuleIndex = 0; ModuleIndex < CurrentLODLevel->Modules.Num(); ModuleIndex++)
         {
             
         }
@@ -19,5 +24,21 @@ void FParticleEmitterInstance::SpawnParticles(
 }
 
 void FParticleEmitterInstance::KillParticle(int32 Index)
+{
+}
+
+void FParticleEmitterInstance::PreSpawn(FBaseParticle* Particle, const FVector& InitialLocation, const FVector& InitialVelocity)
+{
+}
+
+void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime)
+{
+}
+
+void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
+{
+}
+
+void FParticleEmitterInstance::UpdateModules(float DeltaTime)
 {
 }
