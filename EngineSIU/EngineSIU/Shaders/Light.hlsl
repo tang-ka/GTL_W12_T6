@@ -681,6 +681,31 @@ FLightOutput DirectionalLight(int Index, float3 WorldPosition, float3 WorldNorma
 }
 
 
+float GetFinalAlpha(float BaseAlpha, float SpecularLuminance, float3 V, float3 N,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic
+#else
+    float3 SpecularColor
+#endif
+)
+{
+    float3 F0_View = float3(0.0, 0.0, 0.0);
+#ifdef LIGHTING_MODEL_PBR
+    F0_View = lerp(0.04, BaseColor, Metallic);
+#else
+    F0_View = SpecularColor; // Phong에서는 Specular 색상을 F0로 사용하거나 고정값 사용. 또는 float3(0.04, 0.04, 0.04);
+#endif
+    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(N, V))).r;
+
+    float HighlightOpacityContribution = saturate(SpecularLuminance);
+    float TotalReflectanceInfluence = max(ViewAngleFresnel, HighlightOpacityContribution);
+
+    float FinalAlpha = lerp(BaseAlpha, 1.0f, TotalReflectanceInfluence);
+    
+    return saturate(FinalAlpha); // [0, 1]
+}
+
+
 float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
 #ifdef LIGHTING_MODEL_PBR
     float3 BaseColor, float Metallic, float Roughness,
@@ -798,19 +823,13 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     // 알파
     float3 V = normalize(WorldViewPosition - WorldPosition);
-    float3 F0_View = float3(0.0, 0.0, 0.0);
+    float FinalAlpha = GetFinalAlpha(BaseAlpha, MaxObservedSpecularLuminance, V, WorldNormal,
 #ifdef LIGHTING_MODEL_PBR
-    F0_View = lerp(0.04, BaseColor, Metallic);
+        BaseColor, Metallic
 #else
-    F0_View = SpecularColor; // Phong에서는 Specular 색상을 F0로 사용하거나 고정값 사용. 또는 float3(0.04, 0.04, 0.04);
+        SpecularColor
 #endif
-    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(WorldNormal, V))).r;
-
-    float HighlightOpacityContribution = saturate(MaxObservedSpecularLuminance);
-    float TotalReflectanceInfluence = max(ViewAngleFresnel, HighlightOpacityContribution);
-
-    float FinalAlpha = lerp(BaseAlpha, 1.0f, TotalReflectanceInfluence);
-    FinalAlpha = saturate(FinalAlpha); // [0, 1]
+    );
 
     
     return float4(FinalRGB, FinalAlpha);
@@ -917,19 +936,13 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     // 알파
     float3 V = normalize(WorldViewPosition - WorldPosition);
-    float3 F0_View = float3(0.0, 0.0, 0.0);
+    float FinalAlpha = GetFinalAlpha(BaseAlpha, MaxObservedSpecularLuminance, V, WorldNormal,
 #ifdef LIGHTING_MODEL_PBR
-    F0_View = lerp(0.04, BaseColor, Metallic);
+        BaseColor, Metallic
 #else
-    F0_View = SpecularColor; // Phong에서는 Specular 색상을 F0로 사용하거나 고정값 사용. 또는 float3(0.04, 0.04, 0.04);
+        SpecularColor
 #endif
-    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(WorldNormal, V))).r;
-
-    float HighlightOpacityContribution = saturate(MaxObservedSpecularLuminance);
-    float TotalReflectanceInfluence = max(ViewAngleFresnel, HighlightOpacityContribution);
-
-    float FinalAlpha = lerp(BaseAlpha, 1.0f, TotalReflectanceInfluence);
-    FinalAlpha = saturate(FinalAlpha); // [0, 1]
+    );
 
     
     return float4(FinalRGB, FinalAlpha);
