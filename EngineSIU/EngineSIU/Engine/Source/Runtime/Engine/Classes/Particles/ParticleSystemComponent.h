@@ -4,6 +4,7 @@
 #include "UObject/ObjectMacros.h"
 
 class UParticleSystem;
+class UParticleEmitter;
 struct FParticleEmitterInstance;
 struct FDynamicEmitterDataBase;
 
@@ -35,6 +36,7 @@ public:
 
 public:
     void InitializeSystem();
+    void CreateAndAddEmitterInstance(UParticleEmitter* EmitterTemplate);
 
     UParticleSystem* GetParticleSystem() const { return Template; }
     void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }

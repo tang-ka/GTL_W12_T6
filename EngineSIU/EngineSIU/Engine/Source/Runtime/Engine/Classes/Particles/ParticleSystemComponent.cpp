@@ -50,16 +50,22 @@ void UParticleSystemComponent::InitializeSystem()
     for (int32 i = 0; i < Emitters.Num(); i++)
     {
         UParticleEmitter* EmitterTemplate = Emitters[i];
-        if (EmitterTemplate)
-        {
-            FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
-            Instance->SpriteTemplate = EmitterTemplate;
-            Instance->Component = this;
-            Instance->CurrentLODLevelIndex = 0;
-
-            Instance->Initialize();
-
-            EmitterInstances.Add(Instance);
-        }
+        CreateAndAddEmitterInstance(EmitterTemplate);
     }
 }
+
+void UParticleSystemComponent::CreateAndAddEmitterInstance(UParticleEmitter* EmitterTemplate)
+{
+    if (EmitterTemplate)
+    {
+        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        Instance->SpriteTemplate = EmitterTemplate;
+        Instance->Component = this;
+        Instance->CurrentLODLevelIndex = 0;
+
+        Instance->Initialize();
+
+        EmitterInstances.Add(Instance);
+    }
+}
+

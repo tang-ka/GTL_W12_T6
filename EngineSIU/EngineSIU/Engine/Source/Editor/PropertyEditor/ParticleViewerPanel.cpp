@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/Size/ParticleModuleSize.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
+#include "Particles/ParticleSystemComponent.h"
 
 ParticleViewerPanel::ParticleViewerPanel()
 {
@@ -298,6 +299,8 @@ void ParticleViewerPanel::AddNewEmitter()
 
         SelectedModule = nullptr;
         SelectedEmitter = NewEmitter;
+
+        ParticleSystemComponent->CreateAndAddEmitterInstance(NewEmitter);
     }
 }
 

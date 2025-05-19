@@ -6,9 +6,9 @@
 
 void FParticleEmitterInstance::Initialize()
 {
-    const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
-
     CurrentLODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
+
+    const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
 
     if (CurrentLODLevel->RequiredModule)
     {

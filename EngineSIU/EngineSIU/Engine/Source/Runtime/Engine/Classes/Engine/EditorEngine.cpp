@@ -131,6 +131,26 @@ void UEditorEngine::Tick(float DeltaTime)
                 }
             }
         }
+        else if (WorldContext->WorldType == EWorldType::ParticleViewer)
+        {
+            if (UWorld* World = WorldContext->World())
+            {
+                World->Tick(DeltaTime);
+                EditorPlayer->Tick(DeltaTime);
+                ULevel* Level = World->GetActiveLevel();
+                TArray CachedActors = Level->Actors;
+                if (Level)
+                {
+                    for (AActor* Actor : CachedActors)
+                    {
+                        if (Actor && Actor->IsActorTickInEditor())
+                        {
+                            Actor->Tick(DeltaTime);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -270,6 +290,7 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
     auto editorPanel = GEngineLoop.GetUnrealEditor()->GetEditorPanel("ParticleViewerPanel");
     auto particlePanel = std::dynamic_pointer_cast<ParticleViewerPanel>(editorPanel);
     ParticleViewerPanel* ParticleViewerPanel = particlePanel.get();
+    ParticleViewerPanel->SetParticleSystemComponent(ParticleSystemComponent);
     ParticleViewerPanel->SetParticleSystem(ParticleSystem);
 
     // ParticleActor 강제 설정
