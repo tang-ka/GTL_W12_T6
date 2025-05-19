@@ -1,4 +1,4 @@
-#include "StaticMeshRenderPass.h"
+#include "OpaqueRenderPass.h"
 
 #include <array>
 
@@ -6,10 +6,7 @@
 #include "World/World.h"
 
 #include "RendererHelpers.h"
-#include "ShadowManager.h"
-#include "ShadowRenderPass.h"
 #include "UnrealClient.h"
-#include "Math/JungleMath.h"
 
 #include "UObject/UObjectIterator.h"
 #include "UObject/Casts.h"
@@ -26,7 +23,6 @@
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
-#include "Components/Light/PointLightComponent.h"
 #include "Engine/AssetManager.h"
 #include "Engine/SkeletalMesh.h"
 

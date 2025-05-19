@@ -7,7 +7,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "RendererHelpers.h"
-#include "StaticMeshRenderPass.h"
+#include "OpaqueRenderPass.h"
 #include "WorldBillboardRenderPass.h"
 #include "EditorBillboardRenderPass.h"
 #include "GizmoRenderPass.h"
