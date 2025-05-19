@@ -26,9 +26,7 @@
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
     
     CreateShaders();
     CreateBuffers();
@@ -332,6 +330,14 @@ void FEditorRenderPass::ClearRenderArr()
     Resources.Components.SphereComponents.Empty();
     Resources.Components.CapsuleComponents.Empty();
     Resources.Components.BoxComponents.Empty();
+}
+
+void FEditorRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FEditorRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 
 // 꼼수로 이미 로드된 리소스를 사용

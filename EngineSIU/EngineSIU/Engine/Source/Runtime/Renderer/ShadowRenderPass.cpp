@@ -22,20 +22,9 @@ class UEditorEngine;
 class UStaticMeshComponent;
 #include "UnrealEd/EditorViewportClient.h"
 
-FShadowRenderPass::FShadowRenderPass()
-{
-}
-
-FShadowRenderPass::~FShadowRenderPass()
-{
-}
-
-
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 
     // DepthOnly Vertex Shader
     CreateShader();
@@ -305,20 +294,6 @@ void FShadowRenderPass::BindResourcesForSampling()
     10);
 }
 
-void FShadowRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
-{
-    FObjectConstantBuffer ObjectData = {};
-    ObjectData.WorldMatrix = WorldMatrix;
-    ObjectData.InverseTransposedWorld = FMatrix::Transpose(FMatrix::Inverse(WorldMatrix));
-    ObjectData.UUIDColor = UUIDColor;
-    ObjectData.bIsSelected = bIsSelected;
-    
-    BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
-   // Graphics->DeviceContext->GSSetShader(nullptr, nullptr, 0);
-    //Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
-    //Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
-}
-
 void FShadowRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight)
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
@@ -336,6 +311,14 @@ void FShadowRenderPass::RenderAllStaticMeshesForPointLight(const std::shared_ptr
 
         RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
     }
+}
+
+void FShadowRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FShadowRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 
 void FShadowRenderPass::CreateShader()

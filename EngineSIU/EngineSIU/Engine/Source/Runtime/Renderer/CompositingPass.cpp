@@ -7,18 +7,6 @@
 #include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
 
-FCompositingPass::FCompositingPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-{
-}
-
-FCompositingPass::~FCompositingPass()
-{
-    
-}
-
 void FCompositingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
     BufferManager = InBufferManager;
@@ -109,5 +97,13 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
 }
 
 void FCompositingPass::ClearRenderArr()
+{
+}
+
+void FCompositingPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FCompositingPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
 }

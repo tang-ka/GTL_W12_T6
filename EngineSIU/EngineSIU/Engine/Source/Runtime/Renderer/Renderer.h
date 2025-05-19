@@ -67,10 +67,6 @@ protected:
     void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void PrepareRender(FViewportResource* ViewportResource) const;
     void PrepareRenderPass() const;
-    void RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void EndRender() const;
     void ClearRenderArr() const;
@@ -95,7 +91,6 @@ public:
     class FShadowRenderPass* ShadowRenderPass;
 
     FStaticMeshRenderPass* StaticMeshRenderPass = nullptr;
-    FSkeletalMeshRenderPass* SkeletalMeshRenderPass = nullptr;
     FWorldBillboardRenderPass* WorldBillboardRenderPass = nullptr;
     FEditorBillboardRenderPass* EditorBillboardRenderPass = nullptr;
     FGizmoRenderPass* GizmoRenderPass = nullptr;
@@ -118,8 +113,9 @@ private:
         requires std::derived_from<RenderPassType, IRenderPass>
     RenderPassType* AddRenderPass();
 
-private:
     TArray<IRenderPass*> RenderPasses;
+    
+    const int32 MaxBoneNum = 1024;
 };
 
 template <typename RenderPassType> requires std::derived_from<RenderPassType, IRenderPass>

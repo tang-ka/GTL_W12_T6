@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <memory>
 
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "Engine/Classes/Components/HeightFogComponent.h"
 
 class FGraphicsDevice;
@@ -11,11 +11,11 @@ class FDXDShaderManager;
 class FDXDBufferManager;
 class FEditorViewportClient;
 
-class FFogRenderPass : public IRenderPass
+class FFogRenderPass : public FRenderPassBase
 {
 public:
-    FFogRenderPass();
-    virtual ~FFogRenderPass();
+    FFogRenderPass() = default;
+    virtual ~FFogRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     
@@ -29,7 +29,6 @@ public:
     // Fog 렌더링용 셰이더 생성 및 입력 레이아웃 설정
     void CreateShader();
     void UpdateShader();
-    void ReleaseShader();
 
     void PrepareRenderState();
 
@@ -38,9 +37,8 @@ public:
     void CreateSampler();
 
 private:
-    FGraphicsDevice* Graphics = nullptr;
-    FDXDBufferManager* BufferManager = nullptr;
-    FDXDShaderManager* ShaderManager = nullptr;
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     
     ID3D11SamplerState* Sampler = nullptr;
 

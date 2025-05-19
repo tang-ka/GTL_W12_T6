@@ -49,7 +49,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     CreateCommonShader();
     
     StaticMeshRenderPass = AddRenderPass<FStaticMeshRenderPass>();
-    SkeletalMeshRenderPass = AddRenderPass<FSkeletalMeshRenderPass>();
     WorldBillboardRenderPass = AddRenderPass<FWorldBillboardRenderPass>();
     EditorBillboardRenderPass = AddRenderPass<FEditorBillboardRenderPass>();
     GizmoRenderPass = AddRenderPass<FGizmoRenderPass>();
@@ -74,7 +73,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     }
     ShadowRenderPass->InitializeShadowManager(ShadowManager);
     StaticMeshRenderPass->InitializeShadowManager(ShadowManager);
-    SkeletalMeshRenderPass->InitializeShadowManager(ShadowManager);
 }
 
 void FRenderer::Release()
@@ -140,6 +138,8 @@ void FRenderer::CreateConstantBuffers()
 
     UINT CPUSkinningBufferSize = sizeof(FCPUSkinningConstants);
     BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, CPUSkinningBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    BufferManager->CreateStructuredBufferGeneric<FMatrix>("BoneBuffer", nullptr, MaxBoneNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     
     // TODO: 함수로 분리
     ID3D11Buffer* ObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FObjectConstantBuffer"));
@@ -153,6 +153,7 @@ void FRenderer::CreateConstantBuffers()
 void FRenderer::ReleaseConstantBuffer() const
 {
     BufferManager->ReleaseConstantBuffer();
+    BufferManager->ReleaseStructuredBuffer();
 }
 
 void FRenderer::CreateCommonShader() const
@@ -267,12 +268,17 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
         return;
     }
     
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-
-    QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
-    QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
-
-    BeginRender(Viewport);
+    /**
+     * New Render Process
+     *   1. Depth Pre Pass
+     *   2. Tile Light Culling Pass
+     *   3. Shadow Pass
+     *   4. Opaque Pass
+     *   5. Editor Depth Element Pass
+     *   6. Translucent Pass
+     *   7. Editor Overlay Pass
+     *   8. Post Process Pass
+     */
 
     /**
      * 각 렌더 패스의 시작과 끝은 필요한 리소스를 바인딩하고 해제하는 것까지입니다.
@@ -287,7 +293,15 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
      *   2. 렌더 타겟의 생명주기와 용도가 명확함
      *   3. RTV -> SRV 전환 타이밍이 정확히 지켜짐
      */
+    
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
+    QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
+    QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
+
+    BeginRender(Viewport);
+    
     if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {
         if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
@@ -308,8 +322,12 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
             // 이후 패스에서 사용할 수 있도록 리소스 생성
             // @todo UpdateLightBuffer에서 병목 발생 -> 필요한 라이트에 대하여만 업데이트 필요, Tiled Culling으로 GPU->CPU 전송은 주객전도
-            UpdateLightBufferPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights(),
-                                    TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(), TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV());
+            UpdateLightBufferPass->SetLightData(
+                TileLightCullingPass->GetPointLights(),
+                TileLightCullingPass->GetSpotLights(),
+                TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(),
+                TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV()
+            );
 
             {
                 QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
@@ -324,46 +342,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
             ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
             ShadowRenderPass->Render(Viewport);
-        }
-    }
-
-    RenderWorldScene(Viewport);
-    RenderPostProcess(Viewport);
-    RenderEditorOverlay(Viewport);
-    RenderSkeletalMeshViewerOverlay(Viewport);
-
-    Graphics->DeviceContext->PSSetShaderResources(
-        static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
-        1,
-        &TileLightCullingPass->GetDebugHeatmapSRV()
-    ); // TODO: 최악의 코드
-
-    // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(CompositingPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(CompositingPass_GPU, *GPUTimingManager)
-        CompositingPass->Render(Viewport);
-    }
-
-    EndRender();
-}
-
-void FRenderer::EndRender() const
-{
-    ClearRenderArr();
-    ShaderManager->ReloadAllShaders(); 
-}
-
-void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
-{
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-    
-    if (ShowFlag & EEngineShowFlags::SF_SkeletalMesh)
-    {
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(SkinningPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(SkinningPass_GPU, *GPUTimingManager)
-            SkeletalMeshRenderPass->Render(Viewport);
         }
     }
 
@@ -385,118 +363,82 @@ void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& V
             WorldBillboardRenderPass->Render(Viewport);
         }
     }
+
+    // PP
+    if (ViewMode < EViewModeIndex::VMI_Unlit)
+    {
+        if (ShowFlag & EEngineShowFlags::SF_Fog)
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
+            FogRenderPass->Render(Viewport);
+        }
+
+        // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
+
+        /**
+         * TODO: 반드시 씬에 먼저 반영되어야 하는 포스트 프로세싱 효과는 먼저 씬에 반영하고,
+         *       그 외에는 렌더한 포스트 프로세싱 효과들을 이 시점에서 하나로 합친 후에, 다음에 올 컴포짓 과정에서 합성.
+         */
+        {
+            CameraEffectRenderPass->Render(Viewport);
+        }
+
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(PostProcessCompositing_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessCompositing_GPU, *GPUTimingManager)
+            PostProcessCompositingPass->Render(Viewport);
+        }
+    }
+
+    if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+    {
+        // Render Editor Billboard
+        if (ShowFlag & EEngineShowFlags::SF_BillboardText)
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorBillboardPass_GPU, *GPUTimingManager)
+            EditorBillboardRenderPass->Render(Viewport);
+        }
+
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
+            EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
+        }
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
+            LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
+        }
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
+            GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
+        }
+    }
+
+    // 디버깅 용도
+    Graphics->DeviceContext->PSSetShaderResources(
+        static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
+        1,
+        &TileLightCullingPass->GetDebugHeatmapSRV()
+    ); // TODO: 최악의 코드
+
+    // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
+    {
+        QUICK_SCOPE_CYCLE_COUNTER(CompositingPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(CompositingPass_GPU, *GPUTimingManager)
+        CompositingPass->Render(Viewport);
+    }
+
+    EndRender();
 }
 
-void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FRenderer::EndRender() const
 {
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-    const EViewModeIndex ViewMode = Viewport->GetViewMode();
-    
-    if (ViewMode >= EViewModeIndex::VMI_Unlit)
-    {
-        return;
-    }
-    
-    if (ShowFlag & EEngineShowFlags::SF_Fog)
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
-        FogRenderPass->Render(Viewport);
-    }
-
-    // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
-
-    /**
-     * TODO: 반드시 씬에 먼저 반영되어야 하는 포스트 프로세싱 효과는 먼저 씬에 반영하고,
-     *       그 외에는 렌더한 포스트 프로세싱 효과들을 이 시점에서 하나로 합친 후에, 다음에 올 컴포짓 과정에서 합성.
-     */
-    {
-        CameraEffectRenderPass->Render(Viewport);
-    }
-
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(PostProcessCompositing_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessCompositing_GPU, *GPUTimingManager)
-        PostProcessCompositingPass->Render(Viewport);
-    }
-    
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-}
-
-void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const
-{
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-    const EViewModeIndex ViewMode = Viewport->GetViewMode();
-    
-    if (GEngine->ActiveWorld->WorldType != EWorldType::Editor)
-    {
-        return;
-    }
-    
-    // Render Editor Billboard
-    if (ShowFlag & EEngineShowFlags::SF_BillboardText)
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorBillboardPass_GPU, *GPUTimingManager)
-        EditorBillboardRenderPass->Render(Viewport);
-    }
-
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
-        EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
-    }
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
-        LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
-    }
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
-        GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
-    }
-
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-}
-
-void FRenderer::RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const
-{
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-    const EViewModeIndex ViewMode = Viewport->GetViewMode();
-    
-    if (GEngine->ActiveWorld->WorldType != EWorldType::SkeletalViewer)
-    {
-        return;
-    }
-    
-    // Render Editor Billboard
-    /**
-     * TODO: 에디터 전용 빌보드는 이런 방식 처럼 빌보드의 bool값을 바꿔서 렌더하기 보다는
-     *       빌보드가 나와야 하는 컴포넌트는 텍스처만 가지고있고, 쉐이더를 통해 쿼드를 생성하고
-     *       텍스처를 전달해서 렌더하는 방식이 더 좋음.
-     *       이렇게 하는 경우 필요없는 빌보드 컴포넌트가 아웃라이너에 나오지 않음.
-     */
-
-    
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
-        EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
-    }
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
-        LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
-    }
-
-    {
-        QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
-        GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
-    }
-
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    ClearRenderArr();
+    ShaderManager->ReloadAllShaders(); 
 }
 
 void FRenderer::RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const

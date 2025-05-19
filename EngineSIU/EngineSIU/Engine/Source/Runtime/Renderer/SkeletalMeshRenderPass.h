@@ -10,9 +10,9 @@ protected:
 
     virtual void ReleaseResource();
     
-    virtual void PrepareRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
-    virtual void CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
     void ChangeViewMode(EViewModeIndex ViewMode);
 

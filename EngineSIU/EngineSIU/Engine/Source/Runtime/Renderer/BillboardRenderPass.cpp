@@ -20,17 +20,10 @@
 #include "World/World.h"
 
 FBillboardRenderPass::FBillboardRenderPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-    , ResourceType(EResourceType::ERT_Scene)
+    : ResourceType(EResourceType::ERT_Scene)
     , VertexShader(nullptr)
     , PixelShader(nullptr)
     , InputLayout(nullptr)
-{
-}
-
-FBillboardRenderPass::~FBillboardRenderPass()
 {
 }
 
@@ -139,7 +132,11 @@ void FBillboardRenderPass::UpdateShader()
     PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
 }
 
-void FBillboardRenderPass::ReleaseShader()
+void FBillboardRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FBillboardRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
 }
 

@@ -19,23 +19,15 @@
 
 // 생성자/소멸자
 FLineRenderPass::FLineRenderPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-    , VertexLineShader(nullptr)
+    : VertexLineShader(nullptr)
     , PixelLineShader(nullptr)
-{
-}
-
-FLineRenderPass::~FLineRenderPass()
 {
 }
 
 void FLineRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
+    
     CreateShader();
 }
 
@@ -89,15 +81,12 @@ void FLineRenderPass::DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) co
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void FLineRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
+void FLineRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    FObjectConstantBuffer ObjectData = {};
-    ObjectData.WorldMatrix = WorldMatrix;
-    ObjectData.InverseTransposedWorld = FMatrix::Transpose(FMatrix::Inverse(WorldMatrix));
-    ObjectData.UUIDColor = UUIDColor;
-    ObjectData.bIsSelected = bIsSelected;
-    
-    BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
+}
+
+void FLineRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 
 void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport)

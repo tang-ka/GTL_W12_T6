@@ -1,5 +1,5 @@
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 
 #include "Define.h"
@@ -45,16 +45,18 @@ struct TileLightCullSettings
     UINT Enable25DCulling;
 };
 
-class FTileLightCullingPass : public IRenderPass
+class FTileLightCullingPass : public FRenderPassBase
 {
 public:
     FTileLightCullingPass() = default;
+    virtual ~FTileLightCullingPass() override = default;
 
     void ResizeTiles(UINT InWidth, UINT InHeight);
+    
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     void CreateShader();
     void CreatePointLightBufferGPU();
@@ -85,11 +87,11 @@ public:
 
     ID3D11ShaderResourceView*& GetDebugHeatmapSRV() { return DebugHeatmapSRV; }
 
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
 private:
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
-    FDXDBufferManager* BufferManager;
-
     ID3D11ComputeShader* ComputeShader;
 
     TArray<UPointLightComponent*> PointLights;

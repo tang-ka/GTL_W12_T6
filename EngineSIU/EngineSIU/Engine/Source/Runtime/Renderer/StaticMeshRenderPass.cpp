@@ -29,19 +29,6 @@
 #include "Components/Light/PointLightComponent.h"
 #include "Engine/AssetManager.h"
 
-
-FStaticMeshRenderPass::FStaticMeshRenderPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-{
-}
-
-FStaticMeshRenderPass::~FStaticMeshRenderPass()
-{
-    ReleaseShader();
-}
-
 void FStaticMeshRenderPass::CreateShader()
 {
     // Begin Debug Shaders
@@ -109,11 +96,6 @@ void FStaticMeshRenderPass::CreateShader()
 #pragma endregion UberShader
 }
 
-void FStaticMeshRenderPass::ReleaseShader()
-{
-    
-}
-
 void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
 {
     ID3D11VertexShader* VertexShader = nullptr;
@@ -163,6 +145,14 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(InputLayout);
+}
+
+void FStaticMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FStaticMeshRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 
 void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
@@ -225,21 +215,8 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 
-    //Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
-    //Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 0);
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
-}
-
-void FStaticMeshRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
-{
-    FObjectConstantBuffer ObjectData = {};
-    ObjectData.WorldMatrix = WorldMatrix;
-    ObjectData.InverseTransposedWorld = FMatrix::Transpose(FMatrix::Inverse(WorldMatrix));
-    ObjectData.UUIDColor = UUIDColor;
-    ObjectData.bIsSelected = bIsSelected;
-    
-    BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
 void FStaticMeshRenderPass::UpdateLitUnlitConstant(int32 IsLit) const

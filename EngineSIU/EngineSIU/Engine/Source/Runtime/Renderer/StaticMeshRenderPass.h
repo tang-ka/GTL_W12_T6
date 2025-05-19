@@ -1,5 +1,5 @@
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 #include "Container/Set.h"
 
@@ -16,12 +16,11 @@ class UStaticMeshComponent;
 struct FStaticMaterial;
 class FShadowRenderPass;
 
-class FStaticMeshRenderPass : public IRenderPass
+class FStaticMeshRenderPass : public FRenderPassBase
 {
 public:
-    FStaticMeshRenderPass();
-    
-    virtual ~FStaticMeshRenderPass();
+    FStaticMeshRenderPass() = default;
+    virtual ~FStaticMeshRenderPass() override = default;
     
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
@@ -37,8 +36,6 @@ public:
 
     virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
-    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
-  
     void UpdateLitUnlitConstant(int32 IsLit) const;
 
     void RenderPrimitive(FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const;
@@ -47,18 +44,15 @@ public:
 
     void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices) const;
 
-    // Shader 관련 함수 (생성/해제 등)
     void CreateShader();
-    void ReleaseShader();
-
+    
     void ChangeViewMode(EViewModeIndex ViewMode);
     
 protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
     TArray<UStaticMeshComponent*> StaticMeshComponents;
-
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
     
     FShadowManager* ShadowManager;
 };

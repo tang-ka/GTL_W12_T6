@@ -30,23 +30,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/EditorEngine.h"
 
-
-FGizmoRenderPass::FGizmoRenderPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-{
-}
-
-FGizmoRenderPass::~FGizmoRenderPass()
-{
-}
-
 void FGizmoRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 
     CreateBuffer();
     CreateShader();
@@ -90,6 +76,14 @@ void FGizmoRenderPass::ReleaseShader()
 void FGizmoRenderPass::CreateBuffer()
 {
     BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+}
+
+void FGizmoRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FGizmoRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 
 void FGizmoRenderPass::ClearRenderArr()
@@ -171,17 +165,6 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, NullSRV);
-}
-
-void FGizmoRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
-{
-    FObjectConstantBuffer ObjectData = {};
-    ObjectData.WorldMatrix = WorldMatrix;
-    ObjectData.InverseTransposedWorld = FMatrix::Transpose(FMatrix::Inverse(WorldMatrix));
-    ObjectData.UUIDColor = UUIDColor;
-    ObjectData.bIsSelected = bIsSelected;
-    
-    BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
 void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, const std::shared_ptr<FEditorViewportClient>& Viewport)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 #include "Container/Set.h"
 
@@ -14,11 +14,11 @@ class FDXDShaderManager;
 class UWorld;
 class FEditorViewportClient;
 
-class FBillboardRenderPass : public IRenderPass
+class FBillboardRenderPass : public FRenderPassBase
 {
 public:
     FBillboardRenderPass();
-    virtual ~FBillboardRenderPass();
+    virtual ~FBillboardRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
 
@@ -47,9 +47,11 @@ public:
 
     void CreateShader();
     void UpdateShader();
-    void ReleaseShader();
 
 protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
     TArray<UBillboardComponent*> BillboardComps;
 
     EResourceType ResourceType;
@@ -60,11 +62,5 @@ private:
     ID3D11PixelShader* PixelShader;
     
     ID3D11InputLayout* InputLayout;
-
-    FDXDBufferManager* BufferManager;
-    
-    FGraphicsDevice* Graphics;
-    
-    FDXDShaderManager* ShaderManager;
 
 };
