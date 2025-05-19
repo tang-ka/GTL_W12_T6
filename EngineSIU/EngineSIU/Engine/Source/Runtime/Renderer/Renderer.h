@@ -9,6 +9,7 @@
 
 #include "EngineBaseTypes.h"
 #include "Define.h"
+#include "ParticleRenderPass.h"
 #include "Container/Set.h"
 
 #include "D3D11RHI/GraphicDevice.h"
