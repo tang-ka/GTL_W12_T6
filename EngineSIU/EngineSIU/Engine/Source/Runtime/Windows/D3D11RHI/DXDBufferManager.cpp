@@ -119,6 +119,27 @@ void FDXDBufferManager::BindConstantBuffer(const FString& Key, UINT StartSlot, E
     }
 }
 
+void FDXDBufferManager::BindStructuredBufferSRV(const FString& Key, UINT StartSlot, EShaderStage Stage) const
+{
+    ID3D11ShaderResourceView* SRV = GetStructuredBufferSRV(Key);
+    if (Stage == EShaderStage::Vertex)
+    {
+        DXDeviceContext->VSSetShaderResources(StartSlot, 1, &SRV);
+    }
+    else if (Stage == EShaderStage::Pixel)
+    {
+        DXDeviceContext->PSSetShaderResources(StartSlot, 1, &SRV);
+    }
+    else if (Stage == EShaderStage::Compute)
+    {
+        DXDeviceContext->CSSetShaderResources(StartSlot, 1, &SRV);
+    }
+    else if (Stage == EShaderStage::Geometry)
+    {
+        DXDeviceContext->GSSetShaderResources(StartSlot, 1, &SRV);
+    }
+}
+
 FVertexInfo FDXDBufferManager::GetVertexBuffer(const FString& InName) const
 {
     if (VertexBufferPool.Contains(InName))

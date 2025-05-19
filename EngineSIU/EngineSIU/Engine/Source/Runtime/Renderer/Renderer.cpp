@@ -48,7 +48,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     CreateConstantBuffers();
     CreateCommonShader();
     
-    StaticMeshRenderPass = AddRenderPass<FStaticMeshRenderPass>();
+    OpaqueRenderPass = AddRenderPass<FOpaqueRenderPass>();
     WorldBillboardRenderPass = AddRenderPass<FWorldBillboardRenderPass>();
     EditorBillboardRenderPass = AddRenderPass<FEditorBillboardRenderPass>();
     GizmoRenderPass = AddRenderPass<FGizmoRenderPass>();
@@ -72,7 +72,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
         RenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     }
     ShadowRenderPass->InitializeShadowManager(ShadowManager);
-    StaticMeshRenderPass->InitializeShadowManager(ShadowManager);
+    OpaqueRenderPass->InitializeShadowManager(ShadowManager);
 }
 
 void FRenderer::Release()
@@ -308,7 +308,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
         {
             QUICK_SCOPE_CYCLE_COUNTER(DepthPrePass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthPrePass_GPU, *GPUTimingManager)
-            DepthPrePass->Render(Viewport);
+            DepthPrePass->Render(Viewport); // TODO: 스켈레탈 메시 렌더
         }
 
         // Added Compute Shader Pass
@@ -348,9 +348,9 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     if (ShowFlag & EEngineShowFlags::SF_Primitives)
     {
         {
-            QUICK_SCOPE_CYCLE_COUNTER(StaticMeshPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(StaticMeshPass_GPU, *GPUTimingManager)
-            StaticMeshRenderPass->Render(Viewport);
+            QUICK_SCOPE_CYCLE_COUNTER(OpaquePass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(OpaquePass_GPU, *GPUTimingManager)
+            OpaqueRenderPass->Render(Viewport);
         }
     }
     

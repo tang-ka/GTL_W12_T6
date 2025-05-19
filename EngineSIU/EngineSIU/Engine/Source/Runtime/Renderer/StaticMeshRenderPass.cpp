@@ -28,8 +28,9 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Engine/AssetManager.h"
+#include "Engine/SkeletalMesh.h"
 
-void FStaticMeshRenderPass::CreateShader()
+void FOpaqueRenderPass::CreateShader()
 {
     // Begin Debug Shaders
     HRESULT hr = ShaderManager->AddPixelShader(L"CommonMeshPixelShaderDepth", L"Shaders/CommonMeshPixelShaderDepth.hlsl", "mainPS");
@@ -96,21 +97,25 @@ void FStaticMeshRenderPass::CreateShader()
 #pragma endregion UberShader
 }
 
-void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
+void FOpaqueRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
 {
-    ID3D11VertexShader* VertexShader = nullptr;
-    ID3D11PixelShader* PixelShader = nullptr;
-    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    // Input Layout
+    InputLayout_StaticMesh = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    InputLayout_SkeletalMesh = ShaderManager->GetInputLayoutByKey(L"SkeletalMeshVertexShader");
 
+    // Vertex Shader
     if (ViewMode == EViewModeIndex::VMI_Lit_Gouraud)
     {
-        VertexShader = ShaderManager->GetVertexShaderByKey(L"GOURAUD_StaticMeshVertexShader");
+        VertexShader_StaticMesh = ShaderManager->GetVertexShaderByKey(L"GOURAUD_StaticMeshVertexShader");
+        VertexShader_SkeletalMesh = ShaderManager->GetVertexShaderByKey(L"GOURAUD_SkeletalMeshVertexShader");
     }
     else
     {
-        VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+        VertexShader_StaticMesh = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+        VertexShader_SkeletalMesh = ShaderManager->GetVertexShaderByKey(L"SkeletalMeshVertexShader");
     }
-    
+
+    // Pixel Shader
     switch (ViewMode)
     {
     case EViewModeIndex::VMI_Lit_Gouraud:
@@ -135,55 +140,15 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewMode)
         PixelShader = ShaderManager->GetPixelShaderByKey(L"LAMBERT_CommonMeshPixelShader");
         break;
     }
+    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
 
     UpdateLitUnlitConstant(ViewMode < EViewModeIndex::VMI_Unlit);
 
     // Rasterizer
     Graphics->ChangeRasterizer(ViewMode);
-
-    // Setup
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
 }
 
-void FStaticMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-}
-
-void FStaticMeshRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-}
-
-void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
-{
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
-    
-    CreateShader();
-}
-
-void FStaticMeshRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
-{
-    ShadowManager = InShadowManager;
-}
-
-void FStaticMeshRenderPass::PrepareRenderArr()
-{
-    for (const auto Iter : TObjectRange<UStaticMeshComponent>())
-    {
-        if (!Cast<UGizmoBaseComponent>(Iter) && Iter->GetWorld() == GEngine->ActiveWorld)
-        {
-            if (Iter->GetOwner() && !Iter->GetOwner()->IsHidden())
-            {
-                StaticMeshComponents.Add(Iter);
-            }
-        }
-    }
-}
-
-void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport) 
+void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
@@ -204,7 +169,9 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FCPUSkinningConstants"), 2, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
+    BufferManager->BindStructuredBufferSRV(TEXT("BoneBuffer"), 1, EShaderStage::Vertex);
     
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 
@@ -219,81 +186,48 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
 }
 
-void FStaticMeshRenderPass::UpdateLitUnlitConstant(int32 IsLit) const
+void FOpaqueRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    FLitUnlitConstants Data;
-    Data.bIsLit = IsLit;
-    BufferManager->UpdateConstantBuffer(TEXT("FLitUnlitConstants"), Data);
+    // 렌더 타겟 해제
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    
+    ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_PointLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_DirectionalLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_SpotLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
+
+    // 머티리얼 리소스 해제
+    constexpr UINT NumViews = static_cast<UINT>(EMaterialTextureSlots::MTS_MAX);
+    
+    ID3D11ShaderResourceView* NullSRVs[NumViews] = { nullptr };
+    ID3D11SamplerState* NullSamplers[NumViews] = { nullptr};
+    
+    Graphics->DeviceContext->PSSetShaderResources(0, NumViews, NullSRVs);
+    Graphics->DeviceContext->PSSetSamplers(0, NumViews, NullSamplers);
+
+    // for Gouraud shading
+    ID3D11SamplerState* NullSampler[1] = { nullptr};
+    Graphics->DeviceContext->VSSetShaderResources(0, 1, NullSRV);
+    Graphics->DeviceContext->VSSetSamplers(0, 1, NullSampler);
+    
+    // SRV 해제
+    ID3D11ShaderResourceView* NullSRVs2[14] = { nullptr };
+    Graphics->DeviceContext->PSSetShaderResources(0, 14, NullSRVs2);
+
+    // 상수버퍼 해제
+    ID3D11Buffer* NullPSBuffer[8] = { nullptr };
+    Graphics->DeviceContext->PSSetConstantBuffers(0, 8, NullPSBuffer);
+    ID3D11Buffer* NullVSBuffer[2] = { nullptr };
+    Graphics->DeviceContext->VSSetConstantBuffers(0, 2, NullVSBuffer);
 }
 
-void FStaticMeshRenderPass::RenderPrimitive(FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const
+void FOpaqueRenderPass::PrepareStaticMesh()
 {
-    UINT Stride = sizeof(FStaticMeshVertex);
-    UINT Offset = 0;
-
-    FVertexInfo VertexInfo;
-    BufferManager->CreateVertexBuffer(RenderData->ObjectName, RenderData->Vertices, VertexInfo);
-
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &Stride, &Offset);
-
-    FIndexInfo IndexInfo;
-    BufferManager->CreateIndexBuffer(RenderData->ObjectName, RenderData->Indices, IndexInfo);
-    if (IndexInfo.IndexBuffer)
-    {
-        Graphics->DeviceContext->IASetIndexBuffer(IndexInfo.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    }
-
-    if (RenderData->MaterialSubsets.Num() == 0)
-    {
-        Graphics->DeviceContext->DrawIndexed(RenderData->Indices.Num(), 0, 0);
-        return;
-    }
-
-    for (int SubMeshIndex = 0; SubMeshIndex < RenderData->MaterialSubsets.Num(); SubMeshIndex++)
-    {
-        uint32 MaterialIndex = RenderData->MaterialSubsets[SubMeshIndex].MaterialIndex;
-
-        FSubMeshConstants SubMeshData = (SubMeshIndex == SelectedSubMeshIndex) ? FSubMeshConstants(true) : FSubMeshConstants(false);
-
-        BufferManager->UpdateConstantBuffer(TEXT("FSubMeshConstants"), SubMeshData);
-
-        if (!OverrideMaterials.IsEmpty() && OverrideMaterials.Num() >= MaterialIndex && OverrideMaterials[MaterialIndex] != nullptr)
-        {
-            MaterialUtils::UpdateMaterial(BufferManager, Graphics, OverrideMaterials[MaterialIndex]->GetMaterialInfo());
-        }
-        else if (!Materials.IsEmpty() && Materials.Num() >= MaterialIndex && Materials[MaterialIndex] != nullptr)
-        {
-            MaterialUtils::UpdateMaterial(BufferManager, Graphics, Materials[MaterialIndex]->Material->GetMaterialInfo());
-        }
-        else if (UMaterial* Mat = UAssetManager::Get().GetMaterial(RenderData->MaterialSubsets[SubMeshIndex].MaterialName))
-        {
-            MaterialUtils::UpdateMaterial(BufferManager, Graphics, Mat->GetMaterialInfo());
-        }
-
-        uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;
-        uint32 IndexCount = RenderData->MaterialSubsets[SubMeshIndex].IndexCount;
-        Graphics->DeviceContext->DrawIndexed(IndexCount, StartIndex, 0);
-    }
+    Graphics->DeviceContext->VSSetShader(VertexShader_StaticMesh, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout_StaticMesh);
 }
 
-void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pBuffer, UINT NumVertices) const
-{
-    UINT Stride = sizeof(FStaticMeshVertex);
-    UINT Offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pBuffer, &Stride, &Offset);
-    Graphics->DeviceContext->Draw(NumVertices, 0);
-}
-
-void FStaticMeshRenderPass::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices) const
-{
-    UINT Stride = sizeof(FStaticMeshVertex);
-    UINT Offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &Offset);
-    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    Graphics->DeviceContext->DrawIndexed(NumIndices, 0, 0);
-}
-
-void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FOpaqueRenderPass::RenderStaticMesh(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -330,7 +264,7 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
 
         UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
 
-        RenderPrimitive(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+        RenderStaticMesh_Internal(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
 
         if (Viewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_AABB))
         {
@@ -339,47 +273,120 @@ void FStaticMeshRenderPass::RenderAllStaticMeshes(const std::shared_ptr<FEditorV
     }
 }
 
-void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FOpaqueRenderPass::PrepareSkeletalMesh()
 {
-    ShadowManager->BindResourcesForSampling();
-
-    PrepareRenderState(Viewport);
-
-    RenderAllStaticMeshes(Viewport);
-
-    // 렌더 타겟 해제
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-    ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_PointLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_DirectionalLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_SpotLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
-
-    // 머티리얼 리소스 해제
-    constexpr UINT NumViews = static_cast<UINT>(EMaterialTextureSlots::MTS_MAX);
-    
-    ID3D11ShaderResourceView* NullSRVs[NumViews] = { nullptr };
-    ID3D11SamplerState* NullSamplers[NumViews] = { nullptr};
-    
-    Graphics->DeviceContext->PSSetShaderResources(0, NumViews, NullSRVs);
-    Graphics->DeviceContext->PSSetSamplers(0, NumViews, NullSamplers);
-
-    // for Gouraud shading
-    ID3D11SamplerState* NullSampler[1] = { nullptr};
-    Graphics->DeviceContext->VSSetShaderResources(0, 1, NullSRV);
-    Graphics->DeviceContext->VSSetSamplers(0, 1, NullSampler);
-    
-    // SRV 해제
-    ID3D11ShaderResourceView* NullSRVs2[14] = { nullptr };
-    Graphics->DeviceContext->PSSetShaderResources(0, 14, NullSRVs2);
-
-    // 상수버퍼 해제
-    ID3D11Buffer* NullPSBuffer[8] = { nullptr };
-    Graphics->DeviceContext->PSSetConstantBuffers(0, 8, NullPSBuffer);
-    ID3D11Buffer* NullVSBuffer[2] = { nullptr };
-    Graphics->DeviceContext->VSSetConstantBuffers(0, 2, NullVSBuffer);
+    Graphics->DeviceContext->VSSetShader(VertexShader_SkeletalMesh, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout_SkeletalMesh);
 }
 
-void FStaticMeshRenderPass::ClearRenderArr()
+void FOpaqueRenderPass::RenderSkeletalMesh(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    for (const USkeletalMeshComponent* Comp : SkeletalMeshComponents)
+    {
+        if (!Comp || !Comp->GetSkeletalMeshAsset())
+        {
+            continue;
+        }
+        const FSkeletalMeshRenderData* RenderData = Comp->GetCPUSkinning() ? Comp->GetCPURenderData() : Comp->GetSkeletalMeshAsset()->GetRenderData();
+        if (RenderData == nullptr)
+        {
+            continue;
+        }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+        AActor* SelectedActor = Engine->GetSelectedActor();
+
+        USceneComponent* TargetComponent = nullptr;
+
+        if (SelectedComponent != nullptr)
+        {
+            TargetComponent = SelectedComponent;
+        }
+        else if (SelectedActor != nullptr)
+        {
+            TargetComponent = SelectedActor->GetRootComponent();
+        }
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+        FVector4 UUIDColor = Comp->EncodeUUID() / 255.0f;
+        const bool bIsSelected = (Engine && TargetComponent == Comp);
+
+        UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
+
+        UpdateBones(Comp);
+
+        RenderSkeletalMesh_Internal(RenderData);
+
+        if (Viewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_AABB))
+        {
+            FEngineLoop::PrimitiveDrawBatch.AddAABBToBatch(Comp->GetBoundingBox(), Comp->GetComponentLocation(), WorldMatrix);
+        }
+    }
+}
+
+void FOpaqueRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
+{
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
+    
+    CreateShader();
+}
+
+void FOpaqueRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
+{
+    ShadowManager = InShadowManager;
+}
+
+void FOpaqueRenderPass::PrepareRenderArr()
+{
+    for (const auto Iter : TObjectRange<UMeshComponent>())
+    {
+        if (Iter->GetWorld() != GEngine->ActiveWorld)
+        {
+            continue;
+        }
+
+        if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Iter))
+        {
+            SkeletalMeshComponents.Add(SkeletalMeshComp);
+        }
+        else if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(Iter))
+        {
+            if (Iter->IsA<UGizmoBaseComponent>())
+            {
+                continue;
+            }
+
+            StaticMeshComponents.Add(StaticMeshComp);       
+        }
+    }
+}
+
+void FOpaqueRenderPass::UpdateLitUnlitConstant(int32 IsLit) const
+{
+    FLitUnlitConstants Data;
+    Data.bIsLit = IsLit;
+    BufferManager->UpdateConstantBuffer(TEXT("FLitUnlitConstants"), Data);
+}
+
+void FOpaqueRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    ShadowManager->BindResourcesForSampling();
+    
+    PrepareRender(Viewport);
+
+    PrepareStaticMesh();
+    RenderStaticMesh(Viewport);
+
+    PrepareSkeletalMesh();
+    RenderSkeletalMesh(Viewport);
+    
+    CleanUpRender(Viewport);
+}
+
+void FOpaqueRenderPass::ClearRenderArr()
 {
     StaticMeshComponents.Empty();
+    SkeletalMeshComponents.Empty();
 }

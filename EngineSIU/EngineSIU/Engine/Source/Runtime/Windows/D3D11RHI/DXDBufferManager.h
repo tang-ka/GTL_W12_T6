@@ -83,7 +83,8 @@ public:
 
     void BindConstantBuffers(const TArray<FString>& Keys, UINT StartSlot, EShaderStage Stage) const;
     void BindConstantBuffer(const FString& Key, UINT StartSlot, EShaderStage Stage) const;
-
+    void BindStructuredBufferSRV(const FString& Key, UINT StartSlot, EShaderStage Stage) const;
+    
     template<typename T>
     static void SafeRelease(T*& ComObject);
     

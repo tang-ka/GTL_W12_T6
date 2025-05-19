@@ -4,7 +4,6 @@
 #include "Container/Set.h"
 
 #include "Define.h"
-#include "Components/Light/PointLightComponent.h"
 
 struct FStaticMeshRenderData;
 class FShadowManager;
@@ -16,33 +15,23 @@ class UStaticMeshComponent;
 struct FStaticMaterial;
 class FShadowRenderPass;
 
-class FStaticMeshRenderPass : public FRenderPassBase
+class FOpaqueRenderPass : public FRenderPassBase
 {
 public:
-    FStaticMeshRenderPass() = default;
-    virtual ~FStaticMeshRenderPass() override = default;
+    FOpaqueRenderPass() = default;
+    virtual ~FOpaqueRenderPass() override = default;
     
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
-    void InitializeShadowManager(class FShadowManager* InShadowManager);
-    
     virtual void PrepareRenderArr() override;
 
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
-
     virtual void ClearRenderArr() override;
-    
-    virtual void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
-    virtual void RenderAllStaticMeshes(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
+    void InitializeShadowManager(class FShadowManager* InShadowManager);
     
     void UpdateLitUnlitConstant(int32 IsLit) const;
-
-    void RenderPrimitive(FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const;
-    
-    void RenderPrimitive(ID3D11Buffer* pBuffer, UINT NumVertices) const;
-
-    void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices) const;
 
     void CreateShader();
     
@@ -51,8 +40,23 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+    void PrepareStaticMesh();
+    void RenderStaticMesh(const std::shared_ptr<FEditorViewportClient>& Viewport);
+
+    void PrepareSkeletalMesh();
+    void RenderSkeletalMesh(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
     TArray<UStaticMeshComponent*> StaticMeshComponents;
+    TArray<USkeletalMeshComponent*> SkeletalMeshComponents;
     
     FShadowManager* ShadowManager;
+
+    ID3D11VertexShader* VertexShader_StaticMesh = nullptr;
+    ID3D11InputLayout* InputLayout_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader_SkeletalMesh = nullptr;
+    ID3D11InputLayout* InputLayout_SkeletalMesh = nullptr;
+
+    ID3D11PixelShader* PixelShader = nullptr;
 };
