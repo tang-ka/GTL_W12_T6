@@ -318,7 +318,7 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     ImGui::PopID();
     ImGui::PopStyleVar();
 
-    const auto& Modules = Emitter->LODLevels[0]->GetModules();
+    const auto& Modules = Emitter->GetLODLevel(0)->GetModules();
     for (const auto& Module : Modules)
     {
         ImGui::PushID(Module);

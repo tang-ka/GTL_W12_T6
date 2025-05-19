@@ -12,12 +12,12 @@ void UParticleModule::FinalUpdate(FParticleEmitterInstance* Owner, int32 Offset,
 {
 }
 
-int32 UParticleModule::GetModulePayloadSize() const
+int32 UParticleModule::GetModulePayloadOffset() const
 {
     return int32();
 }
 
-int32 UParticleModule::GetInstancePayloadSize() const
+int32 UParticleModule::GetInstancePayloadOffset() const
 {
     return int32();
 }

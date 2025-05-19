@@ -6,7 +6,7 @@
 
 void FParticleEmitterInstance::Initialize()
 {
-    const TArray<UParticleModule*>& Modules = CurrentLODLevel->Modules;
+    const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
 
     CurrentLODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
 
@@ -44,7 +44,7 @@ void FParticleEmitterInstance::Initialize()
 
     ParticleData = new uint8[MaxActiveParticles * ParticleStride];
     ParticleIndices = new uint16[MaxActiveParticles];
-    InstanceData = new uint8[MaxActiveParticles * InstancePayloadSize];
+    InstanceData = new uint8[InstancePayloadSize];
 
     ActiveParticles = 0;
     ParticleCounter = 0;
@@ -87,7 +87,7 @@ void FParticleEmitterInstance::SpawnParticles(
         int32 Offset = 0;
         float SpawnTime = StartTime + Increment * i;
 
-        for (auto* Module : CurrentLODLevel->Modules)
+        for (auto* Module : CurrentLODLevel->GetModules())
         {
             Module->Spawn(this, Offset, SpawnTime, Particle);
         }
@@ -162,7 +162,7 @@ void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, 
 
 void FParticleEmitterInstance::UpdateModules(float DeltaTime)
 {
-    for (auto* Module : CurrentLODLevel->Modules)
+    for (auto* Module : CurrentLODLevel->GetModules())
     {
         if (Module->bUpdateModule)
         {
