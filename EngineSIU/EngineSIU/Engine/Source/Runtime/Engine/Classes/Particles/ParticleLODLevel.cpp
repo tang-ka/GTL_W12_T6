@@ -1,8 +1,24 @@
 ﻿#include "ParticleLODLevel.h"
 
 #include "UObject/Casts.h"
-
 #include "Spawn/ParticleModuleSpawn.h"
+#include "ParticleModuleRequired.h"
+#include "Size/ParticleModuleSize.h"
+
+UParticleLODLevel::UParticleLODLevel()
+{
+    RequiredModule = new UParticleModuleRequired();
+    RequiredModule->ModuleName = "RequiredModule";
+    Modules.Add(RequiredModule);
+
+    SpawnModule = new UParticleModuleSpawn();
+    SpawnModule->ModuleName = "SpawnModule";
+    Modules.Add(SpawnModule);
+
+    UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
+    InitialScaleModule->ModuleName = "InitialScaleModule";
+    Modules.Add(InitialScaleModule);
+}
 
 int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 {
@@ -12,11 +28,11 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 	int32 MaxBurstCount = SpawnModule->GetMaximumBurstCount();
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ModuleIndex++)
 	{
-		UParticleModuleLifetimeBase* LifetimeMod = Cast<UParticleModuleLifetimeBase>(Modules[ModuleIndex]);
-		if (LifetimeMod != NULL)
-		{
-			ParticleLifetime += LifetimeMod->GetMaxLifetime();
-		}
+		// UParticleModuleLifetimeBase* LifetimeMod = Cast<UParticleModuleLifetimeBase>(Modules[ModuleIndex]); // TODO: 주석 풀기
+		// if (LifetimeMod != NULL)
+		// {
+		// 	ParticleLifetime += LifetimeMod->GetMaxLifetime();
+		// }
 
 		UParticleModuleSpawnBase* SpawnMod = Cast<UParticleModuleSpawnBase>(Modules[ModuleIndex]);
 		if (SpawnMod != NULL)
@@ -33,8 +49,8 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 	if (RequiredModule != NULL)
 	{
 		// We don't care about delay wrt spawning...
-		MaxDuration = FMath::Max<float>(RequiredModule->EmitterDuration, RequiredModule->EmitterDurationLow);
-		TotalLoops = RequiredModule->EmitterLoops;
+		// MaxDuration = FMath::Max<float>(RequiredModule->EmitterDuration, RequiredModule->EmitterDurationLow); // TODO: 주석 풀기
+		// TotalLoops = RequiredModule->EmitterLoops;
 		TotalDuration = MaxDuration * TotalLoops;
 	}
 

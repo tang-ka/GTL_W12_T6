@@ -44,10 +44,13 @@
 #include "imgui/imgui_curve.h"
 #include "Math/Transform.h"
 #include "Animation/AnimStateMachine.h"
+#include "Particles/ParticleEmitter.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
-    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE);
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor| EWorldTypeBitFlag::PIE);
 }
 
 void PropertyEditorPanel::Render()
@@ -173,6 +176,11 @@ void PropertyEditorPanel::Render()
     if (USpringArmComponent* SpringArmComponent = GetTargetComponent<USpringArmComponent>(SelectedActor, SelectedComponent))
     {
         RenderForSpringArmComponent(SpringArmComponent);
+    }
+
+    if (UParticleSystemComponent* ParticleSystemComponent = GetTargetComponent<UParticleSystemComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForParticleSystem(ParticleSystemComponent);
     }
 
     if (SelectedActor)
@@ -712,6 +720,29 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComponent) const
+{
+    if (ImGui::Button("Open Viewer"))
+    {
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+        if (!Engine)
+        {
+            return;
+        }
+        if (ParticleSystemComponent)
+        {
+            UParticleSystem* TestParticleSystem = ParticleSystemComponent->GetParticleSystem();
+            //////////////////// 테스트 코드
+            if (TestParticleSystem == nullptr)
+            {
+                TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(ParticleSystemComponent);
+            }
+            ///////////////////////////////
+            Engine->StartParticleViewer(FName("TempParticle"), TestParticleSystem);
+        }
+    }
 }
 
 void PropertyEditorPanel::RenderForAmbientLightComponent(UAmbientLightComponent* AmbientLightComponent) const

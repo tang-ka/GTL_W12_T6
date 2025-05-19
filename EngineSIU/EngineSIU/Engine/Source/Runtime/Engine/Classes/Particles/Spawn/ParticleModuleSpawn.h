@@ -14,12 +14,12 @@ public:
 
     /** The rate at which to spawn particles. */
     // FRawDistributionFloat Rate;
-    float Rate; // 일단 상수 값으로 진행
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, Rate) // 일단 상수 값으로 진행
     
 
     /** The scalar to apply to the rate. */
     // FRawDistributionFloat RateScale;
-    float RateScale; // 일단 상수 값으로 진행
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, RateScale) // 일단 상수 값으로 진행
 
     /**	If true, the SpawnRate will be scaled by the global CVar r.EmitterSpawnRateScale */
     uint32 bApplyGlobalSpawnRateScale : 1;

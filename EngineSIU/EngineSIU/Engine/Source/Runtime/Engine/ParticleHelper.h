@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define DECLARE_PARTICLE(Name,Address)        \
     FBaseParticle& Name = *((FBaseParticle*) (Address));
@@ -82,7 +82,7 @@ struct FBaseParticle
     int32            Flags;                    // Flags indicating various particle states
 
     // 16 bytes
-    FLinearColor     Color;                    // Current color of particle. 
+    FLinearColor     Color;                    // Current color of particle.
 
     // 16 bytes
     FLinearColor     BaseColor;                // Base color of the particle
@@ -253,7 +253,7 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
-    //UMaterialInterface*                MaterialInterface;
+    // UMaterialInterface*                MaterialInterface;
     struct FParticleRequiredModule    *RequiredModule;
     FVector                            NormalsSphereCenter;
     FVector                            NormalsCylinderDirection;
@@ -300,48 +300,48 @@ struct FDynamicEmitterDataBase
 	int32  EmitterIndex;
 };
 
-//struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
-//{
-//    FDynamicSpriteEmitterDataBase(const UParticleModuleRequired* RequiredModule) : 
-//        FDynamicEmitterDataBase(RequiredModule),
-//        bUsesDynamicParameter( false )
-//    {
-//        MaterialResource = nullptr;
-//    }
-//
-//    /**
-//     *	Sort the given sprite particles
-//     *
-//     *	@param	SorceMode			The sort mode to utilize (EParticleSortMode)
-//     *	@param	bLocalSpace			true if the emitter is using local space
-//     *	@param	ParticleCount		The number of particles
-//     *	@param	ParticleData		The actual particle data
-//     *	@param	ParticleStride		The stride between entries in the ParticleData array
-//     *	@param	ParticleIndices		Indirect index list into ParticleData
-//     *	@param	View				The scene view being rendered
-//     *	@param	LocalToWorld		The local to world transform of the component rendering the emitter
-//     *	@param	ParticleOrder		The array to fill in with ordered indices
-//     */
-//    void SortSpriteParticles(int32 SortMode, bool bLocalSpace, 
-//        int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
-//        const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
-//
-//    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const = 0;
-//
-//};
-//
-//struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
-//{
-//    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type InFeatureLevel) const override
-//    {
-//        return sizeof(FParticleSpriteVertex);
-//    }
-//};
-//
-//struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
-//{
-//    virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const override
-//    {
-//        return sizeof(FMeshParticleInstanceVertex);
-//    }
-//};
+struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
+{
+    // FDynamicSpriteEmitterDataBase(const UParticleModuleRequired* RequiredModule) : 
+        // FDynamicEmitterDataBase(RequiredModule),
+        // bUsesDynamicParameter( false )
+    // {
+        // MaterialResource = nullptr;
+    // }
+
+    /**
+     *	Sort the given sprite particles
+     *
+     *	@param	SorceMode			The sort mode to utilize (EParticleSortMode)
+     *	@param	bLocalSpace			true if the emitter is using local space
+     *	@param	ParticleCount		The number of particles
+     *	@param	ParticleData		The actual particle data
+     *	@param	ParticleStride		The stride between entries in the ParticleData array
+     *	@param	ParticleIndices		Indirect index list into ParticleData
+     *	@param	View				The scene view being rendered
+     *	@param	LocalToWorld		The local to world transform of the component rendering the emitter
+     *	@param	ParticleOrder		The array to fill in with ordered indices
+     */
+    // void SortSpriteParticles(int32 SortMode, bool bLocalSpace, 
+        // int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
+        // const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
+
+    // virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const = 0;
+
+};
+
+struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
+{
+    // virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type InFeatureLevel) const override
+    // {
+        // return sizeof(FParticleSpriteVertex);
+    // }
+};
+
+struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
+{
+    // virtual int32 GetDynamicVertexStride(ERHIFeatureLevel::Type /*InFeatureLevel*/) const override
+    // {
+        // return sizeof(FMeshParticleInstanceVertex);
+    // }
+};

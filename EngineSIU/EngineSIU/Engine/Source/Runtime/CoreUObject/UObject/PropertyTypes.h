@@ -11,6 +11,9 @@
 #include "Templates/TemplateUtilities.h"
 
 
+struct FDistributionVector;
+struct FDistributionFloat;
+
 enum class EPropertyType : uint8
 {
     Unknown,                       // 알 수 없는 타입
@@ -32,6 +35,9 @@ enum class EPropertyType : uint8
     Matrix,                        // FMatrix
     Color,                         // FColor
     LinearColor,                   // FLinearColor
+
+    DistributionFloat,             // FDistributionFloat
+    DistributionVector,            // FDistributionVector
 
     Array,                         // TArray<T>
     Map,                           // TMap<T>
@@ -72,7 +78,8 @@ consteval EPropertyType GetPropertyType()
     else if constexpr (std::same_as<T, FMatrix>)      { return EPropertyType::Matrix;      }
     else if constexpr (std::same_as<T, FColor>)       { return EPropertyType::Color;       }
     else if constexpr (std::same_as<T, FLinearColor>) { return EPropertyType::LinearColor; }
-
+    else if constexpr (std::same_as<T, FDistributionFloat>) { return EPropertyType::DistributionFloat;}
+    else if constexpr (std::same_as<T, FDistributionVector>) { return EPropertyType::DistributionVector;}
     // TSubclassOf
     else if constexpr (TIsTSubclassOf<T>)             { return EPropertyType::SubclassOf;  }
 

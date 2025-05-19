@@ -36,6 +36,9 @@ public:
 public:
     void InitializeSystem();
 
+    UParticleSystem* GetParticleSystem() const { return Template; }
+    void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }
+
 public:
     float AccumTickTime;
     

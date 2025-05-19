@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -22,7 +22,8 @@ public:
     UParticleSystem() = default;
     virtual ~UParticleSystem() override = default;
 
-    TArray<UParticleEmitter*> GetEmitters() const;
+    TArray<UParticleEmitter*> GetEmitters() const { return Emitters; }
+    void AddEmitter(UParticleEmitter* Emitter) { Emitters.Add(Emitter); }
 
 private:
     TArray<UParticleEmitter*> Emitters;

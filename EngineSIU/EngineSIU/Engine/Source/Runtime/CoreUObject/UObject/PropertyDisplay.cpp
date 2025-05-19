@@ -3,6 +3,7 @@
 #include "Class.h"
 #include "ScriptStruct.h"
 #include "UObjectHash.h"
+#include "Distribution/DistributionVector.h"
 #include "Editor/UnrealEd/ImGuiWidget.h"
 #include "Math/NumericLimits.h"
 #include "Template/SubclassOf.h"
@@ -403,6 +404,49 @@ void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void
     ImGui::Text("%s", PropertyLabel);
     ImGui::SameLine();
     ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), Flags);
+}
+
+void FDistributionFloatProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
+void FDistributionFloatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+{
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+    FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
+}
+
+void FDistributionVectorProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
+void FDistributionVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+{
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+    if (ImGui::TreeNode(PropertyLabel))
+    {
+        ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
+        {
+            FDistributionVector* Data = static_cast<FDistributionVector*>(DataPtr);
+
+            FImGuiWidget::DrawVec3Control("MinValue", Data->MinValue);
+            FImGuiWidget::DrawVec3Control("MaxValue", Data->MaxValue);
+        }
+        ImGui::EndDisabled();
+        ImGui::TreePop();
+    }
 }
 
 void FSubclassOfProperty::DisplayInImGui(UObject* Object) const

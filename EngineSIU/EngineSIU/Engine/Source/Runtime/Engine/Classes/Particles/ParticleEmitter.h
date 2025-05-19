@@ -16,7 +16,7 @@ class UParticleEmitter : public UObject
     DECLARE_CLASS(UParticleEmitter, UObject)
 
 public:
-    UParticleEmitter() = default;
+    UParticleEmitter();
     virtual ~UParticleEmitter() override = default;
 
     void CacheEmitterModuleInfo();
