@@ -27,14 +27,14 @@ void FParticleEmitterInstance::Initialize()
     {
         if (Module->bSpawnModule)
         {
-            int32 ModulePayloadSize = Module->GetModulePayloadOffset();
-            Module->SetModulePayloadOffset(PayloadOffset);
+            int32 ModulePayloadSize = Module->GetModulePayloadSize();
+            Module->SetModulePayloadOffset(ParticleSize);
             ParticleSize += ModulePayloadSize;
         }
 
         if (Module->bUpdateModule)
         {
-            int32 Size = Module->GetInstancePayloadOffset();
+            int32 Size = Module->GetInstancePayloadSize();
             Module->SetInstancePayloadOffset(InstancePayloadSize);
             InstancePayloadSize += Size;
         }
@@ -151,7 +151,6 @@ void FParticleEmitterInstance::PreSpawn(FBaseParticle* Particle, const FVector& 
     Particle->OneOverMaxLifetime = 1.f; // 나중에 수명 기반 분포에서 설정 가능
     Particle->Placeholder0 = 0.f;
     Particle->Placeholder1 = 0.f;
-
 }
 
 void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime)
@@ -166,7 +165,7 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
     {
         if (Module->bUpdateModule)
         {
-            int32 Offset = Module->GetInstancePayloadOffset();
+            int32 Offset = Module->GetInstancePayloadSize();
             Module->Update(this, Offset, DeltaTime);
         }
     }

@@ -74,9 +74,9 @@ public:
     
     virtual EModuleType	GetModuleType() const { return EModuleType::EPMT_General; }
 
-    int32 GetModulePayloadOffset() const;
+    virtual int32 GetModulePayloadSize() const;
     void SetModulePayloadOffset(int32 Offset) { ModulePayloadOffset = Offset; }
 
-    int32 GetInstancePayloadOffset() const;
+    virtual int32 GetInstancePayloadSize() const;
     void SetInstancePayloadOffset(int32 Size) { InstancePayloadOffset = Size; }
 };

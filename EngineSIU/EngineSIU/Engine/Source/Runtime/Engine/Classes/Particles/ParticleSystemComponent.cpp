@@ -15,6 +15,11 @@ UObject* UParticleSystemComponent::Duplicate(UObject* InOuter)
 
 void UParticleSystemComponent::InitializeComponent()
 {
+    Super::InitializeComponent();
+    if (Template)
+    {
+        InitializeSystem();
+    }
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
@@ -50,7 +55,6 @@ void UParticleSystemComponent::InitializeSystem()
             Instance->SpriteTemplate = EmitterTemplate;
             Instance->Component = this;
             Instance->CurrentLODLevelIndex = 0;
-            //Instance->CurrentLODLevel = EmitterTemplate->GetLODLevel(Instance->CurrentLODLevelIndex);
 
             Instance->Initialize();
 
