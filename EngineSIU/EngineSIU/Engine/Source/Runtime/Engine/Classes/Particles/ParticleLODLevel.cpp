@@ -28,7 +28,7 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 	int32 MaxBurstCount = SpawnModule->GetMaximumBurstCount();
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ModuleIndex++)
 	{
-		// UParticleModuleLifetimeBase* LifetimeMod = Cast<UParticleModuleLifetimeBase>(Modules[ModuleIndex]); // TODO: 주석 풀기
+		// UParticleModuleLifetimeBase* LifetimeMod = Cast<UParticleModuleLifetimeBase>(Modules[ModuleIndex]);
 		// if (LifetimeMod != NULL)
 		// {
 		// 	ParticleLifetime += LifetimeMod->GetMaxLifetime();
