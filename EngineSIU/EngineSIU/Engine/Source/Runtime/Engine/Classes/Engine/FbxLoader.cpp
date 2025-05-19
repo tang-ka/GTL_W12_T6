@@ -380,9 +380,9 @@ FMaterialInfo FFbxLoader::ExtractMaterialsFromFbx(FbxSurfaceMaterial* FbxMateria
         );
         
         // 투명도 처리
-        float Transparency = static_cast<float>(1.0 - Lambert->TransparencyFactor.Get());
+        float Transparency = static_cast<float>(Lambert->TransparencyFactor.Get());
         MaterialInfo.Transparency = Transparency;
-        MaterialInfo.bTransparent = (Transparency < 1.0f);
+        MaterialInfo.bTransparent = (Transparency > 0.f);
     }
     
     // Phong 머티리얼 추가 속성 (Lambert를 상속함)
@@ -461,6 +461,11 @@ void FFbxLoader::ExtractTextureInfoFromFbx(FbxSurfaceMaterial* FbxMaterial, FMat
                             {
                                 OutMaterialInfo.TextureInfos[8] = TexInfo;
                                 OutMaterialInfo.TextureFlag |= (1 << 8);
+                            }
+
+                            if (i == 4)
+                            {
+                                OutMaterialInfo.bTransparent = true;
                             }
                         }
                     }

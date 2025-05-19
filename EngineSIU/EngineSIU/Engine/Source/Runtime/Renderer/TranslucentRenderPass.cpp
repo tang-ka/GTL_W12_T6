@@ -1,34 +1,33 @@
-﻿#include "ParticleRenderPass.h"
+﻿#include "TranslucentRenderPass.h"
 
 #include "UnrealClient.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "UnrealEd/EditorViewportClient.h"
 
-FParticleRenderPass::FParticleRenderPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
+void FTranslucentRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
+{
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);
+}
+
+void FTranslucentRenderPass::PrepareRenderArr()
 {
 }
 
-FParticleRenderPass::~FParticleRenderPass()
+void FTranslucentRenderPass::ClearRenderArr()
 {
 }
 
-void FParticleRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
+void FTranslucentRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManage;
+    PrepareRender(Viewport);
+
+
+    
+    CleanUpRender(Viewport);
 }
 
-void FParticleRenderPass::PrepareRenderArr()
+void FTranslucentRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-}
-
-void FParticleRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-    // Prepare
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 
     constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
@@ -40,13 +39,9 @@ void FParticleRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& V
 
     Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 1);
-
-    // Render
-
-    // Clean-up
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void FParticleRenderPass::ClearRenderArr()
+void FTranslucentRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }

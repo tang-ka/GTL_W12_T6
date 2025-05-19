@@ -6,7 +6,7 @@ class FEditorBillboardRenderPass : public FBillboardRenderPass
 {
 public:
     FEditorBillboardRenderPass();
-    virtual ~FEditorBillboardRenderPass() = default;
+    virtual ~FEditorBillboardRenderPass() override = default;
 
     virtual void PrepareRenderArr() override;
 };

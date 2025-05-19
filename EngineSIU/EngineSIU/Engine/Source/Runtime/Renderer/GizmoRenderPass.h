@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Define.h"
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 #include "Container/Set.h"
 
@@ -11,11 +11,11 @@ class FGraphicsDevice;
 class UWorld;
 class FEditorViewportClient;
 
-class FGizmoRenderPass : public IRenderPass
+class FGizmoRenderPass : public FRenderPassBase
 {
 public:
-    FGizmoRenderPass();
-    virtual ~FGizmoRenderPass();
+    FGizmoRenderPass() = default;
+    virtual ~FGizmoRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
 
@@ -27,8 +27,6 @@ public:
 
     void PrepareRenderState() const;
 
-    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
-    
     // Gizmo 한 개 렌더링 함수
     void RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, const std::shared_ptr<FEditorViewportClient>& Viewport);
 
@@ -38,10 +36,9 @@ public:
 
     void CreateBuffer();
     
-private:
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;

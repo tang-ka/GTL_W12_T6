@@ -1,6 +1,6 @@
 ﻿
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 
 #include "Define.h"
@@ -11,11 +11,11 @@ struct FSlateTransform
     FVector2D Offset;
 };
 
-class FSlateRenderPass : public IRenderPass
+class FSlateRenderPass : public FRenderPassBase
 {
 public:
-    FSlateRenderPass();
-    virtual ~FSlateRenderPass();
+    FSlateRenderPass() = default;
+    virtual ~FSlateRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
@@ -29,10 +29,9 @@ public:
     void CreateBuffer();
     void CreateSampler();
 
-private:
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     ID3D11SamplerState* Sampler;
 };

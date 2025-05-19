@@ -8,15 +8,13 @@
 
 void FSkeletalMeshRenderPass::CreateResource()
 {
-    FSkeletalMeshRenderPassBase::CreateResource();
 }
 
 void FSkeletalMeshRenderPass::ReleaseResource()
 {
-    FSkeletalMeshRenderPassBase::ReleaseResource();
 }
 
-void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FSkeletalMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
@@ -30,8 +28,6 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
     const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
-
-    Graphics->DeviceContext->VSSetShaderResources(1, 1, &BoneSRV);
 
     const TArray<FString> PSBufferKeys = {
         TEXT("FLightInfoBuffer"),
@@ -52,7 +48,7 @@ void FSkeletalMeshRenderPass::PrepareRenderPass(const std::shared_ptr<FEditorVie
     ShadowManager->BindResourcesForSampling();
 }
 
-void FSkeletalMeshRenderPass::CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FSkeletalMeshRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
     Graphics->DeviceContext->VSSetShaderResources(1, 1, NullSRV);

@@ -1,23 +1,37 @@
 #pragma once
 
-#include "StaticMeshRenderPass.h"
+#include "RenderPassBase.h"
+#include "Container/Array.h"
 
+struct FSkeletalMeshRenderData;
+class UMaterial;
+struct FStaticMaterial;
+struct FStaticMeshRenderData;
+class USkeletalMeshComponent;
+class UStaticMeshComponent;
 
-class FDepthPrePass : public FStaticMeshRenderPass
+class FDepthPrePass : public FRenderPassBase
 {
-    friend class FRenderer; // 렌더러에서 접근 가능
-    friend class DepthBufferDebugPass; // DepthBufferDebugPass에서 접근 가능
 public:
-    FDepthPrePass();
-    ~FDepthPrePass();
+    FDepthPrePass() = default;
+    virtual ~FDepthPrePass() override = default;
     
-    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
 
-    // Begin FStaticMeshRenderPass override
-    virtual void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
-    // End FStaticMeshRenderPass override
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    
+    void PrepareStaticMesh();
+    void PrepareSkeletalMesh();
+
+    void RenderStaticMesh();
+    void RenderSkeletalMesh();
+    
+    TArray<UStaticMeshComponent*> StaticMeshComponents;
+    TArray<USkeletalMeshComponent*> SkeletalMeshComponents;
 };
 
