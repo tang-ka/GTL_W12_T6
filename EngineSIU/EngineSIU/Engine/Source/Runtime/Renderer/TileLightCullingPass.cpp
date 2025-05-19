@@ -1,4 +1,6 @@
 #include "TileLightCullingPass.h"
+
+#include "RendererHelpers.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
@@ -79,6 +81,16 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     DepthSRV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Debug)->SRV;
     ComputeShader = ShaderManager->GetComputeShaderByKey(L"TileLightCullingComputeShader");
     Dispatch(Viewport);
+
+    if (Viewport->GetViewMode() == EViewModeIndex::VMI_LightHeatMap)
+    {
+        // 디버깅 용도
+        Graphics->DeviceContext->PSSetShaderResources(
+            static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
+            1,
+            &DebugHeatmapSRV
+        );
+    }
 }
 
 void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const

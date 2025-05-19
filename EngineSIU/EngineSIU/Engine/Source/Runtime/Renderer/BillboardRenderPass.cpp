@@ -21,9 +21,6 @@
 
 FBillboardRenderPass::FBillboardRenderPass()
     : ResourceType(EResourceType::ERT_Scene)
-    , VertexShader(nullptr)
-    , PixelShader(nullptr)
-    , InputLayout(nullptr)
 {
 }
 
@@ -47,20 +44,6 @@ void FBillboardRenderPass::PrepareRenderArr()
     }
 }
 
-void FBillboardRenderPass::PrepareTextureShader() const
-{
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
-
-    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 0, EShaderStage::Vertex);
-}
-
-void FBillboardRenderPass::PrepareSubUVConstant() const
-{
-    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
-}
-
 void FBillboardRenderPass::UpdateSubUVConstant(FVector2D UVOffset, FVector2D UVScale) const
 {
     FSubUVConstant Data;
@@ -68,17 +51,6 @@ void FBillboardRenderPass::UpdateSubUVConstant(FVector2D UVOffset, FVector2D UVS
     Data.uvScale = UVScale;
 
     BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), Data);
-}
-
-void FBillboardRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
-{
-    FObjectConstantBuffer ObjectData = {};
-    ObjectData.WorldMatrix = WorldMatrix;
-    ObjectData.InverseTransposedWorld = FMatrix::Transpose(FMatrix::Inverse(WorldMatrix));
-    ObjectData.UUIDColor = UUIDColor;
-    ObjectData.bIsSelected = bIsSelected;
-    
-    BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
 
 void FBillboardRenderPass::RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT NumVertices, ID3D11Buffer* pIndexBuffer, UINT NumIndices, ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const
@@ -119,28 +91,20 @@ void FBillboardRenderPass::CreateShader()
     {
         return;
     }
-    
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
 }
 
 void FBillboardRenderPass::UpdateShader()
 {
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
+    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
+    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
+    
+    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout);
 }
 
 void FBillboardRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-}
-
-void FBillboardRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-}
-
-void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
 
@@ -152,11 +116,26 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 1);
     
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    
     UpdateShader();
 
-    PrepareTextureShader();
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 0, EShaderStage::Vertex);
 
-    PrepareSubUVConstant();
+    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
+}
+
+void FBillboardRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
+}
+
+void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    PrepareRender(Viewport);
 
     FVertexInfo VertexInfo;
     FIndexInfo IndexInfo;
@@ -217,10 +196,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
         }
     }
 
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-
-    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
+    CleanUpRender(Viewport);
 }
 
 void FBillboardRenderPass::SetupVertexBuffer(ID3D11Buffer* pVertexBuffer, UINT NumVertices) const
@@ -228,7 +204,6 @@ void FBillboardRenderPass::SetupVertexBuffer(ID3D11Buffer* pVertexBuffer, UINT N
     UINT Stride = sizeof(FVertexTexture);
     UINT Offset = 0;
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &Offset);
-    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void FBillboardRenderPass::ClearRenderArr()

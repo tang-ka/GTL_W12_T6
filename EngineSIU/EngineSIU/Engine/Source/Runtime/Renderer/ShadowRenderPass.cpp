@@ -340,14 +340,6 @@ void FShadowRenderPass::CreateShader()
         UE_LOG(ELogLevel::Error, TEXT("Failed to create DepthCubeMapGS shader!"));
     }
 
-    /*
-    hr = ShaderManager->AddPixelShader(L"DepthOnlyPS", L"Shaders/PointLightCubemapGS.hlsl", "mainPS");
-    if (FAILED(hr))
-    {
-        UE_LOG(ELogLevel::Error, TEXT("Failed to create DepthOnlyPS shader!"));
-    }
-    */
-
     hr = ShaderManager->AddVertexShader(L"CascadedShadowMapVS", L"Shaders/CascadedShadowMap.hlsl", "mainVS");
     if (FAILED(hr))
     {
@@ -414,7 +406,7 @@ void FShadowRenderPass::UpdateCubeMapConstantBuffer(UPointLightComponent*& Point
 {
     FPointLightGSBuffer DepthCubeMapBuffer;
     DepthCubeMapBuffer.World = WorldMatrix;
-    for (uint32 Idx = 0; Idx < 6; ++Idx)
+    for (int32 Idx = 0; Idx < 6; ++Idx)
     {
         DepthCubeMapBuffer.ViewProj[Idx] = PointLight->GetViewMatrix(Idx) * PointLight->GetProjectionMatrix();
     }

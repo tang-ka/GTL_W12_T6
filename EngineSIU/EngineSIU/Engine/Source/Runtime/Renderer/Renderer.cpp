@@ -6,7 +6,6 @@
 #include "Engine/EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
-#include "RendererHelpers.h"
 #include "OpaqueRenderPass.h"
 #include "WorldBillboardRenderPass.h"
 #include "EditorBillboardRenderPass.h"
@@ -24,7 +23,6 @@
 #include "PostProcessCompositingPass.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
-#include "SkeletalMeshRenderPass.h"
 #include "UnrealClient.h"
 #include "GameFrameWork/Actor.h"
 
@@ -268,18 +266,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     }
     
     /**
-     * New Render Process
-     *   1. Depth Pre Pass
-     *   2. Tile Light Culling Pass
-     *   3. Shadow Pass
-     *   4. Opaque Pass
-     *   5. Editor Depth Element Pass
-     *   6. Translucent Pass
-     *   7. Editor Overlay Pass
-     *   8. Post Process Pass
-     */
-
-    /**
      * 각 렌더 패스의 시작과 끝은 필요한 리소스를 바인딩하고 해제하는 것까지입니다.
      * 다음에 작동할 렌더 패스에서는 이전에 사용했던 리소스들을 충돌 없이 바인딩 할 수 있어야 한다는 의미입니다.
      * e.g.
@@ -301,13 +287,28 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
     BeginRender(Viewport);
     
+    RenderPreScene(Viewport);
+    RenderOpaque(Viewport);
+    RenderEditorDepthElement(Viewport);
+    RenderTranslucent(Viewport);
+    RenderEditorOverlay(Viewport);
+    RenderPostProcess(Viewport);
+
+    RenderFinalResult(Viewport);
+
+    EndRender();
+}
+
+void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    const uint64 ShowFlag = Viewport->GetShowFlag();
     if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {
         if (DepthPrePass) // Depth Pre Pass : 렌더타겟 nullptr 및 렌더 후 복구
         {
             QUICK_SCOPE_CYCLE_COUNTER(DepthPrePass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthPrePass_GPU, *GPUTimingManager)
-            DepthPrePass->Render(Viewport); // TODO: 스켈레탈 메시 렌더
+            DepthPrePass->Render(Viewport);
         }
 
         // Added Compute Shader Pass
@@ -337,15 +338,22 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
         if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
         {
-            QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
             ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
-            ShadowRenderPass->Render(Viewport);
+            {
+                QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
+                QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
+                ShadowRenderPass->Render(Viewport);
+            }
             ShadowManager->BindResourcesForSampling();
         }
     }
+}
 
-    if (ShowFlag & EEngineShowFlags::SF_Primitives)
+void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    
+    if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {
         {
             QUICK_SCOPE_CYCLE_COUNTER(OpaquePass_CPU)
@@ -353,18 +361,74 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
             OpaqueRenderPass->Render(Viewport);
         }
     }
+    // TODO: 이 시점에서 씬 뎁스 스텐실 버퍼를 복사해두면, 에디터 요소가 없는 순수한 뎁스 버퍼를 확보할 수 있음.
+}
+
+void FRenderer::RenderEditorDepthElement(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+    {
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
+            EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
+        }
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
+            LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
+        }
+    }
+}
+
+void FRenderer::RenderTranslucent(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    const uint64 ShowFlag = Viewport->GetShowFlag();
     
-    // Render World Billboard
     if (ShowFlag & EEngineShowFlags::SF_BillboardText)
     {
         {
+            // Render World Billboard
             QUICK_SCOPE_CYCLE_COUNTER(WorldBillboardPass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(WorldBillboardPass_GPU, *GPUTimingManager)
             WorldBillboardRenderPass->Render(Viewport);
         }
+        if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+        {
+            // Render Editor Billboard
+            QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorBillboardPass_GPU, *GPUTimingManager)
+            EditorBillboardRenderPass->Render(Viewport);
+        }
     }
+    
+    if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh | EEngineShowFlags::SF_Particles))
+    {
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(TranslucentPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(TranslucentPass_GPU, *GPUTimingManager)
+            // TODO: Render Scene Translucent Element
+        }
+    }
+}
 
-    // PP
+void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+    {
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
+            GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
+        }
+    }
+}
+
+void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    const EViewModeIndex ViewMode = Viewport->GetViewMode();
+
     if (ViewMode < EViewModeIndex::VMI_Unlit)
     {
         if (ShowFlag & EEngineShowFlags::SF_Fog)
@@ -390,49 +454,16 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
             PostProcessCompositingPass->Render(Viewport);
         }
     }
+}
 
-    if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+void FRenderer::RenderFinalResult(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
     {
-        // Render Editor Billboard
-        if (ShowFlag & EEngineShowFlags::SF_BillboardText)
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorBillboardPass_GPU, *GPUTimingManager)
-            EditorBillboardRenderPass->Render(Viewport);
-        }
-
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(EditorRenderPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorRenderPass_GPU, *GPUTimingManager)
-            EditorRenderPass->Render(Viewport); // TODO: 임시로 이전에 작성되었던 와이어 프레임 렌더 패스이므로, 이후 개선 필요.
-        }
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(LinePass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(LinePass_GPU, *GPUTimingManager)
-            LineRenderPass->Render(Viewport); // 기존 뎁스를 그대로 사용하지만 뎁스를 클리어하지는 않음
-        }
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(GizmoPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(GizmoPass_GPU, *GPUTimingManager)
-            GizmoRenderPass->Render(Viewport); // 기존 뎁스를 SRV로 전달해서 샘플 후 비교하기 위해 기즈모 전용 DSV 사용
-        }
-    }
-
-    // 디버깅 용도
-    Graphics->DeviceContext->PSSetShaderResources(
-        static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
-        1,
-        &TileLightCullingPass->GetDebugHeatmapSRV()
-    ); // TODO: 최악의 코드
-
-    // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
-    {
+        // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
         QUICK_SCOPE_CYCLE_COUNTER(CompositingPass_CPU)
         QUICK_GPU_SCOPE_CYCLE_COUNTER(CompositingPass_GPU, *GPUTimingManager)
         CompositingPass->Render(Viewport);
     }
-
-    EndRender();
 }
 
 void FRenderer::EndRender() const

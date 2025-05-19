@@ -135,20 +135,20 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
         // Gouraud 셰이딩은 Emissive 제외
 #else
         float4 LitResult = Lighting(
-                Input.WorldPosition,
-                WorldNormal,
-                ViewWorldLocation,
-                DiffuseColor,
+            Input.WorldPosition,
+            WorldNormal,
+            ViewWorldLocation,
+            DiffuseColor,
     #ifdef LIGHTING_MODEL_PBR
-                Metallic,
-                Roughness,
+            Metallic,
+            Roughness,
     #else
-                SpecularColor,
-                Shininess,
+            SpecularColor,
+            Shininess,
     #endif
-                BaseAlpha,
-                FlatTileIndex
-            );
+            BaseAlpha,
+            FlatTileIndex
+        );
 
         // Apply Emissive
         float3 FinalRGB = LitResult.rgb + EmissiveColor;

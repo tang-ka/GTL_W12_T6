@@ -23,7 +23,6 @@
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
-#include "Engine/AssetManager.h"
 #include "Engine/SkeletalMesh.h"
 
 void FOpaqueRenderPass::CreateShader()
@@ -331,6 +330,11 @@ void FOpaqueRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
 
 void FOpaqueRenderPass::PrepareRenderArr()
 {
+    /**
+     * TODO: 현재는 머티리얼이 불투명인지 반투명인지를 구분하지 않고 모두 렌더하고 있음.
+     *       제대로 하기 위해선 메시의 머티리얼을 검사하고, 머티리얼을 구분해서 컨테이너에 담아야 함.
+     *       스켈레탈 메시의 경우 본 행렬 때문에 스켈레탈 메시 컴포넌트도 참조할 필요 있음.
+     */
     for (const auto Iter : TObjectRange<UMeshComponent>())
     {
         if (Iter->GetWorld() != GEngine->ActiveWorld)
@@ -354,11 +358,10 @@ void FOpaqueRenderPass::PrepareRenderArr()
     }
 }
 
-void FOpaqueRenderPass::UpdateLitUnlitConstant(int32 IsLit) const
+void FOpaqueRenderPass::ClearRenderArr()
 {
-    FLitUnlitConstants Data;
-    Data.bIsLit = IsLit;
-    BufferManager->UpdateConstantBuffer(TEXT("FLitUnlitConstants"), Data);
+    StaticMeshComponents.Empty();
+    SkeletalMeshComponents.Empty();
 }
 
 void FOpaqueRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -374,8 +377,9 @@ void FOpaqueRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     CleanUpRender(Viewport);
 }
 
-void FOpaqueRenderPass::ClearRenderArr()
+void FOpaqueRenderPass::UpdateLitUnlitConstant(int32 IsLit) const
 {
-    StaticMeshComponents.Empty();
-    SkeletalMeshComponents.Empty();
+    FLitUnlitConstants Data;
+    Data.bIsLit = IsLit;
+    BufferManager->UpdateConstantBuffer(TEXT("FLitUnlitConstants"), Data);
 }

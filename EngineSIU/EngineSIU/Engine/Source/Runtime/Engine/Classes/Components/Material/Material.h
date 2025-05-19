@@ -23,9 +23,10 @@ public:
     // 스칼라 속성 설정자
     void SetShininess(float InShininess) { MaterialInfo.Shininess = InShininess; }
     void SetOpticalDensity(float InDensity) { MaterialInfo.IOR = InDensity; }
-    void SetTransparency(float InTransparency) {
+    void SetTransparency(float InTransparency)
+    {
         MaterialInfo.Transparency = InTransparency;
-        MaterialInfo.bTransparent = (InTransparency < 1.0f);
+        MaterialInfo.bTransparent = (InTransparency > 0.f);
     }
 
     void SetMetallic(float InMetallic) { MaterialInfo.Metallic = InMetallic; }

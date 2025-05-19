@@ -85,8 +85,6 @@ public:
     TArray<uint32> GetCulledPointLightMaskData() const { return CulledPointLightMaskData; }
     TArray<uint32> GetCulledSpotLightMaskData()  const { return CulledSpotLightMaskData; }
 
-    ID3D11ShaderResourceView*& GetDebugHeatmapSRV() { return DebugHeatmapSRV; }
-
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;

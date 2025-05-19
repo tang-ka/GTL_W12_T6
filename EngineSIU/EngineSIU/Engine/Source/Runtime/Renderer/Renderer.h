@@ -16,12 +16,10 @@
 
 
 class IRenderPass;
-class FSkeletalMeshRenderPass;
 class FLightHeatMapRenderPass;
 class FPostProcessCompositingPass;
 enum class EResourceType : uint8;
 
-class FSceneRenderPass;
 class UWorld;
 class UObject;
 
@@ -36,7 +34,6 @@ class FEditorBillboardRenderPass;
 class FGizmoRenderPass;
 class FUpdateLightBufferPass;
 class FDepthBufferDebugPass;
-class FWorldNormalDebugPass;
 class FLineRenderPass;
 class FFogRenderPass;
 class FCameraEffectRenderPass;
@@ -67,6 +64,14 @@ protected:
     void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void PrepareRender(FViewportResource* ViewportResource) const;
     void PrepareRenderPass() const;
+
+    void RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderEditorDepthElement(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderTranslucent(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderFinalResult(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void EndRender() const;
     void ClearRenderArr() const;
