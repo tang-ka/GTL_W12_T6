@@ -1,4 +1,4 @@
-﻿#include "ParticleEmitterInstance.h"
+#include "ParticleEmitterInstance.h"
 #include "Particles/ParticleLODLevel.h"
 #include "Particles/ParticleModule.h"
 #include "Particles/ParticleEmitter.h"
@@ -104,14 +104,28 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
         return;
     }
 
-    //int32 LastIndex = ActiveParticles - 1;
-    //if (Index != LastIndex)
-    //{
-    //    FMemory::Memcpy(
-    //        ParticleData + Index * ParticleStride,
-    //        ParticleData + LastIndex * ParticleStride,
-    //        ParticleStride);
-    //}
+    int32 LastIndex = ActiveParticles - 1;
+    if (Index != LastIndex)
+    {
+        std::memcpy(
+            ParticleData + ParticleStride * Index,
+            ParticleData + ParticleStride * LastIndex,
+            ParticleStride
+        );
+
+        // 접근될 일은 없지만 방어적으로 기존 마지막 파티클을 초기화
+        std::memset(
+            ParticleData + ParticleStride * LastIndex,
+            0,
+            ParticleStride
+        );
+
+        // 아직은 ParticleIndices를 사용하지 않아서 의미는 없지만 추후에 사용될 수 있음
+        if (ParticleIndices != nullptr)
+        {
+            ParticleIndices[Index] = ParticleIndices[LastIndex];
+        }
+    }
     ActiveParticles--;
 }
 
@@ -148,7 +162,7 @@ void FParticleEmitterInstance::PreSpawn(FBaseParticle* Particle, const FVector& 
     Particle->BaseColor = FLinearColor::White;
 
     Particle->RelativeTime = 0.f;
-    Particle->OneOverMaxLifetime = 1.f; // 나중에 수명 기반 분포에서 설정 가능
+    Particle->OneOverMaxLifetime = 0.01f; // 나중에 수명 기반 분포에서 설정 가능
     Particle->Placeholder0 = 0.f;
     Particle->Placeholder1 = 0.f;
 }
@@ -173,7 +187,7 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
 
 void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
 {
-    for (int32 i = 0; i < ActiveParticles; ++i)
+    for (int32 i = 0; i < ActiveParticles; i++)
     {
         DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * i);
 
@@ -181,12 +195,12 @@ void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
         Particle->RelativeTime += DeltaTime * Particle->OneOverMaxLifetime;
 
         // 수명 종료 판단
-        //if (Particle->RelativeTime >= 1.0f)
-        //{
-        //    KillParticle(i);
-        //    --i; // 마지막 인덱스를 앞으로 복사했으므로 인덱스 유지
-        //    continue;
-        //}
+        if (Particle->RelativeTime >= 1.0f)
+        {
+            KillParticle(i);
+            i--; // 마지막 인덱스를 앞으로 복사했으므로 인덱스 유지
+            continue;
+        }
 
         // 위치 업데이트
         Particle->OldLocation = Particle->Location;

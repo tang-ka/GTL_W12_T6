@@ -16,6 +16,7 @@ UObject* UParticleSystemComponent::Duplicate(UObject* InOuter)
 void UParticleSystemComponent::InitializeComponent()
 {
     Super::InitializeComponent();
+
     if (Template)
     {
         InitializeSystem();
