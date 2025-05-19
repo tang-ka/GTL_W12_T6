@@ -1,7 +1,16 @@
 ﻿#include "ParticleModuleSpawn.h"
 
+void UParticleModuleSpawn::DisplayProperty()
+{
+    Super::DisplayProperty();
+    for (const auto& Property : StaticClass()->GetProperties())
+    {
+        Property->DisplayInImGui(this);
+    }
+}
+
 bool UParticleModuleSpawn::GetSpawnAmount(FParticleEmitterInstance* Owner,
-    int32 Offset, float OldLeftover, float DeltaTime, int32& Number, float& InRate)
+                                          int32 Offset, float OldLeftover, float DeltaTime, int32& Number, float& InRate)
 {
     return false;
 }

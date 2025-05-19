@@ -84,20 +84,7 @@ void ParticleViewerPanel::RenderDetailPanel()
     if (SelectedModule)
     {
         ImGui::Text(GetData(SelectedModule->ModuleName.ToString()));
-        if (UParticleModuleSpawn* ModuleSpawn = dynamic_cast<UParticleModuleSpawn*>(SelectedModule)) // TODO: Cast는 안 되는데 dynamic_cast는 됨
-        {
-            for (const auto& Property  : ModuleSpawn->StaticClass()->GetProperties())
-            {
-                Property->DisplayInImGui(ModuleSpawn);
-            }
-        }
-        else if (UParticleModuleSize* ModuleSize = dynamic_cast<UParticleModuleSize*>(SelectedModule))
-        {
-            for (const auto& Property  : ModuleSize->StaticClass()->GetProperties())
-            {
-                Property->DisplayInImGui(ModuleSize);
-            }
-        }
+        SelectedModule->DisplayProperty();
     }
     
     

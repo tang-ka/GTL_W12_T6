@@ -8,5 +8,7 @@ class UParticleModuleSize : public UParticleModuleSizeBase
 public:
     UParticleModuleSize() = default;
 
+    virtual void DisplayProperty() override;
+
     UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionVector, StartSize)
 };

@@ -1,5 +1,14 @@
 ﻿#include "ParticleModuleRequired.h"
 
+void UParticleModuleRequired::DisplayProperty()
+{
+    Super::DisplayProperty();
+    for (const auto& Property : StaticClass()->GetProperties())
+    {
+        Property->DisplayInImGui(this);
+    }
+}
+
 FParticleRequiredModule* UParticleModuleRequired::CreateRendererResource()
 {
     FParticleRequiredModule *FReqMod = new FParticleRequiredModule();
