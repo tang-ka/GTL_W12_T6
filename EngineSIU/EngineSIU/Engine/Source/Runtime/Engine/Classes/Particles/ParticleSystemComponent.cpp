@@ -1,7 +1,6 @@
 #include "ParticleSystemComponent.h"
 #include "ParticleEmitterInstance.h"
 #include "Particles/ParticleSystem.h"
-#include "Particles/ParticleEmitter.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
     : AccumTickTime(0.f)
@@ -51,9 +50,7 @@ void UParticleSystemComponent::InitializeSystem()
             Instance->SpriteTemplate = EmitterTemplate;
             Instance->Component = this;
             Instance->CurrentLODLevelIndex = 0;
-            Instance->CurrentLODLevel = EmitterTemplate->GetLODLevel(Instance->CurrentLODLevelIndex);
-            Instance->ActiveParticles = 0;
-            Instance->ParticleCounter = 0;
+            //Instance->CurrentLODLevel = EmitterTemplate->GetLODLevel(Instance->CurrentLODLevelIndex);
 
             Instance->Initialize();
 

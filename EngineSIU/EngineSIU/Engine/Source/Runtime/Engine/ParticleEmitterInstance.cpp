@@ -1,11 +1,14 @@
 #include "ParticleEmitterInstance.h"
 #include "Particles/ParticleLODLevel.h"
 #include "Particles/ParticleModule.h"
-#include "Particles/ParticleModuleRequired.h"
+#include "Particles/ParticleEmitter.h"
+//#include "Particles/ParticleModuleRequired.h"
 
 void FParticleEmitterInstance::Initialize()
 {
     const TArray<UParticleModule*>& Modules = CurrentLODLevel->Modules;
+
+    CurrentLODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
 
     if (CurrentLODLevel->RequiredModule)
     {
@@ -53,7 +56,12 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 {
     AccumulatedTime += DeltaTime;
 
+    // 초당 생성속도에 따른 현재 프레임에 생성할 파티클 수 계산
     int32 SpawnCount = CalculateSpawnCount(DeltaTime);
+    // 최대 활성 파티클 수를 초과하지 않도록 조정
+    int32 AvailableParticles = MaxActiveParticles - ActiveParticles;
+    SpawnCount = FMath::Min(SpawnCount, AvailableParticles);
+
     if (SpawnCount > 0)
     {
         float Increment = (SpawnCount > 1) ? DeltaTime / (SpawnCount - 1) : 0.0f;
