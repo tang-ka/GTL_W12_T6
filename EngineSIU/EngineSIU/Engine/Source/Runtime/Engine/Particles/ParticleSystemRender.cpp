@@ -3,6 +3,75 @@
 #include "Particles/ParticleModuleRequired.h"
 #include "Math/Matrix.h"
 
+FDynamicSpriteEmitterReplayDataBase::FDynamicSpriteEmitterReplayDataBase()
+: MaterialInterface(nullptr)
+, RequiredModule(nullptr)
+, NormalsSphereCenter(FVector::ZeroVector)
+, NormalsCylinderDirection(FVector::ZeroVector)
+, InvDeltaSeconds(0.0f)
+, MaxDrawCount(0)
+, OrbitModuleOffset(0)
+, DynamicParameterDataOffset(0)
+, LightDataOffset(0)
+, LightVolumetricScatteringIntensity(0)
+, CameraPayloadOffset(0)
+, SubUVDataOffset(0)
+, SubImages_Horizontal(1)
+, SubImages_Vertical(1)
+, bUseLocalSpace(false)
+, bLockAxis(false)
+, ScreenAlignment(0)
+, LockAxisFlag(0)
+, EmitterRenderMode(0)
+, EmitterNormalsMode(0)
+, PivotOffset(-0.5f, -0.5f)
+, bUseVelocityForMotionBlur(false)
+, bRemoveHMDRoll(false)
+, MinFacingCameraBlendDistance(0.f)
+, MaxFacingCameraBlendDistance(0.f)
+{
+}
+
+FDynamicSpriteEmitterReplayDataBase::~FDynamicSpriteEmitterReplayDataBase()
+{
+    delete RequiredModule;
+}
+
+void FDynamicSpriteEmitterReplayDataBase::Serialize(FArchive& Ar)
+{
+    // Call parent implementation
+    FDynamicEmitterReplayDataBase::Serialize( Ar );
+
+    Ar << ScreenAlignment;
+    Ar << bUseLocalSpace;
+    Ar << bLockAxis;
+    Ar << LockAxisFlag;
+    Ar << MaxDrawCount;
+
+    int32 EmitterRenderModeInt = EmitterRenderMode;
+    Ar << EmitterRenderModeInt;
+    EmitterRenderMode = EmitterRenderModeInt;
+
+    Ar << OrbitModuleOffset;
+    Ar << DynamicParameterDataOffset;
+    Ar << LightDataOffset;
+    Ar << LightVolumetricScatteringIntensity;
+    Ar << CameraPayloadOffset;
+
+    Ar << EmitterNormalsMode;
+    Ar << NormalsSphereCenter;
+    Ar << NormalsCylinderDirection;
+
+    // Ar << MaterialInterface;
+
+    Ar << PivotOffset;
+
+    Ar << bUseVelocityForMotionBlur;
+    Ar << bRemoveHMDRoll;
+    Ar << MinFacingCameraBlendDistance;
+    Ar << MaxFacingCameraBlendDistance;
+}
+
 void FDynamicSpriteEmitterDataBase::SortSpriteParticles(int32 SortMode, bool bLocalSpace, int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices, const FMatrix& LocalToWorld) const
 {
     if (SortMode == PSORTMODE_ViewProjDepth)

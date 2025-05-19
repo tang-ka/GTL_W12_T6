@@ -249,6 +249,8 @@ struct FDynamicEmitterReplayDataBase
     }
 
     virtual ~FDynamicEmitterReplayDataBase() = default;
+
+    void Serialize(FArchive& Ar);
 };
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
@@ -291,7 +293,8 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
 /** Base class for all emitter types */
 struct FDynamicEmitterDataBase
 {
-    FDynamicEmitterDataBase(const class UParticleModuleRequired* RequiredModule);
+    FDynamicEmitterDataBase(const class UParticleModuleRequired* RequiredModule)
+    : bSelected(false), EmitterIndex(INDEX_NONE) {}
     virtual ~FDynamicEmitterDataBase() = default;
     
 	/** Returns the source data for this particle system */
@@ -299,9 +302,9 @@ struct FDynamicEmitterDataBase
 
     virtual void GetDynamicMeshElementsEmitter(/* const FParticleSystemSceneProxy* Proxy, const FSceneView* View, const FSceneViewFamily& ViewFamily, int32 ViewIndex, FMeshElementCollector& Collector */) const {}
     
-	int32  EmitterIndex;
-    
     uint32	bSelected:1;
+    
+	int32  EmitterIndex;
 };
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
