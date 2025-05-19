@@ -115,28 +115,28 @@ void FBillboardRenderPass::CreateShader()
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"VertexBillboardShader", L"Shaders/VertexBillboardShader.hlsl", "main", TextureLayoutDesc, ARRAYSIZE(TextureLayoutDesc));
+    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"BillBoardVertexShader", L"Shaders/BillBoardVertexShader.hlsl", "main", TextureLayoutDesc, ARRAYSIZE(TextureLayoutDesc));
     if (FAILED(hr))
     {
         return;
     }
     
-    hr = ShaderManager->AddPixelShader(L"PixelBillboardShader", L"Shaders/PixelBillboardShader.hlsl", "main");
+    hr = ShaderManager->AddPixelShader(L"BillBoardPixelShader", L"Shaders/BillBoardPixelShader.hlsl", "main");
     if (FAILED(hr))
     {
         return;
     }
     
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader");
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
 }
 
 void FBillboardRenderPass::UpdateShader()
 {
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader");
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillBoardVertexShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillBoardVertexShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
 }
 
 void FBillboardRenderPass::ReleaseShader()
@@ -152,6 +152,9 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     // 뎁스 비교는 렌더 타겟과는 상관 없이 항상 씬 기준으로
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->DSV);
 
+    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 1);
+    
     UpdateShader();
 
     PrepareTextureShader();
@@ -183,7 +186,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 IndexInfo.IndexBuffer,
                 IndexInfo.NumIndices,
                 SubUVParticle->Texture->TextureSRV,
-                SubUVParticle->Texture->SamplerState
+                Graphics->GetSamplerState(SubUVParticle->Texture->SamplerType)
             );
         }
         else if (UTextComponent* TextComp = Cast<UTextComponent>(BillboardComp))
@@ -199,7 +202,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 Buffers.VertexInfo.VertexBuffer,
                 Buffers.VertexInfo.NumVertices,
                 TextComp->Texture->TextureSRV,
-                TextComp->Texture->SamplerState
+                Graphics->GetSamplerState(SubUVParticle->Texture->SamplerType)
             );
         }
         else
@@ -212,12 +215,15 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 IndexInfo.IndexBuffer,
                 IndexInfo.NumIndices,
                 BillboardComp->Texture->TextureSRV,
-                BillboardComp->Texture->SamplerState
+                Graphics->GetSamplerState(BillboardComp->Texture->SamplerType)
             );
         }
     }
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 }
 
 void FBillboardRenderPass::SetupVertexBuffer(ID3D11Buffer* pVertexBuffer, UINT NumVertices) const

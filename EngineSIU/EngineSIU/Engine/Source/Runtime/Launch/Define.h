@@ -195,7 +195,8 @@ struct FSimpleVertex
     float padding[11];
 };
 
-struct FOBB {
+struct FOBB
+{
     FVector4 corners[8];
 };
 
@@ -375,7 +376,8 @@ struct FPrimitiveCounts
 #define NUM_FACES 6
 #define MAX_CASCADE_NUM 5
 
-enum ELightType {
+enum ELightType
+{
     POINT_LIGHT = 1,
     SPOT_LIGHT = 2,
     DIRECTIONAL_LIGHT = 3,

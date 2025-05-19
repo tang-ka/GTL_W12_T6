@@ -67,12 +67,12 @@ void FTileLightCullingPass::PrepareRenderArr()
 
 void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    Graphics->DeviceContext->PSSetConstantBuffers(8, 1, &TileLightConstantBuffer);
+    UpdateTileLightConstantBuffer(Viewport);
+    
     DepthSRV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Debug)->SRV;
     ComputeShader = ShaderManager->GetComputeShaderByKey(L"TileLightCullingComputeShader");
-    UpdateTileLightConstantBuffer(Viewport);
     Dispatch(Viewport);
-
-    //ParseCulledLightMaskData();
 }
 
 void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const

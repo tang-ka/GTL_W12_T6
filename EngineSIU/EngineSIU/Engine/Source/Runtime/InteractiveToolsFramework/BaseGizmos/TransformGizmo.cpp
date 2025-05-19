@@ -13,17 +13,18 @@
 
 ATransformGizmo::ATransformGizmo()
 {
-    static int a = 0;
-    UE_LOG(ELogLevel::Error, "Gizmo Created %d", a++);
-    FObjManager::CreateStaticMesh("Assets/GizmoTranslationX.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoTranslationY.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoTranslationZ.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoRotationX.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoRotationY.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoRotationZ.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoScaleX.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoScaleY.obj");
-    FObjManager::CreateStaticMesh("Assets/GizmoScaleZ.obj");
+    static int GizmoCnt = 0;
+    UE_LOG(ELogLevel::Error, "Gizmo Created %d", GizmoCnt++);
+    
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoTranslationX.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoTranslationY.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoTranslationZ.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoRotationX.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoRotationY.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoRotationZ.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoScaleX.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoScaleY.obj");
+    FObjManager::CreateStaticMesh("Assets/Editor/Gizmo/GizmoScaleZ.obj");
 
     SetRootComponent(
         AddComponent<USceneComponent>()

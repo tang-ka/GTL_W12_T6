@@ -96,7 +96,8 @@ void FCameraEffectRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     BufferManager->BindConstantBuffer("CameraVignetteConstantBuffer", 1, EShaderStage::Pixel);
     BufferManager->BindConstantBuffer("LetterBoxConstantBuffer", 2, EShaderStage::Pixel);
 
-    if (GEngine->ActiveWorld->GetPlayerController() && GEngine->ActiveWorld->GetPlayerController()->PlayerCameraManager) {
+    if (GEngine->ActiveWorld->GetPlayerController() && GEngine->ActiveWorld->GetPlayerController()->PlayerCameraManager)
+    {
         FadeParams.FadeColor = GEngine->ActiveWorld->GetPlayerController()->PlayerCameraManager->FadeColor;
         FadeParams.FadeAmount = GEngine->ActiveWorld->GetPlayerController()->PlayerCameraManager->FadeAmount;
         VignetteParams.VignetteColor = GEngine->ActiveWorld->GetPlayerController()->PlayerCameraManager->VignetteColor;

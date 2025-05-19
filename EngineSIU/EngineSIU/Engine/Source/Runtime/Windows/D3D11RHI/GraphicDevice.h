@@ -13,6 +13,12 @@
 
 class FEditorViewportClient;
 
+enum class ESamplerType : uint8
+{
+    Point,
+    Linear,
+};
+
 class FGraphicsDevice
 {
 public:
@@ -29,9 +35,13 @@ public:
     ID3D11RasterizerState* RasterizerWireframeBack = nullptr;
     ID3D11RasterizerState* RasterizerShadow = nullptr;
 
-    ID3D11DepthStencilState* DepthStencilState = nullptr;
+    ID3D11DepthStencilState* DepthStencilState_Default = nullptr;
+    ID3D11DepthStencilState* DepthStencilState_DepthWriteDisabled = nullptr;
     
-    ID3D11BlendState* AlphaBlendState = nullptr;
+    ID3D11BlendState* BlendState_AlphaBlend = nullptr;
+
+    ID3D11SamplerState* SamplerState_LinearWrap = nullptr;
+    ID3D11SamplerState* SamplerState_PointWrap = nullptr;
     
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
     
@@ -45,9 +55,9 @@ public:
     void Initialize(HWND hWindow);
     
     void ChangeRasterizer(EViewModeIndex ViewModeIndex);
-    void CreateRTV(ID3D11Texture2D*& OutTexture, ID3D11RenderTargetView*& OutRTV);
-    ID3D11Texture2D* CreateTexture2D(const D3D11_TEXTURE2D_DESC& Description, const void* InitialData);
     
+    ID3D11Texture2D* CreateTexture2D(const D3D11_TEXTURE2D_DESC& Description, const void* InitialData);
+
     void Release();
     
     void Prepare();
@@ -58,6 +68,8 @@ public:
     
     ID3D11RasterizerState* GetCurrentRasterizer() const { return CurrentRasterizer; }
 
+    ID3D11SamplerState* GetSamplerState(ESamplerType SamplerType) const;
+    
     /*
     uint32 GetPixelUUID(POINT pt) const;
     uint32 DecodeUUIDColor(FVector4 UUIDColor) const;
@@ -69,11 +81,14 @@ private:
     void CreateDepthStencilState();
     void CreateRasterizerState();
     void CreateAlphaBlendState();
+    void CreateSamplerState();
     
     void ReleaseDeviceAndSwapChain();
     void ReleaseFrameBuffer();
     void ReleaseRasterizerState();
     void ReleaseDepthStencilResources();
+    void ReleaseBlendState();
+    void ReleaseSamplerState();
     
     ID3D11RasterizerState* CurrentRasterizer = nullptr;
 

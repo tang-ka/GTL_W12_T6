@@ -493,11 +493,6 @@ HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::ws
     return S_OK;
 }
 
-HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::wstring& FileName)
-{
-    return E_NOTIMPL;
-}
-
 HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint)
 {
     if (DXDDevice == nullptr)
@@ -579,11 +574,6 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
         RegisterShaderForReload(Key, FileName, EntryPoint, true, const_cast<D3D_SHADER_MACRO*>(Defines));
     }
 
-    return S_OK;
-}
-
-HRESULT FDXDShaderManager::AddInputLayout(const std::wstring& Key, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
-{
     return S_OK;
 }
 
@@ -807,8 +797,16 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     }
 
     // Vertex Shader Map에 존재한다면 해당 VS, Input Layout 제거
-    if (VertexShaders.Contains(Key)) { VertexShaders[Key]->Release(); VertexShaders[Key] = nullptr; }
-    if (InputLayouts.Contains(Key)) { InputLayouts[Key]->Release();    InputLayouts[Key] = nullptr; }
+    if (VertexShaders.Contains(Key))
+    {
+        VertexShaders[Key]->Release();
+        VertexShaders[Key] = nullptr;
+    }
+    if (InputLayouts.Contains(Key))
+    {
+        InputLayouts[Key]->Release();
+        InputLayouts[Key] = nullptr;
+    }
 
     VertexShaders[Key] = NewVertexShader;
     InputLayouts[Key] = NewInputLayout;

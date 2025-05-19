@@ -126,6 +126,8 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         UpdateIsShadowConstant(0);
     }
 
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
     
     for (const auto DirectionalLight : TObjectRange<UDirectionalLightComponent>())
     {

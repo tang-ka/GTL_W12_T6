@@ -12,7 +12,22 @@ void FGraphicsDevice::Initialize(HWND hWindow)
     CreateDepthStencilState();
     CreateRasterizerState();
     CreateAlphaBlendState();
+    CreateSamplerState();
+    
     CurrentRasterizer = RasterizerSolidBack;
+}
+
+ID3D11SamplerState* FGraphicsDevice::GetSamplerState(ESamplerType SamplerType) const
+{
+    if (SamplerType == ESamplerType::Linear)
+    {
+        return SamplerState_LinearWrap;
+    }
+    else if (SamplerType == ESamplerType::Point)
+    {
+        return SamplerState_PointWrap;
+    }
+    return nullptr;
 }
 
 void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
@@ -82,7 +97,7 @@ ID3D11Texture2D* FGraphicsDevice::CreateTexture2D(const D3D11_TEXTURE2D_DESC& De
 void FGraphicsDevice::CreateDepthStencilState()
 {
     // DepthStencil 상태 설명 설정
-    D3D11_DEPTH_STENCIL_DESC DepthStencilStateDesc;
+    D3D11_DEPTH_STENCIL_DESC DepthStencilStateDesc = {};
 
     // Depth test parameters
     DepthStencilStateDesc.DepthEnable = true;
@@ -91,8 +106,8 @@ void FGraphicsDevice::CreateDepthStencilState()
 
     // Stencil test parameters
     DepthStencilStateDesc.StencilEnable = true;
-    DepthStencilStateDesc.StencilReadMask = 0xFF;
-    DepthStencilStateDesc.StencilWriteMask = 0xFF;
+    DepthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+    DepthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
     // Stencil operations if pixel is front-facing
     DepthStencilStateDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
@@ -107,8 +122,38 @@ void FGraphicsDevice::CreateDepthStencilState()
     DepthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
     //// DepthStencil 상태 생성
-    const HRESULT Result = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState);
-    if (FAILED(Result))
+    HRESULT hr = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState_Default);
+    if (FAILED(hr))
+    {
+        // 오류 처리
+        return;
+    }
+    
+    // Depth test parameters
+    DepthStencilStateDesc.DepthEnable = true;
+    DepthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    DepthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+    // Stencil test parameters
+    DepthStencilStateDesc.StencilEnable = true;
+    DepthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+    DepthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+
+    // Stencil operations if pixel is front-facing
+    DepthStencilStateDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    DepthStencilStateDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    // Stencil operations if pixel is back-facing
+    DepthStencilStateDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    DepthStencilStateDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    DepthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    //// DepthStencil 상태 생성
+    hr = Device->CreateDepthStencilState(&DepthStencilStateDesc, &DepthStencilState_DepthWriteDisabled);
+    if (FAILED(hr))
     {
         // 오류 처리
         return;
@@ -216,10 +261,38 @@ void FGraphicsDevice::ReleaseRasterizerState()
 void FGraphicsDevice::ReleaseDepthStencilResources()
 {
     // 깊이/스텐실 상태 해제
-    if (DepthStencilState)
+    if (DepthStencilState_Default)
     {
-        DepthStencilState->Release();
-        DepthStencilState = nullptr;
+        DepthStencilState_Default->Release();
+        DepthStencilState_Default = nullptr;
+    }
+    if (DepthStencilState_DepthWriteDisabled)
+    {
+        DepthStencilState_DepthWriteDisabled->Release();
+        DepthStencilState_DepthWriteDisabled = nullptr;
+    }
+}
+
+void FGraphicsDevice::ReleaseBlendState()
+{
+    if (BlendState_AlphaBlend)
+    {
+        BlendState_AlphaBlend->Release();
+        BlendState_AlphaBlend = nullptr;
+    }
+}
+
+void FGraphicsDevice::ReleaseSamplerState()
+{
+    if (SamplerState_LinearWrap)
+    {
+        SamplerState_LinearWrap->Release();
+        SamplerState_LinearWrap = nullptr;
+    }
+    if (SamplerState_PointWrap)
+    {
+        SamplerState_PointWrap->Release();
+        SamplerState_PointWrap = nullptr;
     }
 }
 
@@ -231,6 +304,7 @@ void FGraphicsDevice::Release()
     ReleaseDepthStencilResources();
     ReleaseFrameBuffer();
     ReleaseDeviceAndSwapChain();
+    ReleaseBlendState();
 }
 
 void FGraphicsDevice::SwapBuffer() const
@@ -262,16 +336,14 @@ void FGraphicsDevice::Resize(HWND hWindow)
     ScreenWidth = SwapchainDesc.BufferDesc.Width;
     ScreenHeight = SwapchainDesc.BufferDesc.Height;
 
-    Viewport.Width = ScreenWidth;
-    Viewport.Height = ScreenHeight;
+    Viewport.Width = static_cast<float>(ScreenWidth);
+    Viewport.Height = static_cast<float>(ScreenHeight);
     Viewport.MinDepth = 0.0f;
     Viewport.MaxDepth = 1.0f;
     Viewport.TopLeftX = 0;
     Viewport.TopLeftY = 0;
 
     CreateBackBuffer();
-
-    // TODO : Resize에 따른 Depth Pre-Pass 리사이징 필요
 }
 
 void FGraphicsDevice::CreateAlphaBlendState()
@@ -279,19 +351,49 @@ void FGraphicsDevice::CreateAlphaBlendState()
     D3D11_BLEND_DESC BlendDesc = {};
     BlendDesc.AlphaToCoverageEnable = FALSE;
     BlendDesc.IndependentBlendEnable = FALSE;
-    BlendDesc.RenderTarget[0].BlendEnable = TRUE;
-    BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-    const HRESULT Result = Device->CreateBlendState(&BlendDesc, &AlphaBlendState);
-    if (FAILED(Result))
+    D3D11_RENDER_TARGET_BLEND_DESC RtBlendDesc = {};
+    RtBlendDesc.BlendEnable = TRUE;
+    RtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA; // Alpha blend
+    RtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    RtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+    RtBlendDesc.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+    RtBlendDesc.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    RtBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    RtBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    BlendDesc.RenderTarget[0] = RtBlendDesc;
+
+    HRESULT hr = Device->CreateBlendState(&BlendDesc, &BlendState_AlphaBlend);
+    if (FAILED(hr))
     {
-        MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(nullptr, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+    }
+}
+
+void FGraphicsDevice::CreateSamplerState()
+{
+    D3D11_SAMPLER_DESC SamplerDesc = {};
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    SamplerDesc.MinLOD = 0;
+    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    HRESULT hr = Device->CreateSamplerState(&SamplerDesc, &SamplerState_LinearWrap);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
+    }
+
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+    hr = Device->CreateSamplerState(&SamplerDesc, &SamplerState_PointWrap);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }
 }
 
@@ -314,29 +416,6 @@ void FGraphicsDevice::ChangeRasterizer(EViewModeIndex ViewModeIndex)
         break;
     }
     DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
-}
-
-void FGraphicsDevice::CreateRTV(ID3D11Texture2D*& OutTexture, ID3D11RenderTargetView*& OutRTV)
-{
-    D3D11_TEXTURE2D_DESC TextureDesc = {};
-    TextureDesc.Width = ScreenWidth;
-    TextureDesc.Height = ScreenHeight;
-    TextureDesc.MipLevels = 1;
-    TextureDesc.ArraySize = 1;
-    TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    TextureDesc.SampleDesc.Count = 1;
-    TextureDesc.SampleDesc.Quality = 0;
-    TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-    TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    TextureDesc.CPUAccessFlags = 0;
-    TextureDesc.MiscFlags = 0;
-    Device->CreateTexture2D(&TextureDesc, nullptr, &OutTexture);
-
-    D3D11_RENDER_TARGET_VIEW_DESC FogRTVDesc = {};
-    FogRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
-    FogRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
-
-    Device->CreateRenderTargetView(OutTexture, &FogRTVDesc, &OutRTV);
 }
 
 void FGraphicsDevice::Prepare()

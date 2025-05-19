@@ -42,7 +42,6 @@ void FEditorRenderPass::CreateShaders()
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"MATERIAL_INDEX", 0, DXGI_FORMAT_R32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
     D3D11_INPUT_ELEMENT_DESC LayoutPosOnly[] = {
@@ -591,7 +590,9 @@ void FEditorRenderPass::RenderIcons(const UWorld* World, std::shared_ptr<FEditor
 void FEditorRenderPass::UpdateTextureIcon(EIconType Type)
 {
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &Resources.IconTextures[Type]->TextureSRV);
-    Graphics->DeviceContext->PSSetSamplers(0, 1, &Resources.IconTextures[Type]->SamplerState);
+    
+    ID3D11SamplerState* SamplerState = Graphics->GetSamplerState(Resources.IconTextures[Type]->SamplerType);
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &SamplerState);
 }
 
 void FEditorRenderPass::RenderArrowInstanced()

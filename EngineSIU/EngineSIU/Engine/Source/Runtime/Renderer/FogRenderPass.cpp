@@ -28,7 +28,6 @@ void FFogRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDev
     BufferManager = InBufferManager;
     ShaderManager = InShaderManager;
     CreateShader();
-    CreateBlendState();
     CreateSampler();
 }
 
@@ -113,7 +112,7 @@ void FFogRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewpo
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
-    Graphics->DeviceContext->OMSetBlendState(BlendState, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
 
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->SRV);
     
@@ -133,6 +132,9 @@ void FFogRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewpo
 
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, NullSRV);
+
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 }
 
 void FFogRenderPass::UpdateFogConstant(UHeightFogComponent* Fog)
@@ -149,27 +151,6 @@ void FFogRenderPass::UpdateFogConstant(UHeightFogComponent* Fog)
     }
     //상수버퍼 업데이트
     BufferManager->UpdateConstantBuffer(TEXT("FFogConstants"), Constants);
-}
-
-void FFogRenderPass::CreateBlendState()
-{
-    D3D11_BLEND_DESC BlendDesc = {};
-    BlendDesc.AlphaToCoverageEnable = FALSE;
-    BlendDesc.IndependentBlendEnable = FALSE;
-    BlendDesc.RenderTarget[0].BlendEnable = TRUE;
-    BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-    BlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-    BlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    BlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    BlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    BlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-    HRESULT hr = Graphics->Device->CreateBlendState(&BlendDesc, &BlendState);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
-    }
 }
 
 void FFogRenderPass::CreateSampler()

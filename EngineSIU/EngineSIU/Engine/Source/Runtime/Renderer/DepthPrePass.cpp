@@ -7,8 +7,6 @@
 #include "D3D11RHI/DXDShaderManager.h"
 #include "UnrealEd/EditorViewportClient.h"
 
-#define SAFE_RELEASE(p) if (p) { p->Release(); p = nullptr; }
-
 FDepthPrePass::FDepthPrePass()
 {
 }
@@ -50,7 +48,7 @@ void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClie
     
     Graphics->DeviceContext->OMSetBlendState(nullptr, zeroColor, 0xFFFFFFFF); // 또는 Custom DisableBlendState
     // B. Depth-only Rasterizer & DepthStencil 설정
-    Graphics->DeviceContext->OMSetDepthStencilState(DepthStencilState_OnlyWrite, 0);  // 깊이만 기록, 테스트 ON
+    Graphics->DeviceContext->OMSetDepthStencilState(DepthStencilState_OnlyWrite, 0); // 깊이만 기록, 테스트 ON
 
     // C. 컬러 렌더 타겟 없음, 깊이만
     ID3D11RenderTargetView* nullRTV = nullptr;
@@ -71,6 +69,8 @@ void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClie
     Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
