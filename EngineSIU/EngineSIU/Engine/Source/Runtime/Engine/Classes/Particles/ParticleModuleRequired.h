@@ -11,9 +11,28 @@ enum EParticleSortMode : int
     PSORTMODE_MAX,
 };
 
+struct FParticleRequiredModule
+{
+    uint32 NumFrames;
+    uint32 NumBoundingVertices;
+    uint32 NumBoundingTriangles;
+    float AlphaThreshold;
+    TArray<FVector2D> FrameData;
+    ID3D11ShaderResourceView* BoundingGeometryBufferSRV;
+    uint8 bCutoutTexureIsValid : 1;
+    uint8 bUseVelocityForMotionBlur : 1;
+};
+
+struct FParticleRequiredModule;
 class UParticleModuleRequired : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleRequired, UParticleModule)
 public:
     UParticleModuleRequired() = default;
+
+    FParticleRequiredModule* CreateRendererResource();
+
+    UPROPERTY_WITH_FLAGS(EditAnywhere, UMaterial*, MaterialInterface)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseMaxDrawCount)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, int, MaxDrawCount)
 };

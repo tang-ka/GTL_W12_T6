@@ -2,13 +2,15 @@
 #include "Particles/ParticleLODLevel.h"
 #include "Particles/ParticleModule.h"
 #include "Particles/ParticleEmitter.h"
+#include "Particles/ParticleModuleRequired.h"
+#include "Particles/ParticleSystemComponent.h"
 //#include "Particles/ParticleModuleRequired.h"
 
 void FParticleEmitterInstance::Initialize()
 {
-    const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
-
     CurrentLODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
+    
+    const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
 
     if (CurrentLODLevel->RequiredModule)
     {
@@ -87,7 +89,8 @@ void FParticleEmitterInstance::SpawnParticles(
         int32 Offset = 0;
         float SpawnTime = StartTime + Increment * i;
 
-        for (auto* Module : CurrentLODLevel->GetModules())
+        UParticleLODLevel* LODLevel = CurrentLODLevel;
+        for (auto* Module : LODLevel->GetModules())
         {
             Module->Spawn(this, Offset, SpawnTime, Particle);
         }
@@ -171,6 +174,26 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
     }
 }
 
+bool FParticleEmitterInstance::IsDynamicDataRequired()
+{
+    if (ActiveParticles <= 0 || !SpriteTemplate)
+    {
+        return false;
+    }
+
+    if (CurrentLODLevel == nullptr || CurrentLODLevel->bEnabled == false ||
+        ((CurrentLODLevel->RequiredModule->bUseMaxDrawCount == true) && (CurrentLODLevel->RequiredModule->MaxDrawCount == 0)))
+    {
+        return false;
+    }
+
+    if (Component == nullptr)
+    {
+        return false;
+    }
+    return true;
+}
+
 void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
 {
     for (int32 i = 0; i < ActiveParticles; ++i)
@@ -201,3 +224,148 @@ void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
         Particle->Size = Particle->BaseSize;
     }
 }
+
+bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& OutData)
+{
+    // Make sure there is a template present
+    if (!SpriteTemplate)
+    {
+        return false;
+    }
+
+    // Allocate it for now, but we will want to change this to do some form
+    // of caching
+    if (ActiveParticles <= 0 || !bEnabled)
+    {
+        return false;
+    }
+    // If the template is disabled, don't return data.
+    if ((CurrentLODLevel == nullptr) || (CurrentLODLevel->bEnabled == false))
+    {
+        return false;
+    }
+
+    OutData.eEmitterType = DET_Unknown;
+
+    OutData.ActiveParticleCount = ActiveParticles;
+    OutData.ParticleStride = ParticleStride;
+    // OutData.SortMode = SortMode;
+
+    OutData.Scale = FVector::OneVector;
+    if (Component)
+    {
+        OutData.Scale = FVector(Component->GetComponentTransform().GetScale3D());
+    }
+
+    int32 ParticleMemSize = MaxActiveParticles * ParticleStride;
+    OutData.DataContainer.Alloc(ParticleMemSize, MaxActiveParticles);
+
+    memcpy(OutData.DataContainer.ParticleData, ParticleData, ParticleMemSize);
+    memcpy(OutData.DataContainer.ParticleIndices, ParticleIndices, MaxActiveParticles * sizeof(uint16));
+
+    return true;
+}
+
+
+//////////////////////// SpriteEmitter
+FDynamicEmitterDataBase* FParticleSpriteEmitterInstance::GetDynamicData(bool bSelected)
+{
+    // It is valid for the LOD level to be NULL here!
+    if (IsDynamicDataRequired() == false || !bEnabled)
+    {
+        return nullptr;
+    }
+
+    // Allocate the dynamic data
+    FDynamicSpriteEmitterData* NewEmitterData = new FDynamicSpriteEmitterData(CurrentLODLevel->RequiredModule);
+
+    // Now fill in the source data
+    if(!FillReplayData( NewEmitterData->Source ) )
+    {
+        delete NewEmitterData;
+        return nullptr;
+    }
+
+    // Setup dynamic render data.  Only call this AFTER filling in source data for the emitter.
+    NewEmitterData->Init( bSelected );
+
+    return NewEmitterData;
+}
+
+bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& OutData) // TODO: 필요한 거 주석 해제
+{
+    if (ActiveParticles <= 0)
+    {
+        return false;
+    }
+
+    // Call parent implementation first to fill in common particle source data
+    if(!FParticleEmitterInstance::FillReplayData( OutData ) )
+    {
+        return false;
+    }
+
+    OutData.eEmitterType = DET_Sprite;
+
+    FDynamicSpriteEmitterReplayDataBase* NewReplayData = static_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
+
+    
+    NewReplayData->RequiredModule = CurrentLODLevel->RequiredModule->CreateRendererResource();
+    NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
+    
+    // NewReplayData->InvDeltaSeconds = (LastDeltaTime > KINDA_SMALL_NUMBER) ? (1.0f / LastDeltaTime) : 0.0f;
+    // NewReplayData->LWCTile = ((Component == nullptr) || CurrentLODLevel->RequiredModule->bUseLocalSpace) ? FVector::Zero() : Component->GetLWCTile();
+
+    NewReplayData->MaxDrawCount = CurrentLODLevel->RequiredModule->bUseMaxDrawCount == true ? CurrentLODLevel->RequiredModule->MaxDrawCount : -1;
+    // NewReplayData->ScreenAlignment	= CurrentLODLevel->RequiredModule->ScreenAlignment;
+    // NewReplayData->bUseLocalSpace = CurrentLODLevel->RequiredModule->bUseLocalSpace;
+    // NewReplayData->EmitterRenderMode = SpriteTemplate->EmitterRenderMode;
+    // NewReplayData->DynamicParameterDataOffset = DynamicParameterDataOffset;
+    // NewReplayData->LightDataOffset = LightDataOffset;
+    // NewReplayData->LightVolumetricScatteringIntensity = LightVolumetricScatteringIntensity;
+    // NewReplayData->CameraPayloadOffset = CameraPayloadOffset;
+
+    // NewReplayData->SubUVDataOffset = SubUVDataOffset;
+    // NewReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImages_Horizontal;
+    // NewReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImages_Vertical;
+
+    // NewReplayData->MacroUVOverride.bOverride = CurrentLODLevel->RequiredModule->bOverrideSystemMacroUV;
+    // NewReplayData->MacroUVOverride.Radius = CurrentLODLevel->RequiredModule->MacroUVRadius;
+    // NewReplayData->MacroUVOverride.Position = FVector(CurrentLODLevel->RequiredModule->MacroUVPosition);
+        
+    // NewReplayData->bLockAxis = false;
+    // if (bAxisLockEnabled == true)
+    // {
+        // NewReplayData->LockAxisFlag = LockAxisFlags;
+        // if (LockAxisFlags != EPAL_NONE)
+        // {
+            // NewReplayData->bLockAxis = true;
+        // }
+    // }
+
+    // // If there are orbit modules, add the orbit module data
+    // if (LODLevel->OrbitModules.Num() > 0)
+    // {
+    // 	UParticleLODLevel* HighestLODLevel = SpriteTemplate->LODLevels[0];
+    // 	UParticleModuleOrbit* LastOrbit = HighestLODLevel->OrbitModules[LODLevel->OrbitModules.Num() - 1];
+    // 	check(LastOrbit);
+    //
+    // 	uint32* LastOrbitOffset = SpriteTemplate->ModuleOffsetMap.Find(LastOrbit);
+    // 	NewReplayData->OrbitModuleOffset = *LastOrbitOffset;
+    // }
+
+    // NewReplayData->EmitterNormalsMode = CurrentLODLevel->RequiredModule->EmitterNormalsMode;
+    // NewReplayData->NormalsSphereCenter = (FVector)CurrentLODLevel->RequiredModule->NormalsSphereCenter;
+    // NewReplayData->NormalsCylinderDirection = (FVector)CurrentLODLevel->RequiredModule->NormalsCylinderDirection;
+
+    // NewReplayData->PivotOffset = FVector2D(PivotOffset);
+
+    // NewReplayData->bUseVelocityForMotionBlur = CurrentLODLevel->RequiredModule->ShouldUseVelocityForMotionBlur();
+    // NewReplayData->bRemoveHMDRoll = CurrentLODLevel->RequiredModule->bRemoveHMDRoll;
+    // NewReplayData->MinFacingCameraBlendDistance = CurrentLODLevel->RequiredModule->MinFacingCameraBlendDistance;
+    // NewReplayData->MaxFacingCameraBlendDistance = CurrentLODLevel->RequiredModule->MaxFacingCameraBlendDistance;
+
+    return true;
+}
+
+

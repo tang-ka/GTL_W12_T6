@@ -59,6 +59,8 @@
 #include "Container/Array.h"
 
 
+class UMaterial;
+
 struct FBaseParticle
 {
     // 48 bytes
@@ -251,7 +253,7 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
-    // UMaterialInterface*                MaterialInterface;
+    UMaterial*                         MaterialInterface;
     struct FParticleRequiredModule    *RequiredModule;
     FVector                            NormalsSphereCenter;
     FVector                            NormalsCylinderDirection;
@@ -298,6 +300,8 @@ struct FDynamicEmitterDataBase
     virtual void GetDynamicMeshElementsEmitter(/* const FParticleSystemSceneProxy* Proxy, const FSceneView* View, const FSceneViewFamily& ViewFamily, int32 ViewIndex, FMeshElementCollector& Collector */) const {}
     
 	int32  EmitterIndex;
+    
+    uint32	bSelected:1;
 };
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
@@ -330,6 +334,8 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
     {
         return nullptr;
     }
+
+    uint32 bUsesDynamicParameter:1;
 };
 
 struct FDynamicSpriteEmitterReplayData : public FDynamicSpriteEmitterReplayDataBase
@@ -344,6 +350,9 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
     {
         
     }
+
+    /** Initialize this emitter's dynamic rendering data, called after source data has been filled in */
+    void Init( bool bInSelected );
 
     /**
      *	Get the source replay data for this emitter

@@ -3,6 +3,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class FParticleDynamicData;
 class UParticleSystem;
 struct FParticleEmitterInstance;
 struct FDynamicEmitterDataBase;
@@ -35,6 +36,9 @@ public:
 
 public:
     void InitializeSystem();
+
+    void UpdateDynamicData();
+    FParticleDynamicData* CreateDynamicData();
 
     UParticleSystem* GetParticleSystem() const { return Template; }
     void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }
