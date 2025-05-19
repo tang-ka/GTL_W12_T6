@@ -15,6 +15,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 
 
+struct FTranslucentRenderPass;
 class IRenderPass;
 class FLightHeatMapRenderPass;
 class FPostProcessCompositingPass;
@@ -104,6 +105,7 @@ public:
     FFogRenderPass* FogRenderPass = nullptr;
     FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
     FEditorRenderPass* EditorRenderPass = nullptr;
+    FTranslucentRenderPass* TranslucentRenderPass = nullptr;
     
     FDepthPrePass* DepthPrePass = nullptr;
     FTileLightCullingPass* TileLightCullingPass = nullptr;

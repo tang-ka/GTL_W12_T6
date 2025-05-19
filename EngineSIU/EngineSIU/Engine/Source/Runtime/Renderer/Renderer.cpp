@@ -18,6 +18,7 @@
 #include "EditorRenderPass.h"
 #include "DepthPrePass.h"
 #include "TileLightCullingPass.h"
+#include "TranslucentRenderPass.h"
 
 #include "CompositingPass.h"
 #include "PostProcessCompositingPass.h"
@@ -55,6 +56,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     FogRenderPass = AddRenderPass<FFogRenderPass>();
     CameraEffectRenderPass = AddRenderPass<FCameraEffectRenderPass>();
     EditorRenderPass = AddRenderPass<FEditorRenderPass>();
+    TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
     
     DepthPrePass = AddRenderPass<FDepthPrePass>();
     TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
@@ -407,7 +409,7 @@ void FRenderer::RenderTranslucent(const std::shared_ptr<FEditorViewportClient>& 
         {
             QUICK_SCOPE_CYCLE_COUNTER(TranslucentPass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(TranslucentPass_GPU, *GPUTimingManager)
-            // TODO: Render Scene Translucent Element
+            TranslucentRenderPass->Render(Viewport);
         }
     }
 }
