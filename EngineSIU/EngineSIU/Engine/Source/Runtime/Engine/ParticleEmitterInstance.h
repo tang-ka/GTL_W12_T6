@@ -39,6 +39,9 @@ public:
     int32 MaxActiveParticles;
     /** The fraction of time left over from spawning.                   */
 
+    /** Component can disable Tick and Rendering of this emitter. */
+    uint8 bEnabled : 1;
+
     float AccumulatedTime = 0;
     DistributionFloat* SpawnRateDistribution;
     float SpawnFraction = 0;
@@ -57,15 +60,21 @@ public:
     void PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime);
     void UpdateParticles(float DeltaTime);
     void UpdateModules(float DeltaTime);
+
+    virtual bool IsDynamicDataRequired();
+    virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) { return nullptr; }
+
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData );
 };
 
 struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance
 {
-    
+    virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) override;
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData ) override;
 };
 
 
 struct FParticleMeshEmitterInstance : public FParticleEmitterInstance
 {
-    
+    virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) override;
 };

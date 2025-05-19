@@ -1,19 +1,20 @@
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "D3D11RHI/DXDBufferManager.h"
 
-class FCameraEffectRenderPass : public IRenderPass
+class FCameraEffectRenderPass : public FRenderPassBase
 {
 public:
-    FCameraEffectRenderPass();
-    virtual ~FCameraEffectRenderPass() override;
+    FCameraEffectRenderPass() = default;
+    virtual ~FCameraEffectRenderPass() override = default;
+    
     virtual void PrepareRenderArr() override {}
     virtual void ClearRenderArr() override {}
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
-    void ReleaseShader();
+    
     void CreateShader();
     void UpdateShader();
     void CreateBlendState();
@@ -23,9 +24,8 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
 private:
-    FGraphicsDevice* Graphics = nullptr;
-    FDXDBufferManager* BufferManager = nullptr;
-    FDXDShaderManager* ShaderManager = nullptr;
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     ID3D11VertexShader* VertexShader = nullptr;
     ID3D11PixelShader* PixelShader = nullptr;

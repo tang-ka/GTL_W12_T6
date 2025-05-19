@@ -1,5 +1,5 @@
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 #include "Container/Set.h"
 #include "Define.h"
@@ -12,11 +12,11 @@ class FEditorViewportClient;
 
 struct FLinePrimitiveBatchArgs;
 
-class FLineRenderPass : public IRenderPass
+class FLineRenderPass : public FRenderPassBase
 {
 public:
     FLineRenderPass();
-    ~FLineRenderPass();
+    virtual ~FLineRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     virtual void PrepareRenderArr() override;
@@ -27,14 +27,12 @@ public:
     void CreateShader();
     void UpdateShader();
     void PrepareLineShader() const;
-    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
     void ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport);
     void DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) const;
 
-private:
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     // 라인 셰이더 관련 멤버
     ID3D11VertexShader* VertexLineShader;

@@ -69,3 +69,42 @@ void UParticleSystemComponent::CreateAndAddEmitterInstance(UParticleEmitter* Emi
     }
 }
 
+void UParticleSystemComponent::UpdateDynamicData()
+{
+    // Create the dynamic data for rendering this particle system
+    FParticleDynamicData* ParticleDynamicData = CreateDynamicData();
+}
+
+FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
+{
+    if (EmitterInstances.Num() > 0)
+    {
+        int32 LiveCount = 0;
+        for (int32 EmitterIndex = 0; EmitterIndex < EmitterInstances.Num(); EmitterIndex++)
+        {
+            FParticleEmitterInstance* EmitInst = EmitterInstances[EmitterIndex];
+            if (EmitInst)
+            {
+                if (EmitInst->ActiveParticles > 0)
+                {
+                    LiveCount++;
+                }
+            }
+        }
+
+        if (LiveCount == 0)
+        {
+            return nullptr;
+        }
+    }
+
+    FParticleDynamicData* ParticleDynamicData = new FParticleDynamicData();
+
+    if (Template)
+    {
+        ParticleDynamicData->SystemPositionForMacroUVs = GetComponentTransform().TransformPosition(Template->GetMacroUVPosition());
+        ParticleDynamicData->SystemRadiusForMacroUVs = Template->GetMacroUVRadius();
+    }
+
+    return ParticleDynamicData;
+}

@@ -233,8 +233,6 @@ void FShadowManager::BindResourcesForSampling(
 
         BufferManager->UpdateConstantBuffer(TEXT("FCascadeConstantBuffer"), CascadeData);
         BufferManager->BindConstantBuffer(TEXT("FCascadeConstantBuffer"), 9, EShaderStage::Pixel);
-        /*ID3D11Buffer* CascadeConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCascadeConstantBuffer"));
-        D3DContext->PSSetConstantBuffers(9,1,&CascadeConstantBuffer);*/
     }
 
     // 샘플러 바인딩

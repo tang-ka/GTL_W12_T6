@@ -7,14 +7,10 @@
 #include "RendererHelpers.h"
 #include "UnrealClient.h"
 
-FCameraEffectRenderPass::FCameraEffectRenderPass() {}
-FCameraEffectRenderPass::~FCameraEffectRenderPass() { ReleaseShader(); }
-
 void FCameraEffectRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    Graphics = InGraphics;
-    BufferManager = InBufferManager;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
+    
     CreateShader();
     CreateBlendState();
     CreateSampler();
@@ -36,8 +32,6 @@ void FCameraEffectRenderPass::UpdateShader()
     VertexShader = ShaderManager->GetVertexShaderByKey(L"CameraEffectVertexShader");
     PixelShader = ShaderManager->GetPixelShaderByKey(L"CameraEffectPixelShader");
 }
-
-void FCameraEffectRenderPass::ReleaseShader() {}
 
 void FCameraEffectRenderPass::CreateBlendState()
 {
@@ -136,6 +130,14 @@ void FCameraEffectRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->Draw(6, 0);
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+}
+
+void FCameraEffectRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FCameraEffectRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 
 

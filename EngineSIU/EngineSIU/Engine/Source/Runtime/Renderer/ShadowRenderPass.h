@@ -1,5 +1,5 @@
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 #include "Container/Set.h"
 #include "Define.h"
@@ -20,14 +20,14 @@ class FDXDShaderManager;
 class FGraphicsDevice;
 class ULightComponentBase;
 
-class FShadowRenderPass : public IRenderPass
+class FShadowRenderPass : public FRenderPassBase
 {
 public:
-    FShadowRenderPass();
-    virtual ~FShadowRenderPass() override;
+    FShadowRenderPass() = default;
+    virtual ~FShadowRenderPass() override = default;
+    
     void CreateShader();
-    void PrepareCubeMapRenderState(
-    );
+    void PrepareCubeMapRenderState();
     void UpdateCubeMapConstantBuffer(UPointLightComponent*& PointLight, const FMatrix& WorldMatrix) const;
     void RenderCubeMap(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
     void SetLightData(const TArray<class UPointLightComponent*>& InPointLights, const TArray<class USpotLightComponent*>& InSpotLights);
@@ -48,21 +48,17 @@ public:
                                      FCascadeConstantBuffer FCasCadeData);
     void BindResourcesForSampling();
 
-    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
-
     void RenderAllStaticMeshesForPointLight(const std::shared_ptr<FEditorViewportClient>& Viewport, UPointLightComponent*& PointLight);
 
-
-private:
-
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     
+private:
     TArray<class UStaticMeshComponent*> StaticMeshComponents;
     TArray<UPointLightComponent*> PointLights;
     TArray<USpotLightComponent*> SpotLights;
     
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
     FShadowManager* ShadowManager;
 
     ID3D11InputLayout* StaticMeshIL;

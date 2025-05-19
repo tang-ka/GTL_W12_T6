@@ -8,23 +8,13 @@
 #include "UnrealEd/EditorViewportClient.h"
 
 FPostProcessCompositingPass::FPostProcessCompositingPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-    , Sampler(nullptr)
+    : Sampler(nullptr)
 {
-}
-
-FPostProcessCompositingPass::~FPostProcessCompositingPass()
-{
-    
 }
 
 void FPostProcessCompositingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManage;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);
 
     ShaderManager->AddVertexShader(L"PostProcessCompositing", L"Shaders/PostProcessCompositingShader.hlsl", "mainVS");
     ShaderManager->AddPixelShader(L"PostProcessCompositing", L"Shaders/PostProcessCompositingShader.hlsl", "mainPS");
@@ -73,6 +63,8 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(nullptr);
+    Graphics->DeviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+    
     Graphics->DeviceContext->Draw(6, 0);
 
     // Finish
@@ -84,5 +76,13 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
 }
 
 void FPostProcessCompositingPass::ClearRenderArr()
+{
+}
+
+void FPostProcessCompositingPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FPostProcessCompositingPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
 }

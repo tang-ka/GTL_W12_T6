@@ -801,7 +801,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     // 앰비언트
 #ifdef LIGHTING_MODEL_PBR
-    float3 IBL_DiffuseColor = float3(0.03, 0.03, 0.03); // TODO: 임시 값으로, 추후 IBL 적용
+    float3 IBL_DiffuseColor = float3(0.01, 0.01, 0.01); // TODO: 임시 값으로, 추후 IBL 적용
 
     if (AmbientLightsCount > 0)
     {
@@ -809,7 +809,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     }
     AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
-    float3 AmbientLightColor = float3(0.025, 0.025, 0.025);
+    float3 AmbientLightColor = float3(0.01, 0.01, 0.01);
     
     if (AmbientLightsCount > 0)
     {
@@ -914,7 +914,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 
     // 앰비언트
 #ifdef LIGHTING_MODEL_PBR
-    float3 IBL_DiffuseColor = float3(0.03, 0.03, 0.03); // TODO: 임시 값으로, 추후 IBL 적용
+    float3 IBL_DiffuseColor = float3(0.01, 0.01, 0.01); // TODO: 임시 값으로, 추후 IBL 적용
 
     if (AmbientLightsCount > 0)
     {
@@ -922,7 +922,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     }
     AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
-    float3 AmbientLightColor = float3(0.025, 0.025, 0.025);
+    float3 AmbientLightColor = float3(0.01, 0.01, 0.01);
     
     if (AmbientLightsCount > 0)
     {

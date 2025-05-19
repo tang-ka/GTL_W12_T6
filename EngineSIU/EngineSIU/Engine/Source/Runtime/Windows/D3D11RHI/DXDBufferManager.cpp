@@ -46,6 +46,29 @@ void FDXDBufferManager::ReleaseConstantBuffer()
     ConstantBufferPool.Empty();
 }
 
+void FDXDBufferManager::ReleaseStructuredBuffer()
+{
+    for (auto& Pair : StructuredBufferSRVPool)
+    {
+        if (Pair.Value)
+        {
+            Pair.Value->Release();
+            Pair.Value = nullptr;
+        }
+    }
+    StructuredBufferSRVPool.Empty();
+
+    for (auto& Pair : StructuredBufferPool)
+    {
+        if (Pair.Value)
+        {
+            Pair.Value->Release();
+            Pair.Value = nullptr;
+        }
+    }
+    StructuredBufferPool.Empty();
+}
+
 void FDXDBufferManager::BindConstantBuffers(const TArray<FString>& Keys, UINT StartSlot, EShaderStage Stage) const
 {
     const int Count = Keys.Num();
@@ -79,51 +102,104 @@ void FDXDBufferManager::BindConstantBuffer(const FString& Key, UINT StartSlot, E
 {
     ID3D11Buffer* Buffer = GetConstantBuffer(Key);
     if (Stage == EShaderStage::Vertex)
+    {
         DXDeviceContext->VSSetConstantBuffers(StartSlot, 1, &Buffer);
+    }
     else if (Stage == EShaderStage::Pixel)
+    {
         DXDeviceContext->PSSetConstantBuffers(StartSlot, 1, &Buffer);
+    }
     else if (Stage == EShaderStage::Compute)
+    {
         DXDeviceContext->CSSetConstantBuffers(StartSlot, 1, &Buffer);
+    }
     else if (Stage == EShaderStage::Geometry)
+    {
         DXDeviceContext->GSSetConstantBuffers(StartSlot, 1, &Buffer);
+    }
+}
+
+void FDXDBufferManager::BindStructuredBufferSRV(const FString& Key, UINT StartSlot, EShaderStage Stage) const
+{
+    ID3D11ShaderResourceView* SRV = GetStructuredBufferSRV(Key);
+    if (Stage == EShaderStage::Vertex)
+    {
+        DXDeviceContext->VSSetShaderResources(StartSlot, 1, &SRV);
+    }
+    else if (Stage == EShaderStage::Pixel)
+    {
+        DXDeviceContext->PSSetShaderResources(StartSlot, 1, &SRV);
+    }
+    else if (Stage == EShaderStage::Compute)
+    {
+        DXDeviceContext->CSSetShaderResources(StartSlot, 1, &SRV);
+    }
+    else if (Stage == EShaderStage::Geometry)
+    {
+        DXDeviceContext->GSSetShaderResources(StartSlot, 1, &SRV);
+    }
 }
 
 FVertexInfo FDXDBufferManager::GetVertexBuffer(const FString& InName) const
 {
     if (VertexBufferPool.Contains(InName))
+    {
         return VertexBufferPool[InName];
+    }
     return FVertexInfo();
 }
 
 FIndexInfo FDXDBufferManager::GetIndexBuffer(const FString& InName) const
 {
     if (IndexBufferPool.Contains(InName))
+    {
         return IndexBufferPool[InName];
+    }
     return FIndexInfo();
 }
 
 FVertexInfo FDXDBufferManager::GetTextVertexBuffer(const FWString& InName) const
 {
     if (TextAtlasVertexBufferPool.Contains(InName))
+    {
         return TextAtlasVertexBufferPool[InName];
-
+    }
     return FVertexInfo();
 }
 
 FIndexInfo FDXDBufferManager::GetTextIndexBuffer(const FWString& InName) const
 {
     if (TextAtlasIndexBufferPool.Contains(InName))
+    {
         return TextAtlasIndexBufferPool[InName];
-
+    }
     return FIndexInfo();
 }
-
 
 ID3D11Buffer* FDXDBufferManager::GetConstantBuffer(const FString& InName) const
 {
     if (ConstantBufferPool.Contains(InName))
+    {
         return ConstantBufferPool[InName];
+    }
+    return nullptr;
+}
 
+ID3D11Buffer* FDXDBufferManager::GetStructuredBuffer(const FString& InName) const
+{
+    if (StructuredBufferPool.Contains(InName))
+    {
+        return StructuredBufferPool[InName];
+    }
+    return nullptr;
+}
+
+ID3D11ShaderResourceView* FDXDBufferManager::GetStructuredBufferSRV(const FString& InName) const
+{
+    if (StructuredBufferSRVPool.Contains(InName))
+    {
+        return StructuredBufferSRVPool[InName];
+    }
     return nullptr;
 }
 
