@@ -81,6 +81,8 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(nullptr);
+    Graphics->DeviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+    
     Graphics->DeviceContext->Draw(6, 0);
 
     // Finish
