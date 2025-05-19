@@ -12,8 +12,6 @@ void FParticleEmitterInstance::Initialize()
     
     const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
 
-    const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
-
     if (CurrentLODLevel->RequiredModule)
     {
         MaxActiveParticles = CurrentLODLevel->CalculateMaxActiveParticleCount();
