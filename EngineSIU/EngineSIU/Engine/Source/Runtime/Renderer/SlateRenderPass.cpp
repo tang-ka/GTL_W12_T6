@@ -4,8 +4,10 @@
 #include "UnrealClient.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/DXDShaderManager.h"
+#include "Engine/Engine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/Object.h"
+#include "World/World.h"
 
 void FSlateRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -30,20 +32,40 @@ void FSlateRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     uint32 ClientHeight = 0;
     GEngineLoop.GetClientSize(ClientWidth, ClientHeight);
 
-    const float ClientWidthFloat = static_cast<float>(ClientWidth);
-    const float ClientHeightFloat = static_cast<float>(ClientHeight);
+    float ClientWidthFloat = static_cast<float>(ClientWidth);
+    float ClientHeightFloat = static_cast<float>(ClientHeight);
 
     // 버퍼 업데이트
     FSlateTransform Transform;
     // Client에서의 FViewport 위치를 기반으로 Scale과 Offset 계산
-    Transform.Scale = FVector2D(
-        Rect.Width / ClientWidthFloat,
-        Rect.Height / ClientHeightFloat
-    );
-    Transform.Offset = FVector2D(
-        (Rect.TopLeftX + Rect.Width * 0.5f) / ClientWidthFloat * 2.0f - 1.0f,
-        1.0f - (Rect.TopLeftY + Rect.Height * 0.5f) / ClientHeightFloat * 2.0f
-    );
+
+    
+    if (GEngine->ActiveWorld->WorldType == EWorldType::ParticleViewer)
+    {
+        ClientWidthFloat /= 0.5f;
+        ClientHeightFloat /= 0.5f;
+        
+        Transform.Scale = FVector2D(
+    Rect.Width / ClientWidthFloat,
+    Rect.Height / ClientHeightFloat
+        );
+        
+        Transform.Offset = FVector2D(
+    (Rect.TopLeftX + Rect.Width * 0.5f) / ClientWidthFloat * 2.0f - 1.0f,
+    1.0f - (Rect.TopLeftY + Rect.Height * 0.5f) / ClientHeightFloat * 2.0f
+        );
+    }
+    else
+    {
+        Transform.Scale = FVector2D(
+            Rect.Width / ClientWidthFloat,
+            Rect.Height / ClientHeightFloat
+        );
+        Transform.Offset = FVector2D(
+            (Rect.TopLeftX + Rect.Width * 0.5f) / ClientWidthFloat * 2.0f - 1.0f,
+            1.0f - (Rect.TopLeftY + Rect.Height * 0.5f) / ClientHeightFloat * 2.0f
+        );
+    }
 
     // SlateTransform 버퍼 업데이트
     BufferManager->UpdateConstantBuffer<FSlateTransform>("FSlateTransform", Transform);

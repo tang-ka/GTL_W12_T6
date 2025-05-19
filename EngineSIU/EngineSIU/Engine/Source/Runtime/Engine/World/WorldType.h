@@ -10,6 +10,7 @@ enum class EWorldType
     GamePreview,
     GameRPC,
     SkeletalViewer,
+    ParticleViewer,
     Inactive
 };
 
@@ -24,7 +25,8 @@ enum class EWorldTypeBitFlag
     GamePreview = 1 << 4,
     GameRPC = 1 << 5,
     SkeletalViewer = 1 << 6,
-    Inactive = 1 << 7
+    ParticleViewer = 1 << 7,
+    Inactive = 1 << 8
 };
 
 inline EWorldTypeBitFlag operator|(EWorldTypeBitFlag A, EWorldTypeBitFlag B)

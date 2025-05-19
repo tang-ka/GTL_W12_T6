@@ -9,7 +9,6 @@
 
 #include "EngineBaseTypes.h"
 #include "Define.h"
-#include "ParticleRenderPass.h"
 #include "Container/Set.h"
 
 #include "D3D11RHI/GraphicDevice.h"
@@ -74,6 +73,7 @@ protected:
     void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void RenderFinalResult(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderParticleViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void EndRender() const;
     void ClearRenderArr() const;

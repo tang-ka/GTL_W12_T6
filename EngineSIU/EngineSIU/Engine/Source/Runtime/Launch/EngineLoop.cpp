@@ -128,7 +128,6 @@ void FEngineLoop::Render() const
     else
     {
         Renderer.Render(LevelEditor->GetActiveViewportClient());
-        
         Renderer.RenderViewport(LevelEditor->GetActiveViewportClient());
     }
     

@@ -44,10 +44,13 @@
 #include "imgui/imgui_curve.h"
 #include "Math/Transform.h"
 #include "Animation/AnimStateMachine.h"
+#include "Particles/ParticleEmitter.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
-    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE);
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor| EWorldTypeBitFlag::PIE);
 }
 
 void PropertyEditorPanel::Render()
@@ -59,17 +62,11 @@ void PropertyEditorPanel::Render()
     }
     
     /* Pre Setup */
-    float PanelWidth = (Width) * 0.2f - 6.0f;
-    float PanelHeight = (Height) * 0.65f;
+    float PanelWidth = (Width) * 0.2f - 5.0f;
+    float PanelHeight = (Height)-((Height) * 0.3f + 10.0f) - 32.0f;
 
-    float PanelPosX = (Width) * 0.8f + 5.0f;
-    float PanelPosY = (Height) * 0.3f + 15.0f;
-
-    ImVec2 MinSize(140, 370);
-    ImVec2 MaxSize(FLT_MAX, 900);
-
-    /* Min, Max Size */
-    ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
+    float PanelPosX = (Width) * 0.8f + 4.0f;
+    float PanelPosY = (Height) * 0.3f + 10.0f;
 
     /* Panel Position */
     ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY), ImGuiCond_Always);
@@ -179,6 +176,11 @@ void PropertyEditorPanel::Render()
     if (USpringArmComponent* SpringArmComponent = GetTargetComponent<USpringArmComponent>(SelectedActor, SelectedComponent))
     {
         RenderForSpringArmComponent(SpringArmComponent);
+    }
+
+    if (UParticleSystemComponent* ParticleSystemComponent = GetTargetComponent<UParticleSystemComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForParticleSystem(ParticleSystemComponent);
     }
 
     if (SelectedActor)
@@ -718,6 +720,29 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComponent) const
+{
+    if (ImGui::Button("Open Viewer"))
+    {
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+        if (!Engine)
+        {
+            return;
+        }
+        if (ParticleSystemComponent)
+        {
+            UParticleSystem* TestParticleSystem = ParticleSystemComponent->GetParticleSystem();
+            //////////////////// 테스트 코드
+            if (TestParticleSystem == nullptr)
+            {
+                TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(ParticleSystemComponent);
+            }
+            ///////////////////////////////
+            Engine->StartParticleViewer(FName("TempParticle"), TestParticleSystem);
+        }
+    }
 }
 
 void PropertyEditorPanel::RenderForAmbientLightComponent(UAmbientLightComponent* AmbientLightComponent) const
