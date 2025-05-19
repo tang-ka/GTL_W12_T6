@@ -29,8 +29,6 @@ public:
 
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     
-    void InitializeShadowManager(class FShadowManager* InShadowManager);
-    
     void UpdateLitUnlitConstant(int32 IsLit) const;
 
     void CreateShader();
@@ -49,8 +47,6 @@ protected:
     
     TArray<UStaticMeshComponent*> StaticMeshComponents;
     TArray<USkeletalMeshComponent*> SkeletalMeshComponents;
-    
-    FShadowManager* ShadowManager;
 
     ID3D11VertexShader* VertexShader_StaticMesh = nullptr;
     ID3D11InputLayout* InputLayout_StaticMesh = nullptr;

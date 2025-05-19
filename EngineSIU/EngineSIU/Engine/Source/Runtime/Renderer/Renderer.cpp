@@ -72,7 +72,6 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
         RenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     }
     ShadowRenderPass->InitializeShadowManager(ShadowManager);
-    OpaqueRenderPass->InitializeShadowManager(ShadowManager);
 }
 
 void FRenderer::Release()
@@ -342,6 +341,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
             ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
             ShadowRenderPass->Render(Viewport);
+            ShadowManager->BindResourcesForSampling();
         }
     }
 

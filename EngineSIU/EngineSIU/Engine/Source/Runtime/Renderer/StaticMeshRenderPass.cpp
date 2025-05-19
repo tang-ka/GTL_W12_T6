@@ -333,11 +333,6 @@ void FOpaqueRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
     CreateShader();
 }
 
-void FOpaqueRenderPass::InitializeShadowManager(class FShadowManager* InShadowManager)
-{
-    ShadowManager = InShadowManager;
-}
-
 void FOpaqueRenderPass::PrepareRenderArr()
 {
     for (const auto Iter : TObjectRange<UMeshComponent>())
@@ -372,8 +367,6 @@ void FOpaqueRenderPass::UpdateLitUnlitConstant(int32 IsLit) const
 
 void FOpaqueRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    ShadowManager->BindResourcesForSampling();
-    
     PrepareRender(Viewport);
 
     PrepareStaticMesh();
