@@ -17,25 +17,9 @@
 #include "UObject/UObjectIterator.h"
 #include "TileLightCullingPass.h"
 
-//------------------------------------------------------------------------------
-// 생성자/소멸자
-//------------------------------------------------------------------------------
-FUpdateLightBufferPass::FUpdateLightBufferPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-{
-}
-
-FUpdateLightBufferPass::~FUpdateLightBufferPass()
-{
-}
-
 void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 
     CreatePointLightBuffer();
     CreatePointLightPerTilesBuffer();
@@ -69,6 +53,14 @@ void FUpdateLightBufferPass::PrepareRenderArr()
     }
 }
 
+void FUpdateLightBufferPass::ClearRenderArr()
+{
+    PointLights.Empty();
+    SpotLights.Empty();
+    DirectionalLights.Empty();
+    AmbientLights.Empty();
+}
+
 void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     UpdateLightBuffer();
@@ -79,14 +71,6 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
     // 타일별 조명 인덱스 리스트
     Graphics->DeviceContext->PSSetShaderResources(12, 1, &PointLightIndexBufferSRV);
     Graphics->DeviceContext->PSSetShaderResources(13, 1, &SpotLightIndexBufferSRV);
-}
-
-void FUpdateLightBufferPass::ClearRenderArr()
-{
-    PointLights.Empty();
-    SpotLights.Empty();
-    DirectionalLights.Empty();
-    AmbientLights.Empty();
 }
 
 
@@ -418,4 +402,12 @@ void FUpdateLightBufferPass::UpdateSpotLightPerTilesBuffer()
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightPerTilesBuffer, 0, nullptr,
         TempBuffer.GetData(), 0, 0);
+}
+
+void FUpdateLightBufferPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FUpdateLightBufferPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }

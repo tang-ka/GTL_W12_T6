@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "EngineBaseTypes.h"
 #include "Container/Set.h"
 #include "Define.h"
@@ -29,16 +29,16 @@ struct SpotLightPerTile {
     uint32 Padding[3];
 };
 
-class FUpdateLightBufferPass : public IRenderPass
+class FUpdateLightBufferPass : public FRenderPassBase
 {
 public:
-    FUpdateLightBufferPass();
-    virtual ~FUpdateLightBufferPass();
+    FUpdateLightBufferPass() = default;
+    virtual ~FUpdateLightBufferPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     virtual void PrepareRenderArr() override;
-    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
+    virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     void UpdateLightBuffer() const;
 
     void SetPointLightData(const TArray<UPointLightComponent*>& InPointLights, TArray<TArray<uint32>> InPointLightPerTiles);
@@ -57,15 +57,15 @@ public:
     void UpdatePointLightPerTilesBuffer();
     void UpdateSpotLightPerTilesBuffer();
 
+protected:
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
 private:
     TArray<USpotLightComponent*> SpotLights;
     TArray<UPointLightComponent*> PointLights;
     TArray<UDirectionalLightComponent*> DirectionalLights;
     TArray<UAmbientLightComponent*> AmbientLights;
-
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
 
     TArray<TArray<uint32>> PointLightPerTiles;
     TArray<PointLightPerTile> GPointLightPerTiles;

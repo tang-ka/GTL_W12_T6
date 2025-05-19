@@ -1,4 +1,6 @@
 #include "TileLightCullingPass.h"
+
+#include "RendererHelpers.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
@@ -28,9 +30,7 @@ void FTileLightCullingPass::ResizeTiles(const UINT InWidth, const UINT InHeight)
 
 void FTileLightCullingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
-    BufferManager = InBufferManager;
-    Graphics = InGraphics;
-    ShaderManager = InShaderManage;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);
 
     ResizeTiles(Graphics->ScreenWidth, Graphics->ScreenHeight); // 시작은 전체 크기
     // 한 타일이 가질 수 있는 조명 ID 목록을 비트마스크로 표현한 총 슬롯 수
@@ -65,6 +65,14 @@ void FTileLightCullingPass::PrepareRenderArr()
     CreateSpotLightBufferGPU();
 }
 
+void FTileLightCullingPass::ClearRenderArr()
+{
+    ClearUAVs();
+
+    PointLights.Empty();
+    SpotLights.Empty();
+}
+
 void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     Graphics->DeviceContext->PSSetConstantBuffers(8, 1, &TileLightConstantBuffer);
@@ -73,6 +81,16 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     DepthSRV = Viewport->GetViewportResource()->GetDepthStencil(EResourceType::ERT_Debug)->SRV;
     ComputeShader = ShaderManager->GetComputeShaderByKey(L"TileLightCullingComputeShader");
     Dispatch(Viewport);
+
+    if (Viewport->GetViewMode() == EViewModeIndex::VMI_LightHeatMap)
+    {
+        // 디버깅 용도
+        Graphics->DeviceContext->PSSetShaderResources(
+            static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
+            1,
+            &DebugHeatmapSRV
+        );
+    }
 }
 
 void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const
@@ -124,14 +142,6 @@ void FTileLightCullingPass::Dispatch(const std::shared_ptr<FEditorViewportClient
     // 5-3. 상수버퍼 해제
     ID3D11Buffer* NullBuffer[1] = { nullptr };
     Graphics->DeviceContext->CSSetConstantBuffers(0, 1, NullBuffer);
-}
-
-void FTileLightCullingPass::ClearRenderArr()
-{
-    ClearUAVs();
-
-    PointLights.Empty();
-    SpotLights.Empty();
 }
 
 void FTileLightCullingPass::CreateShader()
@@ -584,5 +594,13 @@ void FTileLightCullingPass::ParseCulledLightMaskData()
     //UE_LOG(ELogLevel::Display, TEXT("%s"), *PointOutput);
     //UE_LOG(ELogLevel::Display, TEXT("Culled SpotLight Count: %d"), CulledSpotLightMaskData.Num());
     //UE_LOG(ELogLevel::Display, TEXT("%s"), *SpotOutput);
+}
+
+void FTileLightCullingPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FTileLightCullingPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 

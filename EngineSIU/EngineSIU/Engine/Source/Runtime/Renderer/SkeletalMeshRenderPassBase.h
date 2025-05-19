@@ -1,5 +1,5 @@
 #pragma once
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "Container/Array.h"
 #include "D3D11RHI/DXDShaderManager.h"
 
@@ -15,11 +15,11 @@ struct FStaticMaterial;
 struct FStaticMeshRenderData;
 struct ID3D11Buffer;
 
-class FSkeletalMeshRenderPassBase : public IRenderPass
+class FSkeletalMeshRenderPassBase : public FRenderPassBase
 {
 public:
-    FSkeletalMeshRenderPassBase();
-    virtual ~FSkeletalMeshRenderPassBase() override;
+    FSkeletalMeshRenderPassBase() = default;
+    virtual ~FSkeletalMeshRenderPassBase() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
 
@@ -32,13 +32,9 @@ public:
     virtual void ClearRenderArr() override;
 
 protected:
-    virtual void CreateResource();
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-    virtual void ReleaseResource();
-
-    virtual void PrepareRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport) = 0;
-
-    virtual void CleanUpRenderPass(const std::shared_ptr<FEditorViewportClient>& Viewport) = 0;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     virtual void Render_Internal(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
@@ -50,21 +46,7 @@ protected:
 
     void RenderSkeletalMesh(ID3D11Buffer* VertexBuffer, ID3D11Buffer* IndexBuffer, UINT IndicesNum) const;
 
-    void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
-
-    void UpdateBone(const USkeletalMeshComponent* SkeletalMeshComponent);
-
-    FDXDBufferManager* BufferManager;
-    FGraphicsDevice* Graphics;
-    FDXDShaderManager* ShaderManager;
-
     FShadowManager* ShadowManager;
 
     TArray<USkeletalMeshComponent*> SkeletalMeshComponents;
-
-    // 일단 렌더패스에서 직접 관리
-    ID3D11Buffer* BoneBuffer;
-    ID3D11ShaderResourceView* BoneSRV;
-
-    const int32 MaxBoneNum = 1024;
 };

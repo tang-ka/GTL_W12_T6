@@ -19,10 +19,12 @@ namespace EEngineShowFlags
         SF_Collision = 1ULL << 8,
         SF_CollisionSelectedOnly = 1ULL << 9,
         SF_SkeletalMesh = 1ULL << 10,
+        SF_Particles = 1ULL << 11,
     };
 }
 
 class UWorld;
+
 class ShowFlags : public IWindowToggleable
 {
 private:
@@ -35,14 +37,13 @@ public:
     static uint64 ConvertSelectionToFlags(const bool Selected[]);
     void OnResize(HWND hWnd);
 
-    virtual void Toggle() override {
-        if (bWasOpen) {
-            bWasOpen = false;
-        }
-    }
+    virtual void Toggle() override { bWasOpen ^= true; }
+    
     uint64 CurrentFlags = 2047;
+    
 private:
-    bool bWasOpen = true;
+    bool bWasOpen = false;
+    
     UINT Width;
     UINT Height;
 };

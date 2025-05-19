@@ -2,7 +2,7 @@
 #define _TCHAR_DEFINED
 #include <d3d11.h>
 
-#include "IRenderPass.h"
+#include "RenderPassBase.h"
 #include "RenderResources.h"
 #include "D3D11RHI/DXDBufferManager.h"
 
@@ -10,7 +10,7 @@ class FDXDBufferManager;
 class UWorld;
 class FDXDShaderManager;
 
-class FEditorRenderPass : public IRenderPass
+class FEditorRenderPass : public FRenderPassBase
 {
 public:
     void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
@@ -19,9 +19,8 @@ public:
     void ClearRenderArr() override;
 
 private:
-    FDXDBufferManager* BufferManager = nullptr;
-    FGraphicsDevice* Graphics = nullptr;
-    FDXDShaderManager* ShaderManager = nullptr;
+    virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+    virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     
     FRenderResourcesDebug Resources = FRenderResourcesDebug();
 

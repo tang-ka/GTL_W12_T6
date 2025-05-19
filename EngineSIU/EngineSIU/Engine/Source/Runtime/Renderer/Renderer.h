@@ -15,13 +15,12 @@
 #include "D3D11RHI/DXDBufferManager.h"
 
 
+struct FTranslucentRenderPass;
 class IRenderPass;
-class FSkeletalMeshRenderPass;
 class FLightHeatMapRenderPass;
 class FPostProcessCompositingPass;
 enum class EResourceType : uint8;
 
-class FSceneRenderPass;
 class UWorld;
 class UObject;
 
@@ -30,13 +29,12 @@ class FEditorViewportClient;
 
 class FViewportResource;
 
-class FStaticMeshRenderPass;
+class FOpaqueRenderPass;
 class FWorldBillboardRenderPass;
 class FEditorBillboardRenderPass;
 class FGizmoRenderPass;
 class FUpdateLightBufferPass;
 class FDepthBufferDebugPass;
-class FWorldNormalDebugPass;
 class FLineRenderPass;
 class FFogRenderPass;
 class FCameraEffectRenderPass;
@@ -67,12 +65,15 @@ protected:
     void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void PrepareRender(FViewportResource* ViewportResource) const;
     void PrepareRenderPass() const;
-    void RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderSkeletalMeshViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
-    void RenderParticleViewerOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
+    void RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderEditorDepthElement(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderTranslucent(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void RenderFinalResult(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    
     void EndRender() const;
     void ClearRenderArr() const;
     
@@ -95,8 +96,7 @@ public:
     
     class FShadowRenderPass* ShadowRenderPass;
 
-    FStaticMeshRenderPass* StaticMeshRenderPass = nullptr;
-    FSkeletalMeshRenderPass* SkeletalMeshRenderPass = nullptr;
+    FOpaqueRenderPass* OpaqueRenderPass = nullptr;
     FWorldBillboardRenderPass* WorldBillboardRenderPass = nullptr;
     FEditorBillboardRenderPass* EditorBillboardRenderPass = nullptr;
     FGizmoRenderPass* GizmoRenderPass = nullptr;
@@ -105,6 +105,7 @@ public:
     FFogRenderPass* FogRenderPass = nullptr;
     FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
     FEditorRenderPass* EditorRenderPass = nullptr;
+    FTranslucentRenderPass* TranslucentRenderPass = nullptr;
     
     FDepthPrePass* DepthPrePass = nullptr;
     FTileLightCullingPass* TileLightCullingPass = nullptr;
@@ -119,8 +120,9 @@ private:
         requires std::derived_from<RenderPassType, IRenderPass>
     RenderPassType* AddRenderPass();
 
-private:
     TArray<IRenderPass*> RenderPasses;
+    
+    const int32 MaxBoneNum = 1024;
 };
 
 template <typename RenderPassType> requires std::derived_from<RenderPassType, IRenderPass>

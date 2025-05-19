@@ -1,66 +1,64 @@
 #include "DepthPrePass.h"
 
-#include "HAL/PlatformType.h"
+#include "RendererHelpers.h"
 #include "UnrealClient.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "UnrealEd/EditorViewportClient.h"
-
-FDepthPrePass::FDepthPrePass()
-{
-}
-
-FDepthPrePass::~FDepthPrePass()
-{
-}   
-
-void FDepthPrePass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
-{
-    __super::Initialize(InBufferManager, InGraphics, InShaderManage);
-}
+#include "UObject/UObjectIterator.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "InteractiveToolsFramework/BaseGizmos/GizmoBaseComponent.h"
+#include "Engine/Engine.h"
+#include "Engine/SkeletalMesh.h"
 
 void FDepthPrePass::PrepareRenderArr()
 {
-    __super::PrepareRenderArr();
-}
+    for (const auto Iter : TObjectRange<UMeshComponent>())
+    {
+        if (Iter->GetWorld() != GEngine->ActiveWorld)
+        {
+            continue;
+        }
 
-void FDepthPrePass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
-{
-    PrepareRenderState(Viewport);
-    __super::RenderAllStaticMeshes(Viewport);
+        if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Iter))
+        {
+            SkeletalMeshComponents.Add(SkeletalMeshComp);
+        }
+        else if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(Iter))
+        {
+            if (Iter->IsA<UGizmoBaseComponent>())
+            {
+                continue;
+            }
 
-    // 렌더 타겟 해제
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+            StaticMeshComponents.Add(StaticMeshComp);       
+        }
+    }
 }
 
 void FDepthPrePass::ClearRenderArr()
 {
-    __super::ClearRenderArr();
+    StaticMeshComponents.Empty();
+    SkeletalMeshComponents.Empty();
 }
 
-void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport)
+void FDepthPrePass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    /*
-    // A. 컬러 쓰기 비활성화 (깊이만 기록)
-    FLOAT zeroColor[4] = { 0, 0, 0, 0 };
-    Graphics->DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-    
-    Graphics->DeviceContext->OMSetBlendState(nullptr, zeroColor, 0xFFFFFFFF); // 또는 Custom DisableBlendState
-    // B. Depth-only Rasterizer & DepthStencil 설정
-    Graphics->DeviceContext->OMSetDepthStencilState(DepthStencilState_OnlyWrite, 0); // 깊이만 기록, 테스트 ON
+    PrepareRender(Viewport);
 
-    // C. 컬러 렌더 타겟 없음, 깊이만
-    ID3D11RenderTargetView* nullRTV = nullptr;
-    Graphics->DeviceContext->OMSetRenderTargets(1, &nullRTV, DepthStencilView); // ← 깊이 전용
-    */
-    
-    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
-    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
-    
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+    PrepareStaticMesh();
+    RenderStaticMesh();
 
+    PrepareSkeletalMesh();
+    RenderSkeletalMesh();
+    
+    CleanUpRender(Viewport);
+}
+
+void FDepthPrePass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
     // 뎁스만 필요하므로, 픽셀 쉐이더는 지정 안함.
     Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
 
@@ -76,4 +74,79 @@ void FDepthPrePass::PrepareRenderState(const std::shared_ptr<FEditorViewportClie
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DepthStencilRHI->DSV); // ← 깊이 전용
+}
+
+void FDepthPrePass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    // 렌더 타겟 해제
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+}
+
+void FDepthPrePass::PrepareStaticMesh()
+{
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
+    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    
+    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+}
+
+void FDepthPrePass::PrepareSkeletalMesh()
+{
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"SkeletalMeshVertexShader");
+    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"SkeletalMeshVertexShader");
+    
+    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+}
+
+void FDepthPrePass::RenderStaticMesh()
+{
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh())
+        {
+            continue;
+        }
+
+        FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr)
+        {
+            continue;
+        }
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+        FVector4 UUIDColor = Comp->EncodeUUID() / 255.0f;
+        constexpr bool bIsSelected = false;
+
+        UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
+
+        RenderStaticMesh_Internal(RenderData, Comp->GetStaticMesh()->GetMaterials(), Comp->GetOverrideMaterials(), Comp->GetselectedSubMeshIndex());
+    }
+}
+
+void FDepthPrePass::RenderSkeletalMesh()
+{
+    for (const USkeletalMeshComponent* Comp : SkeletalMeshComponents)
+    {
+        if (!Comp || !Comp->GetSkeletalMeshAsset())
+        {
+            continue;
+        }
+        const FSkeletalMeshRenderData* RenderData = Comp->GetCPUSkinning() ? Comp->GetCPURenderData() : Comp->GetSkeletalMeshAsset()->GetRenderData();
+        if (RenderData == nullptr)
+        {
+            continue;
+        }
+
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+        FVector4 UUIDColor = Comp->EncodeUUID() / 255.0f;
+        constexpr bool bIsSelected = false;
+
+        UpdateObjectConstant(WorldMatrix, UUIDColor, bIsSelected);
+
+        UpdateBones(Comp);
+
+        RenderSkeletalMesh_Internal(RenderData);
+    }
 }

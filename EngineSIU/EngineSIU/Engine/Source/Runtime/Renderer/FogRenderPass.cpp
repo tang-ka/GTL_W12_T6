@@ -13,20 +13,10 @@
 #include "UnrealClient.h"
 #include "PropertyEditor/ShowFlags.h"
 
-FFogRenderPass::FFogRenderPass()
-{
-}
-
-FFogRenderPass::~FFogRenderPass()
-{
-    ReleaseShader();
-}
-
 void FFogRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
-    Graphics = InGraphics;
-    BufferManager = InBufferManager;
-    ShaderManager = InShaderManager;
+    FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
+    
     CreateShader();
     CreateSampler();
 }
@@ -55,10 +45,6 @@ void FFogRenderPass::UpdateShader()
 {
     VertexShader = ShaderManager->GetVertexShaderByKey(L"FogVertexShader");
     PixelShader = ShaderManager->GetPixelShaderByKey(L"FogPixelShader");
-}
-
-void FFogRenderPass::ReleaseShader()
-{
 }
 
 void FFogRenderPass::PrepareRenderArr()
@@ -165,4 +151,12 @@ void FFogRenderPass::CreateSampler()
     SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     
     Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
+}
+
+void FFogRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FFogRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }

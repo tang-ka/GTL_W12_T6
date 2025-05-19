@@ -9,17 +9,6 @@
 #include "UObject/Object.h"
 #include "World/World.h"
 
-FSlateRenderPass::FSlateRenderPass()
-    : BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-{
-}
-
-FSlateRenderPass::~FSlateRenderPass()
-{
-}
-
 void FSlateRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     BufferManager = InBufferManager;
@@ -150,5 +139,13 @@ void FSlateRenderPass::CreateSampler()
     SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     
     Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
+}
+
+void FSlateRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+}
+
+void FSlateRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
 }
 

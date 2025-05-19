@@ -6,7 +6,7 @@ class FWorldBillboardRenderPass : public FBillboardRenderPass
 {
 public:
     FWorldBillboardRenderPass();
-    virtual ~FWorldBillboardRenderPass() = default;
+    virtual ~FWorldBillboardRenderPass() override = default;
 
     virtual void PrepareRenderArr() override;
 };
