@@ -1,4 +1,4 @@
-#include "ParticleSystemComponent.h"
+﻿#include "ParticleSystemComponent.h"
 #include "ParticleEmitterInstance.h"
 #include "Particles/ParticleSystem.h"
 
@@ -67,6 +67,8 @@ void UParticleSystemComponent::UpdateDynamicData()
 {
     // Create the dynamic data for rendering this particle system
     FParticleDynamicData* ParticleDynamicData = CreateDynamicData();
+
+    
 }
 
 FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
@@ -98,6 +100,26 @@ FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
     {
         ParticleDynamicData->SystemPositionForMacroUVs = GetComponentTransform().TransformPosition(Template->GetMacroUVPosition());
         ParticleDynamicData->SystemRadiusForMacroUVs = Template->GetMacroUVRadius();
+    }
+
+    ParticleDynamicData->DynamicEmitterDataArray.Empty();
+    ParticleDynamicData->DynamicEmitterDataArray.Reserve(EmitterInstances.Num());
+
+    for (int32 EmitterIndex = 0; EmitterIndex < EmitterInstances.Num(); EmitterIndex++)
+    {
+        FDynamicEmitterDataBase* NewDynamicEmitterData = nullptr;
+        FParticleEmitterInstance* EmitterInst = EmitterInstances[EmitterIndex];
+
+        if (EmitterInst)
+        {
+            NewDynamicEmitterData = EmitterInst->GetDynamicData(true);
+
+            if (NewDynamicEmitterData != nullptr)
+            {
+                ParticleDynamicData->DynamicEmitterDataArray.Add(NewDynamicEmitterData);
+                NewDynamicEmitterData->EmitterIndex = EmitterIndex;
+            }
+        }
     }
 
     return ParticleDynamicData;
