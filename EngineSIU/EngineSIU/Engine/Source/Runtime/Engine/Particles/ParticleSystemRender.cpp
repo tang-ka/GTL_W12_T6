@@ -1,6 +1,6 @@
 #include "ParticleHelper.h"
 #include "Particles/ParticleSpriteEmitter.h"
-#include "Particles/Particle/ParticleModuleRequired.h"
+#include "Particles/ParticleModuleRequired.h"
 #include "Math/Matrix.h"
 
 void FDynamicSpriteEmitterDataBase::SortSpriteParticles(int32 SortMode, bool bLocalSpace, int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices, const FMatrix& LocalToWorld) const

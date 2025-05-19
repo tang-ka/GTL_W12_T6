@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -36,12 +36,16 @@ public:
     UParticleModule() = default;
     virtual ~UParticleModule() override = default;
 
+    FName ModuleName;
+    
     bool bSpawnModule = true;
     
     bool bUpdateModule = true;
     
     bool bEnabled = true;
 
+    int32 ModulePayloadOffset = 0;
+    int32 InstancePayloadOffset = 0;
     /**
      *	Called on a particle that is freshly spawned by the emitter.
      *	
@@ -69,4 +73,10 @@ public:
     virtual void FinalUpdate(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
     
     virtual EModuleType	GetModuleType() const { return EModuleType::EPMT_General; }
+
+    int32 GetModulePayloadOffset() const;
+    void SetModulePayloadOffset(int32 Offset) { ModulePayloadOffset = Offset; }
+
+    int32 GetInstancePayloadOffset() const;
+    void SetInstancePayloadOffset(int32 Size) { InstancePayloadOffset = Size; }
 };

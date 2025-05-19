@@ -44,7 +44,7 @@ struct FMaterial
     float Shininess;
     
     float3 EmissiveColor;
-    float Opacity;
+    float Transparency;
     
     float Metallic;
     float Roughness;
@@ -81,18 +81,6 @@ struct VS_INPUT_StaticMesh
     float3 Normal : NORMAL;
     float4 Tangent : TANGENT;
     float2 UV : TEXCOORD;
-    uint MaterialIndex : MATERIAL_INDEX;
-};
-
-struct PS_INPUT_StaticMesh
-{
-    float4 Position : SV_POSITION;
-    float4 Color : COLOR;
-    float2 UV : TEXCOORD0;
-    float3 WorldNormal : TEXCOORD1;
-    float4 WorldTangent : TEXCOORD2;
-    float3 WorldPosition : TEXCOORD3;
-    nointerpolation uint MaterialIndex : MATERIAL_INDEX;
 };
 
 struct VS_INPUT_SkeletalMesh
@@ -106,7 +94,7 @@ struct VS_INPUT_SkeletalMesh
     float4 BoneWeights : BONE_WEIGHTS;
 };
 
-struct PS_INPUT_SkeletalMesh
+struct PS_INPUT_CommonMesh
 {
     float4 Position : SV_POSITION;
     float4 Color : COLOR;
@@ -114,7 +102,6 @@ struct PS_INPUT_SkeletalMesh
     float3 WorldNormal : TEXCOORD1;
     float4 WorldTangent : TEXCOORD2;
     float3 WorldPosition : TEXCOORD3;
-    nointerpolation uint MaterialIndex : MATERIAL_INDEX;
 };
 
 ////////

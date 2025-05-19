@@ -9,6 +9,7 @@
 #include "Math/Rotator.h"
 #include "UObject/Casts.h"
 
+class UParticleSystemComponent;
 class USkeletalMeshComponent;
 class USpringArmComponent;
 class UShapeComponent;
@@ -64,6 +65,7 @@ private:
     /* Static Mesh Settings */
     void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp) const;
     void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp) const;
+    void RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComponent) const;
 
     void RenderForAmbientLightComponent(UAmbientLightComponent* AmbientLightComponent) const;
     void RenderForDirectionalLightComponent(UDirectionalLightComponent* DirectionalLightComponent) const;
@@ -97,7 +99,7 @@ private:
     int CurMaterialIndex = -1;
     UStaticMeshComponent* SelectedStaticMeshComp = nullptr;
     FMaterialInfo tempMaterialInfo;
-    bool IsCreateMaterial;
+    bool IsCreateMaterial = false;
 
     const FString TemplateFilePath = FString("LuaScripts/template.lua");
 };

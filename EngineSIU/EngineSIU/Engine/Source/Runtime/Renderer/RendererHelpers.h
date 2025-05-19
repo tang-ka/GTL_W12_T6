@@ -47,14 +47,15 @@ namespace MaterialUtils
             if (MaterialInfo.TextureFlag & (1 << Idx)) // EMaterialTextureFlags와 EMaterialTextureSlots의 순서가 일치한다는 전제 조건.
             {
                 std::shared_ptr<FTexture> Texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.TextureInfos[Idx].TexturePath);
+
                 SRVs[Idx] = Texture->TextureSRV;
-                Samplers[Idx] = Texture->SamplerState;
+                Samplers[Idx] = Graphics->GetSamplerState(Texture->SamplerType);
 
                 if (Idx == static_cast<uint8>(EMaterialTextureSlots::MTS_Diffuse))
                 {
                     // for Gouraud shading
-                    Graphics->DeviceContext->VSSetShaderResources(0, 1, &Texture->TextureSRV);
-                    Graphics->DeviceContext->VSSetSamplers(0, 1, &Texture->SamplerState);
+                    Graphics->DeviceContext->VSSetShaderResources(0, 1, &SRVs[Idx]);
+                    Graphics->DeviceContext->VSSetSamplers(0, 1, &Samplers[Idx]);
                 }
             }
         }

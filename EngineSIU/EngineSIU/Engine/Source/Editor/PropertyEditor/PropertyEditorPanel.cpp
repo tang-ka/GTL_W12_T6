@@ -44,10 +44,13 @@
 #include "imgui/imgui_curve.h"
 #include "Math/Transform.h"
 #include "Animation/AnimStateMachine.h"
+#include "Particles/ParticleEmitter.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 PropertyEditorPanel::PropertyEditorPanel()
 {
-    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor|EWorldTypeBitFlag::PIE);
+    SetSupportedWorldTypes(EWorldTypeBitFlag::Editor| EWorldTypeBitFlag::PIE);
 }
 
 void PropertyEditorPanel::Render()
@@ -173,6 +176,11 @@ void PropertyEditorPanel::Render()
     if (USpringArmComponent* SpringArmComponent = GetTargetComponent<USpringArmComponent>(SelectedActor, SelectedComponent))
     {
         RenderForSpringArmComponent(SpringArmComponent);
+    }
+
+    if (UParticleSystemComponent* ParticleSystemComponent = GetTargetComponent<UParticleSystemComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForParticleSystem(ParticleSystemComponent);
     }
 
     if (SelectedActor)
@@ -712,6 +720,29 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComponent) const
+{
+    if (ImGui::Button("Open Viewer"))
+    {
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+        if (!Engine)
+        {
+            return;
+        }
+        if (ParticleSystemComponent)
+        {
+            UParticleSystem* TestParticleSystem = ParticleSystemComponent->GetParticleSystem();
+            //////////////////// 테스트 코드
+            if (TestParticleSystem == nullptr)
+            {
+                TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(ParticleSystemComponent);
+            }
+            ///////////////////////////////
+            Engine->StartParticleViewer(FName("TempParticle"), TestParticleSystem);
+        }
+    }
 }
 
 void PropertyEditorPanel::RenderForAmbientLightComponent(UAmbientLightComponent* AmbientLightComponent) const
@@ -1265,7 +1296,8 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
             }
         }
 
-        if (ImGui::Button("    +    ")) {
+        if (ImGui::Button("    +    "))
+        {
             IsCreateMaterial = true;
         }
 
@@ -1291,7 +1323,9 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
         if (ImGui::Selectable(Temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
         {
             if (ImGui::IsMouseDoubleClicked(0))
+            {
                 StaticMeshComp->SetselectedSubMeshIndex(-1);
+            }
         }
 
         ImGui::TreePop();
@@ -1303,7 +1337,8 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
     {
         RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex));
     }
-    if (IsCreateMaterial) {
+    if (IsCreateMaterial)
+    {
         RenderCreateMaterialView();
     }
 }
@@ -1384,6 +1419,33 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     ImGui::Spacing();
     ImGui::Separator();
 
+    float Shininess = Material->GetMaterialInfo().Shininess;
+    float Roughness = Material->GetMaterialInfo().Roughness;
+    float Metallic = Material->GetMaterialInfo().Metallic;
+    float Alpha = 1.f - Material->GetMaterialInfo().Transparency;
+
+    if (ImGui::SliderFloat("Shininess", &Shininess, 0.0f, 1000.0f))
+    {
+        Material->SetShininess(Shininess);
+    }
+
+    if (ImGui::SliderFloat("Roughness", &Roughness, 0.0f, 1.0f))
+    {
+        Material->SetRoughness(Roughness);
+    }
+
+    if (ImGui::SliderFloat("Metallic", &Metallic, 0.0f, 1.0f))
+    {
+        Material->SetMetallic(Metallic);
+    }
+
+    if (ImGui::SliderFloat("Alpha", &Alpha, 0.0f, 1.0f))
+    {
+        Material->SetTransparency(1.f - Alpha);
+    }
+
+    ImGui::Separator();
+
     ImGui::Text("Choose Material");
     ImGui::Spacing();
 
@@ -1396,7 +1458,8 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     ImGui::SetNextItemWidth(160);
     // 메테리얼 이름 목록을 const char* 배열로 변환
     std::vector<const char*> MaterialChars;
-    for (const auto& Material : FObjManager::GetMaterials()) {
+    for (const auto& Material : FObjManager::GetMaterials())
+    {
         MaterialChars.push_back(*Material.Value->GetMaterialInfo().MaterialName);
     }
 
@@ -1404,7 +1467,8 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     //if (currentMaterialIndex >= FManagerGetMaterialNum())
     //    currentMaterialIndex = 0;
 
-    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, MaterialChars.data(), FObjManager::GetMaterialNum())) {
+    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, MaterialChars.data(), FObjManager::GetMaterialNum()))
+    {
         UMaterial* Material = FObjManager::GetMaterial(MaterialChars[CurMaterialIndex]);
         SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, Material);
     }
@@ -1430,7 +1494,8 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     static char MaterialName[256] = "New Material";
     // 기본 텍스트 입력 필드
     ImGui::SetNextItemWidth(128);
-    if (ImGui::InputText("##NewName", MaterialName, IM_ARRAYSIZE(MaterialName))) {
+    if (ImGui::InputText("##NewName", MaterialName, IM_ARRAYSIZE(MaterialName)))
+    {
         tempMaterialInfo.MaterialName = MaterialName;
     }
 
@@ -1500,7 +1565,8 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     ImGui::Unindent();
 
     ImGui::NewLine();
-    if (ImGui::Button("Create Material")) {
+    if (ImGui::Button("Create Material"))
+    {
         FObjManager::CreateMaterial(tempMaterialInfo);
     }
 

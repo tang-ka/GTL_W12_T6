@@ -85,8 +85,6 @@ public:
 
     ID3D11ShaderResourceView*& GetDebugHeatmapSRV() { return DebugHeatmapSRV; }
 
-    ID3D11Buffer* GetTileConstantBuffer() const { return TileLightConstantBuffer; }
-
 private:
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;

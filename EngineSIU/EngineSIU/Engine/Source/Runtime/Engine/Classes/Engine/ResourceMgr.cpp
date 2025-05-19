@@ -12,28 +12,13 @@
 
 void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
 {
-    //RegisterMesh(renderer, "Quad", quadVertices, sizeof(quadVertices) / sizeof(FVertexSimple), quadIndices, sizeof(quadIndices)/sizeof(uint32));
-
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowX.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowY.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisArrowZ.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowX.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowY.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets/AxisScaleArrowZ.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleX.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleY.obj");
-    //FManagerLoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
-    // FManagerLoadObjStaticMeshAsset("Assets/helloBlender.obj");
-
     LoadTextureFromDDS(Device->Device, Device->DeviceContext, L"Assets/Texture/font.dds");
     LoadTextureFromDDS(Device->Device, Device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
 
     LoadTextureFromFile(Device->Device, L"Assets/Texture/ocean_sky.jpg");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/font.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/emart.png");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/T_Explosion_SubUV.png");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/UUID_Font.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
     LoadTextureFromFile(Device->Device, L"Assets/Texture/spotLight.png");
 
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_Actor.PNG");
@@ -43,6 +28,7 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_ExpoHeightFog.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/S_AtmosphericHeightFog.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Editor/Icon/AmbientLight_64x.png");
+    
     LoadTextureFromFile(Device->Device, L"Assets/Viewer/Bone_16x.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Viewer/BoneNonWeighted_16x.PNG");
 }
@@ -182,21 +168,8 @@ HRESULT FResourceManager::LoadTextureFromFile(ID3D11Device* Device, const wchar_
     Frame->Release();
     Converter->Release();
 
-    //샘플러 스테이트 생성
-    ID3D11SamplerState* SamplerState;
-    D3D11_SAMPLER_DESC SamplerDesc = {};
-    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    SamplerDesc.MinLOD = 0;
-    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-    Device->CreateSamplerState(&SamplerDesc, &SamplerState);
-    FWString Name = FWString(Filename);
-
-    TextureMap[Name] = std::make_shared<FTexture>(TextureSrv, Texture2D, SamplerState, Name, Width, Height);
+    const FWString Name = FWString(Filename);
+    TextureMap[Name] = std::make_shared<FTexture>(TextureSrv, Texture2D, ESamplerType::Linear, Name, Width, Height);
 
     FConsole::GetInstance().AddLog(ELogLevel::Warning, "Texture File Load Successs");
     return hr;
@@ -219,8 +192,6 @@ HRESULT FResourceManager::LoadTextureFromDDS(ID3D11Device* Device, ID3D11DeviceC
         abort();
     }
 
-#pragma region WidthHeight
-
     ID3D11Texture2D* Texture2D = nullptr;
     hr = Texture->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&Texture2D);
     if (FAILED(hr) || Texture2D == nullptr) {
@@ -235,25 +206,8 @@ HRESULT FResourceManager::LoadTextureFromDDS(ID3D11Device* Device, ID3D11DeviceC
     uint32 Width = TexDesc.Width;
     uint32 Height = TexDesc.Height;
 
-#pragma endregion WidthHeight
-
-#pragma region Sampler
-    ID3D11SamplerState* SamplerState;
-    D3D11_SAMPLER_DESC SamplerDesc = {};
-    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; // WRAP -> CLAMP로 변경
-    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    SamplerDesc.MinLOD = 0;
-    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-    Device->CreateSamplerState(&SamplerDesc, &SamplerState);
-#pragma endregion Sampler
-
-    FWString Name = FWString(Filename);
-
-    TextureMap[Name] = std::make_shared<FTexture>(TextureView, Texture2D, SamplerState, Name, Width, Height);
+    const FWString Name = FWString(Filename);
+    TextureMap[Name] = std::make_shared<FTexture>(TextureView, Texture2D, ESamplerType::Linear, Name, Width, Height);
 
     FConsole::GetInstance().AddLog(ELogLevel::Warning, "Texture File Load Successs");
 

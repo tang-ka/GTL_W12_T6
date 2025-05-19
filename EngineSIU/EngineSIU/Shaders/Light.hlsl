@@ -107,24 +107,8 @@ cbuffer FLightInfoBuffer : register(b0)
 
 cbuffer ShadowFlagConstants : register(b5)
 {
-    bool IsShadow;
+    uint IsShadow;
     float3 shadowFlagPad0;
-}
-
-cbuffer TileLightCullSettings : register(b8)
-{
-    uint2 ScreenSize; // 화면 해상도
-    uint2 TileSize; // 한 타일의 크기 (예: 16x16)
-
-    float NearZ; // 카메라 near plane
-    float FarZ; // 카메라 far plane
-
-    row_major matrix TileViewMatrix; // View 행렬
-    row_major matrix TileProjectionMatrix; // Projection 행렬
-    row_major matrix TileInverseProjection; // Projection^-1, 뷰스페이스 복원용
-
-    uint NumLights; // 총 라이트 수
-    uint Enable25DCulling; // 1이면 2.5D 컬링 사용
 }
 
 cbuffer CascadeConstantBuffer : register(b9)
@@ -148,11 +132,17 @@ struct LightPerTiles
 float4 DebugCSMColor(uint idx)
 {
     if (idx == 0)
+    {
         return float4(1, 0, 0, 1); // 빨강
+    }
     if (idx == 1)
+    {
         return float4(0, 1, 0, 1); // 초록
+    }
     if (idx == 2)
+    {
         return float4(0, 0, 1, 1); // 파랑
+    }
     return float4(1, 1, 1, 1); // 나머지 – 흰색
 }
 
@@ -162,8 +152,7 @@ StructuredBuffer<FSpotLightInfo> gSpotLights   : register(t11);
 StructuredBuffer<uint> PerTilePointLightIndexBuffer : register(t12);
 StructuredBuffer<uint> PerTileSpotLightIndexBuffer  : register(t13);
 
-
-
+// Begin Shadow
 SamplerComparisonState ShadowSamplerCmp : register(s10);
 SamplerState ShadowPointSampler : register(s11);
 
@@ -171,20 +160,17 @@ Texture2DArray SpotShadowMapArray : register(t50);
 Texture2DArray DirectionShadowMapArray : register(t51);
 TextureCubeArray PointShadowMapArray : register(t52);
 
-bool InRange(float val, float min, float max)
-{
-    return (min <= val && val <= max);
-}
-
-uint GetCascadeIndex(float viewDepth)
+uint GetCascadeIndex(float ViewDepth)
 {
     // viewDepth 는 LightSpace 깊이(z) 또는 NDC 깊이 복원 뷰 깊이
 
     for (uint i = 0; i < MAX_CASCADE_NUM; ++i)
     {
         // splits 배열에는 [0]=near, [N]=far 까지 로그 스플릿 저장됨 ex)0..2..4..46..1000
-        if (viewDepth <= CascadeSplits[i + 1])
+        if (ViewDepth <= CascadeSplits[i + 1])
+        {
             return i;
+        }
     }
     return MAX_CASCADE_NUM - 1;
 }
@@ -196,8 +182,6 @@ float N2V(float ndcDepth, matrix invProj)
     return pointView.z / pointView.w;
 }
 
-
-
 float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, uint csmIndex)
 {
     float sum = 0.0f;
@@ -206,16 +190,13 @@ float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, uint csmIn
     {
         // TODO (offset, 0)에 배열(slice) 인덱스 넣기
         float2 offset = diskSamples64[i] * filterRadiusUV;
-        sum += DirectionShadowMapArray.SampleCmpLevelZero(
-            ShadowSamplerCmp, float3(uv + offset, csmIndex), zReceiverNdc);
+        sum += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(uv + offset, csmIndex), zReceiverNdc);
     }
     return sum / 64;
 }
 
-
 void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv,
                  float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld, uint csmIndex, FDirectionalLightInfo LightInfo)
-
 {
     float LightRadiusUV = LightRadiusWorld / LightInfo.OrthoWidth; // TO FIX!
     float searchRadius = LightRadiusUV * (zReceiverView - NEAR_PLANE) / zReceiverView; // TO FIX! NearPlane
@@ -236,21 +217,21 @@ void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv
     avgBlockerDepthView = (numBlockers > 0) ? (blockerSum / numBlockers) : 0.0f;
 }
 
-
-float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld, uint csmIndex, FDirectionalLightInfo LightInfo)
+// TODO: 사용하려면 계산식을 수정할 필요가 있음.
+float PCSS(float2 UV, float ZReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld, uint CsmIndex, FDirectionalLightInfo LightInfo)
 {
-    float lightRadiusUV = LightRadiusWorld / 2.0; // TO FIX!
-    float zReceiverView = N2V(zReceiverNDC, CascadedInvProj[csmIndex]);
+    float LightRadiusUV = LightRadiusWorld / 2.0; // TO FIX!
+    float ZReceiverView = N2V(ZReceiverNDC, CascadedInvProj[CsmIndex]);
 
 
     // 1. Blocker Search
-    float avgBlockerDepthView = 0;
-    float numBlockers = 0;
+    float AvgBlockerDepthView = 0;
+    float NumBlockers = 0;
 
-    FindBlocker(avgBlockerDepthView, numBlockers, uv, zReceiverView, DirectionShadowMapArray, CascadedInvProj[csmIndex], LightRadiusWorld, csmIndex, LightInfo);
+    FindBlocker(AvgBlockerDepthView, NumBlockers, UV, ZReceiverView, DirectionShadowMapArray, CascadedInvProj[CsmIndex], LightRadiusWorld, CsmIndex, LightInfo);
 
 
-    if (numBlockers < 1)
+    if (NumBlockers < 1)
     {
         // There are no Occluders so early out(this saves filtering)
         return 1.0f;
@@ -258,20 +239,19 @@ float PCSS(float2 uv, float zReceiverNDC, Texture2DArray DirectionShadowMapArray
     else
     {
         // 2. Penumbra Size
-        float penumbraRatio = (zReceiverView - avgBlockerDepthView) / avgBlockerDepthView;
-        float filterRadiusUV = penumbraRatio * lightRadiusUV * NEAR_PLANE / zReceiverView; // TO FIX!!!!
+        float PenumbraRatio = (ZReceiverView - AvgBlockerDepthView) / AvgBlockerDepthView;
+        float FilterRadiusUV = PenumbraRatio * LightRadiusUV * NEAR_PLANE / ZReceiverView; // TO FIX!!!!
 
         // 3. Filtering
-        return PCF_Filter(uv, zReceiverNDC, filterRadiusUV, csmIndex);
+        return PCF_Filter(UV, ZReceiverNDC, FilterRadiusUV, CsmIndex);
     }
 }
-
 
 float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal, FDirectionalLightInfo LightInfo, // 라이트 정보 전체 전달
                                 Texture2DArray DirectionShadowMapArray,
                                 SamplerComparisonState ShadowSampler)
 {
-    if (LightInfo.CastShadows == false)
+    if (LightInfo.CastShadows == 0)
     {
         return 1.0f;
     }
@@ -305,25 +285,20 @@ float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal,
 
     //ShadowFactor = PCSS(uv, zReceiverNdc, DirectionShadowMapArray, CascadedInvViewProj[CsmIndex], LIGHT_RADIUS_WORLD, CsmIndex, LightInfo);
     return ShadowFactor;
-    
-    
 }
 
-int GetMajorFaceIndex(float3 Dir){
+int GetMajorFaceIndex(float3 Dir)
+{
     float3 absDir = abs(Dir);
-    if(absDir.x > absDir.y && absDir.x > absDir.z)
+    if (absDir.x > absDir.y && absDir.x > absDir.z)
     {
         return Dir.x > 0.0f ? 0 : 1;
     }
-    else if(absDir.y > absDir.z)
+    if (absDir.y > absDir.z)
     {
         return Dir.y > 0.0f ? 2 : 3;
     }
-    else
-    {
-        return Dir.z > 0.0f ? 4 : 5;
-    }
-
+    return Dir.z > 0.0f ? 4 : 5;
 }
 
 float CalculatePointShadowFactor(float3 WorldPosition, FPointLightInfo LightInfo, // 라이트 정보 전체 전달
@@ -342,15 +317,6 @@ float CalculatePointShadowFactor(float3 WorldPosition, FPointLightInfo LightInfo
     float shadow = ShadowMapArray.SampleCmpLevelZero(ShadowSampler, float4(SampleDir, (float)LightInfo.ShadowMapArrayIndex), refDepth - LightInfo.ShadowBias).r;
     return shadow;
 }
-
-
-// cbuffer PointLightShadowConstants : register(b5)
-// {
-//     row_major matrix PointLightViewProj[NUM_FACES]; // 6 : NUM_FACES
-//     float3 PointLightPos;
-//     float pad0;
-// }
-
 
 // 기본적인 그림자 계산 함수 (Directional/Spot 용)
 // 하드웨어 PCF (SamplerComparisonState 사용) 예시
@@ -388,6 +354,7 @@ float CalculateSpotShadowFactor(float3 WorldPosition, FSpotLightInfo LightInfo, 
 
     return ShadowFactor;
 }
+// End Shadow
 
 float GetDistanceAttenuation(float Distance, float Radius)
 {
@@ -410,27 +377,148 @@ float GetSpotLightAttenuation(float Distance, float Radius, float3 LightDir, flo
     return DistAtten * SpotMask;
 }
 
-float CalculateDiffuse(float3 WorldNormal, float3 LightDir)
+////////
+/// Diffuse
+////////
+#define PI 3.14159265359
+
+#ifdef LIGHTING_MODEL_PBR
+inline float SchlickWeight(float CosTheta) // (1‑x)^5 == pow(1-x, 5)
 {
-    return max(dot(WorldNormal, LightDir), 0.0);
+    float m = saturate(1.0 - CosTheta);
+    return m * m * m * m * m;
 }
 
-float CalculateSpecular(float3 WorldNormal, float3 ToLightDir, float3 ViewDir, float Shininess, float SpecularStrength = 0.5)
+float DisneyDiffuse(float3 N, float3 L, float3 V, float Roughness)
 {
-#ifdef LIGHTING_MODEL_GOURAUD
-    float3 ReflectDir = reflect(-ToLightDir, WorldNormal);
-    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0), Shininess);
-#else
-    float3 HalfDir = normalize(ToLightDir + ViewDir); // Blinn-Phong
-    float Spec = pow(max(dot(WorldNormal, HalfDir), 0.0), Shininess);
+    float3 H = normalize(L + V);
+    float  NdotL = saturate(dot(N, L));
+    float  NdotV = saturate(dot(N, V));
+    float  LdotH = saturate(dot(L, H));
+    float  LdotH2 = LdotH * LdotH;
+
+    float  Fd90 = 0.5 + 2.0 * Roughness * LdotH2; // grazing boost
+
+    float DiffuseFresnelL = SchlickWeight(LdotH);
+    float DiffuseFresnelV = SchlickWeight(NdotV);
+
+    float  Fd = (1.0 + (Fd90 - 1.0) * DiffuseFresnelL) * (1.0 + (Fd90 - 1.0) * DiffuseFresnelV);
+
+    return Fd / PI;
+}
 #endif
-    return Spec * SpecularStrength; 
+
+
+////////
+/// Specular
+////////
+float3 F_Schlick(float3 F0, float LdotH)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - LdotH, 5.0);
 }
 
-float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+#ifdef LIGHTING_MODEL_PBR
+float  D_GGX(float NdotH, float alpha)
 {
+    float a2 = alpha * alpha;
+    float d = (NdotH * NdotH) * (a2 - 1.0) + 1.0;
+    return a2 / (PI * d * d);                 // Trowbridge‑Reitz
+}
+
+float  G_Smith(float NdotV, float NdotL, float alpha)
+{
+    float k = alpha * 0.5 + 0.0001;           // Schlick‑GGX (≈α/2)
+    float gV = NdotV / (NdotV * (1.0 - k) + k);
+    float gL = NdotL / (NdotL * (1.0 - k) + k);
+    return gV * gL;
+}
+
+float3 CookTorranceSpecular(
+    float3  F0,        // base reflectance (metallic → albedo)
+    float   Roughness,
+    float3  N, float3  V, float3  L
+)
+{
+    float3  H = normalize(V + L);
+    float   NdotL = saturate(dot(N, L));
+    float   NdotV = saturate(dot(N, V));
+    float   NdotH = saturate(dot(N, H));
+    float   LdotH = saturate(dot(L, H));
+
+    float   alpha = max(0.001, Roughness * Roughness);
+
+    float   D = D_GGX(NdotH, alpha);
+    float   G = G_Smith(NdotV, NdotL, alpha);
+    float3  F = F_Schlick(F0, LdotH);
+
+    return (D * G * F) / (4.0 * NdotV * NdotL + 1e-5);
+}
+#else
+float BlinnPhongSpecular(float3 N, float3 L, float3 V, float Shininess, float SpecularStrength = 1.0)
+{
+    float3 H = normalize(L + V);
+    float NdotH = saturate(dot(N, H));
+    return pow(NdotH, Shininess) * SpecularStrength;
+}
+#endif
+
+////////
+/// BRDF
+////////
+struct FBRDFResult
+{
+    float3 DiffuseContribution;
+    float3 SpecularContribution;
+};
+
+FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic, float Roughness
+#else
+    float3 DiffuseColor, float3 SpecularColor, float Shininess
+#endif
+)
+{
+    FBRDFResult Result = (FBRDFResult)0;
+
+#ifdef LIGHTING_MODEL_PBR
+    float3 F0 = lerp(0.04, BaseColor, Metallic);
+
+    float KdScale = 1.0 - Metallic;
+    float3 Kd = BaseColor * KdScale;
+
+    Result.DiffuseContribution = DisneyDiffuse(N, L, V, Roughness) * Kd;
+    Result.SpecularContribution = CookTorranceSpecular(F0, Roughness, N, V, L);
+#else
+    Result.DiffuseContribution = DiffuseColor / PI; // BPR의 에너지 보존 결과와 유사한 밝기를 맞추기 위함
+#ifdef LIGHTING_MODEL_BLINN_PHONG
+    Result.SpecularContribution = BlinnPhongSpecular(N, L, V, Shininess) * SpecularColor;
+#endif
+#endif
+    
+    return Result;
+}
+
+////////
+/// Calculate Light
+////////
+struct FLightOutput
+{
+    float3 DiffuseContribution;
+    float3 SpecularContribution;
+};
+
+FLightOutput PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic, float Roughness
+#else
+    float3 DiffuseColor, float3 SpecularColor, float Shininess
+#endif
+)
+{
+    FLightOutput Output = (FLightOutput)0;
+    
     FPointLightInfo LightInfo = gPointLights[Index];
-    //FPointLightInfo LightInfo = PointLights[Index];
     
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
@@ -438,7 +526,7 @@ float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wo
     float Attenuation = GetDistanceAttenuation(Distance, LightInfo.Radius);
     if (Attenuation <= 0.0)
     {
-        return float4(0.f, 0.f, 0.f, 0.f);
+        return Output;
     }
     
     // --- 그림자 계산
@@ -450,27 +538,46 @@ float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wo
         // 그림자 계수가 0 이하면 더 이상 계산 불필요
         if (Shadow <= 0.0)
         {
-            return float3(0.0, 0.0, 0.0);
+            return Output;
         }
     }
     
-    float3 LightDir = normalize(ToLight);
-    float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
-
-    float3 Lit = (DiffuseFactor * DiffuseColor);
-#ifndef LIGHTING_MODEL_LAMBERT
-    float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
-    Lit += SpecularFactor * SpecularColor;
-#endif
+    float3 L = normalize(ToLight);
+    float NdotL = saturate(dot(WorldNormal, L));
+    if (NdotL <= 0.0)
+    {
+        return Output;
+    }
     
-    return Lit * Attenuation * LightInfo.Intensity * LightInfo.LightColor * Shadow;
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+
+    FBRDFResult BRDF = CalculateBRDF(L, V, WorldNormal,
+#ifdef LIGHTING_MODEL_PBR
+        BaseColor, Metallic, Roughness
+#else
+        DiffuseColor, SpecularColor, Shininess
+#endif
+    );
+
+    float3 LightEnergy = LightInfo.LightColor.rgb * LightInfo.Intensity;
+
+    Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * Attenuation * Shadow * NdotL;
+    Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * Attenuation * Shadow * NdotL;
+
+    return Output;
 }
 
-float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+FLightOutput SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic, float Roughness
+#else
+    float3 DiffuseColor, float3 SpecularColor, float Shininess
+#endif
+)
 {
+    FLightOutput Output = (FLightOutput)0;
+    
     FSpotLightInfo LightInfo = gSpotLights[Index];
-    // FSpotLightInfo LightInfo = SpotLights[Index];
     
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
@@ -479,7 +586,7 @@ float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
     float SpotlightFactor = GetSpotLightAttenuation(Distance, LightInfo.Radius, LightDir, normalize(LightInfo.Direction), LightInfo.InnerRad, LightInfo.OuterRad);
     if (SpotlightFactor <= 0.0)
     {
-        return float3(0.0, 0.0, 0.0);
+        return Output;
     }
 
     // --- 그림자 계산
@@ -491,30 +598,47 @@ float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
         // 그림자 계수가 0 이하면 더 이상 계산 불필요
         if (Shadow <= 0.0)
         {
-            return float3(0.0, 0.0, 0.0);
+            return Output;
         }
     }
 
-    float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
+    float3 L = normalize(ToLight);
+    float NdotL = saturate(dot(WorldNormal, L));
+    if (NdotL <= 0.0)
+    {
+        return Output;
+    }
     
-    float3 Lit = DiffuseFactor * DiffuseColor;
-#ifndef LIGHTING_MODEL_LAMBERT
-    float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
-    Lit += SpecularFactor * SpecularColor;
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    
+    FBRDFResult BRDF = CalculateBRDF(L, V, WorldNormal,
+#ifdef LIGHTING_MODEL_PBR
+        BaseColor, Metallic, Roughness
+#else
+        DiffuseColor, SpecularColor, Shininess
 #endif
+    );
     
-    return Lit * SpotlightFactor * LightInfo.Intensity * LightInfo.LightColor * Shadow;
+    float3 LightEnergy = LightInfo.LightColor.rgb * LightInfo.Intensity;
+
+    Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * SpotlightFactor * Shadow * NdotL;
+    Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * SpotlightFactor * Shadow * NdotL;
+
+    return Output;
 }
 
-float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+FLightOutput DirectionalLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic, float Roughness
+#else
+    float3 DiffuseColor, float3 SpecularColor, float Shininess
+#endif
+)
 {
-    FDirectionalLightInfo LightInfo = Directional[nIndex];
+    FLightOutput Output = (FLightOutput)0;
     
-    float3 LightDir = normalize(-LightInfo.Direction);
-    float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
-
+    FDirectionalLightInfo LightInfo = Directional[Index];
+    
     float4 posCam = mul(float4(WorldPosition, 1), ViewMatrix);
     float depthCam = posCam.z / posCam.w;
     uint csmIndex = GetCascadeIndex(depthCam); // 시각적 디버깅용
@@ -527,22 +651,85 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
         // 그림자 계수가 0 이하면 더 이상 계산 불필요
         if (Shadow <= 0.0)
         {
-            return float4(0.0, 0.0, 0.0, 0.0);
+            return Output;
         }
     }
 
-    float3 Lit = DiffuseFactor * DiffuseColor;
-#ifndef LIGHTING_MODEL_LAMBERT
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
-    Lit += SpecularFactor * SpecularColor;
+    float3 L = normalize(-LightInfo.Direction);
+    float NdotL = saturate(dot(WorldNormal, L));
+    if (NdotL <= 0.0)
+    {
+        return Output;
+    }
+    
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    
+    FBRDFResult BRDF = CalculateBRDF(L, V, WorldNormal,
+#ifdef LIGHTING_MODEL_PBR
+        BaseColor, Metallic, Roughness
+#else
+        DiffuseColor, SpecularColor, Shininess
 #endif
-    return Lit * LightInfo.Intensity * LightInfo.LightColor * Shadow; /** DebugCSMColor(csmIndex)*/;
+    );
+
+    float3 LightEnergy = LightInfo.LightColor.rgb * LightInfo.Intensity;
+
+    Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * Shadow * NdotL /* DebugCSMColor(csmIndex) */;
+    Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * Shadow * NdotL;
+
+    return Output;
 }
 
-float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess, uint TileIndex)
-{
-    float3 FinalColor = float3(0.0, 0.0, 0.0);
 
+float GetFinalAlpha(float BaseAlpha, float SpecularLuminance, float3 V, float3 N,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic
+#else
+    float3 SpecularColor
+#endif
+)
+{
+    float3 F0_View = float3(0.0, 0.0, 0.0);
+#ifdef LIGHTING_MODEL_PBR
+    F0_View = lerp(0.04, BaseColor, Metallic);
+#else
+    F0_View = SpecularColor; // Phong에서는 Specular 색상을 F0로 사용하거나 고정값 사용. 또는 float3(0.04, 0.04, 0.04);
+#endif
+    float ViewAngleFresnel = F_Schlick(F0_View, saturate(dot(N, V))).r;
+
+    float HighlightOpacityContribution = saturate(SpecularLuminance);
+    float TotalReflectanceInfluence = max(ViewAngleFresnel, HighlightOpacityContribution);
+
+    float FinalAlpha = lerp(BaseAlpha, 1.0f, TotalReflectanceInfluence);
+    
+    return saturate(FinalAlpha); // [0, 1]
+}
+
+
+float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic, float Roughness,
+#else
+    float3 DiffuseColor, float3 SpecularColor, float Shininess,
+#endif
+    float BaseAlpha,
+    uint TileIndex
+)
+{
+    /**
+     * RGB 색상 값을 인간이 인지하는 밝기로 변환하기 위한 가중치.
+     * Rec.709(ITU-R BT.709) 표준.
+     */
+    float3 LUMINANCE = float3(0.299, 0.587, 0.114);
+    
+    float3 AccumulatedDiffuseColor = float3(0.0, 0.0, 0.0);
+    float3 AccumulatedSpecularColor = float3(0.0, 0.0, 0.0);
+    
+    // 광원으로부터 계산된 스페큘러 값들 중 최대값
+    float MaxObservedSpecularLuminance = 0.0f;
+
+    
+    // 조명 계산
     int BucketsPerTile = MAX_LIGHT_PER_TILE / 32;
     int StartIndex = TileIndex * BucketsPerTile;
     for (int Bucket = 0; Bucket < BucketsPerTile; ++Bucket)
@@ -556,70 +743,207 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
                 // 전역 조명 인덱스는 bucket * 32 + bit 로 계산됨.
                 // 전역 조명 인덱스가 총 조명 수보다 작은 경우에만 추가
                 int GlobalPointLightIndex = Bucket * 32 + bit;
-                if (GlobalPointLightIndex < MAX_LIGHT_PER_TILE)
+                if (GlobalPointLightIndex < MAX_LIGHT_PER_TILE) // TODO: MAX_LIGHT_PER_TILE 대신 실제 포인트 라이트 개수와 비교해야 함. (중요)
                 {
-                    FinalColor += PointLight(GlobalPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+                    FLightOutput Result = PointLight(
+                        GlobalPointLightIndex, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+                        BaseColor, Metallic, Roughness
+#else
+                        DiffuseColor, SpecularColor, Shininess
+#endif
+                    );
+                    AccumulatedDiffuseColor += Result.DiffuseContribution;
+                    AccumulatedSpecularColor += Result.SpecularContribution;
+                    
+                    MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
                 }
             }
             if (SpotMask & (1u << bit))
             {
                 int GlobalSpotLightIndex = Bucket * 32 + bit;
-                if (GlobalSpotLightIndex < MAX_LIGHT_PER_TILE)
+                if (GlobalSpotLightIndex < MAX_LIGHT_PER_TILE) // TODO: MAX_LIGHT_PER_TILE 대신 실제 스팟 라이트 개수와 비교해야 함. (중요)
                 {
-                    FinalColor += SpotLight(GlobalSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+                    FLightOutput Result = SpotLight(
+                        GlobalSpotLightIndex, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+                        BaseColor, Metallic, Roughness
+#else
+                        DiffuseColor, SpecularColor, Shininess
+#endif
+                    );
+                    AccumulatedDiffuseColor += Result.DiffuseContribution;
+                    AccumulatedSpecularColor += Result.SpecularContribution;
+                    
+                    MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
                 }
             }
         }
     }
     
-    // [unroll(MAX_SPOT_LIGHT)]
-    // for (int j = 0; j < SpotLightsCount; j++)
-    // {
-    //     FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
-    // }
     [unroll(MAX_DIRECTIONAL_LIGHT)]
-    for (int k = 0; k < 1; k++)
+    for (int k = 0; k < 1; k++) // TODO: 그림자는 0번 인덱스만 사용하더라도 실제 디렉셔널 라이트 개수만큼 루프해야함. (중요)
     {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-    }
-    [unroll(MAX_AMBIENT_LIGHT)]
-    for (int l = 0; l < AmbientLightsCount; l++) 
-    {
-        FinalColor += float4(Ambient[l].AmbientColor.rgb * DiffuseColor, 0.0);
+         FLightOutput Result = DirectionalLight(
+            k, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+            BaseColor, Metallic, Roughness
+#else
+            DiffuseColor, SpecularColor, Shininess
+#endif
+        );
+        AccumulatedDiffuseColor += Result.DiffuseContribution;
+        AccumulatedSpecularColor += Result.SpecularContribution;
+
+        MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
     
-    return float4(FinalColor, 1.0);
+    
+    // 앰비언트
+#ifdef LIGHTING_MODEL_PBR
+    float3 IBL_DiffuseColor = float3(0.03, 0.03, 0.03); // TODO: 임시 값으로, 추후 IBL 적용
+
+    if (AmbientLightsCount > 0)
+    {
+        IBL_DiffuseColor = Ambient[0].AmbientColor.rgb;
+    }
+    AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
+#else
+    float3 AmbientLightColor = float3(0.025, 0.025, 0.025);
+    
+    if (AmbientLightsCount > 0)
+    {
+        AmbientLightColor = Ambient[0].AmbientColor.rgb;
+    }
+    AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
+#endif
+
+    float3 FinalRGB = AccumulatedDiffuseColor + AccumulatedSpecularColor;
+
+    
+    // 알파
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    float FinalAlpha = GetFinalAlpha(BaseAlpha, MaxObservedSpecularLuminance, V, WorldNormal,
+#ifdef LIGHTING_MODEL_PBR
+        BaseColor, Metallic
+#else
+        SpecularColor
+#endif
+    );
+
+    
+    return float4(FinalRGB, FinalAlpha);
 }
 
-float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
-{
-    float3 FinalColor = float3(0.0, 0.0, 0.0);
 
+float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+    float3 BaseColor, float Metallic, float Roughness,
+#else
+    float3 DiffuseColor, float3 SpecularColor, float Shininess,
+#endif
+    float BaseAlpha
+)
+{
+    /**
+     * RGB 색상 값을 인간이 인지하는 밝기로 변환하기 위한 가중치.
+     * Rec.709(ITU-R BT.709) 표준.
+     */
+    float3 LUMINANCE = float3(0.299, 0.587, 0.114);
+    
+    float3 AccumulatedDiffuseColor = float3(0.0, 0.0, 0.0);
+    float3 AccumulatedSpecularColor = float3(0.0, 0.0, 0.0);
+    
+    // 광원으로부터 계산된 스페큘러 값들 중 최대값
+    float MaxObservedSpecularLuminance = 0.0f;
+    
+
+    // 조명 계산
     // 다소 비효율적일 수도 있음.
     [unroll(MAX_POINT_LIGHT)]
     for (int i = 0; i < PointLightsCount; i++)
     {
-        FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FLightOutput Result = PointLight(
+            i, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+            BaseColor, Metallic, Roughness
+#else
+            DiffuseColor, SpecularColor, Shininess
+#endif
+        );
+        AccumulatedDiffuseColor += Result.DiffuseContribution;
+        AccumulatedSpecularColor += Result.SpecularContribution;
+
+        MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
 
     [unroll(MAX_SPOT_LIGHT)]
     for (int j = 0; j < SpotLightsCount; j++)
     {
-        FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FLightOutput Result = SpotLight(
+            j, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+            BaseColor, Metallic, Roughness
+#else
+            DiffuseColor, SpecularColor, Shininess
+#endif
+        );
+        AccumulatedDiffuseColor += Result.DiffuseContribution;
+        AccumulatedSpecularColor += Result.SpecularContribution;
+
+        MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
+    
     [unroll(MAX_DIRECTIONAL_LIGHT)]
     for (int k = 0; k < 1; k++) 
     {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        FLightOutput Result = DirectionalLight(
+            k, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+            BaseColor, Metallic, Roughness
+#else
+            DiffuseColor, SpecularColor, Shininess
+#endif
+        );
+        AccumulatedDiffuseColor += Result.DiffuseContribution;
+        AccumulatedSpecularColor += Result.SpecularContribution;
+
+        MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
-    [unroll(MAX_AMBIENT_LIGHT)]
-    for (int l = 0; l < AmbientLightsCount; l++)
+
+
+    // 앰비언트
+#ifdef LIGHTING_MODEL_PBR
+    float3 IBL_DiffuseColor = float3(0.03, 0.03, 0.03); // TODO: 임시 값으로, 추후 IBL 적용
+
+    if (AmbientLightsCount > 0)
     {
-        FinalColor += float4(Ambient[l].AmbientColor.rgb * DiffuseColor, 0.0);
+        IBL_DiffuseColor = Ambient[0].AmbientColor.rgb;
     }
+    AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
+#else
+    float3 AmbientLightColor = float3(0.025, 0.025, 0.025);
     
-    return float4(FinalColor, 1.0);
+    if (AmbientLightsCount > 0)
+    {
+        AmbientLightColor = Ambient[0].AmbientColor.rgb;
+    }
+    AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
+#endif
+
+    float3 FinalRGB = AccumulatedDiffuseColor + AccumulatedSpecularColor;
+
+    
+    // 알파
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    float FinalAlpha = GetFinalAlpha(BaseAlpha, MaxObservedSpecularLuminance, V, WorldNormal,
+#ifdef LIGHTING_MODEL_PBR
+        BaseColor, Metallic
+#else
+        SpecularColor
+#endif
+    );
+
+    
+    return float4(FinalRGB, FinalAlpha);
 }
-
-
-

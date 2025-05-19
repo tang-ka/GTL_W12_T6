@@ -22,6 +22,9 @@ public:
     UParticleSystem() = default;
     virtual ~UParticleSystem() override = default;
 
+    TArray<UParticleEmitter*> GetEmitters() const { return Emitters; }
+    void AddEmitter(UParticleEmitter* Emitter) { Emitters.Add(Emitter); }
+
 private:
     TArray<UParticleEmitter*> Emitters;
 };

@@ -45,8 +45,6 @@ public:
     void SetSpotLightData(const TArray<USpotLightComponent*>& InSpotLights, TArray<TArray<uint32>> InSpotLightPerTiles);
     void SetLightData(const TArray<UPointLightComponent*>& InPointLights, const TArray<USpotLightComponent*>& InSpotLights, ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView* InSpotLightIndexBufferSRV);
 
-    void SetTileConstantBuffer(ID3D11Buffer* InTileConstantBuffer);
-
     void CreatePointLightBuffer();
     void CreateSpotLightBuffer();
 
@@ -89,8 +87,6 @@ private:
 
     ID3D11ShaderResourceView* PointLightIndexBufferSRV;
     ID3D11ShaderResourceView* SpotLightIndexBufferSRV;
-
-    ID3D11Buffer* TileConstantBuffer;
 
     static constexpr uint32 MAX_NUM_POINTLIGHTS = 50000;
     static constexpr uint32 MAX_NUM_SPOTLIGHTS = 50000;

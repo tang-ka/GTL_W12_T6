@@ -1,9 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "Components/PrimitiveComponent.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
 class UParticleSystem;
+struct FParticleEmitterInstance;
+struct FDynamicEmitterDataBase;
 
 class UFXSystemComponent : public UPrimitiveComponent
 {
@@ -23,10 +25,26 @@ public:
     UParticleSystemComponent();
     virtual ~UParticleSystemComponent() override = default;
 
+    virtual UObject* Duplicate(UObject* InOuter) override;
+
+    virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
 
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+
+public:
+    void InitializeSystem();
+
+    UParticleSystem* GetParticleSystem() const { return Template; }
+    void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }
+
+public:
     float AccumTickTime;
     
 private:
+    TArray<FParticleEmitterInstance*> EmitterInstances;
     UParticleSystem* Template;
+
+    TArray<FDynamicEmitterDataBase*> EmitterRenderData;
 };

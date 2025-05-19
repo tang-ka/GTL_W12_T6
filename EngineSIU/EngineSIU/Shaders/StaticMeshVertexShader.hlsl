@@ -15,9 +15,9 @@ cbuffer MaterialConstants : register(b1)
 #endif
 
 
-PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
+PS_INPUT_CommonMesh mainVS(VS_INPUT_StaticMesh Input)
 {
-    PS_INPUT_StaticMesh Output;
+    PS_INPUT_CommonMesh Output;
 
     Output.Position = float4(Input.Position, 1.0);
     Output.Position = mul(Output.Position, WorldMatrix);
@@ -37,7 +37,6 @@ PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
     // End Tangent
     
     Output.UV = Input.UV;
-    Output.MaterialIndex = Input.MaterialIndex;
 
 #ifdef LIGHTING_MODEL_GOURAUD
     float3 DiffuseColor = Input.Color;
@@ -45,7 +44,11 @@ PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
     {
         DiffuseColor = DiffuseTexture.SampleLevel(DiffuseSampler, Input.UV, 0).rgb;
     }
-    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, DiffuseColor, Material.SpecularColor, Material.Shininess);
+    float3 Diffuse = Lighting(
+        Output.WorldPosition, Output.WorldNormal, ViewWorldLocation,
+        DiffuseColor, Material.SpecularColor, Material.Shininess,
+        1.0
+    );
     Output.Color = float4(Diffuse.rgb, 1.0);
 #else
     Output.Color = Input.Color;
