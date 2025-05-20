@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "RenderPassBase.h"
 
+class UParticleSystemComponent;
 
 class FParticleMeshRenderPass : public FRenderPassBase
 {
@@ -16,4 +17,6 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+    TArray<UParticleSystemComponent*> ParticleComponents;
 };

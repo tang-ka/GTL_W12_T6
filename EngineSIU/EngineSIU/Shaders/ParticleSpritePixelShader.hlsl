@@ -26,7 +26,7 @@ float4 main(PS_Input input) : SV_TARGET
     
     float2 UV = input.UV * UVScale + UVOffset;
     float4 Color = Texture.Sample(Sampler, UV);
-    Color = float4(0.8f, 1.f, 0.4f, 0.3f);
+    Color = float4(0.8f, 1.f, 0.4f, 0.1f);
 
     FinalColor = Color;
     
