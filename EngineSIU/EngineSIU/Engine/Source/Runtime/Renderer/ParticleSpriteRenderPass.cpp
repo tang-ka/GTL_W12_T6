@@ -120,7 +120,7 @@ void FParticleSpriteRenderPass::DrawParticles()
         {
             for (auto Emitter : Particle->DynamicEmitterDataArray)
             {
-                FDynamicEmitterReplayDataBase ReplayData = Emitter->GetSource();
+                const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
 
                 if (ReplayData.eEmitterType == DET_Sprite)
                 {
@@ -146,7 +146,22 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
 
     TArray<FParticleSpriteVertex> SpriteVertices;
     
-    // TODO: SpriteVertices 채우기
+    const uint8* ParticleData = ReplayData->DataContainer.ParticleData;
+    const int32 ParticleStride = ReplayData->ParticleStride;
+
+    for (int32 i = 0; i < ReplayData->ActiveParticleCount; i++)
+    {
+        const uint8* ParticleBase = ParticleData + i * ParticleStride;
+        
+        DECLARE_PARTICLE_CONST(Particle, ParticleBase)
+        FParticleSpriteVertex SpriteVertex = {};
+        SpriteVertex.Position = Particle.Location;
+        SpriteVertex.Color = Particle.Color;
+        SpriteVertex.Size = FVector2D(Particle.Size.X, Particle.Size.Y);
+        SpriteVertex.Rotation = Particle.Rotation;
+
+        SpriteVertices.Add(SpriteVertex);
+    }
     
     SpriteVertices.Sort(
     [](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)

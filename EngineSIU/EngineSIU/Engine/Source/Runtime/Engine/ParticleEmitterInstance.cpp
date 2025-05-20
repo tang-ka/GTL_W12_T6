@@ -384,7 +384,7 @@ void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
 {
     for (int32 i = 0; i < ActiveParticles; i++)
     {
-        DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * i);
+        DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * i)
 
         // 상대 시간 업데이트
         Particle->RelativeTime += DeltaTime * Particle->OneOverMaxLifetime;
