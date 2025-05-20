@@ -1,9 +1,11 @@
-﻿#include "ParticleLODLevel.h"
+#include "ParticleLODLevel.h"
 
 #include "UObject/Casts.h"
 #include "Spawn/ParticleModuleSpawn.h"
 #include "ParticleModuleRequired.h"
 #include "Size/ParticleModuleSize.h"
+#include "Location/ParticleModuleLocation.h"
+#include "Velocity/ParticleModuleVelocity.h"
 
 UParticleLODLevel::UParticleLODLevel()
 {
@@ -18,6 +20,14 @@ UParticleLODLevel::UParticleLODLevel()
     UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
     InitialScaleModule->ModuleName = "InitialScaleModule";
     Modules.Add(InitialScaleModule);
+
+    UParticleModuleLocation* LocationModule = new UParticleModuleLocation();
+    LocationModule->ModuleName = "LocationModule";
+    Modules.Add(LocationModule);
+
+    UParticleModuleVelocity* VelocityModule = new UParticleModuleVelocity();
+    VelocityModule->ModuleName = "VelocityModule";
+    Modules.Add(VelocityModule);
 }
 
 int32 UParticleLODLevel::CalculateMaxActiveParticleCount()

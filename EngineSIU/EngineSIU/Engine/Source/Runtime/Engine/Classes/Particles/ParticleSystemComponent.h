@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Components/PrimitiveComponent.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -17,7 +17,6 @@ public:
     UFXSystemComponent() = default;
     virtual ~UFXSystemComponent() override = default;
 };
-
 
 class UParticleSystemComponent : public UFXSystemComponent
 {
