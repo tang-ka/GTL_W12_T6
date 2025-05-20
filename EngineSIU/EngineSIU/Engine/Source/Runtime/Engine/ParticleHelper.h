@@ -106,7 +106,7 @@ struct FParticleSpriteVertex
     /** The relative time of the particle. */
     float RelativeTime;
     /** The previous position of the particle. */
-    FVector	OldPosition;
+    FVector OldPosition;
     /** Value that remains constant over the lifetime of a particle. */
     float ParticleId;
     /** The size of the particle. */
