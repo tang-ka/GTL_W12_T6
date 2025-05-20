@@ -198,6 +198,9 @@ struct FParticleDataContainer
         Free();
     }
     
+    FParticleDataContainer(const FParticleDataContainer&) = delete;
+    FParticleDataContainer& operator=(const FParticleDataContainer&) = delete;
+
     void Alloc(int32 InParticleDataNumBytes, int32 InParticleIndicesNumShorts);
     void Free();
 };
