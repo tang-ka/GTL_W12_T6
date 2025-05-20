@@ -42,7 +42,7 @@ public:
     void SetupMotionBlurFlag(FParticleRequiredModule* OutData) const;
 
 public:
-    UMaterial* MaterialInterface = nullptr;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, UMaterial*, MaterialInterface, = nullptr)
     EModuleType ModuleType = EModuleType::EPMT_Required;
     EParticleSortMode SortMode = EParticleSortMode::PSORTMODE_None;
 

@@ -102,6 +102,18 @@ UAnimationAsset* UAssetManager::GetAnimation(const FName& Name)
     return nullptr;
 }
 
+TSet<FName> UAssetManager::GetMaterialKeys() const
+{
+    TSet<FName> Keys;
+
+    for (const auto& Material : MaterialMap)
+    {
+        Keys.Add(Material.Key);
+    }
+
+    return Keys;
+}
+
 void UAssetManager::AddAssetInfo(const FAssetInfo& Info)
 {
     AssetRegistry->PathNameToAssetInfo.Add(Info.AssetName, Info);

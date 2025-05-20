@@ -1,9 +1,12 @@
 #include "ParticleModuleRequired.h"
 
+#include "Engine/AssetManager.h"
+
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 기본 재질 없음 (필수로 설정되어야 함)
-    MaterialInterface = nullptr;
+    const auto& Materials = UAssetManager::Get().GetMaterialKeys();
+    MaterialInterface = UAssetManager::Get().GetMaterial(*Materials.begin());
 
     // 모듈 타입은 Required로 고정
     ModuleType = EModuleType::EPMT_Required;

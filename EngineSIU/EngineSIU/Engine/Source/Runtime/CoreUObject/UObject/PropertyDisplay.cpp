@@ -3,8 +3,11 @@
 #include "Class.h"
 #include "ScriptStruct.h"
 #include "UObjectHash.h"
+#include "Components/Material/Material.h"
 #include "Distribution/DistributionVector.h"
 #include "Editor/UnrealEd/ImGuiWidget.h"
+#include "Engine/AssetManager.h"
+#include "Engine/FObjLoader.h"
 #include "Math/NumericLimits.h"
 #include "Template/SubclassOf.h"
 
@@ -434,19 +437,15 @@ void FDistributionVectorProperty::DisplayInImGui(UObject* Object) const
 void FDistributionVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
-
-    if (ImGui::TreeNode(PropertyLabel))
+    
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
-        ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
-        {
-            FDistributionVector* Data = static_cast<FDistributionVector*>(DataPtr);
+        FDistributionVector* Data = static_cast<FDistributionVector*>(DataPtr);
 
-            FImGuiWidget::DrawVec3Control("MinValue", Data->MinValue);
-            FImGuiWidget::DrawVec3Control("MaxValue", Data->MaxValue);
-        }
-        ImGui::EndDisabled();
-        ImGui::TreePop();
+        FImGuiWidget::DrawVec3Control("MinValue", Data->MinValue);
+        FImGuiWidget::DrawVec3Control("MaxValue", Data->MaxValue);
     }
+    ImGui::EndDisabled();
 }
 
 void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
@@ -581,4 +580,96 @@ void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
         return;
     }
     ResolvedProperty->DisplayInImGui(Object);
+}
+
+void UMaterialProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
+void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+{
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+    static TSet<FName> Items = UAssetManager::Get().GetMaterialKeys();
+    static TMap<FString, UMaterial*> ObjItems = FObjManager::GetMaterials();
+    static int currentItem = 0;
+
+    for (const auto& ObjItem : ObjItems)
+    {
+        Items.Add(ObjItem.Key);
+    }
+    
+    // 문자열을 저장할 벡터 생성
+    TArray<FString> ItemNames;
+    
+    // 각 항목의 이름을 벡터에 추가
+    for (const auto& Item : Items)
+    {
+        ItemNames.Add(GetData(Item.ToString()));
+    }
+    
+    if (ImGui::BeginCombo("Material", GetData(ItemNames[currentItem]))) 
+    {
+        for (int i = 0; i < ItemNames.Num(); i++)
+        {
+            // 고유 ID 생성 (인덱스를 ID로 사용)
+            ImGui::PushID(i);
+        
+            // 이 항목이 선택되었는지 확인
+            bool isSelected = (currentItem == i);
+        
+            // 각 항목 표시 (같은 이름이 있어도 고유 ID 때문에 문제 없음)
+            if (ImGui::Selectable(GetData(ItemNames[i]), isSelected))
+            {
+                currentItem = i;
+                // 여기에 선택 변경 시 실행할 코드 추가
+            }
+        
+            // 선택된 항목은 자동 포커스
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+            
+            ImGui::PopID();
+        }
+        ImGui::EndCombo();
+    }
+
+    FString MaterialName = ItemNames[currentItem];
+    ID3D11ShaderResourceView* TextureSRV = nullptr; // 당신의 텍스처 SRV
+    if (UMaterial* Material = UAssetManager::Get().GetMaterial(MaterialName))
+    {
+        FString TexturePath = Material->GetMaterialInfo().TextureInfos[0].TexturePath;
+        FTexture* Texture = GEngineLoop.ResourceManager.GetTexture(TexturePath.ToWideString()).get();
+        if (Texture)
+        {
+            TextureSRV = Texture->TextureSRV;
+        }
+    }
+    else if (UMaterial* Material = FObjManager::GetMaterial(MaterialName))
+    {
+        FString TexturePath = Material->GetMaterialInfo().TextureInfos[0].TexturePath;
+        FTexture* Texture = GEngineLoop.ResourceManager.GetTexture(TexturePath.ToWideString()).get();
+        if (Texture)
+        {
+            TextureSRV = Texture->TextureSRV;
+        }
+    }
+
+    if (TextureSRV)
+    {
+        ImGui::SameLine();
+        
+        ImTextureID TextureID = (ImTextureID)TextureSRV;
+
+        // 텍스처 크기 설정 (원하는 대로 조정 가능)
+        ImVec2 size(96.0f, 96.0f);
+    
+        // 텍스처 이미지 표시
+        ImGui::Image(TextureID, size);
+    }
 }

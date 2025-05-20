@@ -1050,6 +1050,23 @@ struct FObjectProperty : public FProperty
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
 };
 
+struct UMaterialProperty : public FProperty
+{
+    UMaterialProperty(
+        UStruct* InOwnerStruct,
+        const char* InPropertyName,
+        int64 InSize,
+        int64 InOffset,
+        EPropertyFlags InFlags
+    )
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
+    {
+    }
+
+    void DisplayInImGui(UObject* Object) const;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+};
+
 struct FStructProperty : public FProperty
 {
     FStructProperty(
@@ -1151,6 +1168,8 @@ FProperty* MakeProperty(
     else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::DistributionFloat) { return new FDistributionFloatProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::DistributionVector) { return new FDistributionVectorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
+
+    else if constexpr (TypeEnum == EPropertyType::Material) { return new UMaterialProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
 
     else if constexpr (TypeEnum == EPropertyType::Array)
     {
