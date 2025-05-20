@@ -37,7 +37,7 @@ void FParticleSpriteRenderPass::PrepareRenderArr()
             {
                 for (auto Emitter : Particle->DynamicEmitterDataArray)
                 {
-                    FDynamicEmitterReplayDataBase ReplayData = Emitter->GetSource();
+                    const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
 
                     // TODO: 최적화 필요
                     if (ReplayData.eEmitterType == DET_Sprite)
