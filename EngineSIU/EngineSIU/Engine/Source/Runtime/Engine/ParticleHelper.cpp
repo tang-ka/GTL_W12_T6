@@ -7,8 +7,8 @@ void FParticleDataContainer::Alloc(int32 InParticleDataNumBytes, int32 InParticl
 
     MemBlockSize = ParticleDataNumBytes + ParticleIndicesNumShorts * sizeof(uint16);
 
-    ParticleData = (uint8*)(MemBlockSize);
-    ParticleIndices = (uint16*)(ParticleData + ParticleDataNumBytes);
+    ParticleData = static_cast<uint8*>(std::malloc(MemBlockSize));
+    ParticleIndices = reinterpret_cast<uint16*>(ParticleData + ParticleDataNumBytes);
 }
 
 void FParticleDataContainer::Free()
@@ -17,10 +17,11 @@ void FParticleDataContainer::Free()
     {
         free(ParticleData);
         ParticleData = nullptr;
+        ParticleIndices = nullptr;
     }
     if (ParticleIndices)
     {
-        free(ParticleIndices);
+        // free(ParticleIndices);
         ParticleIndices = nullptr;
     }
     
