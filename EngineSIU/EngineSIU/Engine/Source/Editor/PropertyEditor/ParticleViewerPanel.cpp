@@ -78,7 +78,7 @@ void ParticleViewerPanel::RenderDetailPanel()
     
     if (SelectedEmitter)
     {
-        ImGui::Text(GetData(SelectedEmitter->EmitterName.ToString()));
+        SelectedEmitter->DisplayProperty();
     }
     
     if (SelectedModule)
@@ -86,35 +86,6 @@ void ParticleViewerPanel::RenderDetailPanel()
         ImGui::Text(GetData(SelectedModule->ModuleName.ToString()));
         SelectedModule->DisplayProperty();
     }
-    
-    
-    // // 두 번째 컬럼: 환경 속성
-    // ImGui::SameLine();
-    // ImGui::BeginChild("EnvProps", ImVec2(columnWidth, DetailPanelHeight - 40), true);
-    // ImGui::Text("Environment Properties");
-    // ImGui::Separator();
-    //
-    // ImGui::SliderFloat("Gravity", &DetailGravity, -10.0f, 10.0f);
-    // ImGui::SliderFloat("Wind", &DetailWind, 0.0f, 20.0f);
-    // ImGui::SliderFloat("Turbulence", &DetailTurbulence, 0.0f, 5.0f);
-    // ImGui::SliderFloat("Bounce", &DetailBounce, 0.0f, 1.0f);
-    //
-    // ImGui::EndChild();
-    //
-    // // 세 번째 컬럼: 렌더링 속성
-    // ImGui::SameLine();
-    // ImGui::BeginChild("RenderProps", ImVec2(columnWidth, DetailPanelHeight - 40), true);
-    // ImGui::Text("Rendering Properties");
-    // ImGui::Separator();
-    //
-    // const char* blendModes[] = { "Additive", "Alpha Blend", "Opaque", "Modulate" };
-    // ImGui::Combo("Blend Mode", &DetailBlendMode, blendModes, IM_ARRAYSIZE(blendModes));
-    //
-    // ImGui::Checkbox("Cast Shadows", &DetailCastShadows);
-    // ImGui::Checkbox("Receive Shadows", &DetailReceiveShadows);
-    // ImGui::SliderFloat("Alpha Cutoff", &DetailAlphaCutoff, 0.0f, 1.0f);
-    //
-    // ImGui::EndChild();
     
     ImGui::End();
 }

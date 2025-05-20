@@ -78,21 +78,21 @@ public:
 	 *
 	 *	@return	float		The maximum spawn rate
 	 */
-	virtual float GetMaximumSpawnRate() { return 0.0f; }
-
-	/**
-	 *	Retrieve the estimated spawn rate for this module...
-	 *	Used in estimating the number of particles that could be used.
-	 *
-	 *	@return	float			The maximum spawn rate
-	 */
-	virtual float GetEstimatedSpawnRate() { return 0.0f; }
-
-	/**
-	 *	Retrieve the maximum number of particles this module could burst.
-	 *	Used in estimating the number of particles that could be used.
-	 *
-	 *	@return	int32			The maximum burst count
-	 */
-	virtual int32 GetMaximumBurstCount() { return 0; }
+	virtual void GetSpawnRate(float& MinSpawnRate, float& MaxSpawnRate) { }
+	//
+	// /**
+	//  *	Retrieve the estimated spawn rate for this module...
+	//  *	Used in estimating the number of particles that could be used.
+	//  *
+	//  *	@return	float			The maximum spawn rate
+	//  */
+	// virtual float GetMinimumSpawnRate() { return 0.0f; }
+	//
+	// /**
+	//  *	Retrieve the maximum number of particles this module could burst.
+	//  *	Used in estimating the number of particles that could be used.
+	//  *
+	//  *	@return	int32			The maximum burst count
+	//  */
+	// virtual int32 GetMaximumBurstCount() { return 0; }
 };

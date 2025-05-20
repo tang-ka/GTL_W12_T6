@@ -101,7 +101,7 @@ void UParticleModuleRequired::GenerateSubUVFrameData(FParticleRequiredModule* Ou
 
 void UParticleModuleRequired::SetupCutoutGeometryData(FParticleRequiredModule* OutData) const
 {
-    OutData->bCutoutTexureIsValid = bUseCutoutMask; // 임시
+    OutData->bCutoutTextureIsValid = bUseCutoutMask; // 임시
 
     OutData->NumBoundingVertices = CachedBoundingGeometry.Num();
     OutData->NumBoundingTriangles = CachedBoundingGeometry.Num() / 3;

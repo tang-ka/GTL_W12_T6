@@ -2,6 +2,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class UParticleModule;
 class UParticleLODLevel;
 
 enum class EParticleBurstMethod : uint8
@@ -21,11 +22,14 @@ public:
 
     void CacheEmitterModuleInfo();
 
+    virtual void DisplayProperty() override;
+
     TArray<UParticleLODLevel*> GetLODLevels() const { return LODLevels; }
+    TMap<UParticleModule*, uint32> ModuleOffsetMap;
     UParticleLODLevel* GetLODLevel(int32 LODIndex) const;
 
 public:
-    FName EmitterName;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FName, EmitterName, = "Default")
     int32 PeakActiveParticles = 0;
 
     // Below is information udpated by calling CacheEmitterModuleInfo

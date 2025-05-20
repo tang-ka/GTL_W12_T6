@@ -9,34 +9,20 @@ void UParticleModuleSpawn::DisplayProperty()
     }
 }
 
-bool UParticleModuleSpawn::GetSpawnAmount(FParticleEmitterInstance* Owner,
-                                          int32 Offset, float OldLeftover, float DeltaTime, int32& Number, float& InRate)
+bool UParticleModuleSpawn::GetSpawnAmount(FParticleEmitterInstance* Owner, int32 Offset,
+    float OldLeftover, float DeltaTime, int32& Number, float& InRate)
 {
-    return false;
+    return Owner != nullptr;
 }
 
-float UParticleModuleSpawn::GetMaximumSpawnRate()
+void UParticleModuleSpawn::GetSpawnRate(float& MinSpawnRate, float& MaxSpawnRate)
 {
-    return Rate * RateScale;
-    
     float MinSpawn, MaxSpawn;
     float MinScale, MaxScale;
 
-    //Rate.GetOutRange(MinSpawn, MaxSpawn);
-    //RateScale.GetOutRange(MinScale, MaxScale);
+    Rate.GetOutRange(MinSpawn, MaxSpawn);
+    RateScale.GetOutRange(MinScale, MaxScale);
 
-    return (MaxSpawn * MaxScale);
-}
-
-float UParticleModuleSpawn::GetEstimatedSpawnRate()
-{
-    return Rate * RateScale;
-    
-    float MinSpawn, MaxSpawn;
-	float MinScale, MaxScale;
-
-	//Rate.GetOutRange(MinSpawn, MaxSpawn);
-	//RateScale.GetOutRange(MinScale, MaxScale);
-
-	return (MaxSpawn * MaxScale);
+    MinSpawnRate = MinSpawn * MinScale;
+    MaxSpawnRate = MaxSpawn * MaxScale;
 }
