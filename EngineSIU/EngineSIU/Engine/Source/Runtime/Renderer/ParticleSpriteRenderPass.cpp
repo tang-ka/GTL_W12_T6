@@ -1,6 +1,8 @@
 ﻿#include "ParticleSpriteRenderPass.h"
 
+#include "RendererHelpers.h"
 #include "UnrealClient.h"
+#include "Components/Material/Material.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Engine.h"
@@ -101,6 +103,9 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
     Graphics->DeviceContext->IASetInputLayout(nullptr);
     
     BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
+
+    BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 0, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
 }
 
 void FParticleSpriteRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -177,6 +182,19 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
     });
     
     BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
+
+    if (UMaterial* Material = ReplayData->MaterialInterface)
+    {
+        const FMaterialInfo& MaterialInfo = Material->GetMaterialInfo();
+        
+        MaterialUtils::UpdateMaterial(BufferManager, Graphics, MaterialInfo);
+    }
+
+    FSubUVConstant SubUVConstant = {
+        FVector2D(0.0f, 0.0f),
+        FVector2D(1.0f, 1.0f)   
+    };
+    BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), SubUVConstant);
 
     Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
 }
