@@ -261,9 +261,15 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
     {
         return;
     }
+    
     if (ParticleViewerWorld)
     {
         UE_LOG(ELogLevel::Warning, TEXT("SkeletalMeshViewerWorld already exists!"));
+        const auto Actors = ParticleViewerWorld->GetActiveLevel()->Actors;
+        for (const auto& Actor : Actors)
+        {
+            Actor->Destroy();
+        }
     }
     else
     {
@@ -296,6 +302,18 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
     // ParticleActor 강제 설정
     Cast<UEditorEngine>(GEngine)->SelectActor(ParticleActor);
     Cast<UEditorEngine>(GEngine)->SelectComponent(ParticleSystemComponent);
+
+    FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
+    CameraLocation = Camera.GetLocation();
+    CameraRotation = Camera.GetRotation();
+    
+    Camera.SetRotation(FVector(0.0f, 30, 180));
+    Camera.SetLocation(FVector(-5, 0 , 10));
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_LOCAL);
+    }
 }
 
 void UEditorEngine::BindEssentialObjects()

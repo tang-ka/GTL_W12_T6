@@ -9,6 +9,8 @@
 #include "Particles/Size/ParticleModuleSize.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Particles/Color/ParticleModuleColorBase.h"
+#include "Particles/Velocity/ParticleModuleVelocityBase.h"
 
 ParticleViewerPanel::ParticleViewerPanel()
 {
@@ -228,7 +230,7 @@ void ParticleViewerPanel::RenderEmitterPanel()
     
     for (const auto& Emitter : ParticleSystem->GetEmitters())
     {
-        // 첫 번째 효과 세트
+        // Emitter 한 세트
         RenderEffectSet(Emitter);
         ImGui::SameLine();
     }
@@ -279,6 +281,45 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     ImGui::PopID();
     ImGui::PopStyleVar();
 
+    // 플러스 버튼을 제일 상단에 배치
+    float plusButtonWidth = 120.0f;
+    float plusButtonHeight = 30.0f; 
+
+    // 새로운 Module 추가
+    TArray<UClass*> ChildObjects;
+    GetChildOfClass(UParticleModule::StaticClass(), ChildObjects);
+
+    // 버튼 크기 설정
+    ImGui::SetNextItemWidth(plusButtonWidth);
+
+    // 높이 조정을 위한 스타일 푸시
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, (plusButtonHeight - ImGui::GetFontSize()) * 0.5f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 4.0f)); // 드롭다운 패딩도 조정
+
+    if (ImGui::BeginCombo("##AddModuleCombo", "Add Module"))
+    {
+        for (UClass* ChildObject : ChildObjects)
+        {
+            if (ChildObject == UParticleModule::StaticClass() || ChildObject == UParticleModuleSizeBase::StaticClass() || ChildObject == UParticleModuleSpawnBase::StaticClass()
+                || ChildObject == UParticleModuleColorBase::StaticClass() || ChildObject == UParticleModuleVelocityBase::StaticClass())
+            {
+                continue;
+            }
+            
+            const std::string ObjectName = ChildObject->GetName().ToAnsiString();
+            if (ImGui::Selectable(ObjectName.c_str(), false))
+            {
+                // // TODO: 나중에 수정, 지금은 목록만 보여주고, 설정은 안함
+                // *Object = ChildObject;
+            }
+            ImGui::Separator();
+        }
+        ImGui::EndCombo();
+    }
+
+    // 스타일 팝
+    ImGui::PopStyleVar(2);
+
     const auto& Modules = Emitter->GetLODLevel(0)->GetModules();
     for (const auto& Module : Modules)
     {
@@ -291,6 +332,8 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
         }
         ImGui::PopID();
     }
+
+    
     
     ImGui::EndGroup();
 }
