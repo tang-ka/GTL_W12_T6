@@ -55,5 +55,5 @@ private:
 
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
 
-    FParticleDynamicData* ParticleDynamicData;
+    FParticleDynamicData* ParticleDynamicData = nullptr;
 };

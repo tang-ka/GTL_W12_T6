@@ -29,13 +29,15 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    if (Template)
+    if (!Template)
     {
-        if (EmitterInstances.Num() != Template->GetEmitters().Num())
-        {
-            EmitterInstances.Empty();
-            InitializeSystem();
-        }
+        return;
+    }
+
+    if (EmitterInstances.Num() != Template->GetEmitters().Num())
+    {
+        EmitterInstances.Empty();
+        InitializeSystem();
     }
     
     for (auto* Instance : EmitterInstances)
@@ -74,7 +76,8 @@ void UParticleSystemComponent::CreateAndAddEmitterInstance(UParticleEmitter* Emi
 {
     if (EmitterTemplate)
     {
-        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        // Todo: 스프라이트 이미터로 생성, 나중에 메시 관련도 추가해서 처리
+        FParticleSpriteEmitterInstance* Instance = new FParticleSpriteEmitterInstance();
         Instance->SpriteTemplate = EmitterTemplate;
         Instance->Component = this;
         Instance->CurrentLODLevelIndex = 0;

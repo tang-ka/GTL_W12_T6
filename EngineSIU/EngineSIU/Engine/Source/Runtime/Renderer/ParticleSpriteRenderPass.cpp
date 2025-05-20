@@ -1,6 +1,5 @@
 ﻿#include "ParticleSpriteRenderPass.h"
 
-#include "ParticleHelper.h"
 #include "UnrealClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "D3D11RHI/GraphicDevice.h"
@@ -33,8 +32,20 @@ void FParticleSpriteRenderPass::PrepareRenderArr()
     {
         if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            // TODO: 스프라이트인 경우에만 추가
-            ParticleComponents.Add(Iter);
+            FParticleDynamicData* Particle = Iter->GetParticleDynamicData();
+            if (Particle && !Particle->DynamicEmitterDataArray.IsEmpty())
+            {
+                for (auto Emitter : Particle->DynamicEmitterDataArray)
+                {
+                    const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
+
+                    // TODO: 최적화 필요
+                    if (ReplayData.eEmitterType == DET_Sprite)
+                    {
+                        ParticleComponents.Add(Iter);
+                    }
+                }
+            }
         }
     }
 
@@ -62,49 +73,8 @@ void FParticleSpriteRenderPass::Render(const std::shared_ptr<FEditorViewportClie
 {
     PrepareRender(Viewport);
 
-    for (const UParticleSystemComponent* Comp : ParticleComponents)
-    {
-        TArray<FParticleSpriteVertex> SpriteVertices = {
-            { FVector(0.f), 0.f, FVector(0.f), 0.f, FVector2D(1.f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-            { FVector(1.f), 0.f, FVector(0.f), 0.f, FVector2D(0.5f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-            { FVector(2.f), 0.f, FVector(0.f), 0.f, FVector2D(0.25f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-        };
+    DrawParticles();
 
-        /*
-        SpriteVertices.Sort(
-            [Viewport](const FParticleSpriteVertex* A, const FParticleSpriteVertex* B)
-            {
-                const FVector LocA = A->Position;
-                const FVector LocB = B->Position;
-                const FVector LocCam = Viewport->GetCameraLocation();
-
-                const float DistA = (LocCam - LocA).SquaredLength();
-                const float DistB = (LocCam - LocB).SquaredLength();
-                
-                return DistA > DistB;
-            }
-        );
-        */
-        SpriteVertices.Sort(
-            [Viewport](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)
-            {
-                const FVector LocA = A.Position;
-                const FVector LocB = B.Position;
-                const FVector LocCam = Viewport->GetCameraLocation();
-
-                const float DistA = (LocCam - LocA).SquaredLength();
-                const float DistB = (LocCam - LocB).SquaredLength();
-                
-                return DistA > DistB;
-            }
-        );
-
-        BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
-        BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
-
-        Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
-    }
-    
     CleanUpRender(Viewport);
 }
 
@@ -129,6 +99,8 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(nullptr);
+    
+    BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
 }
 
 void FParticleSpriteRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -137,4 +109,74 @@ void FParticleSpriteRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewp
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
+}
+
+void FParticleSpriteRenderPass::DrawParticles()
+{
+    for (const auto PSC : ParticleComponents)
+    {
+        FParticleDynamicData* Particle = PSC->GetParticleDynamicData();
+        if (Particle)
+        {
+            for (auto Emitter : Particle->DynamicEmitterDataArray)
+            {
+                const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
+
+                if (ReplayData.eEmitterType == DET_Sprite)
+                {
+                    FDynamicSpriteEmitterDataBase* SpriteData = dynamic_cast<FDynamicSpriteEmitterDataBase*>(Emitter);
+                    if (SpriteData)
+                    {
+                        const FDynamicSpriteEmitterReplayDataBase* SpriteParticleData = SpriteData->GetSourceData();
+                        ProcessParticles(SpriteParticleData);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterReplayDataBase* ReplayData)
+{
+    // ReplayData
+    if (ReplayData == nullptr)
+    {
+        return;
+    }
+
+    TArray<FParticleSpriteVertex> SpriteVertices;
+    
+    const uint8* ParticleData = ReplayData->DataContainer.ParticleData;
+    const int32 ParticleStride = ReplayData->ParticleStride;
+
+    for (int32 i = 0; i < ReplayData->ActiveParticleCount; i++)
+    {
+        const uint8* ParticleBase = ParticleData + i * ParticleStride;
+        
+        DECLARE_PARTICLE_CONST(Particle, ParticleBase)
+        FParticleSpriteVertex SpriteVertex = {};
+        SpriteVertex.Position = Particle.Location;
+        SpriteVertex.Color = Particle.Color;
+        SpriteVertex.Size = FVector2D(Particle.Size.X, Particle.Size.Y);
+        SpriteVertex.Rotation = Particle.Rotation;
+
+        SpriteVertices.Add(SpriteVertex);
+    }
+    
+    SpriteVertices.Sort(
+    [](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)
+    {
+        const FVector LocA = A.Position;
+        const FVector LocB = B.Position;
+        const FVector LocCam = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetCameraLocation();
+
+        const float DistA = (LocCam - LocA).SquaredLength();
+        const float DistB = (LocCam - LocB).SquaredLength();
+        
+        return DistA > DistB;
+    });
+    
+    BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
+
+    Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
 }

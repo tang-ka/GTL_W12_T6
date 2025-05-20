@@ -147,23 +147,23 @@ struct FParticleSpriteVertexNonInstanced
 // Per-particle data sent to the GPU.
 struct FMeshParticleInstanceVertex
 {
-    /** The color of the particle. */
-    FLinearColor Color;
+    ///** The color of the particle. */
+    //FLinearColor Color;
 
-    /** The instance to world transform of the particle. Translation vector is packed into W components. */
-    FVector4 Transform[3];
+    ///** The instance to world transform of the particle. Translation vector is packed into W components. */
+    //FVector4 Transform[3];
 
-    /** The velocity of the particle, XYZ: direction, W: speed. */
-    FVector4 Velocity;
+    ///** The velocity of the particle, XYZ: direction, W: speed. */
+    //FVector4 Velocity;
 
-    /** The sub-image texture offsets for the particle. */
-    int16 SubUVParams[4];
+    ///** The sub-image texture offsets for the particle. */
+    //int16 SubUVParams[4];
 
-    /** The sub-image lerp value for the particle. */
-    float SubUVLerp;
+    ///** The sub-image lerp value for the particle. */
+    //float SubUVLerp;
 
-    /** The relative time of the particle. */
-    float RelativeTime;
+    ///** The relative time of the particle. */
+    //float RelativeTime;
 };
 
 enum EDynamicEmitterType
@@ -198,6 +198,9 @@ struct FParticleDataContainer
         Free();
     }
     
+    FParticleDataContainer(const FParticleDataContainer&) = delete;
+    FParticleDataContainer& operator=(const FParticleDataContainer&) = delete;
+
     void Alloc(int32 InParticleDataNumBytes, int32 InParticleIndicesNumShorts);
     void Free();
 };

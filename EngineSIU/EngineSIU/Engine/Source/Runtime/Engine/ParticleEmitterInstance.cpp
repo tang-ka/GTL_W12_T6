@@ -55,6 +55,8 @@ void FParticleEmitterInstance::Initialize()
     ParticleCounter = 0;
     AccumulatedTime = 0.0f;
     SpawnFraction = 0.0f;
+
+    bEnabled = true;
 }
 
 void FParticleEmitterInstance::Tick(float DeltaTime)
@@ -385,7 +387,7 @@ void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
 {
     for (int32 i = 0; i < ActiveParticles; i++)
     {
-        DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * i);
+        DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * i)
 
         // 상대 시간 업데이트
         Particle->RelativeTime += DeltaTime * Particle->OneOverMaxLifetime;
