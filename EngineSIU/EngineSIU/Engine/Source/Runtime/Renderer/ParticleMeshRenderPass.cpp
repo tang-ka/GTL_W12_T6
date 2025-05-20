@@ -71,11 +71,11 @@ void FParticleMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
 
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"ParticleSpriteVertexShader");
-    // ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"ParticleSpritePixelShader");
-    // Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    // Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    // Graphics->DeviceContext->IASetInputLayout(nullptr);
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"ParticleSpriteVertexShader");
+    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"CommonMeshShader");
+    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(nullptr);
 }
 
 void FParticleMeshRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)

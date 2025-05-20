@@ -1,6 +1,4 @@
 
-// TODO: 현재는 머티리얼에서 디퓨즈만 전달 받는 상태로 진행. 추후 머티리얼 전체를 전달 받는 방법 고려하면 좋음.
-
 Texture2D Texture : register(t0);
 SamplerState Sampler : register(s0);
 
