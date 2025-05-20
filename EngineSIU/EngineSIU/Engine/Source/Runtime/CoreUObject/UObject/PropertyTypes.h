@@ -13,6 +13,7 @@
 
 struct FDistributionVector;
 struct FDistributionFloat;
+class UMaterial;
 
 enum class EPropertyType : uint8
 {
@@ -48,6 +49,8 @@ enum class EPropertyType : uint8
     StructPointer,                 // 사용자 정의 구조체 포인터 타입
     SubclassOf,                    // TSubclassOf
     Object,                        // UObject* 타입
+
+    Material,                      // UMaterial
 };
 
 template <typename T>
@@ -92,13 +95,14 @@ consteval EPropertyType GetPropertyType()
         // 하지만 이 시점에서 IsA의 requires std::derived_from<T, UObject>가 T에 대한 완전한 타입정보를 가지고 있지 않기 때문에 false로 평가되어 컴파일 에러가 발생합니다.
         // 지금은 그냥 IsA의 requires를 제거하였습니다.
         
+        if constexpr (std::derived_from<PointedToType, UMaterial>) { return EPropertyType::Material; } // UObject보다 먼저 검사
         // PointedToType가 완전한 타입일 때만 true를 반환.
         // 전방 선언 시 false가 될 수 있음.
-        if constexpr (std::derived_from<PointedToType, UObject>)
+        else if constexpr (std::derived_from<PointedToType, UObject>)
         {
             return EPropertyType::Object;
         }
-
+        
         // 커스텀 구조체 포인터
         else if constexpr (std::is_class_v<PointedToType> && requires { PointedToType::StaticStruct(); })
         {
