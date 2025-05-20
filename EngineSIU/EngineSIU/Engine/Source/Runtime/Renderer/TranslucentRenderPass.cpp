@@ -11,17 +11,17 @@ void FTranslucentRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGra
 
 void FTranslucentRenderPass::PrepareRenderArr()
 {
+    
 }
 
 void FTranslucentRenderPass::ClearRenderArr()
 {
+    
 }
 
 void FTranslucentRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     PrepareRender(Viewport);
-
-
     
     CleanUpRender(Viewport);
 }

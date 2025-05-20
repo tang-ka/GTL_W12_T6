@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "RenderPassBase.h"
 
+class UParticleSystemComponent;
 
 class FTranslucentRenderPass : public FRenderPassBase
 {
@@ -12,7 +13,7 @@ public:
     virtual void PrepareRenderArr() override;
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
-
+    
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;

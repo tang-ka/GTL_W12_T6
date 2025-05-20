@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Components/PrimitiveComponent.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -45,6 +45,7 @@ public:
     UParticleSystem* GetParticleSystem() const { return Template; }
     void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }
 
+    FParticleDynamicData* GetParticleDynamicData() const { return ParticleDynamicData; }
 public:
     float AccumTickTime;
     
@@ -53,4 +54,6 @@ private:
     UParticleSystem* Template;
 
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
+
+    FParticleDynamicData* ParticleDynamicData;
 };
