@@ -55,6 +55,8 @@ void FParticleEmitterInstance::Initialize()
     ParticleCounter = 0;
     AccumulatedTime = 0.0f;
     SpawnFraction = 0.0f;
+
+    bEnabled = true;
 }
 
 void FParticleEmitterInstance::Tick(float DeltaTime)

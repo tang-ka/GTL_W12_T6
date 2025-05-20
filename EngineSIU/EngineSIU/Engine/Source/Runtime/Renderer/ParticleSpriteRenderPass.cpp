@@ -1,6 +1,5 @@
 ﻿#include "ParticleSpriteRenderPass.h"
 
-#include "ParticleHelper.h"
 #include "UnrealClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "D3D11RHI/GraphicDevice.h"
@@ -34,6 +33,7 @@ void FParticleSpriteRenderPass::PrepareRenderArr()
         if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
             // TODO: 스프라이트인 경우에만 추가
+            Iter->UpdateDynamicData();
             ParticleComponents.Add(Iter);
         }
     }
@@ -62,48 +62,25 @@ void FParticleSpriteRenderPass::Render(const std::shared_ptr<FEditorViewportClie
 {
     PrepareRender(Viewport);
 
-    for (const UParticleSystemComponent* Comp : ParticleComponents)
+    DrawParticles();
+
+    SpriteVertices.Sort(
+    [Viewport](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)
     {
-        TArray<FParticleSpriteVertex> SpriteVertices = {
-            { FVector(0.f), 0.f, FVector(0.f), 0.f, FVector2D(1.f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-            { FVector(1.f), 0.f, FVector(0.f), 0.f, FVector2D(0.5f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-            { FVector(2.f), 0.f, FVector(0.f), 0.f, FVector2D(0.25f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-        };
+        const FVector LocA = A.Position;
+        const FVector LocB = B.Position;
+        const FVector LocCam = Viewport->GetCameraLocation();
 
-        /*
-        SpriteVertices.Sort(
-            [Viewport](const FParticleSpriteVertex* A, const FParticleSpriteVertex* B)
-            {
-                const FVector LocA = A->Position;
-                const FVector LocB = B->Position;
-                const FVector LocCam = Viewport->GetCameraLocation();
+        const float DistA = (LocCam - LocA).SquaredLength();
+        const float DistB = (LocCam - LocB).SquaredLength();
+            
+        return DistA > DistB;
+    });
+    
+    BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
+    BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
 
-                const float DistA = (LocCam - LocA).SquaredLength();
-                const float DistB = (LocCam - LocB).SquaredLength();
-                
-                return DistA > DistB;
-            }
-        );
-        */
-        SpriteVertices.Sort(
-            [Viewport](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)
-            {
-                const FVector LocA = A.Position;
-                const FVector LocB = B.Position;
-                const FVector LocCam = Viewport->GetCameraLocation();
-
-                const float DistA = (LocCam - LocA).SquaredLength();
-                const float DistB = (LocCam - LocB).SquaredLength();
-                
-                return DistA > DistB;
-            }
-        );
-
-        BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
-        BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
-
-        Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
-    }
+    Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
     
     CleanUpRender(Viewport);
 }
@@ -137,4 +114,47 @@ void FParticleSpriteRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewp
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
+}
+
+void FParticleSpriteRenderPass::DrawParticles()
+{
+    SpriteVertices.Empty();
+    
+    for (const auto PSC : ParticleComponents)
+    {
+        FParticleDynamicData* Particle = PSC->GetParticleDynamicData();
+        if (Particle)
+        {
+            for (auto Emitter : Particle->DynamicEmitterDataArray)
+            {
+                FDynamicEmitterReplayDataBase ReplayData = Emitter->GetSource();
+
+                if (ReplayData.eEmitterType == DET_Sprite)
+                {
+                    FDynamicSpriteEmitterDataBase* SpriteData = dynamic_cast<FDynamicSpriteEmitterDataBase*>(Emitter);
+                    if (SpriteData)
+                    {
+                        const FDynamicSpriteEmitterReplayDataBase* SpriteParticleData = SpriteData->GetSourceData();
+                        ProcessParticles(SpriteParticleData);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterReplayDataBase* ReplayData)
+{
+    // ReplayData
+    if (ReplayData == nullptr)
+    {
+        return;
+    }
+
+    // Sample code..
+    SpriteVertices = {
+        { FVector(0.f), 0.f, FVector(0.f), 0.f, FVector2D(1.f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
+        { FVector(1.f), 0.f, FVector(0.f), 0.f, FVector2D(0.5f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
+        { FVector(2.f), 0.f, FVector(0.f), 0.f, FVector2D(0.25f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
+    };
 }
