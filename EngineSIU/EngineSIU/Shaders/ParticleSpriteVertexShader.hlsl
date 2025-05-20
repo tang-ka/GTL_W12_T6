@@ -24,14 +24,14 @@ struct VS_Input
 struct PS_Input
 {
     float4 Position : SV_Position;
-    float2 TexCoord : TEXCOORD0;
-    //float4 Color : COLOR0;
-    //float RelativeTime : TEXCOORD1;
-    //float ParticleId : TEXCOORD2;
-    //float SubImageIndex : TEXCOORD3;
+    float2 UV : TEXCOORD0;
+    float4 Color : COLOR0;
+    float RelativeTime : TEXCOORD1;
+    float ParticleId : TEXCOORD2;
+    float SubImageIndex : TEXCOORD3;
 };
 
-PS_Input mainVS(VS_Input Input)
+PS_Input main(VS_Input Input)
 {
     // P0: Bottom-Left  (-0.5, -0.5) UV(0,1)
     // P1: Bottom-Right ( 0.5, -0.5) UV(1,1)
@@ -67,7 +67,7 @@ PS_Input mainVS(VS_Input Input)
     
     uint CornerIdx = CornerIndices[Input.VertexID];
     float2 CornerOffset = LocalOffsets[CornerIdx];
-    Output.TexCoord = TexCoords[CornerIdx];
+    Output.UV = TexCoords[CornerIdx];
 
     // 3. 파티클 크기 적용
     CornerOffset *= Particle.Size; // Size.x는 너비, Size.y는 높이
@@ -94,10 +94,10 @@ PS_Input mainVS(VS_Input Input)
     Output.Position = mul(VertexPosition_VS, ProjectionMatrix);
 
     // 7. 나머지 파티클 데이터를 픽셀 셰이더로 전달
-    //Output.Color = Particle.Color;
-    //Output.RelativeTime = Particle.RelativeTime;
-    //Output.ParticleId = Particle.ParticleId;
-    //Output.SubImageIndex = Particle.SubImageIndex;
+    Output.Color = Particle.Color;
+    Output.RelativeTime = Particle.RelativeTime;
+    Output.ParticleId = Particle.ParticleId;
+    Output.SubImageIndex = Particle.SubImageIndex;
 
     return Output;
 }

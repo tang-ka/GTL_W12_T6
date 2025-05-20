@@ -1,4 +1,6 @@
 
+// TODO: 현재는 머티리얼에서 디퓨즈만 전달 받는 상태로 진행. 추후 머티리얼 전체를 전달 받는 방법 고려하면 좋음.
+
 Texture2D Texture : register(t0);
 SamplerState Sampler : register(s0);
 
@@ -10,8 +12,12 @@ cbuffer SubUVConstant : register(b1)
 
 struct PS_Input
 {
-    float4 Position : SV_POSITION;
-    float2 UV : TEXCOORD;
+    float4 Position : SV_Position;
+    float2 UV : TEXCOORD0;
+    float4 Color : COLOR0;
+    float RelativeTime : TEXCOORD1;
+    float ParticleId : TEXCOORD2;
+    float SubImageIndex : TEXCOORD3;
 };
 
 float4 main(PS_Input input) : SV_TARGET
@@ -20,13 +26,8 @@ float4 main(PS_Input input) : SV_TARGET
     
     float2 UV = input.UV * UVScale + UVOffset;
     float4 Color = Texture.Sample(Sampler, UV);
-    float Threshold = 0.01f;
+    Color = float4(0.8f, 1.f, 0.4f, 0.3f);
 
-    if (max(max(Color.r, Color.g), Color.b) < Threshold || Color.a < 0.1f)
-    {
-        discard;
-    }
-    
     FinalColor = Color;
     
     return FinalColor;

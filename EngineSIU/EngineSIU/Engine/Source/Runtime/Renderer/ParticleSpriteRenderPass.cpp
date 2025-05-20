@@ -14,10 +14,16 @@ void FParticleSpriteRenderPass::Initialize(FDXDBufferManager* InBufferManager, F
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);
 
-    HRESULT hr = ShaderManager->AddVertexShader(L"ParticleSpriteVertexShader", L"Shaders/ParticleSpriteVertexShader.hlsl", "mainVS");
+    HRESULT hr = ShaderManager->AddVertexShader(L"ParticleSpriteVertexShader", L"Shaders/ParticleSpriteVertexShader.hlsl", "main");
     if (FAILED(hr))
     {
         UE_LOG(ELogLevel::Error, TEXT("Failed to create ParticleSpriteVertexShader shader!"));
+    }
+
+    hr = ShaderManager->AddPixelShader(L"ParticleSpritePixelShader", L"Shaders/ParticleSpritePixelShader.hlsl", "main");
+    if (FAILED(hr))
+    {
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create ParticleSpritePixelShader shader!"));
     }
 }
 
@@ -119,7 +125,7 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"ParticleSpriteVertexShader");
-    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"BillBoardPixelShader");
+    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"ParticleSpritePixelShader");
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(nullptr);
