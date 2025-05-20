@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "Distribution/DistributionVector.h"
+#include "Distribution/DistributionFloat.h"
 #include "Particles/ParticleModule.h"
 
 class UParticleModuleColorBase : public UParticleModule
@@ -6,4 +8,10 @@ class UParticleModuleColorBase : public UParticleModule
     DECLARE_CLASS(UParticleModuleColorBase, UParticleModule)
 public:
     UParticleModuleColorBase() = default;
+
+    // Initial Color : When particle is spawn
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionVector, StartColor)
+
+    // Initial Alpha : When particle is spawn
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionFloat, StartAlpha)
 };
