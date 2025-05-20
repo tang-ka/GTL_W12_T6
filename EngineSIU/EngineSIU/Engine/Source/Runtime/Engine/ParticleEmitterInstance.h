@@ -1,6 +1,7 @@
 #pragma once
 #include "HAL/PlatformType.h"
 #include "ParticleHelper.h"
+#include "Particles/ParticleModule.h"
 
 class UParticleLODLevel;
 class UParticleSystemComponent;
@@ -57,6 +58,8 @@ public:
     int32 CalculateSpawnCount(float DeltaTime);
 
     void PreSpawn(FBaseParticle* Particle, const FVector& InitialLocation, const FVector& InitialVelocity);
+    virtual void Spawn(float DeltaTime);
+    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload );
     void PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime);
     void UpdateParticles(float DeltaTime);
     void UpdateModules(float DeltaTime);
@@ -65,6 +68,7 @@ public:
     virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) { return nullptr; }
 
     virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData );
+    uint32 GetModuleDataOffset(UParticleModule* Module); // TODO: 구현하기
 };
 
 struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance

@@ -8,4 +8,7 @@ struct FDistributionFloat
 
     float MinValue;
     float MaxValue;
+
+    void GetOutRange(float& MinOut, float& MaxOut) const;
+    float GetValue() const;
 };

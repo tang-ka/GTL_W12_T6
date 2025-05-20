@@ -1,9 +1,12 @@
 #include "ParticleEmitterInstance.h"
+
+#include <algorithm>
 #include "Particles/ParticleLODLevel.h"
 #include "Particles/ParticleModule.h"
 #include "Particles/ParticleEmitter.h"
 #include "Particles/ParticleModuleRequired.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Particles/Spawn/ParticleModuleSpawn.h"
 //#include "Particles/ParticleModuleRequired.h"
 
 void FParticleEmitterInstance::Initialize()
@@ -170,8 +173,175 @@ void FParticleEmitterInstance::PreSpawn(FBaseParticle* Particle, const FVector& 
     Particle->Placeholder1 = 0.f;
 }
 
+void FParticleEmitterInstance::Spawn(float DeltaTime)
+{
+    UParticleLODLevel* LODLevel = CurrentLODLevel;
+
+    // For beams, we probably want to ignore the SpawnRate distribution,
+    // and focus strictly on the BurstList...
+    float SpawnRate = 0.0f;
+    int32 SpawnCount = 0;
+    // int32 BurstCount = 0;
+    float SpawnRateDivisor = 0.0f;
+    float OldLeftover = SpawnFraction;
+
+    UParticleLODLevel* HighestLODLevel = CurrentLODLevel;
+
+    bool bProcessSpawnRate = true;
+    // bool bProcessBurstList = true;
+
+    UParticleModuleSpawnBase* SpawnModule = LODLevel->SpawnModule;
+    if (SpawnModule && SpawnModule->bEnabled)
+    {
+        UParticleModule* OffsetModule = HighestLODLevel->SpawnModule;
+        // uint32 Offset = GetModuleDataOffset(OffsetModule);
+        uint32 Offset = OffsetModule->ModulePayloadOffset();
+
+        // Update the spawn rate
+        int32 Number = 0;
+        float Rate = 0.0f;
+        if (SpawnModule->GetSpawnAmount(this, Offset, OldLeftover, DeltaTime, Number, Rate) == false)
+        {
+            bProcessSpawnRate = false;
+        }
+
+        Number = FMath::Max<int32>(0, Number);
+        Rate = FMath::Max<float>(0.0f, Rate);
+
+        SpawnCount += Number;
+        SpawnRate += Rate;
+        // Update the burst list
+        // int32 BurstNumber = 0;
+        // if (SpawnModule->GetBurstCount(this, Offset, OldLeftover, DeltaTime, BurstNumber) == false)
+        // {
+        //     bProcessBurstList = false;
+        // }
+        //
+        // BurstCount += BurstNumber;
+    }
+
+    if (bProcessSpawnRate)
+    {
+        float RateScale = LODLevel->SpawnModule->RateScale.GetValue();
+        SpawnRate += LODLevel->SpawnModule->Rate.GetValue() * RateScale;
+        SpawnRate = FMath::Max<float>(0.0f, SpawnRate);
+    }
+
+    if ((SpawnRate > 0.f))// || (BurstCount > 0))
+    {
+        // TODO: 얘들 뭘까
+        float SafetyLeftover = OldLeftover;
+        // Ensure continuous spawning... lots of fiddling.
+        float	NewLeftover = OldLeftover + DeltaTime * SpawnRate;
+        int32		Number		= FMath::FloorToInt(NewLeftover);
+        float	Increment	= (SpawnRate > 0.0f) ? (1.f / SpawnRate) : 0.0f;
+        float	StartTime = DeltaTime + OldLeftover * Increment - Increment;
+        NewLeftover			= NewLeftover - Number;
+
+        // Handle growing arrays.
+        bool bProcessSpawn = true;
+        int32 NewCount = ActiveParticles + Number;// + BurstCount;
+
+        NewCount = std::min(NewCount, MaxActiveParticles);
+
+        if (bProcessSpawn == true)
+        {
+            FParticleEventInstancePayload* EventPayload = nullptr;
+            // if (LODLevel->EventGenerator)
+            // {
+            //     EventPayload = (FParticleEventInstancePayload*)GetModuleInstanceData(LODLevel->EventGenerator);
+            //     if (EventPayload && !EventPayload->bSpawnEventsPresent && !EventPayload->bBurstEventsPresent)
+            //     {
+            //         EventPayload = NULL;
+            //     }
+            // }
+
+            // const FVector InitialLocation = EmitterToSimulation.GetOrigin();
+
+            // Spawn particles.
+            SpawnParticles( Number, StartTime, Increment, FVector::ZeroVector, FVector::ZeroVector, EventPayload );
+
+            // Burst particles.
+            // SpawnParticles(BurstCount, BurstStartTime, BurstIncrement, InitialLocation, FVector::ZeroVector, EventPayload);
+        }
+    }
+}
+
+void FParticleEmitterInstance::SpawnParticles(
+    int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity,
+    struct FParticleEventInstancePayload* EventPayload
+)
+{
+    UParticleLODLevel* LODLevel = CurrentLODLevel;
+
+    if (ActiveParticles >= MaxActiveParticles)
+    {
+        return;
+    }
+
+    Count = FMath::Min(Count, MaxActiveParticles - ActiveParticles);
+
+    auto SpawnInternal = [&]
+    {
+        UParticleLODLevel* HighestLODLevel = CurrentLODLevel;
+        float SpawnTime = StartTime;
+        float Interp = 1.0f;
+        const float InterpIncrement = (Count > 0 && Increment > 0.0f) ? (1.0f / (float)Count) : 0.0f;
+
+        for (int32 i = 0; i < Count; i++)
+        {
+            // 데이터 검사
+            if ((ParticleData && ParticleIndices) == false)
+            {
+                ActiveParticles = 0;
+                Count = 0;
+                continue;
+            }
+
+            // 인덱스 재정렬
+            uint16 NextFreeIndex = ParticleIndices[ActiveParticles];
+            if (NextFreeIndex > MaxActiveParticles)
+            {
+                // FixupParticleIndices(); // TODO: 구현됐나?
+                NextFreeIndex = ParticleIndices[ActiveParticles];
+            }
+
+            // 파티클 선언
+            DECLARE_PARTICLE_PTR(Particle, ParticleData + ParticleStride * NextFreeIndex)
+            const uint32 CurrentParticleIndex = ActiveParticles++;
+
+            // if (bLegacySpawnBehavior) // 뭐지
+            // {
+            //     StartTime -= Increment;
+            //     Interp -= InterpIncrement;
+            // }
+
+            PreSpawn(Particle, InitialLocation, InitialVelocity);
+            if (LODLevel->SpawnModule->bEnabled)
+            {
+                // LODLevel->SpawnModule->Spawn(this, GetModuleDataOffset(LODLevel->SpawnModule), SpawnTime, Particle);
+                LODLevel->SpawnModule->Spawn(this, LODLevel->SpawnModule->ModulePayloadOffset(), SpawnTime, Particle); // TODO: 맞나 확인
+            }
+            PostSpawn(Particle, Interp, SpawnTime);
+
+            if (Particle->RelativeTime > 1.0f)
+            {
+                KillParticle(CurrentParticleIndex);
+
+                // Process next particle
+                continue;
+            }
+        }
+    };
+
+    SpawnInternal();
+}
+
 void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime)
 {
+    Particle->OldLocation = Particle->Location;
+    Particle->Location   += FVector(Particle->Velocity) * SpawnTime;
+    
     Particle->Rotation = 0.f;
     Particle->Color = Particle->BaseColor;
 }
@@ -278,6 +448,17 @@ bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& Out
     memcpy(OutData.DataContainer.ParticleIndices, ParticleIndices, MaxActiveParticles * sizeof(uint16));
 
     return true;
+}
+
+uint32 FParticleEmitterInstance::GetModuleDataOffset(UParticleModule* Module)
+{
+    if (SpriteTemplate == nullptr)
+    {
+        return 0;
+    }
+    
+    uint32* Offset = SpriteTemplate->ModuleOffsetMap.Find(Module);
+    return (Offset != nullptr) ? *Offset : 0;
 }
 
 

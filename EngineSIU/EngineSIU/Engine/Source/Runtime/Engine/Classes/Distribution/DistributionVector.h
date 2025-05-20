@@ -8,4 +8,6 @@ struct FDistributionVector
     
     FVector MinValue;
     FVector MaxValue;
+
+    void GetOutRange(FVector& MinOut, FVector& MaxOut);
 };

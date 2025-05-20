@@ -2,6 +2,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class UParticleModule;
 class UParticleLODLevel;
 
 enum class EParticleBurstMethod : uint8
@@ -22,6 +23,7 @@ public:
     void CacheEmitterModuleInfo();
 
     TArray<UParticleLODLevel*> GetLODLevels() const { return LODLevels; }
+    TMap<UParticleModule*, uint32> ModuleOffsetMap;
     UParticleLODLevel* GetLODLevel(int32 LODIndex) const;
 
 public:

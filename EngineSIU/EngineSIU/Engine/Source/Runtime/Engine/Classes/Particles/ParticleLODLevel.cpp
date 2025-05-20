@@ -24,7 +24,7 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 {
     // Determine the lifetime for particles coming from the emitter
 	float ParticleLifetime = 0.0f;
-	float MaxSpawnRate = SpawnModule->GetEstimatedSpawnRate();
+	float MaxSpawnRate = SpawnModule->GetMinimumSpawnRate();
 	int32 MaxBurstCount = SpawnModule->GetMaximumBurstCount();
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ModuleIndex++)
 	{
@@ -37,7 +37,7 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 		UParticleModuleSpawnBase* SpawnMod = Cast<UParticleModuleSpawnBase>(Modules[ModuleIndex]);
 		if (SpawnMod != NULL)
 		{
-			MaxSpawnRate += SpawnMod->GetEstimatedSpawnRate();
+			MaxSpawnRate += SpawnMod->GetMinimumSpawnRate();
 			MaxBurstCount += SpawnMod->GetMaximumBurstCount();
 		}
 	}
