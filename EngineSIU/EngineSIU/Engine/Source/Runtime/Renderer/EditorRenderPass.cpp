@@ -243,13 +243,12 @@ void FEditorRenderPass::CreateConstantBuffers()
 
 void FEditorRenderPass::BindRenderTarget(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
-    constexpr EResourceType ResourceType = EResourceType::ERT_Editor;
+    constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-
-    // 뎁스 비교는 씬을 기준으로
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->DSV);
+    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 }
 
 void FEditorRenderPass::BindShaderResource(const std::wstring& VertexKey, const std::wstring& PixelKey, D3D_PRIMITIVE_TOPOLOGY Topology) const

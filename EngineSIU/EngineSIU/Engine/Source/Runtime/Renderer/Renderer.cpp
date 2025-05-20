@@ -21,6 +21,9 @@
 #include "TranslucentRenderPass.h"
 
 #include "CompositingPass.h"
+#include "ParticleHelper.h"
+#include "ParticleSpriteRenderPass.h"
+#include "ParticleMeshRenderPass.h"
 #include "PostProcessCompositingPass.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
@@ -57,6 +60,9 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     CameraEffectRenderPass = AddRenderPass<FCameraEffectRenderPass>();
     EditorRenderPass = AddRenderPass<FEditorRenderPass>();
     TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
+
+    ParticleSpriteRenderPass = AddRenderPass<FParticleSpriteRenderPass>();
+    ParticleMeshRenderPass = AddRenderPass<FParticleMeshRenderPass>();
     
     DepthPrePass = AddRenderPass<FDepthPrePass>();
     TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
@@ -139,6 +145,11 @@ void FRenderer::CreateConstantBuffers()
     BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, CPUSkinningBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     BufferManager->CreateStructuredBufferGeneric<FMatrix>("BoneBuffer", nullptr, MaxBoneNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    BufferManager->CreateStructuredBufferGeneric<FParticleSpriteVertex>("ParticleSpriteInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    BufferManager->CreateStructuredBufferGeneric<FMeshParticleInstanceVertex>("ParticleMeshInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
     
     // TODO: 함수로 분리
     ID3D11Buffer* ObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FObjectConstantBuffer"));
@@ -363,6 +374,16 @@ void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewp
             OpaqueRenderPass->Render(Viewport);
         }
     }
+    
+    if (ShowFlag & EEngineShowFlags::SF_Particles)
+    {
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(ParticleMeshPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(ParticleMeshPass_GPU, *GPUTimingManager)
+            ParticleMeshRenderPass->Render(Viewport);
+        }
+    }
+    
     // TODO: 이 시점에서 씬 뎁스 스텐실 버퍼를 복사해두면, 에디터 요소가 없는 순수한 뎁스 버퍼를 확보할 수 있음.
 }
 
@@ -387,6 +408,24 @@ void FRenderer::RenderTranslucent(const std::shared_ptr<FEditorViewportClient>& 
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     
+    if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
+    {
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(TranslucentPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(TranslucentPass_GPU, *GPUTimingManager)
+            TranslucentRenderPass->Render(Viewport);
+        }
+    }
+
+    if (ShowFlag & EEngineShowFlags::SF_Particles)
+    {
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(ParticleSpritePass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(ParticleSpritePass_GPU, *GPUTimingManager)
+            ParticleSpriteRenderPass->Render(Viewport);
+        }
+    }
+    
     if (ShowFlag & EEngineShowFlags::SF_BillboardText)
     {
         {
@@ -401,15 +440,6 @@ void FRenderer::RenderTranslucent(const std::shared_ptr<FEditorViewportClient>& 
             QUICK_SCOPE_CYCLE_COUNTER(EditorBillboardPass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(EditorBillboardPass_GPU, *GPUTimingManager)
             EditorBillboardRenderPass->Render(Viewport);
-        }
-    }
-    
-    if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh | EEngineShowFlags::SF_Particles))
-    {
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(TranslucentPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(TranslucentPass_GPU, *GPUTimingManager)
-            TranslucentRenderPass->Render(Viewport);
         }
     }
 }

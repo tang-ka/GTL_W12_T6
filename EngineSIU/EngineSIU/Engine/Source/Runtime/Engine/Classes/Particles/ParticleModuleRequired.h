@@ -20,7 +20,7 @@ struct FParticleRequiredModule
     float AlphaThreshold;
     TArray<FVector2D> FrameData;
     ID3D11ShaderResourceView* BoundingGeometryBufferSRV;
-    uint8 bCutoutTexureIsValid : 1;
+    uint8 bCutoutTextureIsValid : 1;
     uint8 bUseVelocityForMotionBlur : 1;
 };
 
