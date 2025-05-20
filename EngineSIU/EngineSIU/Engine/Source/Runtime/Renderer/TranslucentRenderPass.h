@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include "RenderPassBase.h"
-#include "ParticleHelper.h"
-#include "D3D11RHI/DXDShaderManager.h"
 
 class UParticleSystemComponent;
 
@@ -15,18 +13,8 @@ public:
     virtual void PrepareRenderArr() override;
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
-
-private:
-    void DrawParticles();
-    void ProcessSpriteParticle(const struct FDynamicSpriteEmitterReplayDataBase* ReplayData);
-    void UpdateBuffers() const;
-    void BindShaders() const;
-    void BindTextures();
     
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
-
-    TArray<UParticleSystemComponent*> ParticleSystemComponents;
-    TArray<FParticleSpriteVertex> SpriteParticles;
 };
