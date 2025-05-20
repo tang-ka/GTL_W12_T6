@@ -1,9 +1,12 @@
 #include "ParticleModuleRequired.h"
 
+#include "Engine/AssetManager.h"
+
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 기본 재질 없음 (필수로 설정되어야 함)
-    MaterialInterface = nullptr;
+    const auto& Materials = UAssetManager::Get().GetMaterialKeys();
+    MaterialInterface = UAssetManager::Get().GetMaterial(*Materials.begin());
 
     // 모듈 타입은 Required로 고정
     ModuleType = EModuleType::EPMT_Required;
@@ -27,8 +30,8 @@ UParticleModuleRequired::UParticleModuleRequired()
     bDelayFirstOnly = true;
 
     // 초당 스폰 10개, 스케일 1.0
-    SpawnRate = 10.0f;
-    SpawnRateScale = 1.0f;
+    //SpawnRate = 10.0f;
+    //SpawnRateScale = 1.0f;
 
     // 로컬 좌표계 사용 여부 (false면 월드 스페이스 기준)
     bUseLocalSpace = false;

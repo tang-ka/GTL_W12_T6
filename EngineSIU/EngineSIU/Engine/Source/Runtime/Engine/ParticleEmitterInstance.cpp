@@ -65,6 +65,7 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 
     // 초당 생성속도에 따른 현재 프레임에 생성할 파티클 수 계산
     int32 SpawnCount = CalculateSpawnCount(DeltaTime);
+
     // 최대 활성 파티클 수를 초과하지 않도록 조정
     int32 AvailableParticles = MaxActiveParticles - ActiveParticles;
     SpawnCount = FMath::Min(SpawnCount, AvailableParticles);
@@ -139,8 +140,10 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
 
 int32 FParticleEmitterInstance::CalculateSpawnCount(float DeltaTime)
 {
-    //float Rate = CurrentLODLevel->RequiredModule->SpawnRateDistribution->GetValue();
-    float Rate = CurrentLODLevel->RequiredModule->SpawnRate;
+    float Rate = CurrentLODLevel->SpawnModule->Rate.GetValue();
+    float RateScale = CurrentLODLevel->SpawnModule->RateScale.GetValue();
+
+    Rate *= RateScale;
 
     float NewParticlesFloat = Rate * DeltaTime + SpawnFraction;
     int32 SpawnCount = FMath::FloorToInt(NewParticlesFloat);

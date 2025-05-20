@@ -85,6 +85,8 @@ public:
     UMaterial* GetMaterial(const FName& Name);
     UAnimationAsset* GetAnimation(const FName& Name);
 
+    TSet<FName> GetMaterialKeys() const;
+
     void AddAssetInfo(const FAssetInfo& Info);
     void AddSkeleton(const FName& Key, USkeleton* Skeleton);
     void AddSkeletalMesh(const FName& Key, USkeletalMesh* SkeletalMesh);
