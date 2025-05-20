@@ -36,6 +36,8 @@ public:
     UParticleModule() = default;
     virtual ~UParticleModule() override = default;
 
+    virtual void DisplayProperty() {}
+
     FName ModuleName;
     
     bool bSpawnModule = true;

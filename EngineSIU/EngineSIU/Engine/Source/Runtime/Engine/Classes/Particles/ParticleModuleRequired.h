@@ -30,9 +30,12 @@ class UParticleModuleRequired : public UParticleModule
 public:
     UParticleModuleRequired() = default;
 
+    virtual void DisplayProperty() override;
+
+public:
     FParticleRequiredModule* CreateRendererResource();
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, UMaterial*, MaterialInterface)
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseMaxDrawCount)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int, MaxDrawCount)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, uint32, MaxDrawCount)
 };

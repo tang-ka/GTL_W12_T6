@@ -1,8 +1,13 @@
 #pragma once
 #include "Engine/EditorEngine.h"
-#include "Particles/ParticleEmitter.h"
-#include "Particles/ParticleModule.h"
+//#include "Particles/ParticleEmitter.h"
+//#include "Particles/ParticleModule.h"
 #include "UnrealEd/EditorPanel.h"
+
+class UParticleSystemComponent;
+class UParticleSystem;
+class UParticleEmitter;
+class UParticleModule;
 
 class ParticleViewerPanel : public UEditorPanel
 {
@@ -12,11 +17,19 @@ public:
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
-    void SetParticleSystem(UParticleSystem* InParticleSystem) { ParticleSystem = InParticleSystem; }
+    void SetParticleSystem(UParticleSystem* InParticleSystem)
+    { 
+        ParticleSystem = InParticleSystem; 
+    }
+    void SetParticleSystemComponent(UParticleSystemComponent* InParticleSystemComponent)
+    {
+        ParticleSystemComponent = InParticleSystemComponent;
+    }
 
 private:
     float Width = 0, Height = 0;
-    UParticleSystem* ParticleSystem;
+    UParticleSystemComponent* ParticleSystemComponent = nullptr;
+    UParticleSystem* ParticleSystem = nullptr;
     UParticleEmitter* SelectedEmitter = nullptr;
     UParticleModule* SelectedModule = nullptr;
     

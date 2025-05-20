@@ -1,6 +1,6 @@
 #include "NameTypes.h"
 
-#include <assert.h>
+#include <cassert>
 #include <atomic>
 #include <cwchar>
 #include <mutex>
@@ -330,9 +330,11 @@ private:
 
 public:
 	/** Hash로 원본 문자열을 가져옵니다. */
-	FNameEntry Resolve(uint32 Hash) const
+    const FNameEntry& Resolve(uint32 Hash) const
 	{
-		return *DisplayPool.Find(Hash);
+        const FNameEntry* Entry = DisplayPool.Find(Hash);
+        assert(Entry && "Failed to resolve FNameEntry for the given Hash. The Hash might not exist in the DisplayPool.");
+        return *Entry;
 	}
 
 	/**
@@ -388,7 +390,7 @@ struct FNameHelper
 		// 문자열의 길이가 NAME_SIZE를 초과하면 None 반환
 		if (Len >= NAME_SIZE)
 		{
-		    assert(Len >= NAME_SIZE);
+            assert(0 && "FName size is too large");
 			return {};
 		}
 
@@ -397,7 +399,12 @@ struct FNameHelper
 		FName Result;
 		Result.DisplayIndex = DisplayId.Value;
 		Result.ComparisonIndex = ResolveComparisonId(DisplayId).Value;
-		return Result;
+
+#if defined(_DEBUG)
+        Result.DebugEntryPtr = &FNamePool::Get().Resolve(DisplayId.Value);
+#endif
+
+        return Result;
 	}
 
 	static FNameEntryId ResolveComparisonId(FNameEntryId DisplayId)
@@ -409,11 +416,6 @@ struct FNameHelper
 		return FNamePool::Get().Resolve(DisplayId.Value).ComparisonId;
 	}
 };
-
-#if defined(_DEBUG)
-// .natvis에서 사용하는 디버그용 변수
-namespace { [[maybe_unused]] const FNamePool& GDebugNamePool = FNamePool::Get(); }
-#endif
 
 FName::FName(const WIDECHAR* Name)
 	: FName(FNameHelper::MakeFName(Name))
@@ -447,7 +449,6 @@ FString FName::ToString() const
 		return {TEXT("None")};
 	}
 
-	// TODO: WIDECHAR에 대응 해야함
 	FNameEntry Entry = FNamePool::Get().Resolve(DisplayIndex);
     if (Entry.Header.IsWide)
     {

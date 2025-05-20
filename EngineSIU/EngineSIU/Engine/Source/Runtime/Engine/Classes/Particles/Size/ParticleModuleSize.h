@@ -1,12 +1,14 @@
 ﻿#pragma once
+#include "ParticleModuleSizeBase.h"
 #include "Distribution/DistributionVector.h"
-#include "Particles/ParticleModule.h"
 
-class UParticleModuleSize : public UParticleModule
+class UParticleModuleSize : public UParticleModuleSizeBase
 {
-    DECLARE_CLASS(UParticleModuleSize, UParticleModule)
+    DECLARE_CLASS(UParticleModuleSize, UParticleModuleSizeBase)
 public:
     UParticleModuleSize() = default;
+
+    virtual void DisplayProperty() override;
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionVector, StartSize)
 };

@@ -18,6 +18,7 @@ UObject* UParticleSystemComponent::Duplicate(UObject* InOuter)
 void UParticleSystemComponent::InitializeComponent()
 {
     Super::InitializeComponent();
+
     if (Template)
     {
         InitializeSystem();
@@ -60,17 +61,22 @@ void UParticleSystemComponent::InitializeSystem()
     for (int32 i = 0; i < Emitters.Num(); i++)
     {
         UParticleEmitter* EmitterTemplate = Emitters[i];
-        if (EmitterTemplate)
-        {
-            FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
-            Instance->SpriteTemplate = EmitterTemplate;
-            Instance->Component = this;
-            Instance->CurrentLODLevelIndex = 0;
+        CreateAndAddEmitterInstance(EmitterTemplate);
+    }
+}
 
-            Instance->Initialize();
+void UParticleSystemComponent::CreateAndAddEmitterInstance(UParticleEmitter* EmitterTemplate)
+{
+    if (EmitterTemplate)
+    {
+        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        Instance->SpriteTemplate = EmitterTemplate;
+        Instance->Component = this;
+        Instance->CurrentLODLevelIndex = 0;
 
-            EmitterInstances.Add(Instance);
-        }
+        Instance->Initialize();
+
+        EmitterInstances.Add(Instance);
     }
 }
 

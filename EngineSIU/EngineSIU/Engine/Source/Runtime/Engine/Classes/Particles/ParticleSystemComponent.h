@@ -5,6 +5,7 @@
 
 class FParticleDynamicData;
 class UParticleSystem;
+class UParticleEmitter;
 struct FParticleEmitterInstance;
 struct FDynamicEmitterDataBase;
 
@@ -36,6 +37,7 @@ public:
 
 public:
     void InitializeSystem();
+    void CreateAndAddEmitterInstance(UParticleEmitter* EmitterTemplate);
 
     void UpdateDynamicData();
     FParticleDynamicData* CreateDynamicData();

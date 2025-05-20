@@ -1,6 +1,6 @@
-﻿#include "ParticleModuleSize.h"
+﻿#include "ParticleModuleSizeBase.h"
 
-void UParticleModuleSize::DisplayProperty()
+void UParticleModuleSizeBase::DisplayProperty()
 {
     Super::DisplayProperty();
     for (const auto& Property : StaticClass()->GetProperties())
