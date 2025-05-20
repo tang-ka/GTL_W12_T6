@@ -1,6 +1,8 @@
-#include "ParticleSystemComponent.h"
+﻿#include "ParticleSystemComponent.h"
 #include "ParticleEmitterInstance.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystem.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
     : AccumTickTime(0.f)
@@ -27,6 +29,15 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
+    if (Template)
+    {
+        if (EmitterInstances.Num() != Template->GetEmitters().Num())
+        {
+            EmitterInstances.Empty();
+            InitializeSystem();
+        }
+    }
+    
     for (auto* Instance : EmitterInstances)
     {
         if (Instance)
@@ -72,7 +83,7 @@ void UParticleSystemComponent::CreateAndAddEmitterInstance(UParticleEmitter* Emi
 void UParticleSystemComponent::UpdateDynamicData()
 {
     // Create the dynamic data for rendering this particle system
-    FParticleDynamicData* ParticleDynamicData = CreateDynamicData();
+    ParticleDynamicData = CreateDynamicData();
 }
 
 FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
@@ -104,6 +115,26 @@ FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
     {
         ParticleDynamicData->SystemPositionForMacroUVs = GetComponentTransform().TransformPosition(Template->GetMacroUVPosition());
         ParticleDynamicData->SystemRadiusForMacroUVs = Template->GetMacroUVRadius();
+    }
+
+    ParticleDynamicData->DynamicEmitterDataArray.Empty();
+    ParticleDynamicData->DynamicEmitterDataArray.Reserve(EmitterInstances.Num());
+
+    for (int32 EmitterIndex = 0; EmitterIndex < EmitterInstances.Num(); EmitterIndex++)
+    {
+        FDynamicEmitterDataBase* NewDynamicEmitterData = nullptr;
+        FParticleEmitterInstance* EmitterInst = EmitterInstances[EmitterIndex];
+
+        if (EmitterInst)
+        {
+            NewDynamicEmitterData = EmitterInst->GetDynamicData(true);
+
+            if (NewDynamicEmitterData != nullptr)
+            {
+                ParticleDynamicData->DynamicEmitterDataArray.Add(NewDynamicEmitterData);
+                NewDynamicEmitterData->EmitterIndex = EmitterIndex;
+            }
+        }
     }
 
     return ParticleDynamicData;

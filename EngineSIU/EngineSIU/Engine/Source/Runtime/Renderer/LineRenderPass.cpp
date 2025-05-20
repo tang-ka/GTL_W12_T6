@@ -83,10 +83,26 @@ void FLineRenderPass::DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) co
 
 void FLineRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
+
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    // TODO: 알파 블렌드 설정해야할지 생각해 봐야 함.
+    //Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 }
 
 void FLineRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -105,14 +121,9 @@ void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewport
 
 void FLineRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    constexpr EResourceType ResourceType = EResourceType::ERT_Editor;
-
-    FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+    PrepareRender(Viewport);
 
     ProcessLineRendering(Viewport);
 
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    CleanUpRender(Viewport);
 }

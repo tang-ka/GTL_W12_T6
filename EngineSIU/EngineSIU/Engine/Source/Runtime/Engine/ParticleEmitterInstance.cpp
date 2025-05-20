@@ -15,7 +15,7 @@ void FParticleEmitterInstance::Initialize()
     
     const TArray<UParticleModule*>& Modules = CurrentLODLevel->GetModules();
 
-    if (CurrentLODLevel->RequiredModule)
+    if (CurrentLODLevel->RequiredModule->bUseMaxDrawCount)
     {
         MaxActiveParticles = CurrentLODLevel->CalculateMaxActiveParticleCount();
     }
@@ -138,7 +138,7 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
 int32 FParticleEmitterInstance::CalculateSpawnCount(float DeltaTime)
 {
     //float Rate = CurrentLODLevel->RequiredModule->SpawnRateDistribution->GetValue();
-    float Rate = 10.0f;
+    float Rate = CurrentLODLevel->RequiredModule->SpawnRate;
 
     float NewParticlesFloat = Rate * DeltaTime + SpawnFraction;
     int32 SpawnCount = FMath::FloorToInt(NewParticlesFloat);
