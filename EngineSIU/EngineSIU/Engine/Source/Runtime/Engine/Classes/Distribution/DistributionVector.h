@@ -1,10 +1,16 @@
 #pragma once
 #include "Math/Vector.h"
+#include "UObject/ObjectMacros.h"
 
 struct FDistributionVector
 {
-    FVector MinValue;
-    FVector MaxValue;
+    DECLARE_STRUCT(FDistributionVector)
+
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, MinValue)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, MaxValue)
+
+    //FVector MinValue;
+    //FVector MaxValue;
 
     std::mt19937 Gen;
     std::uniform_real_distribution<float> DistX;
@@ -35,6 +41,10 @@ public:
 
     void UpdateDistributionParam()
     {
+        if (MinValue.X > MaxValue.X) MaxValue.X = MinValue.X;
+        if (MinValue.Y > MaxValue.Y) MaxValue.Y = MinValue.Y;
+        if (MinValue.Z > MaxValue.Z) MaxValue.Z = MinValue.Z;
+
         DistX = std::uniform_real_distribution<float>(MinValue.X, MaxValue.X);
         DistY = std::uniform_real_distribution<float>(MinValue.Y, MaxValue.Y);
         DistZ = std::uniform_real_distribution<float>(MinValue.Z, MaxValue.Z);

@@ -1,6 +1,6 @@
-#include "ParticleModuleVelocityBase.h"
+#include "ParticleModuleLocationBase.h"
 
-void UParticleModuleVelocityBase::DisplayProperty()
+void UParticleModuleLocationBase::DisplayProperty()
 {
     Super::DisplayProperty();
     for (const auto& Property : StaticClass()->GetProperties())
