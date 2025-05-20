@@ -1,4 +1,5 @@
-﻿#include "Property.h"
+﻿#include "Casts.h"
+#include "Property.h"
 
 #include "Class.h"
 #include "ScriptStruct.h"
@@ -595,48 +596,57 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
-    TSet<FName> Items = UAssetManager::Get().GetMaterialKeys();
-    TMap<FString, UMaterial*> ObjItems = FObjManager::GetMaterials();
-    int32 CurrentItem = 0;
-
     UObject** Object = static_cast<UObject**>(DataPtr);
+    const UMaterial* CurrentMaterial = Cast<UMaterial>(*Object);
 
-    for (const auto& ObjItem : ObjItems)
+    TArray<FString> AllMaterialKeys = { "None" };
+    int32 CurrentItemIdx = 0;
+
+    // Material Keys #1
+    TArray<FName> MaterialKeys;
+    UAssetManager::Get().GetMaterialKeys(MaterialKeys);
+    for (const FName& Key : MaterialKeys)
     {
-        Items.Add(ObjItem.Key);
-    }
-    
-    // 문자열을 저장할 벡터 생성
-    TArray<FString> ItemNames;
-    
-    // 각 항목의 이름을 벡터에 추가
-    for (const auto& Item : Items)
-    {
-        ItemNames.Add(Item.ToString());
+        if (UAssetManager::Get().GetMaterial(Key) == CurrentMaterial)
+        {
+            CurrentItemIdx = AllMaterialKeys.Num();
+        }
+        AllMaterialKeys.Add(Key.ToString());
     }
 
-    bool bChanged = false;
-    
-    if (ImGui::BeginCombo("Material", GetData(ItemNames[CurrentItem]))) 
+    // Material Keys #2
+    const TMap<FString, UMaterial*>& ObjItems = FObjManager::GetMaterials();
+    for (const auto& [Key, Material] : ObjItems)
     {
-        for (int i = 0; i < ItemNames.Num(); i++)
+        if (Material == CurrentMaterial)
+        {
+            CurrentItemIdx = AllMaterialKeys.Num();
+        }
+        AllMaterialKeys.Add(Key);
+    }
+
+    bool bSelectionChanged = false;
+    
+    if (ImGui::BeginCombo("Material", GetData(AllMaterialKeys[CurrentItemIdx]))) 
+    {
+        for (int32 Idx = 0; Idx < AllMaterialKeys.Num(); ++Idx)
         {
             // 고유 ID 생성 (인덱스를 ID로 사용)
-            ImGui::PushID(i);
+            ImGui::PushID(Idx);
         
             // 이 항목이 선택되었는지 확인
-            bool isSelected = (CurrentItem == i);
+            const bool bIsSelected = (CurrentItemIdx == Idx);
         
             // 각 항목 표시 (같은 이름이 있어도 고유 ID 때문에 문제 없음)
-            if (ImGui::Selectable(GetData(ItemNames[i]), isSelected))
+            if (ImGui::Selectable(GetData(AllMaterialKeys[Idx]), bIsSelected))
             {
-                CurrentItem = i;
+                CurrentItemIdx = Idx;
                 // 여기에 선택 변경 시 실행할 코드 추가
-                bChanged = true;
+                bSelectionChanged = true;
             }
         
             // 선택된 항목은 자동 포커스
-            if (isSelected)
+            if (bIsSelected)
             {
                 ImGui::SetItemDefaultFocus();
             }
@@ -645,48 +655,37 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
         }
         ImGui::EndCombo();
     }
-
-    FString MaterialName = ItemNames[CurrentItem];
-    ID3D11ShaderResourceView* TextureSRV = nullptr; // 텍스처 SRV
-    if (UMaterial* Material = UAssetManager::Get().GetMaterial(MaterialName))
-    {
-        FString TexturePath = Material->GetMaterialInfo().TextureInfos[0].TexturePath;
-        FTexture* Texture = GEngineLoop.ResourceManager.GetTexture(TexturePath.ToWideString()).get();
-        if (Texture)
-        {
-            TextureSRV = Texture->TextureSRV;
-        }
-
-        if (bChanged)
-        {
-            *Object = Material;
-        }
-    }
-    else if (UMaterial* Material = FObjManager::GetMaterial(MaterialName))
-    {
-        FString TexturePath = Material->GetMaterialInfo().TextureInfos[0].TexturePath;
-        FTexture* Texture = GEngineLoop.ResourceManager.GetTexture(TexturePath.ToWideString()).get();
-        if (Texture)
-        {
-            TextureSRV = Texture->TextureSRV;
-        }
-
-        if (bChanged)
-        {
-            *Object = Material;
-        }
-    }
-
-    if (TextureSRV)
-    {
-        ImGui::SameLine();
-        
-        ImTextureID TextureID = (ImTextureID)TextureSRV;
-
-        // 텍스처 크기 설정 (원하는 대로 조정 가능)
-        ImVec2 size(96.0f, 96.0f);
     
-        // 텍스처 이미지 표시
-        ImGui::Image(TextureID, size);
+    UMaterial* Material = FObjManager::GetMaterial(AllMaterialKeys[CurrentItemIdx]);
+    if (!Material)
+    {
+        const FName MaterialName = AllMaterialKeys[CurrentItemIdx];
+        Material = UAssetManager::Get().GetMaterial(MaterialName);
+    }
+    
+    if (bSelectionChanged)
+    {
+        *Object = Material;
+    }
+    
+    if (Material)
+    {
+        const FString TexturePath = Material->GetMaterialInfo().TextureInfos[0].TexturePath; // Diffuse Texture Path
+        const FTexture* Texture = FEngineLoop::ResourceManager.GetTexture(TexturePath.ToWideString()).get();
+        if (Texture)
+        {
+            if (ID3D11ShaderResourceView* TextureSRV = Texture->TextureSRV)
+            {
+                ImGui::SameLine();
+        
+                ImTextureID TextureID = reinterpret_cast<ImTextureID>(TextureSRV);
+
+                // 텍스처 크기 설정 (원하는 대로 조정 가능)
+                ImVec2 Size(96.0f, 96.0f);
+    
+                // 텍스처 이미지 표시
+                ImGui::Image(TextureID, Size);
+            }
+        }
     }
 } 

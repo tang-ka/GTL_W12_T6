@@ -79,13 +79,14 @@ public:
     const TMap<FName, FAssetInfo>& GetAssetRegistry();
     TMap<FName, FAssetInfo>& GetAssetRegistryRef();
 
-    USkeletalMesh* GetSkeletalMesh(const FName& Name);
-    UStaticMesh* GetStaticMesh(const FName& Name);
-    USkeleton* GetSkeleton(const FName& Name);
-    UMaterial* GetMaterial(const FName& Name);
-    UAnimationAsset* GetAnimation(const FName& Name);
+    USkeletalMesh* GetSkeletalMesh(const FName& Name) const;
+    UStaticMesh* GetStaticMesh(const FName& Name) const;
+    USkeleton* GetSkeleton(const FName& Name) const;
+    UMaterial* GetMaterial(const FName& Name) const;
+    UAnimationAsset* GetAnimation(const FName& Name) const;
 
-    TSet<FName> GetMaterialKeys() const;
+    void GetMaterialKeys(TSet<FName>& OutKeys) const;
+    void GetMaterialKeys(TArray<FName>& OutKeys) const;
 
     void AddAssetInfo(const FAssetInfo& Info);
     void AddSkeleton(const FName& Key, USkeleton* Skeleton);
