@@ -12,7 +12,7 @@ void UParticleModuleRequired::DisplayProperty()
 FParticleRequiredModule* UParticleModuleRequired::CreateRendererResource()
 {
     FParticleRequiredModule *FReqMod = new FParticleRequiredModule();
-    // FReqMod->bCutoutTexureIsValid = IsBoundingGeometryValid(); // TODO: 필요한 거 주석 해제
+    // FReqMod->bCutoutTextureIsValid = IsBoundingGeometryValid(); // TODO: 필요한 거 주석 해제
     // FReqMod->bUseVelocityForMotionBlur = ShouldUseVelocityForMotionBlur();
     // FReqMod->NumFrames = GetNumFrames();
     // FReqMod->FrameData = DerivedData.BoundingGeometry;

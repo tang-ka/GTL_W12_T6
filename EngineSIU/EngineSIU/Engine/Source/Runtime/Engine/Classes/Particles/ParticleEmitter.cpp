@@ -37,6 +37,15 @@ void UParticleEmitter::CacheEmitterModuleInfo()
     }
 }
 
+void UParticleEmitter::DisplayProperty()
+{
+    Super::DisplayProperty();
+    for (const auto& Property : StaticClass()->GetProperties())
+    {
+        Property->DisplayInImGui(this);
+    }
+}
+
 UParticleLODLevel* UParticleEmitter::GetLODLevel(int32 LODIndex) const
 {
     if (LODLevels.IsValidIndex(LODIndex))

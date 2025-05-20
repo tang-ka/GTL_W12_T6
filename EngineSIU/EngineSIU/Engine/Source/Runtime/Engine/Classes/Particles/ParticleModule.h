@@ -36,7 +36,7 @@ public:
     UParticleModule() = default;
     virtual ~UParticleModule() override = default;
 
-    virtual void DisplayProperty() {}
+    virtual void DisplayProperty() override {};
 
     FName ModuleName;
     

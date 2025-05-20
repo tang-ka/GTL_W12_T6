@@ -24,8 +24,10 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 {
     // Determine the lifetime for particles coming from the emitter
 	float ParticleLifetime = 0.0f;
-	float MaxSpawnRate = SpawnModule->GetMinimumSpawnRate();
-	int32 MaxBurstCount = SpawnModule->GetMaximumBurstCount();
+    float MinSpawnRate;
+	float MaxSpawnRate;
+    SpawnModule->GetSpawnRate(MinSpawnRate, MaxSpawnRate);
+	// int32 MaxBurstCount = SpawnModule->GetMaximumBurstCount();
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ModuleIndex++)
 	{
 		// UParticleModuleLifetimeBase* LifetimeMod = Cast<UParticleModuleLifetimeBase>(Modules[ModuleIndex]);
@@ -37,8 +39,9 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 		UParticleModuleSpawnBase* SpawnMod = Cast<UParticleModuleSpawnBase>(Modules[ModuleIndex]);
 		if (SpawnMod != NULL)
 		{
-			MaxSpawnRate += SpawnMod->GetMinimumSpawnRate();
-			MaxBurstCount += SpawnMod->GetMaximumBurstCount();
+			// MaxSpawnRate += SpawnMod->GetMinimumSpawnRate();
+		    MaxSpawnRate += MinSpawnRate;
+			// MaxBurstCount += SpawnMod->GetMaximumBurstCount();
 		}
 	}
 
@@ -73,7 +76,7 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 			// Safety zone...
 			MaxAPC += 1;
 			// Add in the bursts...
-			MaxAPC += MaxBurstCount;
+			// MaxAPC += MaxBurstCount;
 		}
 		else
 		{
@@ -88,10 +91,10 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 			// Safety zone...
 			MaxAPC += 1;
 			// Add in the bursts...
-			MaxAPC += MaxBurstCount;
+			// MaxAPC += MaxBurstCount;
 			if (ParticleLifetime > MaxDuration)
 			{
-				MaxAPC += MaxBurstCount * FMath::CeilToInt(ParticleLifetime - MaxDuration);
+				// MaxAPC += MaxBurstCount * FMath::CeilToInt(ParticleLifetime - MaxDuration);
 			}
 		}
 	}
@@ -125,7 +128,7 @@ int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
 		// Safety zone...
 		MaxAPC += FMath::Max<int32>(FMath::CeilToInt(MaxSpawnRate * 0.032f), 2);
 		// Burst
-		MaxAPC += MaxBurstCount;
+		// MaxAPC += MaxBurstCount;
 	}
 
 	PeakActiveParticles = MaxAPC;

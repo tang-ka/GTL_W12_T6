@@ -37,7 +37,6 @@ private:
     UClass* ClassPrivate = nullptr;
     UObject* OuterPrivate = nullptr;
 
-    
     // FName을 키값으로 넣어주는 컨테이너를 모두 업데이트 해야합니다.
     void SetFName(const FName& InName) { NamePrivate = InName; }
 
@@ -71,6 +70,7 @@ public:
     }
 
 
+    virtual void DisplayProperty() {}    
     // UObjectBaseUtility
 
     /** 이 Object를 삭제 대기열에 추가합니다. */

@@ -26,9 +26,6 @@ public:
     // /**	If true, the SpawnRate will be scaled by the global CVar r.EmitterSpawnRateScale */
     // UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bApplyGlobalSpawnRateScale)
 
-    float MinSpawnRate;
-    float MaxSpawnRate;
-
     //~ Begin UParticleModuleSpawnBase Interface
     virtual bool GetSpawnAmount(FParticleEmitterInstance* Owner, int32 Offset, float OldLeftover, float DeltaTime, int32& Number, float& Rate) override;
     virtual void GetSpawnRate(float& MinSpawnRate, float& MaxSpawnRate) override;

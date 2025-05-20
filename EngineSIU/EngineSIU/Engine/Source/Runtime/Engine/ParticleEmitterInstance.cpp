@@ -195,7 +195,7 @@ void FParticleEmitterInstance::Spawn(float DeltaTime)
     {
         UParticleModule* OffsetModule = HighestLODLevel->SpawnModule;
         // uint32 Offset = GetModuleDataOffset(OffsetModule);
-        uint32 Offset = OffsetModule->ModulePayloadOffset();
+        uint32 Offset = OffsetModule->ModulePayloadOffset;
 
         // Update the spawn rate
         int32 Number = 0;
@@ -320,7 +320,7 @@ void FParticleEmitterInstance::SpawnParticles(
             if (LODLevel->SpawnModule->bEnabled)
             {
                 // LODLevel->SpawnModule->Spawn(this, GetModuleDataOffset(LODLevel->SpawnModule), SpawnTime, Particle);
-                LODLevel->SpawnModule->Spawn(this, LODLevel->SpawnModule->ModulePayloadOffset(), SpawnTime, Particle); // TODO: 맞나 확인
+                LODLevel->SpawnModule->Spawn(this, LODLevel->SpawnModule->ModulePayloadOffset, SpawnTime, Particle); // TODO: 맞나 확인
             }
             PostSpawn(Particle, Interp, SpawnTime);
 
