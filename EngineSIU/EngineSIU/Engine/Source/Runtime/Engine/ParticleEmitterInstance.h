@@ -59,7 +59,7 @@ public:
 
     void PreSpawn(FBaseParticle* Particle, const FVector& InitialLocation, const FVector& InitialVelocity);
     virtual void Spawn(float DeltaTime);
-    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload );
+    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload);
     void PostSpawn(FBaseParticle* Particle, float Interp, float SpawnTime);
     void UpdateParticles(float DeltaTime);
     void UpdateModules(float DeltaTime);

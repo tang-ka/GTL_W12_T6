@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ParticleModuleSpawnBase.h"
 #include "Distribution/DistributionFloat.h"
 #include "UObject/ObjectMacros.h"

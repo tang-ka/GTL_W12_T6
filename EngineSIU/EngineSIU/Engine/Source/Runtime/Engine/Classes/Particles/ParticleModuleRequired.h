@@ -65,8 +65,8 @@ public:
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bDelayFirstOnly)
 
     // 스폰 속도 관련
-    UPROPERTY_WITH_FLAGS(EditAnywhere, float, SpawnRate)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, float, SpawnRateScale)
+    //UPROPERTY_WITH_FLAGS(EditAnywhere, float, SpawnRate)
+    //UPROPERTY_WITH_FLAGS(EditAnywhere, float, SpawnRateScale)
 
     // 좌표계/속도 관련
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseLocalSpace)

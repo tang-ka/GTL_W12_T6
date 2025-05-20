@@ -1,4 +1,4 @@
-﻿#include "ParticleSystemComponent.h"
+#include "ParticleSystemComponent.h"
 #include "ParticleEmitterInstance.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystem.h"
@@ -44,6 +44,11 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
         {
             Instance->Tick(DeltaTime);
         }
+    }
+
+    if (EmitterInstances.Num() > 0)
+    {
+        UpdateDynamicData();
     }
 }
 

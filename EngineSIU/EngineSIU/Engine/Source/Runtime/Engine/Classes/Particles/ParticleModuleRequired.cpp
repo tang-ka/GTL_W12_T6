@@ -27,8 +27,8 @@ UParticleModuleRequired::UParticleModuleRequired()
     bDelayFirstOnly = true;
 
     // 초당 스폰 10개, 스케일 1.0
-    SpawnRate = 10.0f;
-    SpawnRateScale = 1.0f;
+    //SpawnRate = 10.0f;
+    //SpawnRateScale = 1.0f;
 
     // 로컬 좌표계 사용 여부 (false면 월드 스페이스 기준)
     bUseLocalSpace = false;
