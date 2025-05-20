@@ -615,9 +615,22 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
         ItemNames.Add(Item.ToString());
     }
 
+    for (int32 i = 0; i < ItemNames.Num(); ++i)
+    {
+        if ((Object != nullptr) && (*Object != nullptr))
+        {
+            if (ItemNames[i].Contains(dynamic_cast<UMaterial*>(*Object)->GetName()))
+            {
+                CurrentItem = i;
+                break;
+            }
+        }
+    }
+
     bool bChanged = false;
+    FString PreviewName = (Object != nullptr) && (*Object != nullptr) ? dynamic_cast<UMaterial*>(*Object)->GetName() : ItemNames[CurrentItem];  
     
-    if (ImGui::BeginCombo("Material", GetData(ItemNames[CurrentItem]))) 
+    if (ImGui::BeginCombo("Material", GetData(PreviewName))) 
     {
         for (int i = 0; i < ItemNames.Num(); i++)
         {
