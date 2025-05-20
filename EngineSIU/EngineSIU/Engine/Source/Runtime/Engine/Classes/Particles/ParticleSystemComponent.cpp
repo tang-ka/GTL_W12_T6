@@ -1,6 +1,8 @@
 ﻿#include "ParticleSystemComponent.h"
 #include "ParticleEmitterInstance.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystem.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
     : AccumTickTime(0.f)
@@ -26,6 +28,15 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
+    if (Template)
+    {
+        if (EmitterInstances.Num() != Template->GetEmitters().Num())
+        {
+            EmitterInstances.Empty();
+            InitializeSystem();
+        }
+    }
+    
     for (auto* Instance : EmitterInstances)
     {
         if (Instance)
@@ -66,9 +77,7 @@ void UParticleSystemComponent::InitializeSystem()
 void UParticleSystemComponent::UpdateDynamicData()
 {
     // Create the dynamic data for rendering this particle system
-    FParticleDynamicData* ParticleDynamicData = CreateDynamicData();
-
-    
+    ParticleDynamicData = CreateDynamicData();
 }
 
 FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
