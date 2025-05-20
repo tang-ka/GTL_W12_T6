@@ -112,7 +112,7 @@ void FDynamicSpriteEmitterData::Init(bool bInSelected)
     bUsesDynamicParameter = GetSourceData()->DynamicParameterDataOffset > 0;
 
     // We won't need this on the render thread
-    Source.MaterialInterface = nullptr;
+    //Source.MaterialInterface = nullptr;
 }
 
 bool FDynamicSpriteEmitterData::GetVertexAndIndexData(void* VertexData, void* FillIndexData, const FVector& InCameraPosition, const FMatrix& InLocalToWorld, uint32 InstanceFactor) const
