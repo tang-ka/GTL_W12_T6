@@ -178,7 +178,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
                 Buffers.VertexInfo.VertexBuffer,
                 Buffers.VertexInfo.NumVertices,
                 TextComp->Texture->TextureSRV,
-                Graphics->GetSamplerState(SubUVParticle->Texture->SamplerType)
+                Graphics->GetSamplerState(TextComp->Texture->SamplerType)
             );
         }
         else

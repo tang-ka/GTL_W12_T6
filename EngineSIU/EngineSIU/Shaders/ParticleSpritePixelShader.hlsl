@@ -1,6 +1,10 @@
 
-Texture2D Texture : register(t0);
-SamplerState Sampler : register(s0);
+#include "ShaderRegisters.hlsl"
+
+cbuffer MaterialConstants : register(b0)
+{
+    FMaterial Material;
+}
 
 cbuffer SubUVConstant : register(b1)
 {
@@ -18,13 +22,17 @@ struct PS_Input
     float SubImageIndex : TEXCOORD3;
 };
 
-float4 main(PS_Input input) : SV_TARGET
+float4 main(PS_Input Input) : SV_TARGET
 {
     float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
     
-    float2 UV = input.UV * UVScale + UVOffset;
-    float4 Color = Texture.Sample(Sampler, UV);
-    Color = float4(0.8f, 1.f, 0.4f, 0.1f);
+    float2 UV = Input.UV * UVScale + UVOffset;
+
+    float4 Color = Input.Color;
+    if (Material.TextureFlag & TEXTURE_FLAG_DIFFUSE)
+    {
+        Color = MaterialTextures[TEXTURE_SLOT_DIFFUSE].Sample(MaterialSamplers[TEXTURE_SLOT_DIFFUSE], UV);        
+    }
 
     FinalColor = Color;
     
