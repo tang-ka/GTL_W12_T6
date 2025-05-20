@@ -29,13 +29,15 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    if (Template)
+    if (!Template)
     {
-        if (EmitterInstances.Num() != Template->GetEmitters().Num())
-        {
-            EmitterInstances.Empty();
-            InitializeSystem();
-        }
+        return;
+    }
+
+    if (EmitterInstances.Num() != Template->GetEmitters().Num())
+    {
+        EmitterInstances.Empty();
+        InitializeSystem();
     }
     
     for (auto* Instance : EmitterInstances)
@@ -45,6 +47,8 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
             Instance->Tick(DeltaTime);
         }
     }
+
+    UpdateDynamicData();
 }
 
 void UParticleSystemComponent::GetProperties(TMap<FString, FString>& OutProperties) const

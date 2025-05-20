@@ -20,7 +20,7 @@ protected:
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     TArray<UParticleSystemComponent*> ParticleComponents;
-    TArray<FParticleSpriteVertex> SpriteVertices;
+    
 private:
     void DrawParticles();
     void ProcessParticles(const FDynamicSpriteEmitterReplayDataBase* ReplayData);

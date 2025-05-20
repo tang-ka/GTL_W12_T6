@@ -32,9 +32,20 @@ void FParticleSpriteRenderPass::PrepareRenderArr()
     {
         if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            // TODO: 스프라이트인 경우에만 추가
-            Iter->UpdateDynamicData();
-            ParticleComponents.Add(Iter);
+            FParticleDynamicData* Particle = Iter->GetParticleDynamicData();
+            if (Particle && !Particle->DynamicEmitterDataArray.IsEmpty())
+            {
+                for (auto Emitter : Particle->DynamicEmitterDataArray)
+                {
+                    FDynamicEmitterReplayDataBase ReplayData = Emitter->GetSource();
+
+                    // TODO: 최적화 필요
+                    if (ReplayData.eEmitterType == DET_Sprite)
+                    {
+                        ParticleComponents.Add(Iter);
+                    }
+                }
+            }
         }
     }
 
@@ -64,24 +75,6 @@ void FParticleSpriteRenderPass::Render(const std::shared_ptr<FEditorViewportClie
 
     DrawParticles();
 
-    SpriteVertices.Sort(
-    [Viewport](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)
-    {
-        const FVector LocA = A.Position;
-        const FVector LocB = B.Position;
-        const FVector LocCam = Viewport->GetCameraLocation();
-
-        const float DistA = (LocCam - LocA).SquaredLength();
-        const float DistB = (LocCam - LocB).SquaredLength();
-            
-        return DistA > DistB;
-    });
-    
-    BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
-    BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
-
-    Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
-    
     CleanUpRender(Viewport);
 }
 
@@ -106,6 +99,8 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(nullptr);
+    
+    BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 0, EShaderStage::Vertex);
 }
 
 void FParticleSpriteRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -118,8 +113,6 @@ void FParticleSpriteRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewp
 
 void FParticleSpriteRenderPass::DrawParticles()
 {
-    SpriteVertices.Empty();
-    
     for (const auto PSC : ParticleComponents)
     {
         FParticleDynamicData* Particle = PSC->GetParticleDynamicData();
@@ -151,10 +144,24 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
         return;
     }
 
-    // Sample code..
-    SpriteVertices = {
-        { FVector(0.f), 0.f, FVector(0.f), 0.f, FVector2D(1.f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-        { FVector(1.f), 0.f, FVector(0.f), 0.f, FVector2D(0.5f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-        { FVector(2.f), 0.f, FVector(0.f), 0.f, FVector2D(0.25f), 0.f, 0.f, FLinearColor(0.f, 0.f, 0.f, 1.f) },
-    };
+    TArray<FParticleSpriteVertex> SpriteVertices;
+    
+    // TODO: SpriteVertices 채우기
+    
+    SpriteVertices.Sort(
+    [](const FParticleSpriteVertex& A, const FParticleSpriteVertex& B)
+    {
+        const FVector LocA = A.Position;
+        const FVector LocB = B.Position;
+        const FVector LocCam = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetCameraLocation();
+
+        const float DistA = (LocCam - LocA).SquaredLength();
+        const float DistB = (LocCam - LocB).SquaredLength();
+        
+        return DistA > DistB;
+    });
+    
+    BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
+
+    Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
 }
