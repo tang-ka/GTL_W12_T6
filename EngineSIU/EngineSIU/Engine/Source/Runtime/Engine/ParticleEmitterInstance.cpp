@@ -507,9 +507,9 @@ bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBas
 
     OutData.eEmitterType = DET_Sprite;
 
-    FDynamicSpriteEmitterReplayDataBase* NewReplayData = static_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
+    FDynamicSpriteEmitterReplayDataBase* NewReplayData = dynamic_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
 
-    
+    NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
     NewReplayData->RequiredModule = CurrentLODLevel->RequiredModule->CreateRendererResource();
     NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
     

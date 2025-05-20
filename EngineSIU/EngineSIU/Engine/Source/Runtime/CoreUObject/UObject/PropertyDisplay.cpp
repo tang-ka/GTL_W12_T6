@@ -595,9 +595,11 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
-    static TSet<FName> Items = UAssetManager::Get().GetMaterialKeys();
-    static TMap<FString, UMaterial*> ObjItems = FObjManager::GetMaterials();
-    static int currentItem = 0;
+    TSet<FName> Items = UAssetManager::Get().GetMaterialKeys();
+    TMap<FString, UMaterial*> ObjItems = FObjManager::GetMaterials();
+    int32 CurrentItem = 0;
+
+    UObject** Object = static_cast<UObject**>(DataPtr);
 
     for (const auto& ObjItem : ObjItems)
     {
@@ -610,10 +612,25 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
     // 각 항목의 이름을 벡터에 추가
     for (const auto& Item : Items)
     {
-        ItemNames.Add(GetData(Item.ToString()));
+        ItemNames.Add(Item.ToString());
     }
+
+    for (int32 i = 0; i < ItemNames.Num(); ++i)
+    {
+        if ((Object != nullptr) && (*Object != nullptr))
+        {
+            if (ItemNames[i].Contains(dynamic_cast<UMaterial*>(*Object)->GetName()))
+            {
+                CurrentItem = i;
+                break;
+            }
+        }
+    }
+
+    bool bChanged = false;
+    FString PreviewName = (Object != nullptr) && (*Object != nullptr) ? dynamic_cast<UMaterial*>(*Object)->GetName() : ItemNames[CurrentItem];  
     
-    if (ImGui::BeginCombo("Material", GetData(ItemNames[currentItem]))) 
+    if (ImGui::BeginCombo("Material", GetData(PreviewName))) 
     {
         for (int i = 0; i < ItemNames.Num(); i++)
         {
@@ -621,26 +638,29 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
             ImGui::PushID(i);
         
             // 이 항목이 선택되었는지 확인
-            bool isSelected = (currentItem == i);
+            bool isSelected = (CurrentItem == i);
         
             // 각 항목 표시 (같은 이름이 있어도 고유 ID 때문에 문제 없음)
             if (ImGui::Selectable(GetData(ItemNames[i]), isSelected))
             {
-                currentItem = i;
+                CurrentItem = i;
                 // 여기에 선택 변경 시 실행할 코드 추가
+                bChanged = true;
             }
         
             // 선택된 항목은 자동 포커스
             if (isSelected)
+            {
                 ImGui::SetItemDefaultFocus();
+            }
             
             ImGui::PopID();
         }
         ImGui::EndCombo();
     }
 
-    FString MaterialName = ItemNames[currentItem];
-    ID3D11ShaderResourceView* TextureSRV = nullptr; // 당신의 텍스처 SRV
+    FString MaterialName = ItemNames[CurrentItem];
+    ID3D11ShaderResourceView* TextureSRV = nullptr; // 텍스처 SRV
     if (UMaterial* Material = UAssetManager::Get().GetMaterial(MaterialName))
     {
         FString TexturePath = Material->GetMaterialInfo().TextureInfos[0].TexturePath;
@@ -648,6 +668,11 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
         if (Texture)
         {
             TextureSRV = Texture->TextureSRV;
+        }
+
+        if (bChanged)
+        {
+            *Object = Material;
         }
     }
     else if (UMaterial* Material = FObjManager::GetMaterial(MaterialName))
@@ -657,6 +682,11 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
         if (Texture)
         {
             TextureSRV = Texture->TextureSRV;
+        }
+
+        if (bChanged)
+        {
+            *Object = Material;
         }
     }
 
@@ -672,4 +702,4 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
         // 텍스처 이미지 표시
         ImGui::Image(TextureID, size);
     }
-}
+} 
