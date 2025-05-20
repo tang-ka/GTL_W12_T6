@@ -2,11 +2,11 @@
 #include "RenderPassBase.h"
 
 
-class FTranslucentRenderPass : public FRenderPassBase
+class FParticleMeshRenderPass : public FRenderPassBase
 {
 public:
-    FTranslucentRenderPass() = default;
-    virtual ~FTranslucentRenderPass() override = default;
+    FParticleMeshRenderPass() = default;
+    virtual ~FParticleMeshRenderPass() override = default;
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
     virtual void PrepareRenderArr() override;

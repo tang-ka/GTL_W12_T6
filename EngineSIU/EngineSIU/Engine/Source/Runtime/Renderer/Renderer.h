@@ -15,7 +15,9 @@
 #include "D3D11RHI/DXDBufferManager.h"
 
 
-struct FTranslucentRenderPass;
+class FParticleMeshRenderPass;
+class FParticleSpriteRenderPass;
+class FTranslucentRenderPass;
 class IRenderPass;
 class FLightHeatMapRenderPass;
 class FPostProcessCompositingPass;
@@ -106,6 +108,9 @@ public:
     FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
     FEditorRenderPass* EditorRenderPass = nullptr;
     FTranslucentRenderPass* TranslucentRenderPass = nullptr;
+
+    FParticleSpriteRenderPass* ParticleSpriteRenderPass = nullptr;
+    FParticleMeshRenderPass* ParticleMeshRenderPass = nullptr;
     
     FDepthPrePass* DepthPrePass = nullptr;
     FTileLightCullingPass* TileLightCullingPass = nullptr;
@@ -123,6 +128,7 @@ private:
     TArray<IRenderPass*> RenderPasses;
     
     const int32 MaxBoneNum = 1024;
+    const int32 MaxParticleInstanceNum = 1024;
 };
 
 template <typename RenderPassType> requires std::derived_from<RenderPassType, IRenderPass>
