@@ -127,14 +127,19 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     ViewportSize.ViewportSize.Y = Viewport->GetViewport()->GetRect().Height;
     BufferManager->UpdateConstantBuffer(TEXT("FViewportSize"), ViewportSize);
     
-    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-    if (!Engine)
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (!EditorEngine)
     {
         UE_LOG(ELogLevel::Error, TEXT("Gizmo RenderPass : Render : Engine is not valid."));
         return;
     }
+
+    if (EditorEngine->GetSelectedActor() == nullptr && EditorEngine->GetSelectedComponent() == nullptr)
+    {
+        return;
+    }
     
-    EControlMode Mode = Engine->GetEditorPlayer()->GetControlMode();
+    EControlMode Mode = EditorEngine->GetEditorPlayer()->GetControlMode();
     if (Mode == CM_TRANSLATION)
     {
         for (UStaticMeshComponent* StaticMeshComp : Viewport->GetGizmoActor()->GetArrowArr())

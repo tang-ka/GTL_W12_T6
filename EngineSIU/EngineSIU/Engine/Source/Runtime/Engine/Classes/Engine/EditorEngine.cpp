@@ -261,6 +261,9 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
     {
         return;
     }
+
+    ClearActorSelection();
+    ClearComponentSelection();
     
     if (ParticleViewerWorld)
     {
@@ -305,21 +308,26 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
 
     FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
 
-    CameraLocation = FVector(8, 8 , 8);
-    CameraRotation = FVector(0, 0, 0);
+    CameraLocation = Camera.GetLocation();
+    CameraRotation = Camera.GetRotation();
+    
+    FVector NewCameraLocation = FVector(8, 8 , 8);
 
-    FVector Delta = (FVector(0.f, 0.f, 5.f) - CameraLocation).GetSafeNormal();
+    FVector Delta = (FVector(0.f, 0.f, 5.f) - NewCameraLocation).GetSafeNormal();
     float Pitch = FMath::RadiansToDegrees(FMath::Asin(Delta.Z));
     float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Delta.Y, Delta.X));
-    CameraRotation = FVector(0, -Pitch,  Yaw);
+    FVector NewCameraRotation = FVector(0, -Pitch,  Yaw);
     
-    Camera.SetLocation(CameraLocation);
-    Camera.SetRotation(CameraRotation);
+    Camera.SetLocation(NewCameraLocation);
+    Camera.SetRotation(NewCameraRotation);
 
     if (AEditorPlayer* Player = GetEditorPlayer())
     {
         Player->SetCoordMode(ECoordMode::CDM_LOCAL);
     }
+
+    ClearActorSelection();
+    ClearComponentSelection();
 }
 
 void UEditorEngine::BindEssentialObjects()
@@ -362,8 +370,8 @@ void UEditorEngine::EndPIE()
         PIEWorld = nullptr;
 
         // TODO: PIE에서 EditorWorld로 돌아올 때, 기존 선택된 Picking이 유지되어야 함. 현재는 에러를 막기위해 임시조치.
-        DeselectActor(GetSelectedActor());
-        DeselectComponent(GetSelectedComponent());
+        ClearActorSelection();
+        ClearComponentSelection();
     }
 
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
@@ -387,8 +395,33 @@ void UEditorEngine::EndSkeletalMeshViewer()
         Camera.SetLocation(CameraLocation);
         Camera.SetRotation(CameraRotation);
         
-        DeselectActor(GetSelectedActor());
-        DeselectComponent(GetSelectedComponent());
+        ClearActorSelection();
+        ClearComponentSelection();
+    }
+    ActiveWorld = EditorWorld;
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_WORLD);
+    }
+}
+
+void UEditorEngine::EndParticleViewer()
+{
+    if (ParticleViewerWorld)
+    {
+        this->ClearActorSelection();
+        WorldList.Remove(GetWorldContextFromWorld(ParticleViewerWorld));
+        ParticleViewerWorld->Release();
+        GUObjectArray.MarkRemoveObject(ParticleViewerWorld);
+        ParticleViewerWorld = nullptr;
+        
+        FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
+        Camera.SetLocation(CameraLocation);
+        Camera.SetRotation(CameraRotation);
+        
+        ClearActorSelection();
+        ClearComponentSelection();
     }
     ActiveWorld = EditorWorld;
 
@@ -426,6 +459,7 @@ void UEditorEngine::SelectActor(AActor* InActor)
 {
     if (InActor && CanSelectActor(InActor))
     {
+        UE_LOGFMT(ELogLevel::Display, "Select Actor: {}", InActor->GetName());
         PrivateEditorSelection::GActorSelected = InActor;
     }
 }
@@ -434,6 +468,7 @@ void UEditorEngine::DeselectActor(AActor* InActor)
 {
     if (PrivateEditorSelection::GActorSelected == InActor && InActor)
     {
+        UE_LOGFMT(ELogLevel::Display, "Deselect Actor: {}", InActor->GetName());
         PrivateEditorSelection::GActorSelected = nullptr;
         ClearComponentSelection();
     }
@@ -441,6 +476,7 @@ void UEditorEngine::DeselectActor(AActor* InActor)
 
 void UEditorEngine::ClearActorSelection()
 {
+    UE_LOGFMT(ELogLevel::Display, "Clear Actor Selection");
     PrivateEditorSelection::GActorSelected = nullptr;
 }
 
@@ -477,6 +513,7 @@ void UEditorEngine::SelectComponent(USceneComponent* InComponent) const
 {
     if (InComponent && CanSelectComponent(InComponent))
     {
+        UE_LOGFMT(ELogLevel::Display, "Select Component: {}", InComponent->GetName());
         PrivateEditorSelection::GComponentSelected = InComponent;
     }
 }
@@ -486,12 +523,14 @@ void UEditorEngine::DeselectComponent(USceneComponent* InComponent)
     // 전달된 InComponent가 현재 선택된 컴포넌트와 같다면 선택 해제
     if (PrivateEditorSelection::GComponentSelected == InComponent && InComponent != nullptr)
     {
+        UE_LOGFMT(ELogLevel::Display, "Deselect Component: {}", InComponent->GetName());
         PrivateEditorSelection::GComponentSelected = nullptr;
     }
 }
 
 void UEditorEngine::ClearComponentSelection()
 {
+    UE_LOGFMT(ELogLevel::Display, "Clear Component Selection");
     PrivateEditorSelection::GComponentSelected = nullptr;
 }
 
