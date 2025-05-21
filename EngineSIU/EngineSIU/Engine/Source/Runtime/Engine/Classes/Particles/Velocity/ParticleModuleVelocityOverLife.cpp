@@ -5,7 +5,7 @@
 
 UParticleModuleVelocityOverLife::UParticleModuleVelocityOverLife()
 {
-    bSpawnModule = false;
+    bSpawnModule = true;
     bSpawnModule = true;
 
     bInWorldSpace = false;
@@ -42,6 +42,10 @@ void UParticleModuleVelocityOverLife::DisplayProperty()
     }
 }
 
+void UParticleModuleVelocityOverLife::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
+{
+}
+
 void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
     BEGIN_UPDATE_LOOP
@@ -51,13 +55,14 @@ void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, in
     
     if (bUseConstantChange)
     {
-        float Alpha = FMath::Clamp(RelTime, 0.0f, 1.0f);
+        float Alpha = FMath::Clamp(RelTime, 0.0f, 1.0f);    
         NewVelocity = FMath::Lerp(StartVelocity, EndVelocity, Alpha);
     }
     else if (bUseVelocityCurve)
     {
         FVector CurrentVelocity = Particle.BaseVelocity;
-        NewVelocity = FMath::Lerp(CurrentVelocity, EndVelocity, CurveScale * DeltaTime);
+        float Alpha = CurveScale * DeltaTime;
+        NewVelocity = FMath::Lerp(CurrentVelocity, EndVelocity, Alpha);
     }
 
     // 월드공간 변환 및 오너 스케일 적용

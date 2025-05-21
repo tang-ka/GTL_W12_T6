@@ -433,6 +433,11 @@ FVector FTransform::TransformVector(const FVector& V) const
     return Rotation.RotateVector(Scale3D * V);
 }
 
+FVector FTransform::TransformVectorWithoutScale(const FVector& V) const
+{
+    return Rotation.RotateVector(V);
+}
+
 FVector FTransform::InverseTransformVector(const FVector& V) const
 {
     return Rotation.Inverse().RotateVector(V) / Scale3D;

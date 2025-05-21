@@ -11,6 +11,14 @@ public:
 
     virtual void DisplayProperty() override;
 
+    virtual int32 GetModulePayloadSize() const override
+    {
+        // 초기 속도 저장할 페이로드
+        return sizeof(FVector);
+    }
+
+    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) override;
+
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseConstantChange);

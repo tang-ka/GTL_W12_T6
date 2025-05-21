@@ -64,6 +64,8 @@ public:
     void UpdateParticles(float DeltaTime);
     void UpdateModules(float DeltaTime);
 
+    void RebuidLayout();
+
     virtual bool IsDynamicDataRequired();
     virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) { return nullptr; }
 
