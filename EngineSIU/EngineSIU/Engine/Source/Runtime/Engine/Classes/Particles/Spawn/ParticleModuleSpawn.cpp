@@ -1,5 +1,13 @@
 #include "ParticleModuleSpawn.h"
 
+UParticleModuleSpawn::UParticleModuleSpawn()
+{
+    Rate.MinValue = 20.0f;
+    Rate.MaxValue = 20.0f;
+
+    ModuleName = "Spawn"; 
+}
+
 void UParticleModuleSpawn::DisplayProperty()
 {
     Super::DisplayProperty();

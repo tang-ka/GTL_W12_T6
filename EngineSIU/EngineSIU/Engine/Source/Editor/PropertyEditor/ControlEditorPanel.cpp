@@ -421,6 +421,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLESYSTEM"));
                     UParticleSystemComponent* ParticleComponent = SpawnedActor->AddComponent<UParticleSystemComponent>();
+                    SpawnedActor->SetRootComponent(ParticleComponent);
                     SpawnedActor->SetActorTickInEditor(true);
                     break;
                 }

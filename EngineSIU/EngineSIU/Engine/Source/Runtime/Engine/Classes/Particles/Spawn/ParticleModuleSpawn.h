@@ -10,7 +10,7 @@ class UParticleModuleSpawn : public UParticleModuleSpawnBase
     DECLARE_CLASS(UParticleModuleSpawn, UParticleModuleSpawnBase)
 
 public:
-    UParticleModuleSpawn() { ModuleName = "Spawn"; }
+    UParticleModuleSpawn();
     virtual ~UParticleModuleSpawn() override = default;
 
     virtual void DisplayProperty() override;

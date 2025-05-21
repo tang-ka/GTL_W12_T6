@@ -24,28 +24,30 @@ void FParticleEmitterInstance::Initialize()
         MaxActiveParticles = 1000;
     }
 
-    PayloadOffset = sizeof(FBaseParticle);
+    BuidMemoryLayout();
 
-    ParticleSize = PayloadOffset;
-    InstancePayloadSize = 0;
-    for (auto* Module : Modules)
-    {
-        if (Module->bSpawnModule)
-        {
-            int32 ModulePayloadSize = Module->GetModulePayloadSize();
-            Module->SetModulePayloadOffset(ParticleSize);
-            ParticleSize += ModulePayloadSize;
-        }
+    //PayloadOffset = sizeof(FBaseParticle);
 
-        if (Module->bUpdateModule)
-        {
-            int32 Size = Module->GetInstancePayloadSize();
-            Module->SetInstancePayloadOffset(InstancePayloadSize);
-            InstancePayloadSize += Size;
-        }
-    }
+    //ParticleSize = PayloadOffset;
+    //InstancePayloadSize = 0;
+    //for (auto* Module : Modules)
+    //{
+    //    if (Module->bSpawnModule)
+    //    {
+    //        int32 ModulePayloadSize = Module->GetModulePayloadSize();
+    //        Module->SetModulePayloadOffset(ParticleSize);
+    //        ParticleSize += ModulePayloadSize;
+    //    }
 
-    ParticleStride = ParticleSize;
+    //    if (Module->bUpdateModule)
+    //    {
+    //        int32 Size = Module->GetInstancePayloadSize();
+    //        Module->SetInstancePayloadOffset(InstancePayloadSize);
+    //        InstancePayloadSize += Size;
+    //    }
+    //}
+
+    //ParticleStride = ParticleSize;
 
     ParticleData = new uint8[MaxActiveParticles * ParticleStride];
     ParticleIndices = new uint16[MaxActiveParticles];
@@ -355,12 +357,36 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
 {
     for (auto* Module : CurrentLODLevel->GetModules())
     {
-        if (Module->bUpdateModule)
+        if (Module->bUpdateModule && Module->bEnabled)
         {
             int32 Offset = Module->GetInstancePayloadSize();
             Module->Update(this, Offset, DeltaTime);
         }
     }
+}
+
+void FParticleEmitterInstance::BuidMemoryLayout()
+{
+    // BaseParticle 헤더 분량
+    PayloadOffset = sizeof(FBaseParticle);
+    ParticleSize = PayloadOffset;
+    InstancePayloadSize = 0;
+
+    for (auto* Module : CurrentLODLevel->GetModules())
+    {
+        if (Module->bSpawnModule)
+        {
+            Module->SetModulePayloadOffset(ParticleSize);
+            ParticleSize += Module->GetModulePayloadSize();
+        }
+        if (Module->bUpdateModule)
+        {
+            Module->SetInstancePayloadOffset(InstancePayloadSize);
+            InstancePayloadSize += Module->GetInstancePayloadSize();
+        }
+    }
+
+    ParticleStride = ParticleSize;
 }
 
 bool FParticleEmitterInstance::IsDynamicDataRequired()

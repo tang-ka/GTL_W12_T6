@@ -3,6 +3,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class UParticleSystem;
 class UAnimationAsset;
 class USkeleton;
 class USkeletalMesh;
@@ -15,6 +16,7 @@ enum class EAssetType : uint8
     Animation,
     Texture2D,
     Material,
+    ParticleSystem,
 };
 
 struct FAssetInfo
@@ -79,11 +81,13 @@ public:
     const TMap<FName, FAssetInfo>& GetAssetRegistry();
     TMap<FName, FAssetInfo>& GetAssetRegistryRef();
 
+    UObject* GetAsset(EAssetType AssetType, const FName& Name) const;
     USkeletalMesh* GetSkeletalMesh(const FName& Name) const;
     UStaticMesh* GetStaticMesh(const FName& Name) const;
     USkeleton* GetSkeleton(const FName& Name) const;
     UMaterial* GetMaterial(const FName& Name) const;
     UAnimationAsset* GetAnimation(const FName& Name) const;
+    UParticleSystem* GetParticleSystem(const FName& Name) const;
 
     void GetMaterialKeys(TSet<FName>& OutKeys) const;
     void GetMaterialKeys(TArray<FName>& OutKeys) const;
@@ -94,22 +98,19 @@ public:
     void AddMaterial(const FName& Key, UMaterial* Material);
     void AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh);
     void AddAnimation(const FName& Key, UAnimationAsset* Animation);
+    void AddParticleSystem(const FName& Key, UParticleSystem* ParticleSystem);
 
 private:
+    inline static TMap<EAssetType, TMap<FName, UObject*>> AssetMap;
+    
     double FbxLoadTime = 0.0;
     double BinaryLoadTime = 0.0;
-    
+
     void LoadContentFiles();
 
     void HandleFBX(const FAssetInfo& AssetInfo);
 
-    void AddToAssetMap(const FAssetLoadResult& Result, const FString& FileName, const FAssetInfo& BaseAssetInfo);
-
-    inline static TMap<FName, USkeleton*> SkeletonMap;
-    inline static TMap<FName, USkeletalMesh*> SkeletalMeshMap;
-    inline static TMap<FName, UStaticMesh*> StaticMeshMap;
-    inline static TMap<FName, UMaterial*> MaterialMap;
-    inline static TMap<FName, UAnimationAsset*> AnimationMap;
+    void AddToAssetMap(const FAssetLoadResult& Result, const FString& BaseName, const FAssetInfo& BaseAssetInfo);
 
     bool LoadFbxBinary(const FString& FilePath, FAssetLoadResult& Result, const FString& BaseName, const FString& FolderPath);
 
