@@ -66,17 +66,18 @@ struct FPropertyUIHelper
 
 void FProperty::DisplayInImGui(UObject* Object) const
 {
-    if (!HasAnyFlags(Flags, EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
-    {
-        return;
-    }
-
     void* Data = GetPropertyData(Object);
     DisplayRawDataInImGui(Name, Data, Object);
 }
 
 void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
+    if (!HasAnyFlags(Flags, EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
+    {
+        return;
+    }
+
+    DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 }
 
 void FProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
