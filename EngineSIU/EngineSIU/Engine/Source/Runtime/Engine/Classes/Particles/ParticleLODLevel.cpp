@@ -22,15 +22,12 @@ UParticleLODLevel::UParticleLODLevel()
     Modules.Add(InitialScaleModule);
 
     UParticleModuleLocation* LocationModule = FObjectFactory::ConstructObject<UParticleModuleLocation>(this);
-    LocationModule->ModuleName = "LocationModule";
     Modules.Add(LocationModule);
 
     UParticleModuleVelocity* VelocityModule = FObjectFactory::ConstructObject<UParticleModuleVelocity>(this);
-    VelocityModule->ModuleName = "VelocityModule";
     Modules.Add(VelocityModule);
 
     UParticleModuleColorBase* ColorModule = FObjectFactory::ConstructObject<UParticleModuleColorBase>(this);
-    ColorModule->ModuleName = "ColorModule";
     Modules.Add(ColorModule);
 
     // UParticleModuleColorOverLife* ColorOverLifeModule = new UParticleModuleColorOverLife();

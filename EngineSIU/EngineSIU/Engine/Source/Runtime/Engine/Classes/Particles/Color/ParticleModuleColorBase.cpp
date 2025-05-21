@@ -11,6 +11,8 @@ UParticleModuleColorBase::UParticleModuleColorBase()
 
     StartAlpha.MinValue = 0.0f;
     StartAlpha.MaxValue = 1.0f;
+
+    ModuleName = "Color";
 }
 
 void UParticleModuleColorBase::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
