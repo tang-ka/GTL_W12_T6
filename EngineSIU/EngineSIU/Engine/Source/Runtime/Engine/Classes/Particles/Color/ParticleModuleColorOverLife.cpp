@@ -18,6 +18,7 @@ UParticleModuleColorOverLife::UParticleModuleColorOverLife()
 
 void UParticleModuleColorOverLife::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
+    ParticleBase->BaseColor = FLinearColor(ColorOverLife.MinValue, AlphaOverLife.MinValue); 
     ParticleBase->Color = FLinearColor(ColorOverLife.MinValue, AlphaOverLife.MinValue);
 }
 
@@ -36,12 +37,8 @@ void UParticleModuleColorOverLife::Update(FParticleEmitterInstance* Owner, int32
     for (int32 i = 0; i < Owner->ActiveParticles; ++i)
     {
         FBaseParticle* Particle = (FBaseParticle*)(CurrentParticleData + ParticleStride * i);
-        
-        // Setup color
-        Particle->Color.R = Color.R * Particle->RelativeTime;
-        Particle->Color.G = Color.G * Particle->RelativeTime;
-        Particle->Color.B = Color.B * Particle->RelativeTime;
-        Particle->Color.A = Color.A * Particle->RelativeTime;
+
+        Particle->Color.Lerp(Particle->BaseColor, Color, Particle->RelativeTime);
     }
 
     
