@@ -11,6 +11,8 @@ UParticleModuleSize::UParticleModuleSize()
 
     StartSize.MinValue = FVector::OneVector;
     StartSize.MaxValue = FVector::OneVector;
+
+    ModuleName = "Size";
 }
 
 void UParticleModuleSize::DisplayProperty()
