@@ -676,12 +676,12 @@ void FObjectProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 
                 if (HasAnyFlags(Flags, EPropertyFlags::EditInline))
                 {
-                    DisplayMembersRecursive(ObjectClass, *Object, OwnerObject);
+                    DisplayMembersRecursive(ObjectClass, *Object, *Object);
                 }
             }
             else if (HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere))
             {
-                DisplayMembersRecursive(ObjectClass, *Object, OwnerObject);
+                DisplayMembersRecursive(ObjectClass, *Object, *Object);
             }
         }
         ImGui::TreePop();
