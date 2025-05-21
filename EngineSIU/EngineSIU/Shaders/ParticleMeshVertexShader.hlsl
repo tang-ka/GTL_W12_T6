@@ -18,6 +18,7 @@ PS_INPUT_CommonMesh main(VS_INPUT_StaticMesh Input, uint InstanceID : SV_Instanc
     Output.Position = mul(Output.Position, Instance.WorldMatrix);
     Output.WorldPosition = Output.Position.xyz;
 
+    Output.Position = mul(Output.Position, WorldMatrix);
     Output.Position = mul(Output.Position, ViewMatrix);
     Output.Position = mul(Output.Position, ProjectionMatrix);
 
