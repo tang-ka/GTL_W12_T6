@@ -358,6 +358,7 @@ void FGraphicsDevice::CreateAlphaBlendState()
     RtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
     RtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
     RtBlendDesc.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+    RtBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
     RtBlendDesc.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
     RtBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
     RtBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;

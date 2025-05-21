@@ -716,6 +716,12 @@ void FObjManager::CombineMaterialIndex(FStaticMeshRenderData& OutFStaticMesh)
 
 bool FObjManager::SaveStaticMeshToBinary(const FWString& FilePath, const FStaticMeshRenderData& StaticMesh)
 {
+    if (FilePath == FString("Contents/ParticleMaterials/DummyObj.obj.bin").ToWideString())
+    {
+        // 머티리얼용 더미 obj 파일은 bin 저장 안함.
+        return false;
+    }
+    
     std::ofstream File(FilePath, std::ios::binary);
     if (!File.is_open())
     {
