@@ -5,6 +5,9 @@ UParticleModuleSpawn::UParticleModuleSpawn()
     Rate.MinValue = 20.0f;
     Rate.MaxValue = 20.0f;
 
+    BurstTime = 1.0f;
+    BurstCount = 200;
+
     ModuleName = "Spawn"; 
 }
 

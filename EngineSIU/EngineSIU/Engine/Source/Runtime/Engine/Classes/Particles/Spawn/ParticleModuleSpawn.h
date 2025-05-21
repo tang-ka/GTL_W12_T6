@@ -23,6 +23,9 @@ public:
     // FRawDistributionFloat RateScale;
     UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionFloat, RateScale) // 일단 상수 값으로 진행
 
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, BurstTime)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, int, BurstCount)
+
     // /**	If true, the SpawnRate will be scaled by the global CVar r.EmitterSpawnRateScale */
     // UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bApplyGlobalSpawnRateScale)
 

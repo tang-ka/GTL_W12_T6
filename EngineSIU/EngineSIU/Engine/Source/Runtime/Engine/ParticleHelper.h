@@ -129,7 +129,7 @@ struct FParticleSpriteVertex
     /** The rotation of the particle. */
     float Rotation;
     /** The sub-image index for the particle. */
-    float SubImageIndex;
+    float SubImageIndex;  
     /** The color of the particle. */
     FLinearColor Color;
 };
