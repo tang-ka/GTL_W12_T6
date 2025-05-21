@@ -676,6 +676,12 @@ void FObjectProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
                     }
                     ImGui::EndCombo();
                 }
+
+                if (HasAnyFlags(Flags, EPropertyFlags::EditInline))
+                {
+                    const UClass* ActualClass = ObjectClass;
+                    DisplayMembersRecursive(ActualClass, DataPtr, OwnerObject);
+                }
             }
             else if (HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere))
             {
