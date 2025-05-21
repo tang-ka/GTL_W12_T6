@@ -36,10 +36,12 @@ void UParticleModuleColorOverLife::Update(FParticleEmitterInstance* Owner, int32
     for (int32 i = 0; i < Owner->ActiveParticles; ++i)
     {
         FBaseParticle* Particle = (FBaseParticle*)(CurrentParticleData + ParticleStride * i);
-
-        float RelativeTime = Particle->RelativeTime;
+        
         // Setup color
-        Particle->Color.Lerp(Particle->Color, Color, RelativeTime);
+        Particle->Color.R = Color.R * Particle->RelativeTime;
+        Particle->Color.G = Color.G * Particle->RelativeTime;
+        Particle->Color.B = Color.B * Particle->RelativeTime;
+        Particle->Color.A = Color.A * Particle->RelativeTime;
     }
 
     
