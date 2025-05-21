@@ -98,6 +98,7 @@ public:
     void AddMaterial(const FName& Key, UMaterial* Material);
     void AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh);
     void AddAnimation(const FName& Key, UAnimationAsset* Animation);
+    void AddParticleSystem(const FName& Key, UParticleSystem* ParticleSystem);
 
 private:
     inline static TMap<EAssetType, TMap<FName, UObject*>> AssetMap;

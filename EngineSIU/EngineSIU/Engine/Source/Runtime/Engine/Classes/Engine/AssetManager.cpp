@@ -13,6 +13,7 @@
 #include "UObject/Casts.h"
 #include "Asset/SkeletalMeshAsset.h"
 #include "Asset/StaticMeshAsset.h"
+#include "Particles/ParticleSystem.h"
 #include "Serialization/MemoryArchive.h"
 #include "UObject/ObjectFactory.h"
 
@@ -144,6 +145,11 @@ void UAssetManager::AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh)
 void UAssetManager::AddAnimation(const FName& Key, UAnimationAsset* Animation)
 {
     AssetMap[EAssetType::Animation].Add(Key, Animation);
+}
+
+void UAssetManager::AddParticleSystem(const FName& Key, UParticleSystem* ParticleSystem)
+{
+    AssetMap[EAssetType::ParticleSystem].Add(Key, ParticleSystem);
 }
 
 void UAssetManager::LoadContentFiles()
