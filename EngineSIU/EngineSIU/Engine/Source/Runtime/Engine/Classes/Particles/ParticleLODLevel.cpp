@@ -8,6 +8,7 @@
 #include "Size/ParticleModuleSize.h"
 #include "UObject/ObjectFactory.h"
 #include "Location/ParticleModuleLocation.h"
+#include "Modules/ParticleModuleLifeTime.h"
 #include "Velocity/ParticleModuleVelocity.h"
 
 UParticleLODLevel::UParticleLODLevel()
@@ -27,6 +28,9 @@ UParticleLODLevel::UParticleLODLevel()
     UParticleModuleVelocity* VelocityModule = FObjectFactory::ConstructObject<UParticleModuleVelocity>(this);
     Modules.Add(VelocityModule);
 
+    UParticleModuleLifeTime* LifeTimeModule = FObjectFactory::ConstructObject<UParticleModuleLifeTime>(this);
+    Modules.Add(LifeTimeModule);
+    
     UParticleModuleColorBase* ColorModule = FObjectFactory::ConstructObject<UParticleModuleColorBase>(this);
     Modules.Add(ColorModule);
 

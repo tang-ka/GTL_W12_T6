@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "ParticleHelper.h"
 #include "RenderPassBase.h"
 
 class UParticleSystemComponent;
@@ -19,4 +20,8 @@ protected:
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     TArray<UParticleSystemComponent*> ParticleComponents;
+
+private:
+    void DrawParticles();
+    void ProcessParticles(const FDynamicMeshEmitterReplayData* ReplayData);
 };

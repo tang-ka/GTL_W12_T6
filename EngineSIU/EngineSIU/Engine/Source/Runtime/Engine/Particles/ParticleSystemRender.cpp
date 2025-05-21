@@ -198,3 +198,20 @@ void FDynamicSpriteEmitterData::GetDynamicMeshElementsEmitter() const
 {
     
 }
+
+FDynamicMeshEmitterData::FDynamicMeshEmitterData(const UParticleModuleRequired* RequiredModule)
+    : FDynamicSpriteEmitterDataBase(RequiredModule)
+    //, LastFramePreRendered(-1)
+    , StaticMesh( nullptr )
+    //, MeshTypeDataOffset(0xFFFFFFFF)
+    //, bApplyPreRotation(false)
+    //, bUseMeshLockedAxis(false)
+    //, bUseCameraFacing(false)
+    //, bApplyParticleRotationAsSpin(false)
+    //, bFaceCameraDirectionRatherThanPosition(false)
+    //, CameraFacingOption(0)
+    //, LastCalculatedMeshLOD(0)
+    , EmitterInstance(nullptr)
+{
+    
+}

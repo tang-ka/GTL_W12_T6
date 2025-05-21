@@ -5,6 +5,7 @@
 #include "Particles/ParticleModule.h"
 #include "Particles/ParticleModuleRequired.h"
 #include "Particles/Color/ParticleModuleColorBase.h"
+#include "Particles/Location/ParticleModuleLocationBase.h"
 #include "Particles/Size/ParticleModuleSizeBase.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
 #include "Particles/Velocity/ParticleModuleVelocityBase.h"
@@ -40,7 +41,8 @@ private:
         UParticleModuleSpawnBase::StaticClass(),
         UParticleModuleColorBase::StaticClass(),
         UParticleModuleSizeBase::StaticClass(),
-        UParticleModuleVelocityBase::StaticClass()
+        UParticleModuleVelocityBase::StaticClass(),
+        UParticleModuleLocationBase::StaticClass(),
     };
 
     TArray<UClass*> DisDeletableClasses = {
