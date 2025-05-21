@@ -304,11 +304,17 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
     Cast<UEditorEngine>(GEngine)->SelectComponent(ParticleSystemComponent);
 
     FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
-    CameraLocation = Camera.GetLocation();
-    CameraRotation = Camera.GetRotation();
+
+    CameraLocation = FVector(5, 5 , 10);
+    CameraRotation = FVector(0, 0, 0);
+
+    FVector Delta = (FVector(0.f, 0.f, 5.f) - CameraLocation).GetSafeNormal();
+    float Pitch = FMath::RadiansToDegrees(FMath::Asin(Delta.Z));
+    float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Delta.Y, Delta.X));
+    CameraRotation = FVector(0, -Pitch,  Yaw);
     
-    Camera.SetRotation(FVector(0.0f, 30, 180));
-    Camera.SetLocation(FVector(-5, 0 , 10));
+    Camera.SetLocation(CameraLocation);
+    Camera.SetRotation(CameraRotation);
 
     if (AEditorPlayer* Player = GetEditorPlayer())
     {
