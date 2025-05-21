@@ -1158,6 +1158,9 @@ FProperty* MakeProperty(
     int32 InOffset
 )
 {
+    // 각 타입에 맞는 Property 생성
+    constexpr EPropertyType TypeEnum = GetPropertyType<T>();
+
     // Flags 검사
     if constexpr (HasAllFlags<InFlags>(EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
     {
@@ -1169,9 +1172,14 @@ FProperty* MakeProperty(
         // LuaReadOnly와 LuaReadWrite는 서로 같이 사용할 수 없음!!
         static_assert(TAlwaysFalse<T>, "LuaReadOnly and LuaReadWrite cannot be set at the same time.");
     }
-
-    // 각 타입에 맞는 Property 생성
-    constexpr EPropertyType TypeEnum = GetPropertyType<T>();
+    else if constexpr (
+        !(TypeEnum == EPropertyType::Object || TypeEnum == EPropertyType::UnresolvedPointer)
+        && HasAnyFlags<InFlags>(EPropertyFlags::EditInline)
+    )
+    {
+        // UObject가 아닌 타입에 대해서는 EditInline을 사용할 수 없음!!
+        static_assert(TAlwaysFalse<T>, "EditInline cannot be set for non-UObject types.");
+    }
 
     if constexpr      (TypeEnum == EPropertyType::Int8)        { return new FInt8Property        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
     else if constexpr (TypeEnum == EPropertyType::Int16)       { return new FInt16Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
