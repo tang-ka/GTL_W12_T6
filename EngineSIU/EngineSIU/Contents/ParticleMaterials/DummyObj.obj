@@ -2,3 +2,4 @@ mtllib ParticleMaterials.mtl
 
 usemtl Smoke
 usemtl SpriteBase
+usemtl Explosion
