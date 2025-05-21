@@ -266,7 +266,7 @@ void ParticleViewerPanel::AddNewEmitter()
 
 void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
 {
-    float columnWidth = 120.0f;
+    float columnWidth = 200.0f;
     
     ImGui::BeginGroup();
     
@@ -285,7 +285,7 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.1f, 0.15f, 0.8f));
             
-    if (ImGui::Button("X##delete", ImVec2(columnWidth, 20)))
+    if (ImGui::Button("X##delete", ImVec2(columnWidth, 30)))
     {
         // 모듈 삭제 로직
         ParticleSystem->DeleteEmitter(Emitter);
@@ -298,24 +298,22 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     }
     
     ImGui::PopStyleColor(3);
-    
-    ImGui::PopID();
 
     // 플러스 버튼을 제일 상단에 배치
-    float plusButtonWidth = 120.0f;
-    float plusButtonHeight = 30.0f; 
+    float plusButtonHeight = 30.0f;
 
     // 새로운 Module 추가
     TArray<UClass*> ChildObjects;
     GetChildOfClass(UParticleModule::StaticClass(), ChildObjects);
 
     // 버튼 크기 설정
-    ImGui::SetNextItemWidth(plusButtonWidth);
+    ImGui::SetNextItemWidth(columnWidth);
 
     // 높이 조정을 위한 스타일 푸시
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, (plusButtonHeight - ImGui::GetFontSize()) * 0.5f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 4.0f)); // 드롭다운 패딩도 조정
 
+    
     if (ImGui::BeginCombo("##AddModuleCombo", "Add Module"))
     {
         for (UClass* ChildObject : ChildObjects)
@@ -340,15 +338,27 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     // 스타일 팝
     ImGui::PopStyleVar(2);
 
+    ImGui::PopID();
+
     const auto& Modules = Emitter->GetLODLevel(0)->GetModules();
     for (const auto& Module : Modules)
     {
         ImGui::PushID(Module);
-        bool bChecked = true;
-        if (ImGui::Checkbox(GetData(Module->ModuleName.ToString()), &bChecked))
+        
+        if (ImGui::Button(GetData(Module->ModuleName.ToString()), ImVec2(columnWidth - 60, 30)))
         {
             SelectedEmitter = nullptr;
             SelectedModule = Module;
+        }
+
+        if (!DisDeletableClasses.Contains(Module->GetClass()))
+        {
+            ImGui::SameLine();
+            bool bChecked = Module->bEnabled;
+            if (ImGui::Checkbox("", &bChecked))
+            {
+                Module->bEnabled = !Module->bEnabled;
+            }
         }
 
         if (!DisDeletableClasses.Contains(Module->GetClass()))
