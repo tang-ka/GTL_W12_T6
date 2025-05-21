@@ -11,7 +11,7 @@ struct FMeshParticleInstanceVertex
     float RelativeTime;
 };
 
-StructuredBuffer<FMeshParticleInstanceVertex> InstanceBuffer : register(t0);
+StructuredBuffer<FMeshParticleInstanceVertex> InstanceBuffer : register(t1);
 
 struct VS_Input 
 {
@@ -29,7 +29,7 @@ struct PS_Input
     float SubImageIndex : TEXCOORD3;
 };
 
-PS_Input main(VS_Input Input)
+PS_INPUT_CommonMesh main(VS_Input Input)
 {
     
 }
