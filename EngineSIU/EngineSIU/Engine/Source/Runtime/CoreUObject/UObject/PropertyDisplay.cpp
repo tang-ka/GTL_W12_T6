@@ -72,17 +72,44 @@ struct FPropertyUIHelper
 
 void FProperty::DisplayInImGui(UObject* Object) const
 {
-    if (!HasAnyFlags(Flags, EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
-    {
-        return;
-    }
-
     void* Data = GetPropertyData(Object);
     DisplayRawDataInImGui(Name, Data, Object);
 }
 
 void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
+    if (!HasAnyFlags(Flags, EPropertyFlags::EditAnywhere | EPropertyFlags::VisibleAnywhere))
+    {
+        return;
+    }
+
+    DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
+}
+
+void FProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+{
+}
+
+void FDisplayMembersRecursiveTrait::DisplayMembersRecursive(
+    const UStruct* CurrentStructToDisplay, void* StructInstanceDataPtr, UObject* TopLevelOwnerObject
+) const
+{
+    if (!CurrentStructToDisplay)
+    {
+        return;
+    }
+
+    // 부모 구조체의 멤버 먼저 그리기
+    if (CurrentStructToDisplay->GetSuperStruct())
+    {
+        DisplayMembersRecursive(CurrentStructToDisplay->GetSuperStruct(), StructInstanceDataPtr, TopLevelOwnerObject);
+    }
+
+    for (const FProperty* MemberProp : CurrentStructToDisplay->GetProperties())
+    {
+        void* MemberDataPtr = static_cast<std::byte*>(StructInstanceDataPtr) + MemberProp->Offset;
+        MemberProp->DisplayRawDataInImGui(MemberProp->Name, MemberDataPtr, TopLevelOwnerObject);
+    }
 }
 
 void FNumericProperty::DisplayInImGui(UObject* Object) const
@@ -94,9 +121,9 @@ void FNumericProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FInt8Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int8>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -105,9 +132,9 @@ void FInt8Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FInt16Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int16>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -116,9 +143,9 @@ void FInt16Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FInt32Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int32>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -127,9 +154,9 @@ void FInt32Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FInt64Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int64>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -138,9 +165,9 @@ void FInt64Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FUInt8Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FUInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint8>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -149,9 +176,9 @@ void FUInt8Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FUInt16Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FUInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint16>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -160,9 +187,9 @@ void FUInt16Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FUInt32Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FUInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint32>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -171,9 +198,9 @@ void FUInt32Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FUInt64Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FUInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint64>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -182,9 +209,9 @@ void FUInt64Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FFloatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FFloatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -193,9 +220,9 @@ void FFloatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FDoubleProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FDoubleProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FNumericProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<double>(PropertyLabel, DataPtr, 1);
     if (!ChangeResult.IsSet()) return;
@@ -213,9 +240,9 @@ void FBoolProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FBoolProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FBoolProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     ImGui::Dummy(ImVec2(0.0f, 10.0f));
     if (ImGui::Checkbox(PropertyLabel, static_cast<bool*>(DataPtr)))
@@ -237,9 +264,9 @@ void FStrProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FStrProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FStrProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     FString* Data = static_cast<FString*>(DataPtr);
 
@@ -277,9 +304,9 @@ void FStrProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPt
     }
 }
 
-void FNameProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FNameProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const FName* Data = static_cast<FName*>(DataPtr);
     std::string NameStr = Data->ToString().ToAnsiString();
@@ -303,9 +330,9 @@ void FVector2DProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FVector2DProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FVector2DProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
     if (!ChangeResult.IsSet()) return;
@@ -323,9 +350,9 @@ void FVectorProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FVectorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
     if (!ChangeResult.IsSet()) return;
@@ -343,9 +370,9 @@ void FVector4Property::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FVector4Property::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FVector4Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
     if (!ChangeResult.IsSet()) return;
@@ -363,9 +390,9 @@ void FRotatorProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FRotatorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FRotatorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
     if (!ChangeResult.IsSet()) return;
@@ -383,9 +410,9 @@ void FQuatProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FQuatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FQuatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
     if (!ChangeResult.IsSet()) return;
@@ -394,9 +421,9 @@ void FQuatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
     OwnerObject->PostEditChangeProperty(Event);
 }
 
-void FTransformProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FTransformProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     if (ImGui::TreeNode(PropertyLabel))
     {
@@ -426,9 +453,9 @@ void FTransformProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* 
     }
 }
 
-void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FMatrixProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     // TODO: 짐벌락 현상 있음
     if (ImGui::TreeNode(PropertyLabel))
@@ -494,9 +521,9 @@ void FColorProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     FColor* Data = static_cast<FColor*>(DataPtr);
     FLinearColor LinearColorForUI = FLinearColor(*Data);
@@ -530,9 +557,9 @@ void FLinearColorProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FLinearColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     FLinearColor* Data = static_cast<FLinearColor*>(DataPtr);
 
@@ -603,9 +630,9 @@ void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FSubclassOfProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     TSubclassOf<UObject>* Data = static_cast<TSubclassOf<UObject>*>(DataPtr);
     UClass* CurrentClass = GetSpecificClass();
@@ -656,9 +683,9 @@ void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
     }
 }
 
-void FObjectProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FObjectProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     if (ImGui::TreeNodeEx(PropertyLabel, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -693,41 +720,31 @@ void FObjectProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
                     }
                     ImGui::EndCombo();
                 }
+
+                if (HasAnyFlags(Flags, EPropertyFlags::EditInline))
+                {
+                    DisplayMembersRecursive(ObjectClass, *Object, *Object);
+                }
             }
             else if (HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere))
             {
-                const UClass* ChildClass = ObjectClass;
-                for (; ChildClass; ChildClass = ChildClass->GetSuperClass())
-                {
-                    for (const FProperty* Prop : ChildClass->GetProperties())
-                    {
-                        Prop->DisplayInImGui(*Object);
-                    }
-                }
+                DisplayMembersRecursive(ObjectClass, *Object, *Object);
             }
         }
         ImGui::TreePop();
     }
 }
 
-void FStructProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void FStructProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     if (UScriptStruct* const* StructType = std::get_if<UScriptStruct*>(&TypeSpecificData))
     {
         if (ImGui::TreeNodeEx(PropertyLabel, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // TODO: 나중에 Display 순서를 부모부터 띄우게 수정하기
-            UStruct* CurrentStruct = *StructType;
-            for (; CurrentStruct; CurrentStruct = CurrentStruct->GetSuperStruct())
-            {
-                for (const FProperty* Property : CurrentStruct->GetProperties())
-                {
-                    void* Data = static_cast<std::byte*>(DataPtr) + Property->Offset;
-                    Property->DisplayRawDataInImGui(Property->Name, Data, OwnerObject);
-                }
-            }
+            const UStruct* ActualStruct = *StructType;
+            DisplayMembersRecursive(ActualStruct, DataPtr, OwnerObject);
             ImGui::TreePop();
         }
     }
@@ -751,7 +768,7 @@ void UMaterialProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+void UMaterialProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
 

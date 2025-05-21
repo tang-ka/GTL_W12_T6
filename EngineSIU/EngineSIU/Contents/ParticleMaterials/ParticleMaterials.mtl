@@ -1,5 +1,6 @@
 
 newmtl Smoke
-map_Kd Smoke.PNG
+map_Kd Smoke.png
 
-usemtl Smoke
+newmtl SpriteBase
+map_Kd SpriteBase.png

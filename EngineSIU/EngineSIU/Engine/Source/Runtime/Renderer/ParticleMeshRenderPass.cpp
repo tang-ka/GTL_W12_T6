@@ -7,6 +7,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Engine/Engine.h"
+#include "Engine/FObjLoader.h"
 #include "Engine/StaticMesh.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -180,6 +181,12 @@ void FParticleMeshRenderPass::ProcessParticles(const FDynamicMeshEmitterReplayDa
 
         SpriteVertices.Add(MeshVertex);
     }
+    
+    FSubUVConstant SubUVConstant = {
+        FVector2D(0.0f, 0.0f),
+        FVector2D(1.0f, 1.0f)   
+    };
+    BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), SubUVConstant);
     
     BufferManager->UpdateStructuredBuffer("ParticleMeshInstanceBuffer", SpriteVertices);
 }
