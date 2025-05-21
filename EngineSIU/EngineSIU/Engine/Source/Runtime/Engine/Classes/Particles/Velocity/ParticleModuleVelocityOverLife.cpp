@@ -14,7 +14,7 @@ UParticleModuleVelocityOverLife::UParticleModuleVelocityOverLife()
     bUseConstantChange = true;
     bUseVelocityCurve = false;
 
-    CurveScale = 1.0f;
+    CurveScale = 10.0f;
 
     StartVelocity = FVector::ZeroVector;
     EndVelocity = FVector::ZeroVector;
@@ -53,27 +53,30 @@ void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, in
     float RelTime = Particle.RelativeTime;
     float firstFrameTime = DeltaTime * Particle.OneOverMaxLifetime;
 
+    FVector InitialVelocity;
     // 첫번쨰 프레임일 때는 값을 쓰고
     if (RelTime < firstFrameTime)
     {
-        FVector InitialVelocity;
         InitialVelocity = Particle.BaseVelocity;
         *InitialVelPtr = InitialVelocity;
     }
 
-    StartVelocity = *InitialVelPtr;
+    InitialVelocity = *InitialVelPtr;
 
     FVector NewVelocity = FVector::ZeroVector;
     if (bUseConstantChange)
     {
         float Alpha = FMath::Clamp(RelTime, 0.0f, 1.0f);    
-        NewVelocity = FMath::Lerp(StartVelocity, EndVelocity, Alpha);
+        NewVelocity = FMath::Lerp(InitialVelocity, EndVelocity, Alpha);
     }
     else if (bUseVelocityCurve)
     {
-        FVector CurrentVelocity = Particle.BaseVelocity;
-        float Alpha = CurveScale * DeltaTime;
-        NewVelocity = FMath::Lerp(CurrentVelocity, EndVelocity, Alpha);
+        //FVector CurrentVelocity = Particle.BaseVelocity;
+        //float Alpha = FMath::Lerp(0.0f, 1.0f, RelTime);
+
+        float t = FMath::Clamp(Particle.RelativeTime, 0.0f, 1.0f);
+        float curveAlpha = 1.0f - FMath::Pow(1.0f - t, CurveScale);
+        NewVelocity = FMath::Lerp(InitialVelocity, EndVelocity, curveAlpha);
     }
 
     // 월드공간 변환 및 오너 스케일 적용

@@ -17,8 +17,6 @@ public:
         return sizeof(FVector);
     }
 
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) override;
-
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseConstantChange);
