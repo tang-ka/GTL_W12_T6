@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #define DECLARE_PARTICLE(Name,Address)        \
     FBaseParticle& Name = *((FBaseParticle*) (Address));
@@ -9,30 +9,42 @@
 #define DECLARE_PARTICLE_PTR(Name,Address)        \
     FBaseParticle* Name = (FBaseParticle*) (Address);
 
-#define BEGIN_UPDATE_LOOP                                                                                                 \
-    {                                                                                                                     \
-        check((Owner != NULL) && (Owner->Component != NULL));                                                             \
-        int32&            ActiveParticles = Owner->ActiveParticles;                                                       \
-        uint32            CurrentOffset    = Offset;                                                                      \
-        const uint8*        ParticleData    = Owner->ParticleData;                                                        \
-        const uint32        ParticleStride    = Owner->ParticleStride;                                                    \
-        uint16*            ParticleIndices    = Owner->ParticleIndices;                                                   \
-        for(int32 i=ActiveParticles-1; i>=0; i--)                                                                         \
-        {                                                                                                                 \
-            const int32    CurrentIndex    = ParticleIndices[i];                                                          \
-            const uint8* ParticleBase    = ParticleData + CurrentIndex * ParticleStride;                                  \
-            FBaseParticle& Particle        = *((FBaseParticle*) ParticleBase);                                            \
-            if ((Particle.Flags & STATE_Particle_Freeze) == 0)                                                            \
-            {                                                                                                             \
+//#define BEGIN_UPDATE_LOOP                                                                                                 \
+//    {                                                                                                                     \
+//        check((Owner != NULL) && (Owner->Component != NULL));                                                             \
+//        int32&            ActiveParticles = Owner->ActiveParticles;                                                       \
+//        uint32            CurrentOffset    = Offset;                                                                      \
+//        const uint8*        ParticleData    = Owner->ParticleData;                                                        \
+//        const uint32        ParticleStride    = Owner->ParticleStride;                                                    \
+//        uint16*            ParticleIndices    = Owner->ParticleIndices;                                                   \
+//        for(int32 i=ActiveParticles-1; i>=0; i--)                                                                         \
+//        {                                                                                                                 \
+//            const int32    CurrentIndex    = ParticleIndices[i];                                                          \
+//            const uint8* ParticleBase    = ParticleData + CurrentIndex * ParticleStride;                                  \
+//            FBaseParticle& Particle        = *((FBaseParticle*) ParticleBase);                                            \
+//            if ((Particle.Flags & STATE_Particle_Freeze) == 0)                                                            \
+//            {                                                                                                             \
 
-#define END_UPDATE_LOOP                                                                                                   \
-            }                                                                                                             \
-            CurrentOffset                = Offset;                                                                        \
-        }                                                                                                                 \
-    }
+#define BEGIN_UPDATE_LOOP                                                                   \
+{                                                                                           \
+    if ((Owner == NULL) || (Owner->Component == NULL)) { return; }                          \
+    int32&          ActiveParticles = Owner->ActiveParticles;                               \
+    uint32          CurrentOffset = Offset;                                                 \
+    const uint8*    ParticleData = Owner->ParticleData;                                     \
+    const uint32    ParticleStride = Owner->ParticleStride;                                 \
+    uint16*         ParticleIndices = Owner->ParticleIndices;                               \
+    for (int32 i = 0; i <= ActiveParticles - 1; i++)                                        \
+    {                                                                                       \
+        const uint8* ParticleBase = ParticleData + i * ParticleStride;                      \
+        FBaseParticle& Particle = *((FBaseParticle*)ParticleBase);                          \
 
-#define CONTINUE_UPDATE_LOOP                                                                                            \
-        CurrentOffset = Offset;                                                                                            \
+#define END_UPDATE_LOOP                                                                     \
+            CurrentOffset = Offset;                                                         \
+        }                                                                                   \
+    }                                                                                       \
+
+#define CONTINUE_UPDATE_LOOP                                                                \
+        CurrentOffset = Offset;                                                             \
         continue;
 
 #define SPAWN_INIT                                                                                                        \

@@ -98,7 +98,10 @@ void FParticleEmitterInstance::SpawnParticles(
         UParticleLODLevel* LODLevel = CurrentLODLevel;
         for (auto* Module : LODLevel->GetModules())
         {
-            Module->Spawn(this, Offset, SpawnTime, Particle);
+            if (Module->bSpawnModule)
+            {
+                Module->Spawn(this, Offset, SpawnTime, Particle);
+            }
         }
 
         float Interp = (Count > 1) ? (float)i / (float)(Count - 1) : 0.f;

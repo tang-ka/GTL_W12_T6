@@ -7,6 +7,7 @@ UParticleModuleVelocity::UParticleModuleVelocity()
 {
     bSpawnModule = true;
     bUpdateModule = false;
+
     bInWorldSpace = false;
     bApplyOwnerScale = false;
 }

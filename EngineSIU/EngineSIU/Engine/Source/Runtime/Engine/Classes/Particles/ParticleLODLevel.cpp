@@ -6,6 +6,7 @@
 #include "Size/ParticleModuleSize.h"
 #include "Location/ParticleModuleLocation.h"
 #include "Velocity/ParticleModuleVelocity.h"
+#include "Velocity/ParticleModuleVelocityOverLife.h"
 
 UParticleLODLevel::UParticleLODLevel()
 {
@@ -18,7 +19,7 @@ UParticleLODLevel::UParticleLODLevel()
     Modules.Add(SpawnModule);
 
     UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
-    InitialScaleModule->ModuleName = "InitialScaleModule";
+    InitialScaleModule->ModuleName = "SizeeModule";
     Modules.Add(InitialScaleModule);
 
     UParticleModuleLocation* LocationModule = new UParticleModuleLocation();
@@ -28,6 +29,11 @@ UParticleLODLevel::UParticleLODLevel()
     UParticleModuleVelocity* VelocityModule = new UParticleModuleVelocity();
     VelocityModule->ModuleName = "VelocityModule";
     Modules.Add(VelocityModule);
+
+    UParticleModuleVelocityOverLife* VelocityOverLifeModule = new UParticleModuleVelocityOverLife();
+    VelocityOverLifeModule->ModuleName = "VelocityOverLifeModule";
+    Modules.Add(VelocityOverLifeModule);
+
 }
 
 int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
