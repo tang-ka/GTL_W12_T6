@@ -293,9 +293,9 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
 
     // World와 Panel에 ParticleSystem 설정
     ParticleViewerWorld->SetParticleSystem(ParticleSystemComponent);
-    auto editorPanel = GEngineLoop.GetUnrealEditor()->GetEditorPanel("ParticleViewerPanel");
-    auto particlePanel = std::dynamic_pointer_cast<ParticleViewerPanel>(editorPanel);
-    ParticleViewerPanel* ParticleViewerPanel = particlePanel.get();
+    auto EditorPanel = GEngineLoop.GetUnrealEditor()->GetEditorPanel("ParticleViewerPanel");
+    auto ParticlePanel = std::dynamic_pointer_cast<ParticleViewerPanel>(EditorPanel);
+    ParticleViewerPanel* ParticleViewerPanel = ParticlePanel.get();
     ParticleViewerPanel->SetParticleSystemComponent(ParticleSystemComponent);
     ParticleViewerPanel->SetParticleSystem(ParticleSystem);
 

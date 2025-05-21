@@ -737,7 +737,9 @@ void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* Part
             //////////////////// 테스트 코드
             if (TestParticleSystem == nullptr)
             {
-                TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(ParticleSystemComponent);
+                TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
+                UAssetManager::Get().AddParticleSystem(TestParticleSystem->GetName(), TestParticleSystem);
+                ParticleSystemComponent->SetParticleSystem(TestParticleSystem);
             }
             ///////////////////////////////
             Engine->StartParticleViewer(FName("TempParticle"), TestParticleSystem);
