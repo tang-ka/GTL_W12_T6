@@ -7,6 +7,7 @@
 #include "Color/ParticleModuleColorOverLife.h"
 #include "Size/ParticleModuleSize.h"
 #include "Location/ParticleModuleLocation.h"
+#include "Modules/ParticleModuleLifeTime.h"
 #include "Velocity/ParticleModuleVelocity.h"
 
 UParticleLODLevel::UParticleLODLevel()
@@ -31,6 +32,10 @@ UParticleLODLevel::UParticleLODLevel()
     VelocityModule->ModuleName = "VelocityModule";
     Modules.Add(VelocityModule);
 
+    UParticleModuleLifeTime* LifeTimeModule = new UParticleModuleLifeTime();
+    LifeTimeModule->ModuleName = "LifeTimeModule";
+    Modules.Add(LifeTimeModule);
+    
     UParticleModuleColorBase* ColorModule = new UParticleModuleColorBase();
     ColorModule->ModuleName = "ColorModule";
     Modules.Add(ColorModule);
