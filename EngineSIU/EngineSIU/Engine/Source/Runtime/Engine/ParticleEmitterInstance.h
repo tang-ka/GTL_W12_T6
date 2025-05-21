@@ -73,9 +73,6 @@ public:
 
     virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData );
     uint32 GetModuleDataOffset(UParticleModule* Module); // TODO: 구현하기
-
-    virtual void Spawn(float DeltaTime);
-    void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload);
 };
 
 struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance
