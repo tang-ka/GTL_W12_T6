@@ -7,6 +7,7 @@
 #include "Particles/ParticleModuleRequired.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
+#include "UObject/Casts.h"
 //#include "Particles/ParticleModuleRequired.h"
 
 void FParticleEmitterInstance::Initialize()
@@ -24,7 +25,7 @@ void FParticleEmitterInstance::Initialize()
         MaxActiveParticles = 1000;
     }
 
-    BuidMemoryLayout();
+    BuildMemoryLayout();
 
     //PayloadOffset = sizeof(FBaseParticle);
 
@@ -365,7 +366,7 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
     }
 }
 
-void FParticleEmitterInstance::BuidMemoryLayout()
+void FParticleEmitterInstance::BuildMemoryLayout()
 {
     // BaseParticle 헤더 분량
     PayloadOffset = sizeof(FBaseParticle);
@@ -478,6 +479,10 @@ bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& Out
     memcpy(OutData.DataContainer.ParticleData, ParticleData, ParticleMemSize);
     memcpy(OutData.DataContainer.ParticleIndices, ParticleIndices, MaxActiveParticles * sizeof(uint16));
 
+    FDynamicSpriteEmitterReplayData* SpriteReplayData = dynamic_cast<FDynamicSpriteEmitterReplayData*>(&OutData);
+    SpriteReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImages_Horizontal;
+    SpriteReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImages_Vertical;
+    
     return true;
 }
 

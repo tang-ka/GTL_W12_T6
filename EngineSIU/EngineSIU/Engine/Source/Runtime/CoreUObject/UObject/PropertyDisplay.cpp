@@ -770,7 +770,7 @@ void UMaterialProperty::DisplayInImGui(UObject* Object) const
 
 void UMaterialProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
+    // FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
 
     UObject** Object = static_cast<UObject**>(DataPtr);
     const UMaterial* CurrentMaterial = Cast<UMaterial>(*Object);

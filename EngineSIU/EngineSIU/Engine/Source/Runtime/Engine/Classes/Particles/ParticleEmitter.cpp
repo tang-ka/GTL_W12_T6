@@ -8,10 +8,8 @@
 
 UParticleEmitter::UParticleEmitter()
 {
-    //////////////// 테스트 코드
     UParticleLODLevel* NewParticleLODLevel = new UParticleLODLevel(); // LOD 하나만 쓰기 때문에 일단 이렇게 생성
     LODLevels.Add(NewParticleLODLevel);
-    ///////////////////////////
 }
 
 void UParticleEmitter::CacheEmitterModuleInfo()

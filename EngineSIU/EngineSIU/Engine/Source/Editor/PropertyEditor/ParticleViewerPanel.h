@@ -8,6 +8,7 @@
 #include "Particles/Location/ParticleModuleLocationBase.h"
 #include "Particles/Size/ParticleModuleSizeBase.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
+#include "Particles/SubUV/ParticleModuleSUbUVBase.h"
 #include "Particles/Velocity/ParticleModuleVelocityBase.h"
 #include "UnrealEd/EditorPanel.h"
 
@@ -43,6 +44,7 @@ private:
         UParticleModuleSizeBase::StaticClass(),
         UParticleModuleVelocityBase::StaticClass(),
         UParticleModuleLocationBase::StaticClass(),
+        UParticleModuleSUbUVBase::StaticClass(),
     };
 
     TArray<UClass*> DisDeletableClasses = {

@@ -733,16 +733,14 @@ void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* Part
         }
         if (ParticleSystemComponent)
         {
-            UParticleSystem* TestParticleSystem = ParticleSystemComponent->GetParticleSystem();
-            //////////////////// 테스트 코드
-            if (TestParticleSystem == nullptr)
+            UParticleSystem* ParticleSystem = ParticleSystemComponent->GetParticleSystem();
+            if (ParticleSystem == nullptr)
             {
-                TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
-                UAssetManager::Get().AddParticleSystem(TestParticleSystem->GetName(), TestParticleSystem);
-                ParticleSystemComponent->SetParticleSystem(TestParticleSystem);
+                ParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
+                UAssetManager::Get().AddParticleSystem(ParticleSystem->GetName(), ParticleSystem);
+                ParticleSystemComponent->SetParticleSystem(ParticleSystem);
             }
-            ///////////////////////////////
-            Engine->StartParticleViewer(FName("TempParticle"), TestParticleSystem);
+            Engine->StartParticleViewer(FName("TempParticle"), ParticleSystem);
         }
     }
 }

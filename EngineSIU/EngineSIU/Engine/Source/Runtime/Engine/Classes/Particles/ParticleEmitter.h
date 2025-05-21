@@ -12,6 +12,16 @@ enum class EParticleBurstMethod : uint8
     EPBM_MAX,
 };
 
+enum EParticleSubUVInterpMethod : int
+{
+    PSUVIM_None,
+    PSUVIM_Linear,
+    PSUVIM_Linear_Blend,
+    PSUVIM_Random,
+    PSUVIM_Random_Blend,
+    PSUVIM_MAX,
+};
+
 class UParticleEmitter : public UObject
 {
     DECLARE_CLASS(UParticleEmitter, UObject)

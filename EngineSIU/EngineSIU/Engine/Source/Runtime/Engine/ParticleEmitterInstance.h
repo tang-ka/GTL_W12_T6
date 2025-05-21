@@ -39,6 +39,8 @@ public:
     /** The maximum number of active particles that can be held in the particle data array.*/
     int32 MaxActiveParticles;
     /** The fraction of time left over from spawning.                   */
+    /** The offset to the SubUV payload in the particle data.			*/
+    int32 SubUVDataOffset;
 
     /** Component can disable Tick and Rendering of this emitter. */
     uint8 bEnabled : 1;
@@ -64,7 +66,7 @@ public:
     void UpdateParticles(float DeltaTime);
     void UpdateModules(float DeltaTime);
 
-    void BuidMemoryLayout();
+    void BuildMemoryLayout();
 
     virtual bool IsDynamicDataRequired();
     virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) { return nullptr; }
