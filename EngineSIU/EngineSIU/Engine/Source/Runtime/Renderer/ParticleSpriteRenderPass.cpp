@@ -157,6 +157,10 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
     
     const uint8* ParticleData = ReplayData->DataContainer.ParticleData;
     const int32 ParticleStride = ReplayData->ParticleStride;
+    
+    const int32 SubImages_Horizontal = ReplayData->SubImages_Horizontal;
+    const int32 SubImages_Vertical = ReplayData->SubImages_Vertical;
+    const int32 SubUVDataOffset = ReplayData->SubUVDataOffset;
 
     for (int32 i = 0; i < ReplayData->ActiveParticleCount; i++)
     {
@@ -168,6 +172,7 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
         SpriteVertex.Color = Particle.Color;
         SpriteVertex.Size = FVector2D(Particle.Size.X, Particle.Size.Y);
         SpriteVertex.Rotation = Particle.Rotation;
+        SpriteVertex.SubImageIndex = reinterpret_cast<int32>(ParticleBase + SubUVDataOffset);
 
         SpriteVertices.Add(SpriteVertex);
     }
@@ -194,9 +199,12 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
         MaterialUtils::UpdateMaterial(BufferManager, Graphics, MaterialInfo);
     }
 
+    const float SubUVScale_Horizontal = 1.0f / static_cast<float>(SubImages_Horizontal);
+    const float SubUVScale_Vertical = 1.0f / static_cast<float>(SubImages_Vertical);
+
     FSubUVConstant SubUVConstant = {
         FVector2D(0.0f, 0.0f),
-        FVector2D(1.0f, 1.0f)   
+        FVector2D(SubUVScale_Horizontal, SubUVScale_Vertical)   
     };
     BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), SubUVConstant);
 
