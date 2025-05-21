@@ -27,29 +27,6 @@ void FParticleEmitterInstance::Initialize()
 
     BuildMemoryLayout();
 
-    //PayloadOffset = sizeof(FBaseParticle);
-
-    //ParticleSize = PayloadOffset;
-    //InstancePayloadSize = 0;
-    //for (auto* Module : Modules)
-    //{
-    //    if (Module->bSpawnModule)
-    //    {
-    //        int32 ModulePayloadSize = Module->GetModulePayloadSize();
-    //        Module->SetModulePayloadOffset(ParticleSize);
-    //        ParticleSize += ModulePayloadSize;
-    //    }
-
-    //    if (Module->bUpdateModule)
-    //    {
-    //        int32 Size = Module->GetInstancePayloadSize();
-    //        Module->SetInstancePayloadOffset(InstancePayloadSize);
-    //        InstancePayloadSize += Size;
-    //    }
-    //}
-
-    //ParticleStride = ParticleSize;
-
     ParticleData = new uint8[MaxActiveParticles * ParticleStride];
     ParticleIndices = new uint16[MaxActiveParticles];
     InstanceData = new uint8[InstancePayloadSize];
@@ -65,6 +42,7 @@ void FParticleEmitterInstance::Initialize()
 void FParticleEmitterInstance::Tick(float DeltaTime)
 {
     AccumulatedTime += DeltaTime;
+    CurrentTimeForBurst += DeltaTime;
 
     // 초당 생성속도에 따른 현재 프레임에 생성할 파티클 수 계산
     int32 SpawnCount = CalculateSpawnCount(DeltaTime);
@@ -146,14 +124,29 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
 
 int32 FParticleEmitterInstance::CalculateSpawnCount(float DeltaTime)
 {
-    float Rate = CurrentLODLevel->SpawnModule->Rate.GetValue();
-    float RateScale = CurrentLODLevel->SpawnModule->RateScale.GetValue();
+    UParticleModuleSpawn* SpawnModule = CurrentLODLevel->SpawnModule;
 
-    Rate *= RateScale;
+    int32 SpawnCount = 0;
 
-    float NewParticlesFloat = Rate * DeltaTime + SpawnFraction;
-    int32 SpawnCount = FMath::FloorToInt(NewParticlesFloat);
-    SpawnFraction = NewParticlesFloat - SpawnCount;
+    if (SpawnModule->bProcessBurstList)
+    {
+        if (CurrentTimeForBurst > SpawnModule->BurstTime)
+        {
+            SpawnCount = SpawnModule->BurstCount;
+            CurrentTimeForBurst = 0.f;
+        }
+    }
+    else
+    {
+        float Rate = CurrentLODLevel->SpawnModule->Rate.GetValue();
+        float RateScale = CurrentLODLevel->SpawnModule->RateScale.GetValue();
+
+        Rate *= RateScale;
+
+        float NewParticlesFloat = Rate * DeltaTime + SpawnFraction;
+        SpawnCount = FMath::FloorToInt(NewParticlesFloat);
+        SpawnFraction = NewParticlesFloat - SpawnCount;
+    }
 
     return SpawnCount;
 }
@@ -358,10 +351,21 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
 {
     for (auto* Module : CurrentLODLevel->GetModules())
     {
-        if (Module->bUpdateModule && Module->bEnabled)
+        if (Module->bEnabled == false)
+        {
+            continue;
+        }
+
+        if (Module->bUpdateModule)
         {
             int32 Offset = Module->GetInstancePayloadSize();
             Module->Update(this, Offset, DeltaTime);
+        }
+        
+        if (Module->bFinalUpdateModule)
+        {
+            int32 Offset = Module->GetInstancePayloadSize();
+            Module->FinalUpdate(this, Offset, DeltaTime);
         }
     }
 }

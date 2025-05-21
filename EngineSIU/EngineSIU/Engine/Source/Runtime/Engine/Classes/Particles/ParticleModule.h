@@ -40,9 +40,9 @@ public:
 
     FName ModuleName;
     
-    bool bSpawnModule = true;
-    
-    bool bUpdateModule = true;
+    bool bSpawnModule = false;
+    bool bUpdateModule = false;
+    bool bFinalUpdateModule = false;
     
     bool bEnabled = true;
 

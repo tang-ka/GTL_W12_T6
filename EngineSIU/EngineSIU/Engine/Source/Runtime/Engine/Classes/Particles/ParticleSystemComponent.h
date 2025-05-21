@@ -50,7 +50,8 @@ public:
     
 private:
     TArray<FParticleEmitterInstance*> EmitterInstances;
-    UParticleSystem* Template;
+
+    UPROPERTY_WITH_FLAGS(EditAnywhere,UParticleSystem*, Template)
 
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
 

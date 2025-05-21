@@ -1,4 +1,4 @@
-﻿#include "ParticleLODLevel.h"
+#include "ParticleLODLevel.h"
 
 #include "UObject/Casts.h"
 #include "Spawn/ParticleModuleSpawn.h"
@@ -9,7 +9,9 @@
 #include "UObject/ObjectFactory.h"
 #include "Location/ParticleModuleLocation.h"
 #include "Modules/ParticleModuleLifeTime.h"
+#include "SubUV/ParticleModuleSubUV.h"
 #include "Velocity/ParticleModuleVelocity.h"
+#include "Velocity/ParticleModuleVelocityOverLife.h"
 
 UParticleLODLevel::UParticleLODLevel()
 {
@@ -34,9 +36,14 @@ UParticleLODLevel::UParticleLODLevel()
     UParticleModuleColorBase* ColorModule = FObjectFactory::ConstructObject<UParticleModuleColorBase>(this);
     Modules.Add(ColorModule);
 
-    // UParticleModuleColorOverLife* ColorOverLifeModule = new UParticleModuleColorOverLife();
-    // ColorOverLifeModule->ModuleName = "ColorOverLifeModule";
-    // Modules.Add(ColorOverLifeModule);
+    UParticleModuleColorOverLife* ColorOverLifeModule = FObjectFactory::ConstructObject<UParticleModuleColorOverLife>(this);
+    Modules.Add(ColorOverLifeModule);
+
+    UParticleModuleVelocityOverLife* VelocityOverLifeModule = FObjectFactory::ConstructObject<UParticleModuleVelocityOverLife>(this);
+    Modules.Add(VelocityOverLifeModule);
+
+    UParticleModuleSubUV* SubUVModule = FObjectFactory::ConstructObject<UParticleModuleSubUV>(this);
+    Modules.Add(SubUVModule);
 }
 
 int32 UParticleLODLevel::CalculateMaxActiveParticleCount()
