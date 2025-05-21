@@ -79,6 +79,35 @@ void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, 
 {
 }
 
+void FProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+{
+}
+
+void FDisplayMembersRecursiveTrait::DisplayMembersRecursive(
+    const UStruct* CurrentStructToDisplay, void* StructInstanceDataPtr, UObject* TopLevelOwnerObject
+) const
+{
+    if (!CurrentStructToDisplay)
+    {
+        return;
+    }
+
+    // 부모 구조체의 멤버 먼저 그리기
+    if (CurrentStructToDisplay->GetSuperStruct())
+    {
+        DisplayMembersRecursive(CurrentStructToDisplay->GetSuperStruct(), StructInstanceDataPtr, TopLevelOwnerObject);
+    }
+
+    for (const FProperty* MemberProp : CurrentStructToDisplay->GetProperties())
+    {
+        if (MemberProp)
+        {
+            void* MemberDataPtr = static_cast<std::byte*>(StructInstanceDataPtr) + MemberProp->Offset;
+            MemberProp->DisplayRawDataInImGui(MemberProp->Name, MemberDataPtr, TopLevelOwnerObject);
+        }
+    }
+}
+
 void FNumericProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
