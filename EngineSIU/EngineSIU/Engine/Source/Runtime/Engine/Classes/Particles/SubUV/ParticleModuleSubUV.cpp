@@ -1,4 +1,4 @@
-﻿#include "ParticleModuleSubUV.h"
+#include "ParticleModuleSubUV.h"
 
 #include "ParticleEmitterInstance.h"
 #include "Particles/ParticleEmitter.h"
@@ -91,6 +91,6 @@ int UParticleModuleSubUV::DetermineImageIndex(
     {
         ImageIndex = (ImageIndex + 1) % TotalSubImages;
     }
-
+    SubUVPayload.ImageIndex = ImageIndex;
     return ImageIndex;
 }

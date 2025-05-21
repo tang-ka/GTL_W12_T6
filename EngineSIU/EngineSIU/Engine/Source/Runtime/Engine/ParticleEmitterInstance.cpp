@@ -379,11 +379,9 @@ void FParticleEmitterInstance::BuildMemoryLayout()
 
     for (auto* Module : CurrentLODLevel->GetModules())
     {
-        if (Module->bSpawnModule)
-        {
-            Module->SetModulePayloadOffset(ParticleSize);
-            ParticleSize += Module->GetModulePayloadSize();
-        }
+        Module->SetModulePayloadOffset(ParticleSize);
+        ParticleSize += Module->GetModulePayloadSize();
+
         if (Module->bUpdateModule)
         {
             Module->SetInstancePayloadOffset(InstancePayloadSize);
