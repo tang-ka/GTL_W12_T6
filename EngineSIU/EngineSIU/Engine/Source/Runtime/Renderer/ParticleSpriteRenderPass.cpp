@@ -10,6 +10,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "ParticleHelper.h"
 
 void FParticleSpriteRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
@@ -172,7 +173,7 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
         SpriteVertex.Color = Particle.Color;
         SpriteVertex.Size = FVector2D(Particle.Size.X, Particle.Size.Y);
         SpriteVertex.Rotation = Particle.Rotation;
-        SpriteVertex.SubImageIndex = reinterpret_cast<int32>(ParticleBase + SubUVDataOffset);
+        //SpriteVertex.SubImageIndex = reinterpret_cast<const FFullSubUVPayload*>(ParticleBase + SubUVDataOffset)->ImageIndex;
 
         SpriteVertices.Add(SpriteVertex);
     }

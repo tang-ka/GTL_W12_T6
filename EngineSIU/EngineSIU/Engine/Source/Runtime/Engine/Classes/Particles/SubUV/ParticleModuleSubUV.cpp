@@ -30,6 +30,8 @@ void UParticleModuleSubUV::Spawn(FParticleEmitterInstance* Owner, int32 Offset, 
     
     DetermineImageIndex(Owner, Offset, ParticleBase, bRandomSubUV, FullSubUVPayload, SpawnTime);
 
+    Owner->SubUVDataOffset = ModulePayloadOffset;
+    
     // payload 위치 계산
     uint8* writableBase = reinterpret_cast<uint8*>(ParticleBase);
     FFullSubUVPayload* InitialVelPtr = reinterpret_cast<FFullSubUVPayload*>(writableBase + ModulePayloadOffset);
