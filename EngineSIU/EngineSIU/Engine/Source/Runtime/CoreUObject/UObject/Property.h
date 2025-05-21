@@ -546,7 +546,7 @@ struct FDistributionFloatProperty : public FProperty
     }
 
     virtual void DisplayInImGui(UObject* Object) const override;
-    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
 };
 
 struct FDistributionVectorProperty : public FProperty
@@ -563,7 +563,7 @@ struct FDistributionVectorProperty : public FProperty
     }
 
     virtual void DisplayInImGui(UObject* Object) const override;
-    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
 };
 
 template <typename InArrayType>
@@ -1089,7 +1089,7 @@ struct UMaterialProperty : public FProperty
     }
 
     void DisplayInImGui(UObject* Object) const;
-    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
 };
 
 struct FStructProperty : public FProperty

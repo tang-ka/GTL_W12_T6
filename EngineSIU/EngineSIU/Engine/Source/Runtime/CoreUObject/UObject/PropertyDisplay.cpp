@@ -561,9 +561,9 @@ void FDistributionFloatProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FDistributionFloatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+void FDistributionFloatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
 
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
 }
@@ -577,9 +577,9 @@ void FDistributionVectorProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void FDistributionVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+void FDistributionVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
     
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
@@ -748,9 +748,9 @@ void UMaterialProperty::DisplayInImGui(UObject* Object) const
     ImGui::EndDisabled();
 }
 
-void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
 {
-    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
 
     UObject** Object = static_cast<UObject**>(DataPtr);
     const UMaterial* CurrentMaterial = Cast<UMaterial>(*Object);
@@ -822,6 +822,8 @@ void UMaterialProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
     if (bSelectionChanged)
     {
         *Object = Material;
+        FPropertyChangedEvent Event(const_cast<UMaterialProperty*>(this), OwnerObject, EPropertyChangeType::ValueSet);
+        OwnerObject->PostEditChangeProperty(Event);
     }
     
     if (Material)
