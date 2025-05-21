@@ -19,12 +19,12 @@ public:
 
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
 
-    UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseConstantChange);
-    UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseVelocityCurve);
+    UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseConstantChange)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseVelocityCurve)
 
-    UPROPERTY_WITH_FLAGS(EditAnywhere, float, CurveScale);
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, CurveScale)
 
-    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, StartVelocity);
-    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, EndVelocity);
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, StartVelocity)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, EndVelocity)
 };
 

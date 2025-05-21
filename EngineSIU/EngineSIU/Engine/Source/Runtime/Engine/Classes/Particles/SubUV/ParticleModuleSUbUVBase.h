@@ -7,5 +7,7 @@ class UParticleModuleSUbUVBase : public UParticleModule
 public:
     UParticleModuleSUbUVBase() = default;
 
+    virtual void DisplayProperty() override {}
+
     virtual EModuleType	GetModuleType() const override { return EModuleType::EPMT_SubUV; }
 };

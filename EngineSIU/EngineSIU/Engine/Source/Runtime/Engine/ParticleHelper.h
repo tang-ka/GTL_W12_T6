@@ -70,6 +70,7 @@
 #include "Math/Vector.h"
 #include "Container/Array.h"
 #include "Math/Matrix.h"
+#include "UObject/ObjectMacros.h"
 
 
 struct FParticleMeshEmitterInstance;
@@ -557,8 +558,9 @@ FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Parti
 
 struct FFullSubUVPayload
 {
+    DECLARE_STRUCT(FFullSubUVPayload)
     // The integer portion indicates the sub-image index.
     // The fractional portion indicates the lerp factor.
-    int ImageIndex;
-    float RandomImageTime;
+    UPROPERTY(EditAnywhere, int, ImageIndex, = 0)
+    UPROPERTY(EditAnywhere, float, RandomImageTime, = 0)
 };

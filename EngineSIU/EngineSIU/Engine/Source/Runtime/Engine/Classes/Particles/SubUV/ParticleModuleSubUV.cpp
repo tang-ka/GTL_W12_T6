@@ -13,6 +13,18 @@ UParticleModuleSubUV::UParticleModuleSubUV()
     ModuleName = "SubUV";
 }
 
+void UParticleModuleSubUV::DisplayProperty()
+{
+    UParticleModuleSUbUVBase::DisplayProperty();
+
+    for (const auto& Property : StaticClass()->GetProperties())
+    {
+        ImGui::PushID(Property);
+        Property->DisplayInImGui(this);
+        ImGui::PopID();
+    }
+}
+
 void UParticleModuleSubUV::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
 {
     if (!Owner->SpriteTemplate)
@@ -34,8 +46,8 @@ void UParticleModuleSubUV::Spawn(FParticleEmitterInstance* Owner, int32 Offset, 
     
     // payload 위치 계산
     uint8* writableBase = reinterpret_cast<uint8*>(ParticleBase);
-    int* InitialVelPtr = reinterpret_cast<int*>(writableBase + ModulePayloadOffset);
-    *InitialVelPtr = FullSubUVPayload.ImageIndex;
+    FFullSubUVPayload* InitialVelPtr = reinterpret_cast<FFullSubUVPayload*>(writableBase + ModulePayloadOffset);
+    *InitialVelPtr = FullSubUVPayload;
 }
 
 void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
@@ -54,12 +66,12 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
     {
         CONTINUE_UPDATE_LOOP
     }
-
-    DetermineImageIndex(Owner, Offset, &Particle, bRandomSubUV, FullSubUVPayload, DeltaTime);
-
+    
     uint8* writableBase = const_cast<uint8*>(ParticleBase);
-    int* InitialVelPtr = reinterpret_cast<int*>(writableBase + ModulePayloadOffset);
-    *InitialVelPtr = FullSubUVPayload.ImageIndex;
+    FFullSubUVPayload* InitialVelPtr = reinterpret_cast<FFullSubUVPayload*>(writableBase + ModulePayloadOffset);
+
+    DetermineImageIndex(Owner, Offset, &Particle, bRandomSubUV, *InitialVelPtr, DeltaTime);
+
     END_UPDATE_LOOP
 }
 
@@ -77,20 +89,24 @@ int UParticleModuleSubUV::DetermineImageIndex(
 
     int ImageIndex = SubUVPayload.ImageIndex;
 
-    if (bRandomMode)
+    float Time = Particle->RelativeTime / Particle->OneOverMaxLifetime;
+    
+    if ((LODLevel->RequiredModule->RandomImageTime == 0.0f) ||
+    ((Time - SubUVPayload.RandomImageTime) > LODLevel->RequiredModule->RandomImageTime) ||
+    (SubUVPayload.RandomImageTime == 0.0f))
     {
-        if ((LODLevel->RequiredModule->RandomImageTime == 0.0f) ||
-        ((Particle->RelativeTime - SubUVPayload.RandomImageTime) > LODLevel->RequiredModule->RandomImageTime) ||
-        (SubUVPayload.RandomImageTime == 0.0f))
+        if (bRandomMode)
         {
             ImageIndex = static_cast<int>(SubImageIndex.GetValue());
-            SubUVPayload.RandomImageTime = Particle->RelativeTime;
         }
+        else
+        {
+            ImageIndex = (ImageIndex + 1) % TotalSubImages;
+        }
+            
+        SubUVPayload.RandomImageTime = Particle->RelativeTime / Particle->OneOverMaxLifetime;
     }
-    else
-    {
-        ImageIndex = (ImageIndex + 1) % TotalSubImages;
-    }
+    
     SubUVPayload.ImageIndex = ImageIndex;
     return ImageIndex;
 }
