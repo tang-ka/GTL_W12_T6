@@ -67,6 +67,8 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
     PARTICLE_ELEMENT(FFullSubUVPayload, SubUVPayload)
     CurrentOffset	= TempOffset;
 
+    Owner->SubUVDataOffset = sizeof(FFullSubUVPayload);
+
     SubUVPayload.ImageIndex = DetermineImageIndex(Owner, Offset, &Particle, bRandomSubUV, SubUVPayload, DeltaTime);
     END_UPDATE_LOOP
 }
