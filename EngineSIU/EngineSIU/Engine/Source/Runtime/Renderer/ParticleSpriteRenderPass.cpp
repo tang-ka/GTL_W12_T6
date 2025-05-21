@@ -1,4 +1,4 @@
-﻿#include "ParticleSpriteRenderPass.h"
+#include "ParticleSpriteRenderPass.h"
 
 #include "RendererHelpers.h"
 #include "UnrealClient.h"
@@ -173,7 +173,7 @@ void FParticleSpriteRenderPass::ProcessParticles(const FDynamicSpriteEmitterRepl
         SpriteVertex.Color = Particle.Color;
         SpriteVertex.Size = FVector2D(Particle.Size.X, Particle.Size.Y);
         SpriteVertex.Rotation = Particle.Rotation;
-        //SpriteVertex.SubImageIndex = reinterpret_cast<const FFullSubUVPayload*>(ParticleBase + SubUVDataOffset)->ImageIndex;
+        SpriteVertex.SubImageIndex = *reinterpret_cast<const int*>(ParticleBase + SubUVDataOffset);
 
         SpriteVertices.Add(SpriteVertex);
     }
