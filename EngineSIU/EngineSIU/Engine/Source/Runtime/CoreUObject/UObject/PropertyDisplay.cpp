@@ -101,11 +101,8 @@ void FDisplayMembersRecursiveTrait::DisplayMembersRecursive(
 
     for (const FProperty* MemberProp : CurrentStructToDisplay->GetProperties())
     {
-        if (MemberProp)
-        {
-            void* MemberDataPtr = static_cast<std::byte*>(StructInstanceDataPtr) + MemberProp->Offset;
-            MemberProp->DisplayRawDataInImGui(MemberProp->Name, MemberDataPtr, TopLevelOwnerObject);
-        }
+        void* MemberDataPtr = static_cast<std::byte*>(StructInstanceDataPtr) + MemberProp->Offset;
+        MemberProp->DisplayRawDataInImGui(MemberProp->Name, MemberDataPtr, TopLevelOwnerObject);
     }
 }
 
@@ -679,14 +676,12 @@ void FObjectProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 
                 if (HasAnyFlags(Flags, EPropertyFlags::EditInline))
                 {
-                    const UClass* ActualClass = ObjectClass;
-                    DisplayMembersRecursive(ActualClass, DataPtr, OwnerObject);
+                    DisplayMembersRecursive(ObjectClass, *Object, OwnerObject);
                 }
             }
             else if (HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere))
             {
-                const UClass* ActualClass = ObjectClass;
-                DisplayMembersRecursive(ActualClass, DataPtr, OwnerObject);
+                DisplayMembersRecursive(ObjectClass, *Object, OwnerObject);
             }
         }
         ImGui::TreePop();
