@@ -40,6 +40,8 @@ void UParticleModuleSubUV::Spawn(FParticleEmitterInstance* Owner, int32 Offset, 
         PARTICLE_ELEMENT(FFullSubUVPayload, SubUVPayload)
         CurrentOffset	= TempOffset;
 
+        Owner->SubUVDataOffset = CurrentOffset;
+
         SubUVPayload.ImageIndex = DetermineImageIndex(Owner, Offset, &Particle, bRandomSubUV, SubUVPayload, SpawnTime);
     }
 }
