@@ -69,8 +69,11 @@
 #include "Math/Color.h"
 #include "Math/Vector.h"
 #include "Container/Array.h"
+#include "Math/Matrix.h"
 
 
+struct FParticleMeshEmitterInstance;
+class UStaticMesh;
 class UMaterial;
 
 struct FBaseParticle
@@ -160,7 +163,9 @@ struct FParticleSpriteVertexNonInstanced
 struct FMeshParticleInstanceVertex
 {
     ///** The color of the particle. */
-    //FLinearColor Color;
+    FLinearColor Color;
+
+    FMatrix WorldMatrix;
 
     ///** The instance to world transform of the particle. Translation vector is packed into W components. */
     //FVector4 Transform[3];
@@ -361,6 +366,55 @@ struct FDynamicSpriteEmitterReplayData : public FDynamicSpriteEmitterReplayDataB
     FDynamicSpriteEmitterReplayData() = default;
 };
 
+struct FDynamicMeshEmitterReplayData : public FDynamicSpriteEmitterReplayDataBase
+{
+    int32	SubUVInterpMethod;
+    int32	SubUVDataOffset;
+    int32	SubImages_Horizontal;
+    int32	SubImages_Vertical;
+    bool	bScaleUV;
+    int32	MeshRotationOffset;
+    int32	MeshMotionBlurOffset;
+    uint8	MeshAlignment;
+    bool	bMeshRotationActive;
+    FVector	LockedAxis;	
+
+    /** Constructor */
+    FDynamicMeshEmitterReplayData() : 
+        SubUVInterpMethod( 0 ),
+        SubUVDataOffset( 0 ),
+        SubImages_Horizontal( 0 ),
+        SubImages_Vertical( 0 ),
+        bScaleUV( false ),
+        MeshRotationOffset( 0 ),
+        MeshMotionBlurOffset( 0 ),
+        MeshAlignment( 0 ),
+        bMeshRotationActive( false ),
+        LockedAxis(1.0f, 0.0f, 0.0f)
+    {
+    }
+
+
+    /** Serialization */
+    virtual void Serialize( FArchive& Ar )
+    {
+        // Call parent implementation
+        FDynamicSpriteEmitterReplayDataBase::Serialize( Ar );
+		
+        Ar << SubUVInterpMethod;
+        Ar << SubUVDataOffset;
+        Ar << SubImages_Horizontal;
+        Ar << SubImages_Vertical;
+        Ar << bScaleUV;
+        Ar << MeshRotationOffset;
+        Ar << MeshMotionBlurOffset;
+        Ar << MeshAlignment;
+        Ar << bMeshRotationActive;
+        Ar << LockedAxis;
+    }
+
+};
+
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
     FDynamicSpriteEmitterData(const UParticleModuleRequired* RequiredModule) :
@@ -412,18 +466,46 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
     FDynamicSpriteEmitterReplayData Source;
 };
 
-struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
+struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    FDynamicMeshEmitterData(const UParticleModuleRequired* RequiredModule) :
-        FDynamicSpriteEmitterData(RequiredModule)
-    {
-        
-    }
+    FDynamicMeshEmitterData(const UParticleModuleRequired* RequiredModule);
+
+    void CalculateParticleTransform(
+        const FMatrix& ProxyLocalToWorld,
+        const FVector& ParticleLocation,
+              float    ParticleRotation,
+        const FVector& ParticleVelocity,
+        const FVector& ParticleSize,
+        const FVector& ParticlePayloadInitialOrientation,
+        const FVector& ParticlePayloadRotation,
+        const FVector& ParticlePayloadCameraOffset,
+        const FVector& ParticlePayloadOrbitOffset,
+        const FVector& ViewOrigin,
+        const FVector& ViewDirection,
+        FMatrix& OutTransformMat
+        ) const;
     
     virtual int32 GetDynamicVertexStride() const override
     {
         return sizeof(FMeshParticleInstanceVertex);
     }
+
+    virtual const FDynamicSpriteEmitterReplayDataBase* GetSourceData() const override
+    {
+        return &Source;
+    }
+
+    virtual const FDynamicEmitterReplayDataBase& GetSource() const override
+    {
+        return Source;
+    }
+
+    FDynamicMeshEmitterReplayData Source;
+
+    UStaticMesh* StaticMesh;
+    TArray<UMaterial*> MeshMaterials;
+
+    const FParticleMeshEmitterInstance* EmitterInstance;
 };
 
 

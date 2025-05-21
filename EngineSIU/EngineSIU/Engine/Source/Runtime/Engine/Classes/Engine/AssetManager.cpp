@@ -57,7 +57,7 @@ TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistryRef()
     return AssetRegistry->PathNameToAssetInfo;
 }
 
-USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name)
+USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name) const
 {
     if (SkeletalMeshMap.Contains(Name))
     {
@@ -66,7 +66,7 @@ USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name)
     return nullptr;
 }
 
-UStaticMesh* UAssetManager::GetStaticMesh(const FName& Name)
+UStaticMesh* UAssetManager::GetStaticMesh(const FName& Name) const
 {
     if (StaticMeshMap.Contains(Name))
     {
@@ -75,7 +75,7 @@ UStaticMesh* UAssetManager::GetStaticMesh(const FName& Name)
     return nullptr;
 }
 
-USkeleton* UAssetManager::GetSkeleton(const FName& Name)
+USkeleton* UAssetManager::GetSkeleton(const FName& Name) const
 {
     if (SkeletonMap.Contains(Name))
     {
@@ -84,7 +84,7 @@ USkeleton* UAssetManager::GetSkeleton(const FName& Name)
     return nullptr;
 }
 
-UMaterial* UAssetManager::GetMaterial(const FName& Name)
+UMaterial* UAssetManager::GetMaterial(const FName& Name) const
 {
     if (MaterialMap.Contains(Name))
     {
@@ -93,7 +93,7 @@ UMaterial* UAssetManager::GetMaterial(const FName& Name)
     return nullptr;
 }
 
-UAnimationAsset* UAssetManager::GetAnimation(const FName& Name)
+UAnimationAsset* UAssetManager::GetAnimation(const FName& Name) const
 {
     if (AnimationMap.Contains(Name))
     {
@@ -102,16 +102,24 @@ UAnimationAsset* UAssetManager::GetAnimation(const FName& Name)
     return nullptr;
 }
 
-TSet<FName> UAssetManager::GetMaterialKeys() const
+void UAssetManager::GetMaterialKeys(TSet<FName>& OutKeys) const
 {
-    TSet<FName> Keys;
+    OutKeys.Empty();
 
     for (const auto& Material : MaterialMap)
     {
-        Keys.Add(Material.Key);
+        OutKeys.Add(Material.Key);
     }
+}
 
-    return Keys;
+void UAssetManager::GetMaterialKeys(TArray<FName>& OutKeys) const
+{
+    OutKeys.Empty();
+
+    for (const auto& Material : MaterialMap)
+    {
+        OutKeys.Add(Material.Key);
+    }
 }
 
 void UAssetManager::AddAssetInfo(const FAssetInfo& Info)

@@ -4,32 +4,34 @@
 struct FMeshParticleInstanceVertex
 {
     float4 Color;
-    float3x4 InstanceToWorld;
-    float4 Velocity;
-    int16 SubUVParams[4];
-    float SubUVLerp;
-    float RelativeTime;
+    matrix WorldMatrix;
 };
 
-StructuredBuffer<FMeshParticleInstanceVertex> InstanceBuffer : register(t0);
+StructuredBuffer<FMeshParticleInstanceVertex> InstanceBuffer : register(t1);
 
-struct VS_Input 
+PS_INPUT_CommonMesh main(VS_INPUT_StaticMesh Input, uint InstanceID : SV_InstanceID)
 {
-    uint VertexID : SV_VertexID;
-    uint InstanceID : SV_InstanceID;
-};
-
-struct PS_Input
-{
-    float4 Position : SV_Position;
-    float2 UV : TEXCOORD0;
-    float4 Color : COLOR0;
-    float RelativeTime : TEXCOORD1;
-    float ParticleId : TEXCOORD2;
-    float SubImageIndex : TEXCOORD3;
-};
-
-PS_Input main(VS_Input Input)
-{
+    FMeshParticleInstanceVertex Instance = InstanceBuffer[InstanceID];
     
+    PS_INPUT_CommonMesh Output;
+    Output.Position = float4(Input.Position, 1.0);
+    Output.Position = mul(Output.Position, Instance.WorldMatrix);
+    Output.WorldPosition = Output.Position.xyz;
+
+    Output.Position = mul(Output.Position, ViewMatrix);
+    Output.Position = mul(Output.Position, ProjectionMatrix);
+
+    Output.WorldNormal = normalize(mul(Input.Normal, (float3x3)InverseTransposedWorld));
+
+    // Begin Tangent
+    float3 WorldTangent = mul(Input.Tangent.xyz, (float3x3)WorldMatrix);
+    WorldTangent = normalize(WorldTangent);
+    WorldTangent = normalize(WorldTangent - Output.WorldNormal * dot(Output.WorldNormal, WorldTangent));
+
+    Output.WorldTangent = float4(WorldTangent, Input.Tangent.w);
+    
+    Output.UV = Input.UV;
+    Output.Color = Instance.Color;
+
+    return Output;
 }

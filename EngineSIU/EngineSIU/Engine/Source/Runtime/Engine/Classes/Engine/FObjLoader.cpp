@@ -906,7 +906,11 @@ UMaterial* FObjManager::CreateMaterial(const FMaterialInfo& MaterialInfo)
 
 UMaterial* FObjManager::GetMaterial(const FString& Name)
 {
-    return MaterialMap[Name];
+    if (MaterialMap.Contains(Name))
+    {
+        return MaterialMap[Name];   
+    }
+    return nullptr;
 }
 
 UStaticMesh* FObjManager::CreateStaticMesh(const FString& FilePath)

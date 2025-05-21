@@ -14,6 +14,8 @@ UParticleModuleLocation::UParticleModuleLocation()
 
     LocationOffset.MinValue = FVector::ZeroVector;
     LocationOffset.MaxValue = FVector::ZeroVector;
+
+    ModuleName = "Location";
 }
 
 void UParticleModuleLocation::DisplayProperty()

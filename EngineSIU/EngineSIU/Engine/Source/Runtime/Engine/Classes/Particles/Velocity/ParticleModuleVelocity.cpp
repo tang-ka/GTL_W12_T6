@@ -10,6 +10,8 @@ UParticleModuleVelocity::UParticleModuleVelocity()
 
     bInWorldSpace = false;
     bApplyOwnerScale = false;
+    
+    ModuleName = "Velocity";
 }
 
 void UParticleModuleVelocity::DisplayProperty()
@@ -21,6 +23,7 @@ void UParticleModuleVelocity::DisplayProperty()
         Property->DisplayInImGui(this);
         ImGui::PopID();
     }
+
 }
 
 void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)

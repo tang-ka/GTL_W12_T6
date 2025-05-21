@@ -112,7 +112,7 @@ void FDynamicSpriteEmitterData::Init(bool bInSelected)
     bUsesDynamicParameter = GetSourceData()->DynamicParameterDataOffset > 0;
 
     // We won't need this on the render thread
-    Source.MaterialInterface = nullptr;
+    //Source.MaterialInterface = nullptr;
 }
 
 bool FDynamicSpriteEmitterData::GetVertexAndIndexData(void* VertexData, void* FillIndexData, const FVector& InCameraPosition, const FMatrix& InLocalToWorld, uint32 InstanceFactor) const
@@ -195,6 +195,23 @@ bool FDynamicSpriteEmitterData::GetVertexAndIndexData(void* VertexData, void* Fi
 }
 
 void FDynamicSpriteEmitterData::GetDynamicMeshElementsEmitter() const
+{
+    
+}
+
+FDynamicMeshEmitterData::FDynamicMeshEmitterData(const UParticleModuleRequired* RequiredModule)
+    : FDynamicSpriteEmitterDataBase(RequiredModule)
+    //, LastFramePreRendered(-1)
+    , StaticMesh( nullptr )
+    //, MeshTypeDataOffset(0xFFFFFFFF)
+    //, bApplyPreRotation(false)
+    //, bUseMeshLockedAxis(false)
+    //, bUseCameraFacing(false)
+    //, bApplyParticleRotationAsSpin(false)
+    //, bFaceCameraDirectionRatherThanPosition(false)
+    //, CameraFacingOption(0)
+    //, LastCalculatedMeshLOD(0)
+    , EmitterInstance(nullptr)
 {
     
 }

@@ -2,6 +2,13 @@
 #include "Engine/EditorEngine.h"
 //#include "Particles/ParticleEmitter.h"
 //#include "Particles/ParticleModule.h"
+#include "Particles/ParticleModule.h"
+#include "Particles/ParticleModuleRequired.h"
+#include "Particles/Color/ParticleModuleColorBase.h"
+#include "Particles/Location/ParticleModuleLocationBase.h"
+#include "Particles/Size/ParticleModuleSizeBase.h"
+#include "Particles/Spawn/ParticleModuleSpawn.h"
+#include "Particles/Velocity/ParticleModuleVelocityBase.h"
 #include "UnrealEd/EditorPanel.h"
 
 class UParticleSystemComponent;
@@ -27,6 +34,22 @@ public:
     }
 
 private:
+    TArray<UClass*> DisAddableClasses = {
+        UParticleModule::StaticClass(),
+        UParticleModuleRequired::StaticClass(),
+        UParticleModuleSpawn::StaticClass(),
+        UParticleModuleSpawnBase::StaticClass(),
+        UParticleModuleColorBase::StaticClass(),
+        UParticleModuleSizeBase::StaticClass(),
+        UParticleModuleVelocityBase::StaticClass(),
+        UParticleModuleLocationBase::StaticClass(),
+    };
+
+    TArray<UClass*> DisDeletableClasses = {
+        UParticleModuleRequired::StaticClass(),
+        UParticleModuleSpawn::StaticClass()
+    };
+    
     float Width = 0, Height = 0;
     UParticleSystemComponent* ParticleSystemComponent = nullptr;
     UParticleSystem* ParticleSystem = nullptr;

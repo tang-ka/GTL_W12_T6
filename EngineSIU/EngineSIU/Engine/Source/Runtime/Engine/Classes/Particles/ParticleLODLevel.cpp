@@ -1,39 +1,42 @@
-#include "ParticleLODLevel.h"
+﻿#include "ParticleLODLevel.h"
 
 #include "UObject/Casts.h"
 #include "Spawn/ParticleModuleSpawn.h"
 #include "ParticleModuleRequired.h"
+#include "Color/ParticleModuleColorBase.h"
+#include "Color/ParticleModuleColorOverLife.h"
 #include "Size/ParticleModuleSize.h"
+#include "UObject/ObjectFactory.h"
 #include "Location/ParticleModuleLocation.h"
+#include "Modules/ParticleModuleLifeTime.h"
 #include "Velocity/ParticleModuleVelocity.h"
-#include "Velocity/ParticleModuleVelocityOverLife.h"
 
 UParticleLODLevel::UParticleLODLevel()
 {
-    RequiredModule = new UParticleModuleRequired();
-    RequiredModule->ModuleName = "RequiredModule";
+    RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(this);
     Modules.Add(RequiredModule);
 
-    SpawnModule = new UParticleModuleSpawn();
-    SpawnModule->ModuleName = "SpawnModule";
+    SpawnModule = FObjectFactory::ConstructObject<UParticleModuleSpawn>(this);
     Modules.Add(SpawnModule);
 
-    UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
-    InitialScaleModule->ModuleName = "SizeeModule";
+    UParticleModuleSize* InitialScaleModule = FObjectFactory::ConstructObject<UParticleModuleSize>(this);
     Modules.Add(InitialScaleModule);
 
-    UParticleModuleLocation* LocationModule = new UParticleModuleLocation();
-    LocationModule->ModuleName = "LocationModule";
+    UParticleModuleLocation* LocationModule = FObjectFactory::ConstructObject<UParticleModuleLocation>(this);
     Modules.Add(LocationModule);
 
-    UParticleModuleVelocity* VelocityModule = new UParticleModuleVelocity();
-    VelocityModule->ModuleName = "VelocityModule";
+    UParticleModuleVelocity* VelocityModule = FObjectFactory::ConstructObject<UParticleModuleVelocity>(this);
     Modules.Add(VelocityModule);
 
-    UParticleModuleVelocityOverLife* VelocityOverLifeModule = new UParticleModuleVelocityOverLife();
-    VelocityOverLifeModule->ModuleName = "VelocityOverLifeModule";
-    Modules.Add(VelocityOverLifeModule);
+    UParticleModuleLifeTime* LifeTimeModule = FObjectFactory::ConstructObject<UParticleModuleLifeTime>(this);
+    Modules.Add(LifeTimeModule);
+    
+    UParticleModuleColorBase* ColorModule = FObjectFactory::ConstructObject<UParticleModuleColorBase>(this);
+    Modules.Add(ColorModule);
 
+    // UParticleModuleColorOverLife* ColorOverLifeModule = new UParticleModuleColorOverLife();
+    // ColorOverLifeModule->ModuleName = "ColorOverLifeModule";
+    // Modules.Add(ColorOverLifeModule);
 }
 
 int32 UParticleLODLevel::CalculateMaxActiveParticleCount()

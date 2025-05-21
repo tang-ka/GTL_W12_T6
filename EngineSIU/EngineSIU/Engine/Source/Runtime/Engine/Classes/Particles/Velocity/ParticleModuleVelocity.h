@@ -18,7 +18,6 @@ public:
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) override;
     //virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
 
-    UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionVector, StartVelocity);
-    UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionFloat, StartVelocityRadial);
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionVector, StartVelocity)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionFloat, StartVelocityRadial)
 };
-

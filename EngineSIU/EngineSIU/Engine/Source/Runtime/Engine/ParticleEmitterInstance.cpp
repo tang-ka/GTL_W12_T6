@@ -349,9 +349,6 @@ void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, 
 {
     Particle->OldLocation = Particle->Location;
     Particle->Location   += FVector(Particle->Velocity) * SpawnTime;
-    
-    Particle->Rotation = 0.f;
-    Particle->Color = Particle->BaseColor;
 }
 
 void FParticleEmitterInstance::UpdateModules(float DeltaTime)
@@ -510,9 +507,9 @@ bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBas
 
     OutData.eEmitterType = DET_Sprite;
 
-    FDynamicSpriteEmitterReplayDataBase* NewReplayData = static_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
+    FDynamicSpriteEmitterReplayDataBase* NewReplayData = dynamic_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
 
-    
+    NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
     NewReplayData->RequiredModule = CurrentLODLevel->RequiredModule->CreateRendererResource();
     NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
     
