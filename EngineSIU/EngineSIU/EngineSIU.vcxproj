@@ -349,6 +349,83 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Level.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorOverLife.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifeTime.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableVectorLength>NotSet</EnableVectorLength>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</ModuleDependenciesFile>
+      <ModuleOutputFile>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\EngineSIU.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\EngineSIU.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>D:\Krafton\GTL_W11_T2\EngineSIU\Intermediate\Build\x64\Debug\</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;FBXSDK_SHARED;_UNICODE;UNICODE;</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Editor;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Core;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\CoreUObject;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Engine;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Engine\Classes;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\InputCore;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Physics;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\InteractiveToolsFramework;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Launch;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Renderer;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Serialization;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Slate;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\SlateCore;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\Runtime\Windows;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\tinyfiledialogs\include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\Json\include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\DirectXTK\Include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\ImGui\include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\Lua\include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\sol2\include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\fmod\inc;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\FBX\include;D:\Krafton\GTL_W11_T2\EngineSIU\EngineSIU\Engine\Source\ThirdParty\magic_enum\include</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 /bigobj /w34996 </AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LinkCompiled>true</LinkCompiled>
+    </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.cpp" />
@@ -514,7 +591,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Contents\AnimInstance\MyAnimInstance.h" />
     <ClInclude Include="Engine\Source\Contents\Components\FishBodyComponent.h" />
     <ClInclude Include="Engine\Source\Contents\Components\FishTailComponent.h" />
-    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyEvent.h"/>
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyEvent.h" />
     <ClInclude Include="Engine\Source\Contents\Objects\DamageCameraShake.h" />
     <ClInclude Include="Engine\Source\Developer\AnimDataController\AnimDataController.h" />
     <ClInclude Include="Engine\Source\Developer\LuaTypes\LuaUserTypes.h" />
@@ -695,6 +772,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Level.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Color\ParticleModuleColorOverLife.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifeTime.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.h" />
@@ -943,9 +1021,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <Compile Include="Engine\Source\ThirdParty\fmod\inc\fmod.cs" />
     <Compile Include="Engine\Source\ThirdParty\fmod\inc\fmod_dsp.cs" />
     <Compile Include="Engine\Source\ThirdParty\fmod\inc\fmod_errors.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Engine\Source\Runtime\Engine\Classes\Particles\CustomModule\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
