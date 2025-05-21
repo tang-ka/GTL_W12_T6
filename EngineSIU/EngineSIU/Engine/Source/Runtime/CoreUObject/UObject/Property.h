@@ -1088,7 +1088,7 @@ struct UMaterialProperty : public FProperty
     {
     }
 
-    void DisplayInImGui(UObject* Object) const;
+    virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
 };
 
