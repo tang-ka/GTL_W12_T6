@@ -23,5 +23,5 @@ protected:
 
 private:
     void DrawParticles();
-    void ProcessParticles(const FDynamicSpriteEmitterReplayDataBase* ReplayData);
+    void ProcessParticles(const FDynamicMeshEmitterReplayData* ReplayData);
 };

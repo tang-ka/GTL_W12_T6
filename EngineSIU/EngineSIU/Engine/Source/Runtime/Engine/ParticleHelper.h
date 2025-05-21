@@ -57,6 +57,7 @@
 #include "Math/Color.h"
 #include "Math/Vector.h"
 #include "Container/Array.h"
+#include "Math/Matrix.h"
 
 
 struct FParticleMeshEmitterInstance;
@@ -151,6 +152,8 @@ struct FMeshParticleInstanceVertex
 {
     ///** The color of the particle. */
     FLinearColor Color;
+
+    FMatrix WorldMatrix;
 
     ///** The instance to world transform of the particle. Translation vector is packed into W components. */
     //FVector4 Transform[3];

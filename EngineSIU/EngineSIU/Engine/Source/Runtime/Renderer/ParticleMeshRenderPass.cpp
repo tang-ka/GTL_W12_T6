@@ -7,6 +7,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Engine/Engine.h"
+#include "Engine/StaticMesh.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -19,6 +20,26 @@ class UParticleSystemComponent;
 void FParticleMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManage);
+
+    D3D11_INPUT_ELEMENT_DESC StaticMeshLayoutDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    
+    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"ParticleMeshVertexShader", L"Shaders/ParticleMeshVertexShader.hlsl", "main", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
+    if (FAILED(hr))
+    {
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create ParticleMeshVertexShader shader!"));
+    }
+
+    hr = ShaderManager->AddPixelShader(L"ParticleMeshPixelShader", L"Shaders/ParticleMeshPixelShader.hlsl", "main");
+    if (FAILED(hr))
+    {
+        UE_LOG(ELogLevel::Error, TEXT("Failed to create ParticleMeshPixelShader shader!"));
+    }
 }
 
 void FParticleMeshRenderPass::PrepareRenderArr()
@@ -75,11 +96,12 @@ void FParticleMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
 
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"ParticleSpriteVertexShader");
-    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"CommonMeshShader");
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"ParticleMeshVertexShader");
+    ID3D11InputLayout* InputLayout = ShaderManager->GetInputLayoutByKey(L"ParticleMeshVertexShader");
+    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"ParticleMeshPixelShader");
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(InputLayout);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(nullptr);
     
     BufferManager->BindStructuredBufferSRV("ParticleMeshInstanceBuffer", 1, EShaderStage::Vertex);
 
@@ -108,11 +130,23 @@ void FParticleMeshRenderPass::DrawParticles()
 
                 if (ReplayData.eEmitterType == DET_Mesh)
                 {
-                    FDynamicSpriteEmitterDataBase* MeshData = dynamic_cast<FDynamicSpriteEmitterDataBase*>(Emitter);
+                    FDynamicMeshEmitterData* MeshData = dynamic_cast<FDynamicMeshEmitterData*>(Emitter);
                     if (MeshData)
                     {
-                        const FDynamicSpriteEmitterReplayDataBase* SpriteParticleData = MeshData->GetSourceData();
-                        ProcessParticles(SpriteParticleData);
+                        const UStaticMesh* StaticMesh = MeshData->StaticMesh;
+                        const FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData();
+                        
+                        const FDynamicSpriteEmitterReplayDataBase* SourceData = MeshData->GetSourceData();
+                        const FDynamicMeshEmitterReplayData* MeshParticleData = dynamic_cast<const FDynamicMeshEmitterReplayData*>(SourceData);
+                        ProcessParticles(MeshParticleData);
+
+                        RenderStaticMeshInstanced_Internal(
+                            RenderData,
+                            MeshParticleData->ActiveParticleCount,
+                            StaticMesh->GetMaterials(),
+                            TArray<UMaterial*>(),
+                            0
+                        );
                     }
                 }
             }
@@ -120,7 +154,7 @@ void FParticleMeshRenderPass::DrawParticles()
     }
 }
 
-void FParticleMeshRenderPass::ProcessParticles(const FDynamicSpriteEmitterReplayDataBase* ReplayData)
+void FParticleMeshRenderPass::ProcessParticles(const FDynamicMeshEmitterReplayData* ReplayData)
 {
     // ReplayData
     if (ReplayData == nullptr)
@@ -141,25 +175,11 @@ void FParticleMeshRenderPass::ProcessParticles(const FDynamicSpriteEmitterReplay
         FMeshParticleInstanceVertex MeshVertex = {};
         MeshVertex.Color = Particle.Color;
 
+        // TODO: 값 채우기
+        MeshVertex.WorldMatrix = FMatrix::Identity;
+
         SpriteVertices.Add(MeshVertex);
     }
     
-    BufferManager->UpdateStructuredBuffer("ParticleSpriteInstanceBuffer", SpriteVertices);
-
-    if (UMaterial* Material = ReplayData->MaterialInterface)
-    {
-        const FMaterialInfo& MaterialInfo = Material->GetMaterialInfo();
-        
-        MaterialUtils::UpdateMaterial(BufferManager, Graphics, MaterialInfo);
-    }
-
-    /*
-    FSubUVConstant SubUVConstant = {
-        FVector2D(0.0f, 0.0f),
-        FVector2D(1.0f, 1.0f)   
-    };
-    BufferManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), SubUVConstant);
-    */
-
-    Graphics->DeviceContext->DrawInstanced(6, SpriteVertices.Num(), 0, 0);
+    BufferManager->UpdateStructuredBuffer("ParticleMeshInstanceBuffer", SpriteVertices);
 }
