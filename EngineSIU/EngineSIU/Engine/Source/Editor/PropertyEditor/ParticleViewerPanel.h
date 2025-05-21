@@ -2,6 +2,12 @@
 #include "Engine/EditorEngine.h"
 //#include "Particles/ParticleEmitter.h"
 //#include "Particles/ParticleModule.h"
+#include "Particles/ParticleModule.h"
+#include "Particles/ParticleModuleRequired.h"
+#include "Particles/Color/ParticleModuleColorBase.h"
+#include "Particles/Size/ParticleModuleSizeBase.h"
+#include "Particles/Spawn/ParticleModuleSpawn.h"
+#include "Particles/Velocity/ParticleModuleVelocityBase.h"
 #include "UnrealEd/EditorPanel.h"
 
 class UParticleSystemComponent;
@@ -63,4 +69,15 @@ private:
     void RenderDetailPanel();
     void RenderEffectSet(UParticleEmitter* Emitter);
     void RenderExitButton() const;
+
+private:
+    TArray<UClass*> DisAddableClasses = {
+        UParticleModule::StaticClass(),
+        UParticleModuleRequired::StaticClass(),
+        UParticleModuleSpawn::StaticClass(),
+        UParticleModuleSpawnBase::StaticClass(),
+        UParticleModuleColorBase::StaticClass(),
+        UParticleModuleSizeBase::StaticClass(),
+        UParticleModuleVelocityBase::StaticClass()
+    };
 };

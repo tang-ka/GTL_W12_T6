@@ -8,15 +8,12 @@
 UParticleLODLevel::UParticleLODLevel()
 {
     RequiredModule = new UParticleModuleRequired();
-    RequiredModule->ModuleName = "RequiredModule";
     Modules.Add(RequiredModule);
 
     SpawnModule = new UParticleModuleSpawn();
-    SpawnModule->ModuleName = "SpawnModule";
     Modules.Add(SpawnModule);
 
     UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
-    InitialScaleModule->ModuleName = "InitialScaleModule";
     Modules.Add(InitialScaleModule);
 }
 

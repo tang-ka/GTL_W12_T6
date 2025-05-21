@@ -55,6 +55,8 @@ UParticleModuleRequired::UParticleModuleRequired()
     CachedBoundingGeometrySRV = nullptr;
 
     bUseVelocityForMotionBlur = false;
+
+    ModuleName = "Required";
 }
 
 void UParticleModuleRequired::DisplayProperty()

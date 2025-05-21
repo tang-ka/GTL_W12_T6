@@ -6,7 +6,7 @@ class UParticleModuleSize : public UParticleModuleSizeBase
 {
     DECLARE_CLASS(UParticleModuleSize, UParticleModuleSizeBase)
 public:
-    UParticleModuleSize() = default;
+    UParticleModuleSize() { ModuleName = "InitialScale"; }
 
     virtual void DisplayProperty() override;
 

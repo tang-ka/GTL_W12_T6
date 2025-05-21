@@ -7,6 +7,8 @@ UParticleModuleVelocity::UParticleModuleVelocity()
 {
     bSpawnModule = true;
     bUpdateModule = false;
+
+    ModuleName = "Velocity";
 }
 
 void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)

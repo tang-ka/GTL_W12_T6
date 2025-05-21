@@ -28,6 +28,7 @@ public:
 
     TArray<UParticleModule*> GetModules() const { return Modules;}
     void AddModule(UParticleModule* NewModule) { Modules.Add(NewModule); }
+    void DeleteModule(UParticleModule* DeleteModule) { Modules.Remove(DeleteModule); }
 
 private:
     TArray<UParticleModule*> Modules;

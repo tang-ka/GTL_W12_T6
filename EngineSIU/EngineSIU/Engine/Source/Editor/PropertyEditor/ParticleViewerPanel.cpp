@@ -300,17 +300,16 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
     {
         for (UClass* ChildObject : ChildObjects)
         {
-            if (ChildObject == UParticleModule::StaticClass() || ChildObject == UParticleModuleSizeBase::StaticClass() || ChildObject == UParticleModuleSpawnBase::StaticClass()
-                || ChildObject == UParticleModuleColorBase::StaticClass() || ChildObject == UParticleModuleVelocityBase::StaticClass())
+            if (DisAddableClasses.Contains(ChildObject))
             {
                 continue;
             }
             
-            const std::string ObjectName = ChildObject->GetName().ToAnsiString();
-            if (ImGui::Selectable(ObjectName.c_str(), false))
+            FString ObjectName = ChildObject->GetName().ToAnsiString();
+            if (ImGui::Selectable(GetData(ObjectName), false))
             {
-                // // TODO: 나중에 수정, 지금은 목록만 보여주고, 설정은 안함
-                // *Object = ChildObject;
+                UParticleModule* NewModule = Cast<UParticleModule>(FObjectFactory::ConstructObject(ChildObject, Emitter, ObjectName));
+                Emitter->GetLODLevel(0)->AddModule(NewModule);
             }
             ImGui::Separator();
         }
