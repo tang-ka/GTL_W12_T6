@@ -480,8 +480,8 @@ bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& Out
     memcpy(OutData.DataContainer.ParticleIndices, ParticleIndices, MaxActiveParticles * sizeof(uint16));
 
     FDynamicSpriteEmitterReplayData* SpriteReplayData = dynamic_cast<FDynamicSpriteEmitterReplayData*>(&OutData);
-    SpriteReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImages_Horizontal;
-    SpriteReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImages_Vertical;
+    SpriteReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImagesHorizontal;
+    SpriteReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImagesVertical;
     
     return true;
 }

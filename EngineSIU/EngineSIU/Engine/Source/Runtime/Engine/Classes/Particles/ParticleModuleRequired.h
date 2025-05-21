@@ -49,8 +49,8 @@ public:
 
     // SubUV 관련
     UPROPERTY_WITH_FLAGS(EditAnywhere, float, RandomImageTime, = 0.1f)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImages_Horizontal, =0)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImages_Vertical, =0)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesHorizontal, =0)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesVertical, =0)
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bSubUVRandomMode, =false)
 
     // 드로우 제한 관련
@@ -84,8 +84,6 @@ public:
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bKillOnDeactivate)
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bKillOnCompleted)
 
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesHorizontal)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesVertical)
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseCutoutMask)
     UPROPERTY_WITH_FLAGS(EditAnywhere, float, AlphaThreshold)

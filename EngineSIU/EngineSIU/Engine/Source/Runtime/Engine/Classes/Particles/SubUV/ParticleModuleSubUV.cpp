@@ -81,7 +81,7 @@ int UParticleModuleSubUV::DetermineImageIndex(
         return -1;
     }
     
-    const int32 TotalSubImages = LODLevel->RequiredModule->SubImages_Horizontal * LODLevel->RequiredModule->SubImages_Vertical;
+    const int32 TotalSubImages = LODLevel->RequiredModule->SubImagesHorizontal * LODLevel->RequiredModule->SubImagesVertical;
 
     int ImageIndex = SubUVPayload.ImageIndex;
 
