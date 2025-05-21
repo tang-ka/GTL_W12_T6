@@ -5,7 +5,7 @@
 
 UParticleModuleVelocityOverLife::UParticleModuleVelocityOverLife()
 {
-    bSpawnModule = false;
+    bSpawnModule = true;
     bSpawnModule = true;
 
     bInWorldSpace = false;
@@ -42,6 +42,10 @@ void UParticleModuleVelocityOverLife::DisplayProperty()
     }
 }
 
+void UParticleModuleVelocityOverLife::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
+{
+}
+
 void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
     BEGIN_UPDATE_LOOP
@@ -51,7 +55,7 @@ void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, in
     
     if (bUseConstantChange)
     {
-        float Alpha = FMath::Clamp(RelTime, 0.0f, 1.0f);
+        float Alpha = FMath::Clamp(RelTime, 0.0f, 1.0f);    
         NewVelocity = FMath::Lerp(StartVelocity, EndVelocity, Alpha);
     }
     else if (bUseVelocityCurve)

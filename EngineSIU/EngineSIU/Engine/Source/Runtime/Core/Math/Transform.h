@@ -26,6 +26,7 @@ struct FTransform
     FVector TransformPosition(const FVector& V) const;
     FVector InverseTransformPosition(const FVector& V) const;
     FVector TransformVector(const FVector& V) const;
+    FVector TransformVectorWithoutScale(const FVector& V) const;
     FVector InverseTransformVector(const FVector& V) const;
     FVector TransformDirection(const FVector& V) const;
     FVector InverseTransformDirection(const FVector& V) const;
