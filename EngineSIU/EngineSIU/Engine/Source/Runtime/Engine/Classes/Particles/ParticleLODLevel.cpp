@@ -4,16 +4,17 @@
 #include "Spawn/ParticleModuleSpawn.h"
 #include "ParticleModuleRequired.h"
 #include "Size/ParticleModuleSize.h"
+#include "UObject/ObjectFactory.h"
 
 UParticleLODLevel::UParticleLODLevel()
 {
-    RequiredModule = new UParticleModuleRequired();
+    RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(this);
     Modules.Add(RequiredModule);
 
-    SpawnModule = new UParticleModuleSpawn();
+    SpawnModule = FObjectFactory::ConstructObject<UParticleModuleSpawn>(this);
     Modules.Add(SpawnModule);
 
-    UParticleModuleSize* InitialScaleModule = new UParticleModuleSize();
+    UParticleModuleSize* InitialScaleModule = FObjectFactory::ConstructObject<UParticleModuleSize>(this);
     Modules.Add(InitialScaleModule);
 }
 

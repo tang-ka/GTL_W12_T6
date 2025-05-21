@@ -24,6 +24,7 @@ public:
 
     TArray<UParticleEmitter*> GetEmitters() const { return Emitters; }
     void AddEmitter(UParticleEmitter* Emitter) { Emitters.Add(Emitter); }
+    void DeleteEmitter(UParticleEmitter* Emitter) { Emitters.Remove(Emitter); }
 
     float GetMacroUVRadius() const { return MacroUVRadius; }
     FVector GetMacroUVPosition() const { return MacroUVPosition; }

@@ -33,6 +33,21 @@ public:
     }
 
 private:
+    TArray<UClass*> DisAddableClasses = {
+        UParticleModule::StaticClass(),
+        UParticleModuleRequired::StaticClass(),
+        UParticleModuleSpawn::StaticClass(),
+        UParticleModuleSpawnBase::StaticClass(),
+        UParticleModuleColorBase::StaticClass(),
+        UParticleModuleSizeBase::StaticClass(),
+        UParticleModuleVelocityBase::StaticClass()
+    };
+
+    TArray<UClass*> DisDeletableClasses = {
+        UParticleModuleRequired::StaticClass(),
+        UParticleModuleSpawn::StaticClass()
+    };
+    
     float Width = 0, Height = 0;
     UParticleSystemComponent* ParticleSystemComponent = nullptr;
     UParticleSystem* ParticleSystem = nullptr;
@@ -69,15 +84,4 @@ private:
     void RenderDetailPanel();
     void RenderEffectSet(UParticleEmitter* Emitter);
     void RenderExitButton() const;
-
-private:
-    TArray<UClass*> DisAddableClasses = {
-        UParticleModule::StaticClass(),
-        UParticleModuleRequired::StaticClass(),
-        UParticleModuleSpawn::StaticClass(),
-        UParticleModuleSpawnBase::StaticClass(),
-        UParticleModuleColorBase::StaticClass(),
-        UParticleModuleSizeBase::StaticClass(),
-        UParticleModuleVelocityBase::StaticClass()
-    };
 };

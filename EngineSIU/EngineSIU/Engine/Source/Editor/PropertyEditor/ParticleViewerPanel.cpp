@@ -278,8 +278,28 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
         SelectedModule = nullptr;
         SelectedEmitter = Emitter;
     }
-    ImGui::PopID();
     ImGui::PopStyleVar();
+
+    // 삭제 버튼 추가
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0.15f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.1f, 0.15f, 0.8f));
+            
+    if (ImGui::Button("X##delete", ImVec2(columnWidth, 20)))
+    {
+        // 모듈 삭제 로직
+        ParticleSystem->DeleteEmitter(Emitter);
+        
+        // 삭제 후 선택된 모듈 초기화(필요한 경우)
+        if (SelectedEmitter == Emitter)
+        {
+            SelectedEmitter = nullptr;
+        }
+    }
+    
+    ImGui::PopStyleColor(3);
+    
+    ImGui::PopID();
 
     // 플러스 버튼을 제일 상단에 배치
     float plusButtonWidth = 120.0f;
@@ -304,7 +324,7 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
             {
                 continue;
             }
-            
+            ImGui::PushID(ChildObject);
             FString ObjectName = ChildObject->GetName().ToAnsiString();
             if (ImGui::Selectable(GetData(ObjectName), false))
             {
@@ -312,6 +332,7 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
                 Emitter->GetLODLevel(0)->AddModule(NewModule);
             }
             ImGui::Separator();
+            ImGui::PopID();
         }
         ImGui::EndCombo();
     }
@@ -329,6 +350,30 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
             SelectedEmitter = nullptr;
             SelectedModule = Module;
         }
+
+        if (!DisDeletableClasses.Contains(Module->GetClass()))
+        {
+            // 삭제 버튼 추가
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0.15f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.1f, 0.15f, 0.8f));
+            
+            if (ImGui::Button("X##delete", ImVec2(20, 20)))
+            {
+                // 모듈 삭제 로직
+                Emitter->GetLODLevel(0)->DeleteModule(Module);
+        
+                // 삭제 후 선택된 모듈 초기화(필요한 경우)
+                if (SelectedModule == Module)
+                {
+                    SelectedModule = nullptr;
+                }
+            }
+    
+            ImGui::PopStyleColor(3);
+        }
+        
         ImGui::PopID();
     }
 
