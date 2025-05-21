@@ -57,56 +57,50 @@ TMap<FName, FAssetInfo>& UAssetManager::GetAssetRegistryRef()
     return AssetRegistry->PathNameToAssetInfo;
 }
 
-USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name) const
+UObject* UAssetManager::GetAsset(EAssetType AssetType, const FName& Name) const
 {
-    if (SkeletalMeshMap.Contains(Name))
+    if (AssetMap[AssetType].Contains(Name))
     {
-        return SkeletalMeshMap[Name];
+        return AssetMap[AssetType][Name];
     }
     return nullptr;
+}
+
+USkeletalMesh* UAssetManager::GetSkeletalMesh(const FName& Name) const
+{
+    return Cast<USkeletalMesh>(GetAsset(EAssetType::SkeletalMesh, Name));
 }
 
 UStaticMesh* UAssetManager::GetStaticMesh(const FName& Name) const
 {
-    if (StaticMeshMap.Contains(Name))
-    {
-        return StaticMeshMap[Name];
-    }
-    return nullptr;
+    return Cast<UStaticMesh>(GetAsset(EAssetType::StaticMesh, Name));
 }
 
 USkeleton* UAssetManager::GetSkeleton(const FName& Name) const
 {
-    if (SkeletonMap.Contains(Name))
-    {
-        return SkeletonMap[Name];
-    }
-    return nullptr;
+    return Cast<USkeleton>(GetAsset(EAssetType::Skeleton, Name));
 }
 
 UMaterial* UAssetManager::GetMaterial(const FName& Name) const
 {
-    if (MaterialMap.Contains(Name))
-    {
-        return MaterialMap[Name];
-    }
-    return nullptr;
+    return Cast<UMaterial>(GetAsset(EAssetType::Material, Name));
 }
 
 UAnimationAsset* UAssetManager::GetAnimation(const FName& Name) const
 {
-    if (AnimationMap.Contains(Name))
-    {
-        return AnimationMap[Name];
-    }
-    return nullptr;
+    return Cast<UAnimationAsset>(GetAsset(EAssetType::Animation, Name));
+}
+
+UParticleSystem* UAssetManager::GetParticleSystem(const FName& Name) const
+{
+    return Cast<UParticleSystem>(GetAsset(EAssetType::ParticleSystem, Name));
 }
 
 void UAssetManager::GetMaterialKeys(TSet<FName>& OutKeys) const
 {
     OutKeys.Empty();
 
-    for (const auto& Material : MaterialMap)
+    for (const auto& Material : AssetMap[EAssetType::Material])
     {
         OutKeys.Add(Material.Key);
     }
@@ -116,7 +110,7 @@ void UAssetManager::GetMaterialKeys(TArray<FName>& OutKeys) const
 {
     OutKeys.Empty();
 
-    for (const auto& Material : MaterialMap)
+    for (const auto& Material : AssetMap[EAssetType::Material])
     {
         OutKeys.Add(Material.Key);
     }
@@ -129,27 +123,27 @@ void UAssetManager::AddAssetInfo(const FAssetInfo& Info)
 
 void UAssetManager::AddSkeleton(const FName& Key, USkeleton* Skeleton)
 {
-    SkeletonMap.Add(Key, Skeleton);
+    AssetMap[EAssetType::Skeleton].Add(Key, Skeleton);
 }
 
 void UAssetManager::AddSkeletalMesh(const FName& Key, USkeletalMesh* SkeletalMesh)
 {
-    SkeletalMeshMap.Add(Key, SkeletalMesh);
+    AssetMap[EAssetType::SkeletalMesh].Add(Key, SkeletalMesh);
 }
 
 void UAssetManager::AddMaterial(const FName& Key, UMaterial* Material)
 {
-    MaterialMap.Add(Key, Material);
+    AssetMap[EAssetType::Material].Add(Key, Material);
 }
 
 void UAssetManager::AddStaticMesh(const FName& Key, UStaticMesh* StaticMesh)
 {
-    StaticMeshMap.Add(Key, StaticMesh);
+    AssetMap[EAssetType::StaticMesh].Add(Key, StaticMesh);
 }
 
 void UAssetManager::AddAnimation(const FName& Key, UAnimationAsset* Animation)
 {
-    AnimationMap.Add(Key, Animation);
+    AssetMap[EAssetType::Animation].Add(Key, Animation);
 }
 
 void UAssetManager::LoadContentFiles()
@@ -288,7 +282,7 @@ void UAssetManager::AddToAssetMap(const FAssetLoadResult& Result, const FString&
         FString Key = Info.GetFullPath();
         AssetRegistry->PathNameToAssetInfo.Add(Key, Info);
 
-        SkeletonMap.Add(Key, Skeleton);
+        AssetMap[EAssetType::Skeleton].Add(Key, Skeleton);
     }
 
     for (int32 i = 0; i < Result.SkeletalMeshes.Num(); ++i)
@@ -303,7 +297,7 @@ void UAssetManager::AddToAssetMap(const FAssetLoadResult& Result, const FString&
         FString Key = Info.GetFullPath();
         AssetRegistry->PathNameToAssetInfo.Add(Key, Info);
 
-        SkeletalMeshMap.Add(Key, SkeletalMesh);
+        AssetMap[EAssetType::SkeletalMesh].Add(Key, SkeletalMesh);
     }
 
     for (int32 i = 0; i < Result.StaticMeshes.Num(); ++i)
@@ -318,7 +312,7 @@ void UAssetManager::AddToAssetMap(const FAssetLoadResult& Result, const FString&
         FString Key = Info.GetFullPath();
         AssetRegistry->PathNameToAssetInfo.Add(Key, Info);
 
-        StaticMeshMap.Add(Key, StaticMesh);
+        AssetMap[EAssetType::StaticMesh].Add(Key, StaticMesh);
     }
 
     for (int32 i = 0; i < Result.Materials.Num(); ++i)
@@ -333,7 +327,7 @@ void UAssetManager::AddToAssetMap(const FAssetLoadResult& Result, const FString&
         FString Key = Info.GetFullPath();
         AssetRegistry->PathNameToAssetInfo.Add(Key, Info);
 
-        MaterialMap.Add(Key, Material);
+        AssetMap[EAssetType::Material].Add(Key, Material);
     }
 
     for (int32 i = 0; i < Result.Animations.Num(); ++i)
@@ -348,7 +342,7 @@ void UAssetManager::AddToAssetMap(const FAssetLoadResult& Result, const FString&
         FString Key = Info.GetFullPath();
         AssetRegistry->PathNameToAssetInfo.Add(Key, Info);
 
-        AnimationMap.Add(Key, Animation);
+        AssetMap[EAssetType::Animation].Add(Key, Animation);
     }
 }
 
@@ -585,7 +579,7 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
 
             // SkeletonMap의 Value와 비교하면서 Key를 찾고 저장.
             // Key를 저장하면, binary 파일을 읽을 때 Key를 통해 원하는 오브젝트를 찾을 수 있음.
-            for (const auto& [Key, Object] : SkeletonMap)
+            for (const auto& [Key, Object] : AssetMap[EAssetType::Skeleton])
             {
                 if (Object == SkeletalMesh->GetSkeleton())
                 {
@@ -710,7 +704,7 @@ bool UAssetManager::SerializeAssetLoadResult(FArchive& Ar, FAssetLoadResult& Res
 
             // SkeletonMap의 Value와 비교하면서 Key를 찾고 저장.
             // Key를 저장하면, binary 파일을 읽을 때 Key를 통해 원하는 오브젝트를 찾을 수 있음.
-            for (const auto& [Key, Object] : SkeletonMap)
+            for (const auto& [Key, Object] : AssetMap[EAssetType::Skeleton])
             {
                 if (Object == Animation->GetSkeleton())
                 {
