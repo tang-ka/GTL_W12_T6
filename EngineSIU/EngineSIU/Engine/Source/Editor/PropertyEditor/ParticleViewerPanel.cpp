@@ -413,9 +413,10 @@ void ParticleViewerPanel::RenderExitButton() const
         | ImGuiWindowFlags_NoScrollbar;
     
     ImGui::Begin("Exit Viewer", nullptr, ExitPanelFlags);
-    if (ImGui::Button("Exit Viewer", ImVec2(ExitPanelWidth, ExitPanelHeight))) {
+    if (ImGui::Button("Exit Viewer", ImVec2(ExitPanelWidth, ExitPanelHeight)))
+    {
         UEditorEngine* EdEngine = Cast<UEditorEngine>(GEngine);
-        EdEngine->EndSkeletalMeshViewer();
+        EdEngine->EndParticleViewer();
     }
     ImGui::End();
     ImGui::PopStyleVar();

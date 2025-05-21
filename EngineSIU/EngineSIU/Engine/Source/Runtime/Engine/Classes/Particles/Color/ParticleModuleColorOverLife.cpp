@@ -13,6 +13,8 @@ UParticleModuleColorOverLife::UParticleModuleColorOverLife()
 
     AlphaOverLife.MinValue = 0.0f;
     AlphaOverLife.MaxValue = 1.0f;
+
+    ModuleName = "Color Over Life";
 }
 
 

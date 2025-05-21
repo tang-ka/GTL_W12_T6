@@ -37,6 +37,7 @@ public:
     void BindEssentialObjects();
     void EndPIE();
     void EndSkeletalMeshViewer();
+    void EndParticleViewer();
 
     // 주석은 UE에서 사용하던 매개변수.
     FWorldContext& GetEditorWorldContext(/*bool bEnsureIsGWorld = false*/);
