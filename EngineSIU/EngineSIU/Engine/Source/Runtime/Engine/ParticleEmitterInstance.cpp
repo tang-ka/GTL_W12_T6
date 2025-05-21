@@ -173,7 +173,7 @@ void FParticleEmitterInstance::PreSpawn(FBaseParticle* Particle, const FVector& 
     Particle->BaseColor = FLinearColor::White;
 
     Particle->RelativeTime = 0.f;
-    Particle->OneOverMaxLifetime = 0.01f; // 나중에 수명 기반 분포에서 설정 가능
+    Particle->OneOverMaxLifetime = 0.5f; // 나중에 수명 기반 분포에서 설정 가능
     Particle->Placeholder0 = 0.f;
     Particle->Placeholder1 = 0.f;
 }
@@ -346,9 +346,6 @@ void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, 
 {
     Particle->OldLocation = Particle->Location;
     Particle->Location   += FVector(Particle->Velocity) * SpawnTime;
-    
-    Particle->Rotation = 0.f;
-    Particle->Color = Particle->BaseColor;
 }
 
 void FParticleEmitterInstance::UpdateModules(float DeltaTime)

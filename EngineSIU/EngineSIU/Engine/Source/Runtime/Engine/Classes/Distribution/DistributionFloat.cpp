@@ -1,7 +1,12 @@
-﻿#include "DistributionFloat.h"
+#include "DistributionFloat.h"
 
-void FDistributionFloat::GetOutRange(float& MinOut, float& MaxOut) const
+void FDistributionFloat::GetOutRange(float& MinOut, float& MaxOut)
 {
+    if (MinValue > MaxValue)
+    {
+        MaxValue = MinValue;
+    }
+
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(MinValue, MaxValue);
@@ -13,7 +18,7 @@ void FDistributionFloat::GetOutRange(float& MinOut, float& MaxOut) const
     MaxOut = std::max(RandValue1, RandValue2);
 }
 
-float FDistributionFloat::GetValue() const
+float FDistributionFloat::GetValue()
 {
     static std::random_device rd;
     static std::mt19937 gen(rd());
