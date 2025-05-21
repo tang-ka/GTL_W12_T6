@@ -6,7 +6,6 @@
 UParticleModuleVelocityOverLife::UParticleModuleVelocityOverLife()
 {
     bSpawnModule = true;
-    bSpawnModule = true;
 
     bInWorldSpace = false;
     bApplyOwnerScale = false;
@@ -18,6 +17,8 @@ UParticleModuleVelocityOverLife::UParticleModuleVelocityOverLife()
 
     StartVelocity = FVector::ZeroVector;
     EndVelocity = FVector::ZeroVector;
+
+    ModuleName = "Velocity Over Life";
 }
 
 void UParticleModuleVelocityOverLife::DisplayProperty()
