@@ -3,12 +3,17 @@
 
 struct FDistributionFloat
 {
+    DECLARE_STRUCT(FDistributionFloat)
+
     FDistributionFloat() : MinValue(1), MaxValue(1) {}
     FDistributionFloat(float InMinValue, float InMaxValue) : MinValue(InMinValue), MaxValue(InMaxValue) {}
 
-    float MinValue;
-    float MaxValue;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, MinValue)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, MaxValue)
 
-    void GetOutRange(float& MinOut, float& MaxOut) const;
-    float GetValue() const;
+    //float MinValue;
+    //float MaxValue;
+
+    void GetOutRange(float& MinOut, float& MaxOut);
+    float GetValue();
 };

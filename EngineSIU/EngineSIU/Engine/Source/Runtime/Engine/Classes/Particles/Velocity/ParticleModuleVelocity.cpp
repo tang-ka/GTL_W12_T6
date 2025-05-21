@@ -7,8 +7,22 @@ UParticleModuleVelocity::UParticleModuleVelocity()
 {
     bSpawnModule = true;
     bUpdateModule = false;
-
+    bInWorldSpace = false;
+    bApplyOwnerScale = false;
+    
     ModuleName = "Velocity";
+}
+
+void UParticleModuleVelocity::DisplayProperty()
+{
+    Super::DisplayProperty();
+    for (const auto& Property : StaticClass()->GetProperties())
+    {
+        ImGui::PushID(Property);
+        Property->DisplayInImGui(this);
+        ImGui::PopID();
+    }
+
 }
 
 void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
@@ -16,10 +30,10 @@ void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     FVector Velocity = StartVelocity.GetValue();
     float RadialStrength = StartVelocityRadial.GetValue();
 
-    if (RadialStrength > 0.f)
+    if (!FMath::IsNearlyZero(RadialStrength))
     {
         FVector EmitterLocation = Owner->Component->GetComponentToWorld().GetTranslation();
-        FVector Direction = ParticleBase->Location.GetSafeNormal();
+        FVector Direction = (ParticleBase->Location - EmitterLocation).GetSafeNormal();
         Velocity += Direction * RadialStrength;
     }
 
