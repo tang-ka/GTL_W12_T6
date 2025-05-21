@@ -159,7 +159,8 @@ void ParticleViewerPanel::RenderToolbarPanel() const
     
     // 여기에 툴바 버튼 등을 추가할 수 있습니다
     ImGui::SameLine(200.0f);
-    if (ImGui::Button("Tool 1", ImVec2(80, 30))) {
+    if (ImGui::Button("ReBuild", ImVec2(80, 30))) {
+        ParticleSystemComponent->ReBuildInstancesMemoryLayout();
         // Tool 1 액션
     }
     
@@ -215,13 +216,21 @@ void ParticleViewerPanel::RenderEmitterPanel()
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.6f, 0.1f, 1.0f));
     
+    ImGui::BeginGroup();
     // 플러스 버튼 렌더링
-    if (ImGui::Button("+\nAdd\nNew\nEmitter", ImVec2(plusButtonWidth, plusButtonHeight)))
+    if (ImGui::Button("+\nAdd\nNew\nSpriteEmitter", ImVec2(plusButtonWidth, plusButtonHeight / 2)))
     {
         // 새로운 Emitter 추가
-        AddNewEmitter();
+        AddNewEmitter(1);
     }
-    
+
+    if (ImGui::Button("+\nAdd\nNew\nMeshEmitter", ImVec2(plusButtonWidth, plusButtonHeight / 2)))
+    {
+        // 새로운 Emitter 추가
+        AddNewEmitter(2);
+    }
+    ImGui::EndGroup();  
+
     // 스타일 복원
     ImGui::PopStyleColor(3);
     
@@ -234,12 +243,13 @@ void ParticleViewerPanel::RenderEmitterPanel()
         RenderEffectSet(Emitter);
         ImGui::SameLine();
     }
+    
     ImGui::EndGroup();
     
     ImGui::End();
 }
 
-void ParticleViewerPanel::AddNewEmitter()
+void ParticleViewerPanel::AddNewEmitter(int i)
 {
     if (!ParticleSystem)
     {
@@ -251,7 +261,17 @@ void ParticleViewerPanel::AddNewEmitter()
     if (NewEmitter)
     {
         // 기본 이름 설정
-        FString EmitterName = "TestEmitter" + std::to_string(ParticleSystem->GetEmitters().Num());
+        FString Name = "";
+        if (i == 1)
+        {
+            Name = "Sprite Emitter";
+        }
+        else
+        {
+            Name = "Mesh Emitter";
+        }
+
+        FString EmitterName = Name + std::to_string(ParticleSystem->GetEmitters().Num());
         NewEmitter->EmitterName = EmitterName;
         
         // ParticleSystem에 Emitter 추가
@@ -260,7 +280,14 @@ void ParticleViewerPanel::AddNewEmitter()
         SelectedModule = nullptr;
         SelectedEmitter = NewEmitter;
 
-        ParticleSystemComponent->CreateAndAddEmitterInstance(NewEmitter);
+        if (i == 1)
+        {
+            ParticleSystemComponent->CreateAndAddSpriteEmitterInstance(NewEmitter);
+        }
+        else
+        {
+            ParticleSystemComponent->CreateAndAddMeshEmitterInstance(NewEmitter);
+        }
     }
 }
 

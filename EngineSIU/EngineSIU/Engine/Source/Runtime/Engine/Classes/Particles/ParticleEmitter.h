@@ -1,6 +1,7 @@
 #pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
+#include "ParticleHelper.h"
 
 class UParticleModule;
 class UParticleLODLevel;
@@ -45,6 +46,8 @@ public:
     // Below is information udpated by calling CacheEmitterModuleInfo
     
     int32 ParticleSize;
+
+    EDynamicEmitterType eEmitterType;
 
 private:
     TArray<UParticleLODLevel*> LODLevels; // 현재는 Level 0만 사용

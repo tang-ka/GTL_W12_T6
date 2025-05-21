@@ -1,4 +1,4 @@
-﻿#include "ParticleMeshRenderPass.h"
+#include "ParticleMeshRenderPass.h"
 
 #include "ParticleHelper.h"
 #include "RendererHelpers.h"
@@ -76,7 +76,7 @@ void FParticleMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient
 {
     PrepareRender(Viewport);
 
-    //DrawParticles();
+    DrawParticles();
     
     CleanUpRender(Viewport);
 }
@@ -178,6 +178,8 @@ void FParticleMeshRenderPass::ProcessParticles(const FDynamicMeshEmitterReplayDa
 
         // TODO: 값 채우기
         MeshVertex.WorldMatrix = FMatrix::Identity;
+        FTransform Transform = FTransform(FQuat::Identity, Particle.Location, Particle.Size);
+        MeshVertex.WorldMatrix = FMatrix::Transpose(Transform.ToMatrixWithScale());
 
         SpriteVertices.Add(MeshVertex);
     }

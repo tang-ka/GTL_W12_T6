@@ -65,6 +65,7 @@ public:
     void UpdateParticles(float DeltaTime);
     void UpdateModules(float DeltaTime);
 
+    void AllKillParticles();
     void BuildMemoryLayout();
 
     virtual bool IsDynamicDataRequired();
@@ -86,4 +87,5 @@ struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance
 struct FParticleMeshEmitterInstance : public FParticleEmitterInstance
 {
     virtual FDynamicEmitterDataBase* GetDynamicData(bool bSelected) override;
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData) override;
 };

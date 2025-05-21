@@ -36,7 +36,8 @@ public:
 
 public:
     void InitializeSystem();
-    void CreateAndAddEmitterInstance(UParticleEmitter* EmitterTemplate);
+    void CreateAndAddSpriteEmitterInstance(UParticleEmitter* EmitterTemplate);
+    void CreateAndAddMeshEmitterInstance(UParticleEmitter* EmitterTemplate);
 
     void UpdateDynamicData();
     FParticleDynamicData* CreateDynamicData();
@@ -45,6 +46,8 @@ public:
     void SetParticleSystem(UParticleSystem* InParticleSystem) { Template = InParticleSystem; }
 
     FParticleDynamicData* GetParticleDynamicData() const { return ParticleDynamicData; }
+    
+    void ReBuildInstancesMemoryLayout();
 public:
     float AccumTickTime;
     

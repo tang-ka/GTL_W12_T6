@@ -3,6 +3,7 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleSystem.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "ParticleEmitter.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
     : AccumTickTime(0.f)
@@ -39,7 +40,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
         EmitterInstances.Empty();
         InitializeSystem();
     }
-    
+
     for (auto* Instance : EmitterInstances)
     {
         if (Instance)
@@ -68,16 +69,39 @@ void UParticleSystemComponent::InitializeSystem()
     for (int32 i = 0; i < Emitters.Num(); i++)
     {
         UParticleEmitter* EmitterTemplate = Emitters[i];
-        CreateAndAddEmitterInstance(EmitterTemplate);
+        if (EmitterTemplate->eEmitterType == EDynamicEmitterType::DET_Sprite)
+        {
+            CreateAndAddSpriteEmitterInstance(EmitterTemplate);
+        }
+        else
+        {
+            CreateAndAddMeshEmitterInstance(EmitterTemplate);
+        }
     }
 }
 
-void UParticleSystemComponent::CreateAndAddEmitterInstance(UParticleEmitter* EmitterTemplate)
+void UParticleSystemComponent::CreateAndAddSpriteEmitterInstance(UParticleEmitter* EmitterTemplate)
 {
     if (EmitterTemplate)
     {
         // Todo: 스프라이트 이미터로 생성, 나중에 메시 관련도 추가해서 처리
         FParticleSpriteEmitterInstance* Instance = new FParticleSpriteEmitterInstance();
+        Instance->SpriteTemplate = EmitterTemplate;
+        Instance->Component = this;
+        Instance->CurrentLODLevelIndex = 0;
+
+        Instance->Initialize();
+
+        EmitterInstances.Add(Instance);
+    }
+}
+
+void UParticleSystemComponent::CreateAndAddMeshEmitterInstance(UParticleEmitter* EmitterTemplate)
+{
+    if (EmitterTemplate)
+    {
+        // Todo: 스프라이트 이미터로 생성, 나중에 메시 관련도 추가해서 처리
+        FParticleMeshEmitterInstance* Instance = new FParticleMeshEmitterInstance();
         Instance->SpriteTemplate = EmitterTemplate;
         Instance->Component = this;
         Instance->CurrentLODLevelIndex = 0;
@@ -146,4 +170,16 @@ FParticleDynamicData* UParticleSystemComponent::CreateDynamicData()
     }
 
     return ParticleDynamicData;
+}
+
+void UParticleSystemComponent::ReBuildInstancesMemoryLayout()
+{
+    for (auto* Instance : EmitterInstances)
+    {
+        if (Instance)
+        {
+            Instance->AllKillParticles();
+            Instance->BuildMemoryLayout();
+        }
+    }
 }

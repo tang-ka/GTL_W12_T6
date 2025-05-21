@@ -8,6 +8,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Particles/Spawn/ParticleModuleSpawn.h"
 #include "UObject/Casts.h"
+
+#include "Engine/FObjLoader.h"
 //#include "Particles/ParticleModuleRequired.h"
 
 void FParticleEmitterInstance::Initialize()
@@ -370,6 +372,15 @@ void FParticleEmitterInstance::UpdateModules(float DeltaTime)
     }
 }
 
+void FParticleEmitterInstance::AllKillParticles()
+{
+    for (int32 i = ActiveParticles - 1; i >= 0; i--)
+    {
+        KillParticle(i);
+    }
+    ActiveParticles = 0;
+}
+
 void FParticleEmitterInstance::BuildMemoryLayout()
 {
     // BaseParticle 헤더 분량
@@ -482,10 +493,13 @@ bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& Out
     memcpy(OutData.DataContainer.ParticleIndices, ParticleIndices, MaxActiveParticles * sizeof(uint16));
 
     FDynamicSpriteEmitterReplayData* SpriteReplayData = dynamic_cast<FDynamicSpriteEmitterReplayData*>(&OutData);
-    SpriteReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImagesHorizontal;
-    SpriteReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImagesVertical;
-    SpriteReplayData->SubUVDataOffset = SubUVDataOffset;
-    
+    if (SpriteReplayData && SpriteTemplate->eEmitterType == EDynamicEmitterType::DET_Sprite)
+    {
+        SpriteReplayData->SubImages_Horizontal = CurrentLODLevel->RequiredModule->SubImagesHorizontal;
+        SpriteReplayData->SubImages_Vertical = CurrentLODLevel->RequiredModule->SubImagesVertical;
+        SpriteReplayData->SubUVDataOffset = SubUVDataOffset;
+    }
+
     return true;
 }
 
@@ -540,6 +554,7 @@ bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBas
     }
 
     OutData.eEmitterType = DET_Sprite;
+    SpriteTemplate->eEmitterType = DET_Sprite;
 
     FDynamicSpriteEmitterReplayDataBase* NewReplayData = dynamic_cast< FDynamicSpriteEmitterReplayDataBase* >( &OutData );
 
@@ -602,4 +617,56 @@ bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBas
     return true;
 }
 
+FDynamicEmitterDataBase* FParticleMeshEmitterInstance::GetDynamicData(bool bSelected)
+{
+    // It is valid for the LOD level to be NULL here!
+    if (IsDynamicDataRequired() == false || !bEnabled)
+    {
+        return nullptr;
+    }
 
+    // Allocate the dynamic data
+    FDynamicMeshEmitterData* NewEmitterData = new FDynamicMeshEmitterData(CurrentLODLevel->RequiredModule);
+
+    // Now fill in the source data
+    if (!FillReplayData(NewEmitterData->Source))
+    {
+        delete NewEmitterData;
+        return nullptr;
+    }
+
+    // Setup dynamic render data.  Only call this AFTER filling in source data for the emitter.
+    NewEmitterData->StaticMesh = FObjManager::CreateStaticMesh("Contents/Cube/cube-tex.obj");
+
+    return NewEmitterData;
+}
+
+bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& OutData)
+{
+    if (ActiveParticles <= 0)
+    {
+        return false;
+    }
+
+    // Call parent implementation first to fill in common particle source data
+    if (!FParticleEmitterInstance::FillReplayData(OutData))
+    {
+        return false;
+    }
+
+    OutData.eEmitterType = DET_Mesh;
+    SpriteTemplate->eEmitterType = DET_Mesh;
+
+    FDynamicMeshEmitterReplayData* NewReplayData = dynamic_cast<FDynamicMeshEmitterReplayData*>(&OutData);
+
+    NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
+    NewReplayData->RequiredModule = CurrentLODLevel->RequiredModule->CreateRendererResource();
+    NewReplayData->MaterialInterface = CurrentLODLevel->RequiredModule->MaterialInterface;
+
+    // NewReplayData->InvDeltaSeconds = (LastDeltaTime > KINDA_SMALL_NUMBER) ? (1.0f / LastDeltaTime) : 0.0f;
+    // NewReplayData->LWCTile = ((Component == nullptr) || CurrentLODLevel->RequiredModule->bUseLocalSpace) ? FVector::Zero() : Component->GetLWCTile();
+
+    NewReplayData->MaxDrawCount = CurrentLODLevel->RequiredModule->bUseMaxDrawCount == true ? CurrentLODLevel->RequiredModule->MaxDrawCount : -1;
+
+    return true;
+}

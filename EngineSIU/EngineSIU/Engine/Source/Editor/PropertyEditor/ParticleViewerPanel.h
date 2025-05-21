@@ -84,7 +84,7 @@ private:
     void RenderControlPanel() const;
     void RenderToolbarPanel() const;
     void RenderEmitterPanel();
-    void AddNewEmitter();
+    void AddNewEmitter(int i);
     void RenderDetailPanel();
     void RenderEffectSet(UParticleEmitter* Emitter);
     void RenderExitButton() const;
