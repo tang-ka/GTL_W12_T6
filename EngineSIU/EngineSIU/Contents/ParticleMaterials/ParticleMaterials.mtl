@@ -1,0 +1,5 @@
+
+newmtl Smoke
+map_Kd Smoke.PNG
+
+usemtl Smoke
