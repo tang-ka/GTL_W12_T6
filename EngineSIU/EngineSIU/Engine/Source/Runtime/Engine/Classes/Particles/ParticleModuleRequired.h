@@ -1,4 +1,5 @@
 #pragma once
+
 #include "ParticleModule.h"
 #include "Components/Material/Material.h"
 
@@ -46,8 +47,11 @@ public:
     EModuleType ModuleType = EModuleType::EPMT_Required;
     EParticleSortMode SortMode = EParticleSortMode::PSORTMODE_None;
 
-    //UPROPERTY_WITH_FLAGS(EditAnywhere, UMaterial*, MaterialInterface)
-    //UPROPERTY_WITH_FLAGS(EditAnywhere, EParticleSortMode, SortMode)
+    // SubUV 관련
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, RandomImageTime, = 0.1f)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesHorizontal, =0)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesVertical, =0)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bSubUVRandomMode, =false)
 
     // 드로우 제한 관련
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseMaxDrawCount)
@@ -80,8 +84,6 @@ public:
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bKillOnDeactivate)
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bKillOnCompleted)
 
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesHorizontal)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, int32, SubImagesVertical)
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, bool, bUseCutoutMask)
     UPROPERTY_WITH_FLAGS(EditAnywhere, float, AlphaThreshold)

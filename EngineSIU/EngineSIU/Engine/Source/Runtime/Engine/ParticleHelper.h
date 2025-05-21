@@ -48,7 +48,7 @@
         continue;
 
 #define SPAWN_INIT                                                                                                        \
-    check((Owner != NULL) && (Owner->Component != NULL));                                                                \
+    if(Owner == NULL || Owner->Component == NULL) { return; }                                                                \
     const int32        ActiveParticles    = Owner->ActiveParticles;                                                            \
     const uint32        ParticleStride    = Owner->ParticleStride;                                                            \
     uint32            CurrentOffset    = Offset;                                                                            \
@@ -554,3 +554,11 @@ FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Parti
         Particle.BaseSize.Y >= 0.0f ? ScaledSize.Y : -ScaledSize.Y
     };
 }
+
+struct FFullSubUVPayload
+{
+    // The integer portion indicates the sub-image index.
+    // The fractional portion indicates the lerp factor.
+    int ImageIndex;
+    float RandomImageTime;
+};
