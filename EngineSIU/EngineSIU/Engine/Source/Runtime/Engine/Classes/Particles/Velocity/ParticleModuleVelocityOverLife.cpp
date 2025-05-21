@@ -57,7 +57,8 @@ void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, in
     else if (bUseVelocityCurve)
     {
         FVector CurrentVelocity = Particle.BaseVelocity;
-        NewVelocity = FMath::Lerp(CurrentVelocity, EndVelocity, CurveScale * DeltaTime);
+        float Alpha = CurveScale * DeltaTime;
+        NewVelocity = FMath::Lerp(CurrentVelocity, EndVelocity, Alpha);
     }
 
     // 월드공간 변환 및 오너 스케일 적용
