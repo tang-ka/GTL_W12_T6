@@ -104,6 +104,8 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
     
     BufferManager->BindStructuredBufferSRV("ParticleSpriteInstanceBuffer", 1, EShaderStage::Vertex);
 
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
+
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 0, EShaderStage::Pixel);
     BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
 }
@@ -123,6 +125,8 @@ void FParticleSpriteRenderPass::DrawParticles()
         FParticleDynamicData* Particle = PSC->GetParticleDynamicData();
         if (Particle)
         {
+            UpdateObjectConstant(PSC->GetWorldMatrix(), FVector4(), false);
+            
             for (auto Emitter : Particle->DynamicEmitterDataArray)
             {
                 const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();

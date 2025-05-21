@@ -305,7 +305,7 @@ void UEditorEngine::StartParticleViewer(FName ParticleName, UParticleSystem* Par
 
     FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
 
-    CameraLocation = FVector(5, 5 , 10);
+    CameraLocation = FVector(8, 8 , 8);
     CameraRotation = FVector(0, 0, 0);
 
     FVector Delta = (FVector(0.f, 0.f, 5.f) - CameraLocation).GetSafeNormal();
