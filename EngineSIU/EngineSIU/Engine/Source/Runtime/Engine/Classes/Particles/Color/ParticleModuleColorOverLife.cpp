@@ -23,6 +23,7 @@ void UParticleModuleColorOverLife::Spawn(FParticleEmitterInstance* Owner, int32 
 
 void UParticleModuleColorOverLife::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
+    // Todo: 매크로 함수 수정시 변경 필요
     if (!Owner || Owner->ActiveParticles == 0 || Owner->ParticleData == nullptr)
     {
         return;
@@ -40,6 +41,8 @@ void UParticleModuleColorOverLife::Update(FParticleEmitterInstance* Owner, int32
         // Setup color
         Particle->Color.Lerp(Particle->Color, Color, RelativeTime);
     }
+
+    
 }
 
 void UParticleModuleColorOverLife::DisplayProperty()

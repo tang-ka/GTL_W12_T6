@@ -4,9 +4,9 @@
 #include "UObject/ObjectMacros.h"
 
 
-class UParticleModuleColorOverLife : public UParticleModuleColorBase
+class UParticleModuleColorOverLife : public UParticleModule
 {
-    DECLARE_CLASS(UParticleModuleColorOverLife, UParticleModuleColorBase)
+    DECLARE_CLASS(UParticleModuleColorOverLife, UParticleModule)
 
 public:
     UParticleModuleColorOverLife();
