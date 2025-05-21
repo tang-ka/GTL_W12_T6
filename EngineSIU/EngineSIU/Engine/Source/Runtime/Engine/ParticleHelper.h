@@ -39,9 +39,9 @@
         FBaseParticle& Particle = *((FBaseParticle*)ParticleBase);                          \
 
 #define END_UPDATE_LOOP                                                                     \
-            CurrentOffset = Offset;                                                         \
-        }                                                                                   \
+        CurrentOffset = Offset;                                                             \
     }                                                                                       \
+}                                                                                           \
 
 #define CONTINUE_UPDATE_LOOP                                                                \
         CurrentOffset = Offset;                                                             \

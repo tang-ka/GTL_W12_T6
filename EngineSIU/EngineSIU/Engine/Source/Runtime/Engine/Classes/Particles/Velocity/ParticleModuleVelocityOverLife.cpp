@@ -5,7 +5,7 @@
 
 UParticleModuleVelocityOverLife::UParticleModuleVelocityOverLife()
 {
-    bSpawnModule = true;
+    bSpawnModule = false;
     bSpawnModule = true;
 
     bInWorldSpace = false;
@@ -42,17 +42,28 @@ void UParticleModuleVelocityOverLife::DisplayProperty()
     }
 }
 
-void UParticleModuleVelocityOverLife::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase)
-{
-}
-
 void UParticleModuleVelocityOverLife::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
     BEGIN_UPDATE_LOOP
-                          
-    float RelTime = Particle.RelativeTime;
-    FVector NewVelocity = FVector::ZeroVector;
     
+    // payload 위치 계산
+    uint8* writableBase = const_cast<uint8*>(ParticleBase);
+    FVector* InitialVelPtr = reinterpret_cast<FVector*>(writableBase + ModulePayloadOffset);
+
+    float RelTime = Particle.RelativeTime;
+    float firstFrameTime = DeltaTime * Particle.OneOverMaxLifetime;
+
+    // 첫번쨰 프레임일 때는 값을 쓰고
+    if (RelTime < firstFrameTime)
+    {
+        FVector InitialVelocity;
+        InitialVelocity = Particle.BaseVelocity;
+        *InitialVelPtr = InitialVelocity;
+    }
+
+    StartVelocity = *InitialVelPtr;
+
+    FVector NewVelocity = FVector::ZeroVector;
     if (bUseConstantChange)
     {
         float Alpha = FMath::Clamp(RelTime, 0.0f, 1.0f);    
