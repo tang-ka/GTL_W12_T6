@@ -346,9 +346,6 @@ void FParticleEmitterInstance::PostSpawn(FBaseParticle* Particle, float Interp, 
 {
     Particle->OldLocation = Particle->Location;
     Particle->Location   += FVector(Particle->Velocity) * SpawnTime;
-    
-    Particle->Rotation = 0.f;
-    Particle->Color = Particle->BaseColor;
 }
 
 void FParticleEmitterInstance::UpdateModules(float DeltaTime)
