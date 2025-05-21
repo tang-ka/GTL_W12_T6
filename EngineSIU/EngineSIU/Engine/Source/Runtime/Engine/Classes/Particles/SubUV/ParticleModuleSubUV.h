@@ -13,12 +13,13 @@ public:
     UParticleModuleSubUV();
 
     UPROPERTY_WITH_FLAGS(EditAnywhere, FDistributionFloat, SubImageIndex)
-    UPROPERTY_WITH_FLAGS(EditAnywhere, float, RandomImageTime)
+
+    virtual void DisplayProperty() override;
 
     virtual int32 GetModulePayloadSize() const override
     {
         // 초기 속도 저장할 페이로드
-        return sizeof(int);
+        return sizeof(FFullSubUVPayload);
     }
 
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) override;
@@ -31,5 +32,5 @@ public:
     );
 
 private:
-    FFullSubUVPayload FullSubUVPayload = {1,1};
+    FFullSubUVPayload FullSubUVPayload;
 };
