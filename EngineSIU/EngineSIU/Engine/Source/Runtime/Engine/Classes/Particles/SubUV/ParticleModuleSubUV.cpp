@@ -34,8 +34,8 @@ void UParticleModuleSubUV::Spawn(FParticleEmitterInstance* Owner, int32 Offset, 
     
     // payload 위치 계산
     uint8* writableBase = reinterpret_cast<uint8*>(ParticleBase);
-    FFullSubUVPayload* InitialVelPtr = reinterpret_cast<FFullSubUVPayload*>(writableBase + ModulePayloadOffset);
-    *InitialVelPtr = FullSubUVPayload;
+    int* InitialVelPtr = reinterpret_cast<int*>(writableBase + ModulePayloadOffset);
+    *InitialVelPtr = FullSubUVPayload.ImageIndex;
 }
 
 void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
@@ -48,7 +48,6 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
     UParticleLODLevel* LODLevel	= Owner->SpriteTemplate->GetLODLevel(0);
 
     bool bRandomSubUV = LODLevel->RequiredModule->bSubUVRandomMode;
-    const int32 PayloadOffset = Owner->SubUVDataOffset;
     
     BEGIN_UPDATE_LOOP
     if (Particle.RelativeTime > 1.0f)
@@ -59,8 +58,8 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
     DetermineImageIndex(Owner, Offset, &Particle, bRandomSubUV, FullSubUVPayload, DeltaTime);
 
     uint8* writableBase = const_cast<uint8*>(ParticleBase);
-    FFullSubUVPayload* InitialVelPtr = reinterpret_cast<FFullSubUVPayload*>(writableBase + ModulePayloadOffset);
-    *InitialVelPtr = FullSubUVPayload;
+    int* InitialVelPtr = reinterpret_cast<int*>(writableBase + ModulePayloadOffset);
+    *InitialVelPtr = FullSubUVPayload.ImageIndex;
     END_UPDATE_LOOP
 }
 

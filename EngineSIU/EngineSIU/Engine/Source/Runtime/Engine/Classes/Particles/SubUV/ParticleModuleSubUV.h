@@ -18,7 +18,7 @@ public:
     virtual int32 GetModulePayloadSize() const override
     {
         // 초기 속도 저장할 페이로드
-        return sizeof(FFullSubUVPayload);
+        return sizeof(int);
     }
 
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, FBaseParticle* ParticleBase) override;
@@ -31,5 +31,5 @@ public:
     );
 
 private:
-    FFullSubUVPayload FullSubUVPayload;
+    FFullSubUVPayload FullSubUVPayload = {1,1};
 };
