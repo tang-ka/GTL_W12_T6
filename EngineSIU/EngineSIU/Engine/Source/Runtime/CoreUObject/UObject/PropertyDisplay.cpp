@@ -381,6 +381,12 @@ void FBoolProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
             OwnerObject->PostEditChangeProperty(Event);
         }
     }
+
+    // 다음에 오는 UI Inline으로 표시
+    if (Metadata.InlineEditConditionToggle)
+    {
+        ImGui::SameLine();
+    }
 }
 
 void FStrProperty::DisplayInImGui(UObject* Object) const
