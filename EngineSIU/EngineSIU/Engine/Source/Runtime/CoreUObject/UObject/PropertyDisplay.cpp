@@ -120,7 +120,10 @@ void FInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int8>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt8Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -131,7 +134,10 @@ void FInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int16>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt16Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -142,7 +148,10 @@ void FInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int32>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt32Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -153,7 +162,10 @@ void FInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int64>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt64Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -164,7 +176,10 @@ void FUInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint8>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt8Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -175,7 +190,10 @@ void FUInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint16>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt16Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -186,7 +204,10 @@ void FUInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint32>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt32Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -197,7 +218,10 @@ void FUInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint64>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt64Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -208,7 +232,10 @@ void FFloatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FFloatProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -219,7 +246,10 @@ void FDoubleProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<double>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FDoubleProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -328,7 +358,10 @@ void FVector2DProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabe
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FVector2DProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -348,7 +381,10 @@ void FVectorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FVectorProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -368,7 +404,10 @@ void FVector4Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FVector4Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -388,7 +427,10 @@ void FRotatorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FRotatorProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -408,7 +450,10 @@ void FQuatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
     const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
-    if (!ChangeResult.IsSet()) return;
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FQuatProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
