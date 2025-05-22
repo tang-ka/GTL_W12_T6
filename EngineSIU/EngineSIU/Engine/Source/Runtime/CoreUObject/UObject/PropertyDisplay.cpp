@@ -24,12 +24,18 @@ struct FPropertyUIHelper
 {
     template <NumericType NumType>
     static TOptional<EPropertyChangeType> DisplayNumericDragN(
-        const char* PropertyLabel, void* InData, int Components, float Speed = 1.0f, const char* Format = nullptr
+        const char* PropertyLabel,
+        void* InData,
+        int Components,
+        const FPropertyMetadata& Metadata,
+        const char* Format = nullptr
     )
     {
         NumType* Data = static_cast<NumType*>(InData);
-        constexpr NumType Min = TNumericLimits<NumType>::Lowest();
-        constexpr NumType Max = TNumericLimits<NumType>::Max();
+
+        // Drag Clamping
+        const NumType ClampMin = Metadata.ClampMin.IsSet() ? static_cast<NumType>(*Metadata.ClampMin) : TNumericLimits<NumType>::Lowest();
+        const NumType ClampMax = Metadata.ClampMax.IsSet() ? static_cast<NumType>(*Metadata.ClampMax) : TNumericLimits<NumType>::Max();
 
         ImGuiDataType DataType;
         if constexpr (std::same_as<NumType, int8>)        { DataType = ImGuiDataType_S8;     }
@@ -45,9 +51,21 @@ struct FPropertyUIHelper
         else { static_assert(TAlwaysFalse<NumType>); }
 
         ImGui::Text("%s", PropertyLabel);
+        if (Metadata.ToolTip.IsSet())
+        {
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+        }
         ImGui::SameLine();
         const std::string FormatStr = std::format("##{}", PropertyLabel);
-        const bool bIsInteractive = ImGui::DragScalarN(FormatStr.c_str(), DataType, Data, Components, Speed, &Min, &Max, Format);
+        const bool bIsInteractive = ImGui::DragScalarN(
+            FormatStr.c_str(),
+            DataType,
+            Data, Components,
+            Metadata.DragDeltaSpeed,
+            &ClampMin, &ClampMax,
+            Format,
+            ImGuiSliderFlags_AlwaysClamp
+        );
 
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
@@ -67,7 +85,7 @@ struct FPropertyUIHelper
 void FProperty::DisplayInImGui(UObject* Object) const
 {
     void* Data = GetPropertyData(Object);
-    DisplayRawDataInImGui(Name, Data, Object);
+    DisplayRawDataInImGui(*Metadata.DisplayName.Get(Name), Data, Object);
 }
 
 void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
@@ -119,8 +137,12 @@ void FInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int8>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int8>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt8Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -130,8 +152,12 @@ void FInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int16>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int16>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt16Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -141,8 +167,12 @@ void FInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int32>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int32>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt32Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -152,8 +182,12 @@ void FInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int64>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int64>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FInt64Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -163,8 +197,12 @@ void FUInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint8>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint8>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt8Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -174,8 +212,12 @@ void FUInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint16>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint16>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt16Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -185,8 +227,12 @@ void FUInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint32>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint32>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt32Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -196,8 +242,12 @@ void FUInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint64>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint64>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FUInt64Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -207,8 +257,12 @@ void FFloatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FFloatProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -218,8 +272,12 @@ void FDoubleProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<double>(PropertyLabel, DataPtr, 1);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<double>(PropertyLabel, DataPtr, 1, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FDoubleProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -238,13 +296,25 @@ void FBoolProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    if (ImGui::Checkbox(PropertyLabel, static_cast<bool*>(DataPtr)))
+    ImGui::Text("%s", PropertyLabel);
+    if (Metadata.ToolTip.IsSet())
+    {
+        ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+    }
+    ImGui::SameLine();
+    if (ImGui::Checkbox(std::format("##{}", PropertyLabel).c_str(), static_cast<bool*>(DataPtr)))
     {
         if (IsValid(OwnerObject))
         {
             FPropertyChangedEvent Event{const_cast<FBoolProperty*>(this), OwnerObject, EPropertyChangeType::ValueSet};
             OwnerObject->PostEditChangeProperty(Event);
         }
+    }
+
+    // 다음에 오는 UI Inline으로 표시
+    if (Metadata.InlineEditConditionToggle)
+    {
+        ImGui::SameLine();
     }
 }
 
@@ -270,6 +340,11 @@ void FStrProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, vo
     bool bChanged = false;
 
     ImGui::Text("%s", PropertyLabel);
+    // 툴팁 표시
+    if (Metadata.ToolTip.IsSet())
+    {
+        ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+    }
     ImGui::SameLine();
     if (ImGui::InputText(std::format("##{}", PropertyLabel).c_str(), Buffer, IMGUI_FSTRING_BUFFER_SIZE, ImGuiInputTextFlags_EnterReturnsTrue))
     {
@@ -308,6 +383,11 @@ void FNameProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
     ImGui::BeginDisabled(true);
     {
         ImGui::Text("%s", PropertyLabel);
+        // 툴팁 표시
+        if (Metadata.ToolTip.IsSet())
+        {
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+        }
         ImGui::SameLine();
         ImGui::InputText(std::format("##{}", PropertyLabel).c_str(), NameStr.data(), NameStr.size(), ImGuiInputTextFlags_ReadOnly);
     }
@@ -327,8 +407,12 @@ void FVector2DProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabe
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FVector2DProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -347,8 +431,12 @@ void FVectorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FVectorProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -367,8 +455,12 @@ void FVector4Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FVector4Property*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -387,8 +479,12 @@ void FRotatorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FRotatorProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -407,8 +503,12 @@ void FQuatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
-    if (!ChangeResult.IsSet()) return;
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4, Metadata);
+    if (!ChangeResult.IsSet())
+    {
+        return;
+    }
 
     FPropertyChangedEvent Event{const_cast<FQuatProperty*>(this), OwnerObject, *ChangeResult};
     OwnerObject->PostEditChangeProperty(Event);
@@ -420,15 +520,21 @@ void FTransformProperty::DisplayRawDataInImGui_Implement(const char* PropertyLab
 
     if (ImGui::TreeNode(PropertyLabel))
     {
+        // 툴팁 표시
+        if (Metadata.ToolTip.IsSet())
+        {
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+        }
+
         ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
         {
             FTransform* Data = static_cast<FTransform*>(DataPtr);
             FRotator Rotation = Data->Rotator();
 
             bool bChangedThisFrame = false;
-            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Location", Data->Translation);
-            bChangedThisFrame |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
-            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f);
+            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Location", Data->Translation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChangedThisFrame |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f, 100.0f, Metadata.DragDeltaSpeed);
 
             if (bChangedThisFrame)
             {
@@ -455,15 +561,21 @@ void FMatrixProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     {
         FMatrix* Data = static_cast<FMatrix*>(DataPtr);
 
+        // 툴팁 표시
+        if (Metadata.ToolTip.IsSet())
+        {
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+        }
+
         ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
         {
             FTransform Transform = FTransform(*Data);
             FRotator Rotation = Transform.Rotator();
 
             bool bChanged = false;
-            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation);
-            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
-            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f);
+            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f, 100.0f, Metadata.DragDeltaSpeed);
 
             if (bChanged)
             {
@@ -521,15 +633,28 @@ void FColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FColor* Data = static_cast<FColor*>(DataPtr);
     FLinearColor LinearColorForUI = FLinearColor(*Data);
 
-    constexpr ImGuiColorEditFlags Flags =
-        ImGuiColorEditFlags_DisplayRGB
-        | ImGuiColorEditFlags_AlphaBar
-        | ImGuiColorEditFlags_AlphaPreview
-        | ImGuiColorEditFlags_AlphaPreviewHalf;
-
     ImGui::Text("%s", PropertyLabel);
+    if (Metadata.ToolTip.IsSet())
+    {
+        ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+    }
     ImGui::SameLine();
-    if (ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColorForUI), Flags))
+
+    bool bChanged;
+    ImGuiColorEditFlags EditFlags = ImGuiColorEditFlags_DisplayRGB;
+    if (Metadata.HideAlphaChannel) // 알파 채널 숨김
+    {
+        bChanged = ImGui::ColorEdit3(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColorForUI), EditFlags);
+    }
+    else
+    {
+        EditFlags |= ImGuiColorEditFlags_AlphaBar
+            | ImGuiColorEditFlags_AlphaPreview
+            | ImGuiColorEditFlags_AlphaPreviewHalf;
+        bChanged = ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColorForUI), EditFlags);
+    }
+
+    if (bChanged)
     {
         *Data = LinearColorForUI.ToColorRawRGB8();
         if (OwnerObject)
@@ -538,7 +663,6 @@ void FColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
             OwnerObject->PostEditChangeProperty(Event);
         }
     }
-
 }
 
 void FLinearColorProperty::DisplayInImGui(UObject* Object) const
@@ -556,15 +680,28 @@ void FLinearColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyL
 
     FLinearColor* Data = static_cast<FLinearColor*>(DataPtr);
 
-    constexpr ImGuiColorEditFlags Flags =
-        ImGuiColorEditFlags_Float
-        | ImGuiColorEditFlags_AlphaBar
-        | ImGuiColorEditFlags_AlphaPreview
-        | ImGuiColorEditFlags_AlphaPreviewHalf;
-
     ImGui::Text("%s", PropertyLabel);
+    if (Metadata.ToolTip.IsSet())
+    {
+        ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+    }
+
     ImGui::SameLine();
-    if (ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), Flags))
+    bool bChanged;
+    ImGuiColorEditFlags EditFlags = ImGuiColorEditFlags_Float;
+    if (Metadata.HideAlphaChannel) // 알파 채널 숨김
+    {
+        bChanged = ImGui::ColorEdit3(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), EditFlags);
+    }
+    else
+    {
+        EditFlags |= ImGuiColorEditFlags_AlphaBar
+            | ImGuiColorEditFlags_AlphaPreview
+            | ImGuiColorEditFlags_AlphaPreviewHalf;
+        bChanged = ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), EditFlags);
+    }
+
+    if (bChanged)
     {
         if (OwnerObject)
         {
@@ -600,6 +737,11 @@ void FSubclassOfProperty::DisplayRawDataInImGui_Implement(const char* PropertyLa
     bool bChanged = false;
     const std::string CurrentClassName = (*Data) ? (*Data)->GetName().ToAnsiString() : "None";
     ImGui::Text("%s", PropertyLabel);
+    // 툴팁 표시
+    if (Metadata.ToolTip.IsSet())
+    {
+        ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+    }
     ImGui::SameLine();
     if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), CurrentClassName.c_str()))
     {
@@ -644,6 +786,12 @@ void FObjectProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     {
         UObject** Object = static_cast<UObject**>(DataPtr);
         const UClass* ObjectClass = IsValid(*Object) ? (*Object)->GetClass() : nullptr;
+
+        // 툴팁 표시
+        if (Metadata.ToolTip.IsSet())
+        {
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+        }
 
         // 포인터가 가리키는 객체를 수정, 여기서는 UObject의 인스턴스
         if (HasAnyFlags(Flags, EPropertyFlags::EditAnywhere))
@@ -703,6 +851,12 @@ void FStructProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
     {
         if (ImGui::TreeNodeEx(PropertyLabel, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
+            // 툴팁 표시
+            if (Metadata.ToolTip.IsSet())
+            {
+                ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+            }
+
             const UStruct* ActualStruct = *StructType;
             DisplayMembersRecursive(ActualStruct, DataPtr, OwnerObject);
             ImGui::TreePop();

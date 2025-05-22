@@ -3,9 +3,9 @@
 #include "Math/Rotator.h"
 #include "Math/Vector.h"
 
-bool FImGuiWidget::DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue, float ColumnWidth)
+bool FImGuiWidget::DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue, float ColumnWidth, float Speed)
 {
-    return DisplayNControl<3>(Label, ResetValue, ColumnWidth, "%.2f",
+    return DisplayNControl<3>(Label, ResetValue, ColumnWidth, Speed, "%.2f",
     {{
         {
             .Label = "X",
@@ -31,9 +31,9 @@ bool FImGuiWidget::DrawVec3Control(const std::string& Label, FVector& Values, fl
     }});
 }
 
-bool FImGuiWidget::DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue, float ColumnWidth)
+bool FImGuiWidget::DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue, float ColumnWidth, float Speed)
 {
-    return DisplayNControl<3>(Label, ResetValue, ColumnWidth, "%.2f°",
+    return DisplayNControl<3>(Label, ResetValue, ColumnWidth, Speed, "%.2f°",
     {{
         {
             .Label = "Roll",

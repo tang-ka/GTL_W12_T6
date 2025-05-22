@@ -19,8 +19,8 @@ struct FControlInfo
 
 struct FImGuiWidget
 {
-    static bool DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
-    static bool DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f);
+    static bool DrawVec3Control(const std::string& Label, FVector& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f, float Speed = 0.1f);
+    static bool DrawRot3Control(const std::string& Label, FRotator& Values, float ResetValue = 0.0f, float ColumnWidth = 100.0f, float Speed = 0.1f);
     static void DrawDragInt(const std::string& label, int& value, int min = 0, int max = 0, float width = 100.0f);
     static void DrawDragFloat(const std::string& label, float& value, float min = 0.0f, float max = 0.0f, float width = 100.0f);
 
@@ -29,6 +29,7 @@ struct FImGuiWidget
         const std::string& Label,
         float ResetValue,
         float ColumnWidth,
+        float Speed,
         const char* Format,
         const std::array<FControlInfo, N>& ComponentsInfo
     )
@@ -95,7 +96,7 @@ struct FImGuiWidget
                 ("##" + Info.Label + "Drag").c_str(),
                 ImGuiDataType_Float,
                 Info.ValuePtr,
-                0.1f,
+                Speed,
                 &Min, &Max, Format
             ))
             {
