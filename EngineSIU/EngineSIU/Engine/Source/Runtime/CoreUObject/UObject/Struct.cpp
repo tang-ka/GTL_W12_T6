@@ -10,6 +10,11 @@ TArray<FProperty*>& UStruct::GetUnresolvedProperties()
     return GUnresolvedProperties;
 }
 
+void UStruct::AddUnresolvedProperty(FProperty* Prop)
+{
+    GetUnresolvedProperties().Add(Prop);
+}
+
 void UStruct::ResolvePendingProperties()
 {
     for (FProperty* Prop : GetUnresolvedProperties())
@@ -29,6 +34,7 @@ UStruct::UStruct(
     UStruct* InSuperStruct
 )
     : StructSize(InStructSize)
+    , PropertiesSize(0)
     , MinAlignment(InAlignment)
     , SuperStruct(InSuperStruct)
 {
@@ -67,11 +73,6 @@ void UStruct::AddProperty(FProperty* Prop)
     if (!Prop)
     {
         return;
-    }
-
-    if (Prop->Type == EPropertyType::UnresolvedPointer)
-    {
-        GetUnresolvedProperties().Add(Prop);
     }
 
     PropertiesSize += Prop->Size;
