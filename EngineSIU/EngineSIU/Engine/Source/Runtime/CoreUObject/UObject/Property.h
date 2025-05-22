@@ -1271,6 +1271,10 @@ FProperty* MakeProperty(
         constexpr std::string_view TypeName = GetTypeNameString<T>();
         FProperty* Property = new FUnresolvedPtrProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
         Property->TypeSpecificData = FName(TypeName.data(), TypeName.size());
+
+        // 런타임 검사목록에 추가
+        UStruct::AddUnresolvedProperty(Property);
+
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::Unknown)

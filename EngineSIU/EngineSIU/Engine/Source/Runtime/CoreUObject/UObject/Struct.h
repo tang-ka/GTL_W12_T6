@@ -67,6 +67,9 @@ public:
      */
     virtual void SerializeBin(FArchive& Ar, void* Data);
 
+    /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 검사 목록에 추가합니다. */
+    static void AddUnresolvedProperty(FProperty* Prop);
+
     /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 런타임에 검사합니다.*/
     static void ResolvePendingProperties();
 
