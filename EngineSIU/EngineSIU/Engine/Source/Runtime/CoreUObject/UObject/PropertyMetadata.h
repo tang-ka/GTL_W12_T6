@@ -6,13 +6,13 @@
 struct FPropertyMetadata
 {
     // 카테고리
-    TOptional<FString> Category;
+    TOptional<FString> Category = {};
 
     // 툴팁
-    TOptional<FString> ToolTip;
+    TOptional<FString> ToolTip = {};
 
     // UI에 실제로 보여지는 이름
-    TOptional<FString> DisplayName;
+    TOptional<FString> DisplayName = {};
 
     /* Ex
      * UPROPERTY(EditAnywhere, Category = "Move")
@@ -33,7 +33,7 @@ struct FPropertyMetadata
      * float B_Speed = 1.0f;
      */
     // 특정 Property의 값에 따라서 프로퍼티의 에디터 노출 및 편집 가능 여부를 제어
-    // TOptional<?> EditCondition;
+    // TOptional<?> EditCondition = {};
 
     // DisplayAfter / DisplayPriority: 에디터에서 표시 순서 제어
 
@@ -49,20 +49,17 @@ struct FPropertyMetadata
     float LinearDeltaSensitivity = 1.0f;
 
     // 실제 슬라이더의 값을 설정할 수 있는 최소치, (None이면 실제 타입의 Min)
-    TOptional<float> ClampMin;
+    TOptional<float> ClampMin = {};
 
     // 실제 슬라이더의 값을 설정할 수 있는 최대치, (None이면 실제 타입의 Max)
-    TOptional<float> ClampMax;
+    TOptional<float> ClampMax = {};
 
     // UI상에서 마우스로 값을 조절할 수 있는 최소치, (None이면 실제 타입의 Min)
-    TOptional<float> UIMin;
+    TOptional<float> UIMin = {};
 
     // UI상에서 마우스로 값을 조절할 수 있는 최대치, (None이면 실제 타입의 Max)
-    TOptional<float> UIMax;
+    TOptional<float> UIMax = {};
 
     // FColor, FLinearColor 등에서 알파 채널 숨김
     bool HideAlphaChannel = false;
-
-public:
-    FPropertyMetadata() = default;
 };
