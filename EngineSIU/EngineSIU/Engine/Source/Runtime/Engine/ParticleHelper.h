@@ -166,7 +166,7 @@ struct FMeshParticleInstanceVertex
     ///** The color of the particle. */
     FLinearColor Color;
 
-    FMatrix WorldMatrix;
+    FMatrix TransformMatrix;
 
     ///** The instance to world transform of the particle. Translation vector is packed into W components. */
     //FVector4 Transform[3];

@@ -4,7 +4,7 @@
 struct FMeshParticleInstanceVertex
 {
     float4 Color;
-    matrix WorldMatrix;
+    matrix TransformMatrix;
 };
 
 StructuredBuffer<FMeshParticleInstanceVertex> InstanceBuffer : register(t1);
@@ -15,7 +15,7 @@ PS_INPUT_CommonMesh main(VS_INPUT_StaticMesh Input, uint InstanceID : SV_Instanc
     
     PS_INPUT_CommonMesh Output;
     Output.Position = float4(Input.Position, 1.0);
-    Output.Position = mul(Output.Position, Instance.WorldMatrix);
+    Output.Position = mul(Output.Position, Instance.TransformMatrix);
     Output.WorldPosition = Output.Position.xyz;
 
     Output.Position = mul(Output.Position, WorldMatrix);

@@ -106,6 +106,8 @@ void FParticleMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
     
     BufferManager->BindStructuredBufferSRV("ParticleMeshInstanceBuffer", 1, EShaderStage::Vertex);
 
+    BufferManager->BindConstantBuffer(TEXT("FObjectConstantBuffer"), 12, EShaderStage::Vertex);
+
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 0, EShaderStage::Pixel);
     BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
 }
@@ -125,6 +127,8 @@ void FParticleMeshRenderPass::DrawParticles()
         FParticleDynamicData* Particle = PSC->GetParticleDynamicData();
         if (Particle)
         {
+            UpdateObjectConstant(PSC->GetWorldMatrix(), FVector4(), false);
+            
             for (auto Emitter : Particle->DynamicEmitterDataArray)
             {
                 const FDynamicEmitterReplayDataBase& ReplayData = Emitter->GetSource();
@@ -176,10 +180,9 @@ void FParticleMeshRenderPass::ProcessParticles(const FDynamicMeshEmitterReplayDa
         FMeshParticleInstanceVertex MeshVertex = {};
         MeshVertex.Color = Particle.Color;
 
-        // TODO: 값 채우기
-        MeshVertex.WorldMatrix = FMatrix::Identity;
+        MeshVertex.TransformMatrix = FMatrix::Identity;
         FTransform Transform = FTransform(FQuat::Identity, Particle.Location, Particle.Size);
-        MeshVertex.WorldMatrix = FMatrix::Transpose(Transform.ToMatrixWithScale());
+        MeshVertex.TransformMatrix = FMatrix::Transpose(Transform.ToMatrixWithScale());
 
         SpriteVertices.Add(MeshVertex);
     }
