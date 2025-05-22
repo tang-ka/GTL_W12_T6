@@ -45,8 +45,8 @@ struct FPropertyMetadata
     // +/- 의 증감 단위
     // TOptional<float> Delta;
 
-    // ImGui::DragScalar의 마우스 감도
-    float LinearDeltaSensitivity = 1.0f;
+    // ImGui::DragScalar의 속도
+    float DragDeltaSpeed = 0.1f;
 
     // 실제 슬라이더의 값을 설정할 수 있는 최소치, (None이면 실제 타입의 Min)
     TOptional<float> ClampMin = {};
