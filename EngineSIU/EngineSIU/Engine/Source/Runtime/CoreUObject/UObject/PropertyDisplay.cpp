@@ -27,14 +27,15 @@ struct FPropertyUIHelper
         const char* PropertyLabel,
         void* InData,
         int Components,
-        float Speed = 1.0f,
-        const char* Format = nullptr,
-        const char* ToolTip = nullptr
+        const FPropertyMetadata& Metadata,
+        const char* Format = nullptr
     )
     {
         NumType* Data = static_cast<NumType*>(InData);
-        constexpr NumType Min = TNumericLimits<NumType>::Lowest();
-        constexpr NumType Max = TNumericLimits<NumType>::Max();
+
+        // Drag Clamping
+        const NumType ClampMin = Metadata.ClampMin.IsSet() ? static_cast<NumType>(*Metadata.ClampMin) : TNumericLimits<NumType>::Lowest();
+        const NumType ClampMax = Metadata.ClampMax.IsSet() ? static_cast<NumType>(*Metadata.ClampMax) : TNumericLimits<NumType>::Max();
 
         ImGuiDataType DataType;
         if constexpr (std::same_as<NumType, int8>)        { DataType = ImGuiDataType_S8;     }
@@ -50,13 +51,22 @@ struct FPropertyUIHelper
         else { static_assert(TAlwaysFalse<NumType>); }
 
         ImGui::Text("%s", PropertyLabel);
-        if (ToolTip)
+        if (Metadata.ToolTip.IsSet())
         {
-            ImGui::SetItemTooltip("%s", ToolTip);
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
         }
         ImGui::SameLine();
         const std::string FormatStr = std::format("##{}", PropertyLabel);
-        const bool bIsInteractive = ImGui::DragScalarN(FormatStr.c_str(), DataType, Data, Components, Speed, &Min, &Max, Format);
+        const bool bIsInteractive = ImGui::DragScalarN(
+            FormatStr.c_str(),
+            DataType,
+            Data, Components,
+            // Metadata.DragDeltaSpeed,
+            1,
+            &ClampMin, &ClampMax,
+            Format,
+            ImGuiSliderFlags_AlwaysClamp
+        );
 
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
@@ -128,16 +138,8 @@ void FInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int8>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int8>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -151,16 +153,8 @@ void FInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int16>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int16>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -174,16 +168,8 @@ void FInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int32>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int32>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -197,16 +183,8 @@ void FInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<int64>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<int64>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -220,16 +198,8 @@ void FUInt8Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint8>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint8>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -243,16 +213,8 @@ void FUInt16Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint16>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint16>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -266,16 +228,8 @@ void FUInt32Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint32>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint32>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -289,16 +243,8 @@ void FUInt64Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<uint64>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<uint64>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -312,16 +258,8 @@ void FFloatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -335,16 +273,8 @@ void FDoubleProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FNumericProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<double>(
-        PropertyLabel,
-        DataPtr, 1,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<double>(PropertyLabel, DataPtr, 1, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -478,16 +408,8 @@ void FVector2DProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabe
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(
-        PropertyLabel,
-        DataPtr, 2,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -510,16 +432,8 @@ void FVectorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(
-        PropertyLabel,
-        DataPtr, 3,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -542,16 +456,8 @@ void FVector4Property::DisplayRawDataInImGui_Implement(const char* PropertyLabel
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(
-        PropertyLabel,
-        DataPtr, 4,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -574,16 +480,8 @@ void FRotatorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(
-        PropertyLabel,
-        DataPtr, 3,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -606,16 +504,8 @@ void FQuatProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-    const float DeltaSensitivity = Metadata.LinearDeltaSensitivity;
-    const char* ToolTip = Metadata.ToolTip.IsSet() ? **Metadata.ToolTip : nullptr;
-
-    const TOptional<EPropertyChangeType> ChangeResult = FPropertyUIHelper::DisplayNumericDragN<float>(
-        PropertyLabel,
-        DataPtr, 4,
-        DeltaSensitivity,
-        nullptr,
-        ToolTip
-    );
+    const TOptional<EPropertyChangeType> ChangeResult =
+        FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4, Metadata);
     if (!ChangeResult.IsSet())
     {
         return;
@@ -643,9 +533,9 @@ void FTransformProperty::DisplayRawDataInImGui_Implement(const char* PropertyLab
             FRotator Rotation = Data->Rotator();
 
             bool bChangedThisFrame = false;
-            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Location", Data->Translation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
-            bChangedThisFrame |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
-            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f, 100.0f, Metadata.LinearDeltaSensitivity);
+            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Location", Data->Translation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChangedThisFrame |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f, 100.0f, Metadata.DragDeltaSpeed);
 
             if (bChangedThisFrame)
             {
@@ -684,9 +574,9 @@ void FMatrixProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
             FRotator Rotation = Transform.Rotator();
 
             bool bChanged = false;
-            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
-            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
-            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f, 100.0f, Metadata.LinearDeltaSensitivity);
+            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.DragDeltaSpeed);
+            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f, 100.0f, Metadata.DragDeltaSpeed);
 
             if (bChanged)
             {
