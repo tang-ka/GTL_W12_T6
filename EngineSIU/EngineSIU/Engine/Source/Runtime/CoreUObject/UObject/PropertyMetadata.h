@@ -54,11 +54,11 @@ struct FPropertyMetadata
     // 실제 슬라이더의 값을 설정할 수 있는 최대치, (None이면 실제 타입의 Max)
     TOptional<float> ClampMax = {};
 
-    // UI상에서 마우스로 값을 조절할 수 있는 최소치, (None이면 실제 타입의 Min)
-    TOptional<float> UIMin = {};
-
-    // UI상에서 마우스로 값을 조절할 수 있는 최대치, (None이면 실제 타입의 Max)
-    TOptional<float> UIMax = {};
+    // // UI상에서 마우스로 값을 조절할 수 있는 최소치, (None이면 실제 타입의 Min)
+    // TOptional<float> UIMin = {};
+    //
+    // // UI상에서 마우스로 값을 조절할 수 있는 최대치, (None이면 실제 타입의 Max)
+    // TOptional<float> UIMax = {};
 
     // FColor, FLinearColor 등에서 알파 채널 숨김
     bool HideAlphaChannel = false;
