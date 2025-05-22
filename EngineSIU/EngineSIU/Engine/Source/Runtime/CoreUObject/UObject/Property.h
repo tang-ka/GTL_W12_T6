@@ -1234,7 +1234,11 @@ FProperty* MakeProperty(
         static_assert(TAlwaysFalse<T>, "LuaReadOnly and LuaReadWrite cannot be set at the same time.");
     }
     else if constexpr (
-        !(TypeEnum == EPropertyType::Object || TypeEnum == EPropertyType::UnresolvedPointer)
+        !(
+            TypeEnum == EPropertyType::Object
+            || TypeEnum == EPropertyType::UnresolvedPointer
+            || TypeEnum == EPropertyType::Array
+        )
         && HasAnyFlags<InFlags>(EPropertyFlags::EditInline)
     )
     {
