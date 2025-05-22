@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "PropertyEvent.h"
+#include "PropertyMetadata.h"
 #include "PropertyTypes.h"
 #include "Struct.h"
 #include "Container/Queue.h"
@@ -23,6 +24,7 @@ struct FProperty
      * @param InSize 프로퍼티의 크기
      * @param InOffset 프로퍼티가 클래스로부터 떨어진 거리
      * @param InFlags Reflection 관련 Flag
+     * @param InMetadata 추가 Property에 대한 Metadata
      */
     FProperty(
         UStruct* InOwnerStruct,
@@ -30,7 +32,8 @@ struct FProperty
         EPropertyType InType,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata = FPropertyMetadata{}
     )
         : OwnerStruct(InOwnerStruct)
         , Name(InPropertyName)
@@ -38,6 +41,7 @@ struct FProperty
         , Size(InSize)
         , Offset(InOffset)
         , Flags(InFlags)
+        , Metadata(std::move(InMetadata))
     {
     }
 
@@ -148,6 +152,7 @@ public:
     int64 Size;
     int64 Offset;
     EPropertyFlags Flags;
+    FPropertyMetadata Metadata;
 
 public:
     std::variant<
