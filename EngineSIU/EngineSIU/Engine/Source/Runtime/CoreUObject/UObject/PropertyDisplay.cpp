@@ -744,19 +744,28 @@ void FColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
     FColor* Data = static_cast<FColor*>(DataPtr);
     FLinearColor LinearColorForUI = FLinearColor(*Data);
 
-    constexpr ImGuiColorEditFlags Flags =
-        ImGuiColorEditFlags_DisplayRGB
-        | ImGuiColorEditFlags_AlphaBar
-        | ImGuiColorEditFlags_AlphaPreview
-        | ImGuiColorEditFlags_AlphaPreviewHalf;
-
     ImGui::Text("%s", PropertyLabel);
     if (Metadata.ToolTip.IsSet())
     {
         ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
     }
     ImGui::SameLine();
-    if (ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColorForUI), Flags))
+
+    bool bChanged;
+    ImGuiColorEditFlags EditFlags = ImGuiColorEditFlags_DisplayRGB;
+    if (Metadata.HideAlphaChannel) // 알파 채널 숨김
+    {
+        bChanged = ImGui::ColorEdit3(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColorForUI), EditFlags);
+    }
+    else
+    {
+        EditFlags |= ImGuiColorEditFlags_AlphaBar
+            | ImGuiColorEditFlags_AlphaPreview
+            | ImGuiColorEditFlags_AlphaPreviewHalf;
+        bChanged = ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(&LinearColorForUI), EditFlags);
+    }
+
+    if (bChanged)
     {
         *Data = LinearColorForUI.ToColorRawRGB8();
         if (OwnerObject)
@@ -765,7 +774,6 @@ void FColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, 
             OwnerObject->PostEditChangeProperty(Event);
         }
     }
-
 }
 
 void FLinearColorProperty::DisplayInImGui(UObject* Object) const
@@ -783,19 +791,28 @@ void FLinearColorProperty::DisplayRawDataInImGui_Implement(const char* PropertyL
 
     FLinearColor* Data = static_cast<FLinearColor*>(DataPtr);
 
-    constexpr ImGuiColorEditFlags Flags =
-        ImGuiColorEditFlags_Float
-        | ImGuiColorEditFlags_AlphaBar
-        | ImGuiColorEditFlags_AlphaPreview
-        | ImGuiColorEditFlags_AlphaPreviewHalf;
-
     ImGui::Text("%s", PropertyLabel);
     if (Metadata.ToolTip.IsSet())
     {
         ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
     }
+
     ImGui::SameLine();
-    if (ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), Flags))
+    bool bChanged;
+    ImGuiColorEditFlags EditFlags = ImGuiColorEditFlags_Float;
+    if (Metadata.HideAlphaChannel) // 알파 채널 숨김
+    {
+        bChanged = ImGui::ColorEdit3(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), EditFlags);
+    }
+    else
+    {
+        EditFlags |= ImGuiColorEditFlags_AlphaBar
+            | ImGuiColorEditFlags_AlphaPreview
+            | ImGuiColorEditFlags_AlphaPreviewHalf;
+        bChanged = ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), EditFlags);
+    }
+
+    if (bChanged)
     {
         if (OwnerObject)
         {
