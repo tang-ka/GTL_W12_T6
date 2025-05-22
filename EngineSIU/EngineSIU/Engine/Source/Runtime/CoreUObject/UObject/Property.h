@@ -642,6 +642,12 @@ protected:
 
         if (ImGui::TreeNode(PropertyLabel))
         {
+            // 툴팁 표시
+            if (Metadata.ToolTip.IsSet())
+            {
+                ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+            }
+
             ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
             {
                 TOptional<FPropertyChangedEvent> Event;
@@ -775,6 +781,12 @@ protected:
 
         if (ImGui::TreeNode(PropertyLabel))
         {
+            // 툴팁 표시
+            if (Metadata.ToolTip.IsSet())
+            {
+                ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+            }
+
             ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
             {
                 // TODO: 나중에 추가
@@ -931,6 +943,12 @@ protected:
     
         if (ImGui::TreeNode(PropertyLabel))
         {
+            // 툴팁 표시
+            if (Metadata.ToolTip.IsSet())
+            {
+                ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+            }
+
             ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
             {
                 // TODO: 나중에 추가
@@ -1067,6 +1085,11 @@ protected:
         const std::string CurrentName = std::string(CurrentNameView);
 
         ImGui::Text("%s", PropertyLabel);
+        // 툴팁 표시
+        if (Metadata.ToolTip.IsSet())
+        {
+            ImGui::SetItemTooltip("%s", **Metadata.ToolTip);
+        }
         ImGui::SameLine();
         if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), CurrentName.c_str()))
         {
