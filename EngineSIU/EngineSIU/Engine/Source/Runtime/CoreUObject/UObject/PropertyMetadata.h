@@ -8,11 +8,11 @@ struct FPropertyMetadata
     // 카테고리
     TOptional<FString> Category = {};
 
-    // 툴팁
-    TOptional<FString> ToolTip = {};
-
     // UI에 실제로 보여지는 이름
     TOptional<FString> DisplayName = {};
+
+    // 툴팁
+    TOptional<FString> ToolTip = {};
 
     /* Ex
      * UPROPERTY(EditAnywhere, Category = "Move")
