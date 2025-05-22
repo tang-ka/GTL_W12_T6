@@ -637,9 +637,9 @@ void FTransformProperty::DisplayRawDataInImGui_Implement(const char* PropertyLab
             FRotator Rotation = Data->Rotator();
 
             bool bChangedThisFrame = false;
-            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Location", Data->Translation);
-            bChangedThisFrame |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
-            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f);
+            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Location", Data->Translation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
+            bChangedThisFrame |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
+            bChangedThisFrame |= FImGuiWidget::DrawVec3Control("Scale", Data->Scale3D, 1.0f, 100.0f, Metadata.LinearDeltaSensitivity);
 
             if (bChangedThisFrame)
             {
@@ -678,9 +678,9 @@ void FMatrixProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel,
             FRotator Rotation = Transform.Rotator();
 
             bool bChanged = false;
-            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation);
-            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation);
-            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f);
+            bChanged |= FImGuiWidget::DrawVec3Control("Location", Transform.Translation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
+            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0.0f, 100.0f, Metadata.LinearDeltaSensitivity);
+            bChanged |= FImGuiWidget::DrawVec3Control("Scale", Transform.Scale3D, 1.0f, 100.0f, Metadata.LinearDeltaSensitivity);
 
             if (bChanged)
             {
