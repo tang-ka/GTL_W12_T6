@@ -157,7 +157,7 @@ public: \
  * 
  * UPROPERTY(EPropertyFlags::EditAnywhere, int, Value, = 10) // Flag를 지정하면 기본값은 필수
  * 
- * UPROPERTY(EPropertyFlags::EditAnywhere, { .Category="NewCategory" }, int, Value, = 10) // Metadata를 지정하면 Flag와 기본값은 필수
+ * UPROPERTY(EPropertyFlags::EditAnywhere, ({ .Category="NewCategory", .DisplayName="MyValue" }), int, Value, = 10) // Metadata를 지정하면 Flag와 기본값은 필수
  */
 #define UPROPERTY(...) \
     EXPAND_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_METADATA, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
