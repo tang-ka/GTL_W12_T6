@@ -29,6 +29,7 @@ UStruct::UStruct(
     UStruct* InSuperStruct
 )
     : StructSize(InStructSize)
+    , PropertiesSize(0)
     , MinAlignment(InAlignment)
     , SuperStruct(InSuperStruct)
 {
