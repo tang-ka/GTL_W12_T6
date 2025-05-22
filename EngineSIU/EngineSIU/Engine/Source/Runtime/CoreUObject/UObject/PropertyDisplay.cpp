@@ -61,8 +61,7 @@ struct FPropertyUIHelper
             FormatStr.c_str(),
             DataType,
             Data, Components,
-            // Metadata.DragDeltaSpeed,
-            1,
+            Metadata.DragDeltaSpeed,
             &ClampMin, &ClampMax,
             Format,
             ImGuiSliderFlags_AlwaysClamp
