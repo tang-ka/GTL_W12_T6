@@ -27,7 +27,7 @@ void FUnresolvedPtrProperty::Resolve()
             {
                 Type = EPropertyType::Object;
                 TypeSpecificData = FoundClass;
-                ResolvedProperty = new FObjectProperty{OwnerStruct, Name, Size, Offset, Flags};
+                ResolvedProperty = new FObjectProperty{OwnerStruct, Name, Size, Offset, Flags, std::move(Metadata)};
                 ResolvedProperty->TypeSpecificData = TypeSpecificData;
                 return;
             }
@@ -37,7 +37,7 @@ void FUnresolvedPtrProperty::Resolve()
             {
                 Type = EPropertyType::Struct;
                 TypeSpecificData = FoundStruct;
-                ResolvedProperty = new FStructProperty{OwnerStruct, Name, Size, Offset, Flags};
+                ResolvedProperty = new FStructProperty{OwnerStruct, Name, Size, Offset, Flags, std::move(Metadata)};
                 ResolvedProperty->TypeSpecificData = TypeSpecificData;
                 return;
             }

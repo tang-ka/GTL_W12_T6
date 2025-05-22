@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <utility>
 #include <variant>
 #include <optional>
 
@@ -33,7 +34,7 @@ struct FProperty
         int64 InSize,
         int64 InOffset,
         EPropertyFlags InFlags,
-        FPropertyMetadata InMetadata = FPropertyMetadata{}
+        FPropertyMetadata InMetadata
     )
         : OwnerStruct(InOwnerStruct)
         , Name(InPropertyName)
@@ -185,9 +186,10 @@ struct FNumericProperty : public FProperty
         EPropertyType InType,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, InType, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, InType, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -201,9 +203,10 @@ struct FInt8Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int8, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int8, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -218,9 +221,10 @@ struct FInt16Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int16, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int16, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -235,9 +239,10 @@ struct FInt32Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int32, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int32, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -252,9 +257,10 @@ struct FInt64Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int64, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Int64, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -269,9 +275,10 @@ struct FUInt8Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt8, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt8, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -286,9 +293,10 @@ struct FUInt16Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt16, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt16, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -303,9 +311,10 @@ struct FUInt32Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt32, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt32, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -320,9 +329,10 @@ struct FUInt64Property : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt64, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::UInt64, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -337,9 +347,10 @@ struct FFloatProperty : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Float, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Float, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -354,9 +365,10 @@ struct FDoubleProperty : public FNumericProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Double, InSize, InOffset, InFlags)
+        : FNumericProperty(InOwnerStruct, InPropertyName, EPropertyType::Double, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -371,9 +383,10 @@ struct FBoolProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Bool, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Bool, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -390,9 +403,10 @@ struct FStrProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::String, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::String, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -409,9 +423,10 @@ struct FNameProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Name, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Name, InSize, InOffset, InFlags, std::move(InMetadata))
     {}
 
 protected:
@@ -425,9 +440,10 @@ struct FVector2DProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Vector2D, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Vector2D, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -444,9 +460,10 @@ struct FVectorProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Vector, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Vector, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -463,9 +480,10 @@ struct FVector4Property : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Vector4, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Vector4, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -482,9 +500,10 @@ struct FRotatorProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Rotator, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Rotator, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -501,9 +520,10 @@ struct FQuatProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Quat, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Quat, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -520,9 +540,10 @@ struct FTransformProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Transform, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Transform, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -537,9 +558,10 @@ struct FMatrixProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Matrix, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Matrix, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -554,9 +576,10 @@ struct FColorProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Color, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Color, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -573,9 +596,10 @@ struct FLinearColorProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -597,9 +621,10 @@ struct TArrayProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Array, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Array, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -729,9 +754,10 @@ struct TMapProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Map, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Map, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -884,9 +910,10 @@ struct TSetProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Set, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Set, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1012,9 +1039,10 @@ struct TEnumProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Enum, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Enum, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1072,9 +1100,10 @@ struct FSubclassOfProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::SubclassOf, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::SubclassOf, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1091,9 +1120,10 @@ struct FObjectProperty : public FProperty, public FDisplayMembersRecursiveTrait
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1108,9 +1138,10 @@ struct FStructProperty : public FProperty, public FDisplayMembersRecursiveTrait
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Struct, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Struct, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1127,9 +1158,10 @@ struct FUnresolvedPtrProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::UnresolvedPointer, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::UnresolvedPointer, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1160,7 +1192,8 @@ template <typename T, EPropertyFlags InFlags>
 FProperty* MakeProperty(
     UStruct* InOwnerStruct,
     const char* InPropertyName,
-    int32 InOffset
+    int32 InOffset,
+    FPropertyMetadata InMetadata
 )
 {
     // 각 타입에 맞는 Property 생성
@@ -1186,75 +1219,75 @@ FProperty* MakeProperty(
         static_assert(TAlwaysFalse<T>, "EditInline cannot be set for non-UObject types.");
     }
 
-    if constexpr      (TypeEnum == EPropertyType::Int8)        { return new FInt8Property        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Int16)       { return new FInt16Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Int32)       { return new FInt32Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Int64)       { return new FInt64Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt8)       { return new FUInt8Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt16)      { return new FUInt16Property      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt32)      { return new FUInt32Property      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::UInt64)      { return new FUInt64Property      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Float)       { return new FFloatProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Double)      { return new FDoubleProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Bool)        { return new FBoolProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    if constexpr      (TypeEnum == EPropertyType::Int8)        { return new FInt8Property        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Int16)       { return new FInt16Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Int32)       { return new FInt32Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Int64)       { return new FInt64Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt8)       { return new FUInt8Property       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt16)      { return new FUInt16Property      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt32)      { return new FUInt32Property      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::UInt64)      { return new FUInt64Property      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Float)       { return new FFloatProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Double)      { return new FDoubleProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Bool)        { return new FBoolProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
 
-    else if constexpr (TypeEnum == EPropertyType::String)      { return new FStrProperty         { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Name)        { return new FNameProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Vector2D)    { return new FVector2DProperty    { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Vector)      { return new FVectorProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Vector4)     { return new FVector4Property     { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Rotator)     { return new FRotatorProperty     { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Quat)        { return new FQuatProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Transform)   { return new FTransformProperty   { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Matrix)      { return new FMatrixProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Color)       { return new FColorProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
+    else if constexpr (TypeEnum == EPropertyType::String)      { return new FStrProperty         { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Name)        { return new FNameProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Vector2D)    { return new FVector2DProperty    { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Vector)      { return new FVectorProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Vector4)     { return new FVector4Property     { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Rotator)     { return new FRotatorProperty     { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Quat)        { return new FQuatProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Transform)   { return new FTransformProperty   { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Matrix)      { return new FMatrixProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Color)       { return new FColorProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
 
     else if constexpr (TypeEnum == EPropertyType::Array)
     {
-        TArrayProperty<T>* Property = new TArrayProperty<T> { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        TArrayProperty<T>* Property = new TArrayProperty<T> { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType, InFlags>();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::Map)
     {
-        TMapProperty<T>* Property = new TMapProperty<T> { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        TMapProperty<T>* Property = new TMapProperty<T> { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         Property->KeyProperty = CreatePropertyForContainerType<typename T::KeyType, InFlags>();
         Property->ValueProperty = CreatePropertyForContainerType<typename T::ValueType, InFlags>();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::Set)
     {
-        TSetProperty<T>* Property = new TSetProperty<T> { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        TSetProperty<T>* Property = new TSetProperty<T> { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         Property->ElementProperty = CreatePropertyForContainerType<typename T::ElementType, InFlags>();
         return Property;
     }
 
     else if constexpr (TypeEnum == EPropertyType::Enum)
     {
-        return new TEnumProperty<T>{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        return new TEnumProperty<T>{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
     }
     else if constexpr (TypeEnum == EPropertyType::Struct)
     {
-        FProperty* Property = new FStructProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        FProperty* Property = new FStructProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         Property->TypeSpecificData = T::StaticStruct();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::StructPointer)
     {
         using PointerType = std::remove_cvref_t<std::remove_pointer_t<T>>;
-        FUnresolvedPtrProperty* Property = new FUnresolvedPtrProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        FUnresolvedPtrProperty* Property = new FUnresolvedPtrProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, InMetadata };
 
         Property->Type = EPropertyType::Struct;
         Property->TypeSpecificData = PointerType::StaticStruct();
-        Property->ResolvedProperty = new FStructProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        Property->ResolvedProperty = new FStructProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::SubclassOf)
     {
         if constexpr (std::derived_from<typename T::ElementType, UObject>)
         {
-            FProperty* Property = new FSubclassOfProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+            FProperty* Property = new FSubclassOfProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
             Property->TypeSpecificData = T::ElementType::StaticClass();
             return Property;
         }
@@ -1267,14 +1300,14 @@ FProperty* MakeProperty(
     else if constexpr (TypeEnum == EPropertyType::Object)
     {
         using PointerType = std::remove_cvref_t<std::remove_pointer_t<T>>;
-        FProperty* Property = new FObjectProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        FProperty* Property = new FObjectProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         Property->TypeSpecificData = PointerType::StaticClass();
         return Property;
     }
     else if constexpr (TypeEnum == EPropertyType::UnresolvedPointer)
     {
         constexpr std::string_view TypeName = GetTypeNameString<T>();
-        FProperty* Property = new FUnresolvedPtrProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
+        FProperty* Property = new FUnresolvedPtrProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) };
         Property->TypeSpecificData = FName(TypeName.data(), TypeName.size());
         return Property;
     }
@@ -1310,7 +1343,8 @@ FProperty* CreatePropertyForContainerType()
     return MakeProperty<T, InFlags>(
         nullptr,
         "InnerProperty", // 실제 컨테이너 항목은 이 이름을 사용하지 않음
-        0
+        0,
+        {}
     );
 }
 }
