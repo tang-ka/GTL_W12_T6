@@ -49,10 +49,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
         }
     }
 
-    if (EmitterInstances.Num() > 0)
-    {
-        UpdateDynamicData();
-    }
+    UpdateDynamicData();
 }
 
 void UParticleSystemComponent::GetProperties(TMap<FString, FString>& OutProperties) const

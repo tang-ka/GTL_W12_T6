@@ -281,15 +281,6 @@ void ParticleViewerPanel::AddNewEmitter(EDynamicEmitterType Type)
 
         SelectedModule = nullptr;
         SelectedEmitter = NewEmitter;
-
-        if (Type == EDynamicEmitterType::DET_Sprite)
-        {
-            ParticleSystemComponent->CreateAndAddSpriteEmitterInstance(NewEmitter);
-        }
-        else if (Type == EDynamicEmitterType::DET_Mesh)
-        {
-            ParticleSystemComponent->CreateAndAddMeshEmitterInstance(NewEmitter);
-        }
     }
 }
 
