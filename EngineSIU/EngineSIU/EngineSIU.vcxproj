@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -96,6 +96,8 @@
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include;$(ProjectDir)Engine\Source\ThirdParty\PhysX\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -113,7 +115,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -129,6 +130,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
       <AdditionalOptions>/utf-8 /bigobj /w34996 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Engine\Source;$(ProjectDir)Engine\Source\Editor;$(ProjectDir)Engine\Source\Runtime;$(ProjectDir)Engine\Source\Runtime\Core;$(ProjectDir)Engine\Source\Runtime\CoreUObject;$(ProjectDir)Engine\Source\Runtime\Engine;$(ProjectDir)Engine\Source\Runtime\Engine\Classes;$(ProjectDir)Engine\Source\Runtime\InputCore;$(ProjectDir)Engine\Source\Runtime\Physics;$(ProjectDir)Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)Engine\Source\Runtime\Launch;$(ProjectDir)Engine\Source\Runtime\Renderer;$(ProjectDir)Engine\Source\Runtime\Serialization;$(ProjectDir)Engine\Source\Runtime\Slate;$(ProjectDir)Engine\Source\Runtime\SlateCore;$(ProjectDir)Engine\Source\Runtime\Windows;$(ProjectDir)Engine\Source\ThirdParty\tinyfiledialogs\include;$(ProjectDir)Engine\Source\ThirdParty\Json\include;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)Engine\Source\ThirdParty\ImGui\include;$(ProjectDir)Engine\Source\ThirdParty\Lua\include;$(ProjectDir)Engine\Source\ThirdParty\sol2\include;$(ProjectDir)Engine\Source\ThirdParty\fmod\inc;$(ProjectDir)Engine\Source\ThirdParty\FBX\include;$(ProjectDir)Engine\Source\ThirdParty\magic_enum\include;$(ProjectDir)Engine\Source\ThirdParty\PhysX\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,7 +150,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -165,6 +166,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -182,7 +184,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -223,7 +224,6 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
