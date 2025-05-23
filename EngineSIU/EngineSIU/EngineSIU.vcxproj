@@ -100,17 +100,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib
-
-;PhysXCommon_64.lib
-;PhysXCooking_64.lib;PhysXFoundation_64.lib
-
-PhysXExtensions_static_64.lib
-;PhysXPvdSDK_static_64.lib
-;PhysXTask_static_64.lib
-;PhysXCharacterKinematic_static_64.lib
-;PhysXVehicle_static_64.lib
-;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXVehicle_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(PlatformTarget);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -119,20 +109,12 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Con
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmod.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmodL.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll
-" "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,17 +135,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib
-
-;PhysXCommon_64.lib
-;PhysXCooking_64.lib;PhysXFoundation_64.lib
-
-PhysXExtensions_static_64.lib
-;PhysXPvdSDK_static_64.lib
-;PhysXTask_static_64.lib
-;PhysXCharacterKinematic_static_64.lib
-;PhysXVehicle_static_64.lib
-;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXVehicle_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(PlatformTarget);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -172,20 +144,12 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Con
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmod.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmodL.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll
-" "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -206,17 +170,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(PlatformTarget);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib
-
-;PhysXCommon_64.lib
-;PhysXCooking_64.lib;PhysXFoundation_64.lib
-
-PhysXExtensions_static_64.lib
-;PhysXPvdSDK_static_64.lib
-;PhysXTask_static_64.lib
-;PhysXCharacterKinematic_static_64.lib
-;PhysXVehicle_static_64.lib
-;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXVehicle_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration)\lua.dll" "$(OutDir)"
@@ -224,20 +178,12 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Con
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmod.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmodL.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll
-" "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -262,17 +208,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\lib\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(PlatformTarget);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration);$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib
-
-;PhysXCommon_64.lib
-;PhysXCooking_64.lib;PhysXFoundation_64.lib
-
-PhysXExtensions_static_64.lib
-;PhysXPvdSDK_static_64.lib
-;PhysXTask_static_64.lib
-;PhysXCharacterKinematic_static_64.lib
-;PhysXVehicle_static_64.lib
-;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTK.lib;lua.lib;fmod_vc.lib;fmodL_vc.lib;alembic.lib;libfbxsdk.lib;libxml2.lib;zlib.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXVehicle_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -283,20 +219,12 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Lua\bin\$(Con
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmod.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\fmod\lib\$(Platform)\fmodL.dll" "$(OutDir)"
 xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll
-
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll
-" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll
-" "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysX_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCommon_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXCooking_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXFoundation_64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXDevice64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64\$(Configuration)\PhysXGpu_64.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
