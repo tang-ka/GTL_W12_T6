@@ -96,6 +96,11 @@ protected:
     (EditAnywhere, UFishTailComponent*, FishTail, = nullptr)
 
     UPROPERTY(
+        EditAnywhere,
+        FVector, Velocity, = FVector::ZeroVector;
+    )
+
+    UPROPERTY(
     EditAnywhere, float, JumpZVelocity, = 0;
     )
 
