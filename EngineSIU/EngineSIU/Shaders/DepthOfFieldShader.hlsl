@@ -49,18 +49,17 @@ float4 mainPS(PS_Input Input) : SV_Target
 {
     float2 UV = Input.UV;
     
-    // Get scene color and depth
     float4 SceneColor = SceneTexture.Sample(DoFSampler, UV);
     float PixelDepth = SceneDepthTexture.Sample(DoFSampler, UV).r;
     
     // Calculate blur amount using the formula provided in the task
-    float BlurAmount = saturate(abs(PixelDepth - FocusDepth) / FocusRange) * MaxBlurAmount;
+    float BlurAmount = saturate(abs(PixelDepth - FocusDepth) / FocusRange);
     
     // Apply blur effect
     if (BlurAmount > 0.01f)
     {
         float4 BlurredColor = float4(0, 0, 0, 0);
-        const int BlurRadius = 10;        // Much larger radius for extreme blur effect
+        const int BlurRadius = 5;        // Much larger radius for extreme blur effect
         const float BlurStep = 0.001f;    // Much larger step size for dramatic blur effect
         int SampleCount = 0;
         
@@ -83,10 +82,7 @@ float4 mainPS(PS_Input Input) : SV_Target
         if (SampleCount > 0)
             BlurredColor /= SampleCount;
             
-        // Create full color with alpha for compositing
-        float4 result = BlurredColor;
-        result.a = BlurAmount; // Alpha represents the blur strength
-        return result;
+        return float4(BlurredColor.rgb, BlurAmount); 
     }
     
     return float4(SceneColor.rgb, 0.0);
