@@ -551,6 +551,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\FBX\lib\x64\$
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Property.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyMetadata.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />

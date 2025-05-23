@@ -118,7 +118,7 @@ public: \
 #define GET_FIRST_ARG(First, ...) First
 #define FIRST_ARG(...) GET_FIRST_ARG(__VA_ARGS__, )
 
-#define UPROPERTY_WITH_FLAGS(InFlags, InType, InVarName, ...) \
+#define UPROPERTY_WITH_METADATA(InFlags, InMetadata, InType, InVarName, ...) \
     InType InVarName FIRST_ARG(__VA_ARGS__); \
     inline static struct InVarName##_PropRegistrar_PRIVATE \
     { \
@@ -128,21 +128,26 @@ public: \
             constexpr EPropertyFlags Flags = InFlags; \
             UStruct* StructPtr = GetStructHelper<ThisClass>(); \
             StructPtr->AddProperty( \
-                PropertyFactory::Private::MakeProperty<InType, Flags>(StructPtr, #InVarName, Offset) \
+                PropertyFactory::Private::MakeProperty<InType, Flags>( \
+                    StructPtr, \
+                    #InVarName, \
+                    Offset, \
+                    FPropertyMetadata InMetadata \
+                ) \
             ); \
         } \
     } InVarName##_PropRegistrar_PRIVATE{};
 
+#define UPROPERTY_WITH_FLAGS(InFlags, InType, InVarName, ...) \
+    UPROPERTY_WITH_METADATA(InFlags, {}, InType, InVarName, __VA_ARGS__)
+
 #define UPROPERTY_DEFAULT(InType, InVarName, ...) \
     UPROPERTY_WITH_FLAGS(EPropertyFlags::PropertyNone, InType, InVarName, __VA_ARGS__)
 
-#define GET_OVERLOADED_PROPERTY_MACRO(_1, _2, _3, _4, MACRO, ...) MACRO
+#define GET_OVERLOADED_PROPERTY_MACRO(_1, _2, _3, _4, _5, MACRO, ...) MACRO
 
 /**
  * UClass에 Property를 등록합니다.
- * @param Type 선언할 타입
- * @param VarName 변수 이름
- * @param ... 기본값
  *
  * ----- Example Code -----
  * 
@@ -151,6 +156,8 @@ public: \
  * UPROPERTY(int, Value, = 10)
  * 
  * UPROPERTY(EPropertyFlags::EditAnywhere, int, Value, = 10) // Flag를 지정하면 기본값은 필수
+ * 
+ * UPROPERTY(EPropertyFlags::EditAnywhere, ({ .Category="NewCategory", .DisplayName="MyValue" }), int, Value, = 10) // Metadata를 지정하면 Flag와 기본값은 필수
  */
 #define UPROPERTY(...) \
-    EXPAND_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
+    EXPAND_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_METADATA, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
