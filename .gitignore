@@ -458,3 +458,5 @@ FodyWeavers.xsd
 **/imgui.ini
 
 EngineSIU/EngineSIU/Saved/AutoSaves.scene
+
+EngineSIU/EngineSIU/editor.ini
