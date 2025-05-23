@@ -91,12 +91,11 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_SceneDepth)->SRV);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Scene)->SRV);
 
-    // @todo 하드코딩 제거
-    // Set up DoF parameters with much more extreme values for very visible effect
+    // 멤버 변수를 사용하여 DoF 파라미터 설정
     FConstantBufferDepthOfField DoFParams;
-    DoFParams.FocusDepth = 10.0;
-    DoFParams.FocusRange = 5.0f;
-    DoFParams.MaxBlurAmount = 2.0f;
+    DoFParams.FocusDepth = FocusDepth;
+    DoFParams.FocusRange = FocusRange;
+    DoFParams.MaxBlurAmount = MaxBlurAmount;
     DoFParams.Padding = 0.0f;
     
     // If PlayerCameraManager exists, we could get values from there

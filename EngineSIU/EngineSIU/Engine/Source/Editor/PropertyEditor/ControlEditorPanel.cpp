@@ -1,6 +1,7 @@
 #include "ControlEditorPanel.h"
 
 #include "World/World.h"
+#include "Renderer/DepthOfFieldRenderPass.h"
 
 #include "Actors/Player.h"
 #include "Actors/LightActor.h"
@@ -308,6 +309,30 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         if (ImGui::DragFloat("##Gamma", &Gamma, 0.01f, 0.01f, 4.0f, "%.1f"))
         {
             FEngineLoop::Renderer.CompositingPass->GammaValue = Gamma;
+        }
+        
+        ImGui::Separator();
+        
+        // DoF (Depth of Field) 파라미터 설정 UI 추가
+        ImGui::Text("DoF 파라미터");
+        
+        // 현재 DoF 파라미터 값을 가져옴
+        if (FEngineLoop::Renderer.DepthOfFieldRenderPass) 
+        {
+            DoFFocusDepth = FEngineLoop::Renderer.DepthOfFieldRenderPass->GetFocusDepth();
+            DoFFocusRange = FEngineLoop::Renderer.DepthOfFieldRenderPass->GetFocusRange();
+            
+            ImGui::SetNextItemWidth(120.0f);
+            if (ImGui::DragFloat("##초점 거리", &DoFFocusDepth, 0.1f, 0.1f, 100.0f, "초점 거리: %.1f"))
+            {
+                FEngineLoop::Renderer.DepthOfFieldRenderPass->SetFocusDepth(DoFFocusDepth);
+            }
+            
+            ImGui::SetNextItemWidth(120.0f);
+            if (ImGui::DragFloat("##초점 범위", &DoFFocusRange, 0.1f, 0.1f, 50.0f, "초점 범위: %.1f"))
+            {
+                FEngineLoop::Renderer.DepthOfFieldRenderPass->SetFocusRange(DoFFocusRange);
+            }
         }
 
         ImGui::EndPopup();

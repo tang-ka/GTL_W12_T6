@@ -26,6 +26,10 @@ private:
     float* FOV = nullptr;
     float CameraSpeed = 0.0f;
     float GridScale = 1.0f;
+    
+    // DoF 파라미터 관련 변수
+    float DoFFocusDepth = 10.0f;
+    float DoFFocusRange = 5.0f;
+    
     FLightGridGenerator LightGridGenerator;
 };
-

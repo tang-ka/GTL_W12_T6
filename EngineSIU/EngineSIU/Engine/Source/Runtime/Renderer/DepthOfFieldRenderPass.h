@@ -15,6 +15,13 @@ public:
 
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
+    // DoF 파라미터 Getter/Setter
+    float GetFocusDepth() const { return FocusDepth; }
+    float GetFocusRange() const { return FocusRange; }
+    
+    void SetFocusDepth(float InFocusDepth) { FocusDepth = InFocusDepth; }
+    void SetFocusRange(float InFocusRange) { FocusRange = InFocusRange; }
+    
     void CreateShader();
     void UpdateShader();
     void CreateBlendState();
@@ -31,4 +38,9 @@ private:
     ID3D11PixelShader* PixelShader = nullptr;
     ID3D11BlendState* BlendState = nullptr;
     ID3D11SamplerState* Sampler = nullptr;
+    
+    // DoF 파라미터를 위한 멤버 변수
+    float FocusDepth = 10.0f;
+    float FocusRange = 5.0f;
+    float MaxBlurAmount = 1.0f;
 };
