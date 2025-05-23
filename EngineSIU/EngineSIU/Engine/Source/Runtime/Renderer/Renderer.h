@@ -40,6 +40,7 @@ class FDepthBufferDebugPass;
 class FLineRenderPass;
 class FFogRenderPass;
 class FCameraEffectRenderPass;
+class FDepthOfFieldRenderPass;
 class FCompositingPass;
 class FSlateRenderPass;
 class FEditorRenderPass;
@@ -106,6 +107,7 @@ public:
     FLineRenderPass* LineRenderPass = nullptr;
     FFogRenderPass* FogRenderPass = nullptr;
     FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
+    FDepthOfFieldRenderPass* DepthOfFieldRenderPass = nullptr;
     FEditorRenderPass* EditorRenderPass = nullptr;
     FTranslucentRenderPass* TranslucentRenderPass = nullptr;
 

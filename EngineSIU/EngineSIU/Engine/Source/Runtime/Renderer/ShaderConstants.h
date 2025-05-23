@@ -245,3 +245,11 @@ struct alignas(16) FConstantBufferLetterBox
     float LetterBoxAspectRatio;
     FVector2D Padding;
 };
+
+struct alignas(16) FConstantBufferDepthOfField
+{
+    float FocusDepth;     // 초점 거리
+    float FocusRange;     // 초점 범위
+    float MaxBlurAmount;  // 최대 블러 정도
+    float Padding;
+};

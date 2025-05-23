@@ -45,9 +45,13 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
     }
 
     constexpr EResourceType ResourceType = EResourceType::ERT_PostProcessCompositing; 
-    FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
 
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Fog), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_Fog)->SRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Fog), 1, 
+        &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_Fog)->SRV);
+
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DoF), 1, 
+        &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_DoF)->SRV);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
 
@@ -73,6 +77,7 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
     // Clear
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Fog), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DoF), 1, NullSRV);
 }
 
 void FPostProcessCompositingPass::ClearRenderArr()

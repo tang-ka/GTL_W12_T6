@@ -14,6 +14,7 @@
 #include "LineRenderPass.h"
 #include "FogRenderPass.h"
 #include "CameraEffectRenderPass.h"
+#include "DepthOfFieldRenderPass.h"
 #include "SlateRenderPass.h"
 #include "EditorRenderPass.h"
 #include "DepthPrePass.h"
@@ -58,6 +59,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     LineRenderPass = AddRenderPass<FLineRenderPass>();
     FogRenderPass = AddRenderPass<FFogRenderPass>();
     CameraEffectRenderPass = AddRenderPass<FCameraEffectRenderPass>();
+    DepthOfFieldRenderPass = AddRenderPass<FDepthOfFieldRenderPass>();
     EditorRenderPass = AddRenderPass<FEditorRenderPass>();
     TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
 
@@ -468,6 +470,13 @@ void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& 
             QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
             QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
             FogRenderPass->Render(Viewport);
+        }
+
+        if (ShowFlag & EEngineShowFlags::SF_DoF)
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(DepthOfFieldPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(DepthOfFieldPass_GPU, *GPUTimingManager)
+            DepthOfFieldRenderPass->Render(Viewport);
         }
 
         // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
