@@ -63,7 +63,6 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
 float4 mainPS(PS_Input Input) : SV_TARGET
 {
     float4 Scene = SceneTexture.Sample(CompositingSampler, Input.UV);
-    Scene = pow(Scene, GammaValue);
     float4 PostProcess = PP_PostProcessTexture.Sample(CompositingSampler, Input.UV);
     float4 Editor = EditorTexture.Sample(CompositingSampler, Input.UV);
     float4 Debug = DebugTexture.Sample(CompositingSampler, Input.UV);
@@ -83,5 +82,6 @@ float4 mainPS(PS_Input Input) : SV_TARGET
         // FinalColor = CameraEffect;
     }
 
+    FinalColor.rgb = pow(FinalColor.rgb, GammaValue);
     return FinalColor;
 }
