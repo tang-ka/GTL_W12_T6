@@ -92,8 +92,6 @@ void FLineRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>
 
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-    // TODO: 알파 블렌드 설정해야할지 생각해 봐야 함.
-    //Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 }
