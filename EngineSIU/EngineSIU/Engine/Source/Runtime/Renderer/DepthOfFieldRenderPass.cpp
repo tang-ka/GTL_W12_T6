@@ -94,8 +94,8 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     // @todo 하드코딩 제거
     // Set up DoF parameters with much more extreme values for very visible effect
     FConstantBufferDepthOfField DoFParams;
-    DoFParams.FocusDepth = 10.0f;
-    DoFParams.FocusRange = 1.0f;
+    DoFParams.FocusDepth = 10.0;
+    DoFParams.FocusRange = 5.0f;
     DoFParams.MaxBlurAmount = 2.0f;
     DoFParams.Padding = 0.0f;
     

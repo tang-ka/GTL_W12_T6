@@ -1,6 +1,5 @@
 Texture2D FogTexture : register(t103);
-Texture2D DoFTexture : register(t106); // Depth of Field texture
-Texture2D SceneTexture : register(t100); // Original scene texture
+Texture2D DoFTexture : register(t106);
 // PostProcessing 추가 시 Texture 추가 (EShaderSRVSlot)
 
 SamplerState CompositingSampler : register(s0);
@@ -38,27 +37,12 @@ PS_Input mainVS(uint VertexID : SV_VertexID)
 float4 mainPS(PS_Input input) : SV_Target
 {
     float2 UV = input.UV;
-    
-    // Sample all textures
-    float4 SceneColor = SceneTexture.Sample(CompositingSampler, UV);
     float4 FogColor = FogTexture.Sample(CompositingSampler, UV);
     float4 DoFColor = DoFTexture.Sample(CompositingSampler, UV);
     
-    // Start with the original scene color
-    float4 FinalColor = SceneColor;
-    
-    // Apply fog (fog texture has the scene already blended in it)
-    // Use the fog texture directly to avoid black fog issues
-    FinalColor = FogColor;
-    
-    // Apply DoF on top if it has alpha
-    if (DoFColor.a > 0.01f)
-    {
-        // Use pre-multiplied alpha blending for DoF
-        // This will overlay the DoF effect on the fog+scene
-        float4 BlendedDoF = float4(DoFColor.rgb, 1.0) * DoFColor.a;
-        FinalColor = BlendedDoF + FinalColor * (1.0 - DoFColor.a);
-    }
+    // Fog 효과가 적용된 씬에 DoF 효과 적용
+    // DoF의 알파가 블러 강도를 나타냄 - 더 자연스러운 합성을 위한 lerp 사용
+    float4 FinalColor = lerp(FogColor, DoFColor, DoFColor.a);
     
     return FinalColor;
 }
