@@ -1,5 +1,7 @@
 #pragma once
 #include "Actors/Player.h"
+#include "Misc/Optional.h"
+#include "Container/String.h"
 
 class UFishBodyComponent;
 class USphereComponent;
@@ -15,7 +17,6 @@ enum class ETestEnum : uint8
     Test2,
     Test3
 };
-
 
 struct FTestStruct
 {
@@ -116,6 +117,52 @@ protected:
     UPROPERTY(
         EditAnywhere,
         FChildStruct, Struct2, {}
+    )
+
+    void test()
+    {
+        TOptional<FString> OptStr("hello");
+        TOptional<FString> OpStr2 = FString("hello");
+    }
+
+    UPROPERTY(
+        EditAnywhere, ({ .DisplayName = FString("My u8"), .ToolTip = FString("wa u8") }),
+        uint8, u8, = 0;
+    )
+
+    UPROPERTY(
+        EditAnywhere, { .ToolTip = FString("wa 123") },
+        uint8, gudtldn, = 0;
+    )
+
+    UPROPERTY(
+        EditAnywhere, ({ .ToolTip = {"hide alpha"}, .HideAlphaChannel = true }),
+        FColor, color, = FColor::Blue;
+    )
+
+    UPROPERTY(
+        EditAnywhere, ({ .ToolTip = {"hide alpha linear"}, .HideAlphaChannel = true }),
+        FLinearColor, lcolor, = FLinearColor::Black;
+    )
+
+    UPROPERTY(
+        EditAnywhere, ({ .ToolTip = {"DragDeltaSpeed 123"}, .DragDeltaSpeed = 123, .ClampMin = 20.0f, .ClampMax = 200.0f }),
+        uint32, u32, = 0;
+    )
+
+    UPROPERTY(
+        EditAnywhere, ({ .ToolTip = {"DragDeltaSpeed 0.123f"}, .DragDeltaSpeed = 0.123f }),
+        float, f32, = 0;
+    )
+
+    UPROPERTY(
+        EditAnywhere, ({ .ToolTip = {"DragDeltaSpeed 0.123f"}, .InlineEditConditionToggle = true }),
+        bool, my_bool, = false;
+    )
+
+    UPROPERTY(
+        EditAnywhere, { .ToolTip = {"Inline String"} },
+        FString, InlineString, ;
     )
     
     void Move(float DeltaTime);

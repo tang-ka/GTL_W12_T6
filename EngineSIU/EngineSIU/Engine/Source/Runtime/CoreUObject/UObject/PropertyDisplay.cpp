@@ -308,10 +308,7 @@ void FBoolProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
 {
     FProperty::DisplayRawDataInImGui_Implement(PropertyLabel, DataPtr, OwnerObject);
 
-<<<<<<< HEAD
     ImGui::Dummy(ImVec2(0.0f, 10.0f));
-    if (ImGui::Checkbox(PropertyLabel, static_cast<bool*>(DataPtr)))
-=======
     ImGui::Text("%s", PropertyLabel);
     if (Metadata.ToolTip.IsSet())
     {
@@ -319,7 +316,6 @@ void FBoolProperty::DisplayRawDataInImGui_Implement(const char* PropertyLabel, v
     }
     ImGui::SameLine();
     if (ImGui::Checkbox(std::format("##{}", PropertyLabel).c_str(), static_cast<bool*>(DataPtr)))
->>>>>>> upstream/main
     {
         if (IsValid(OwnerObject))
         {
@@ -741,7 +737,7 @@ void FDistributionFloatProperty::DisplayRawDataInImGui(const char* PropertyLabel
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr, OwnerObject);
 
-    FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
+    FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2, Metadata);
 }
 
 void FDistributionVectorProperty::DisplayInImGui(UObject* Object) const
