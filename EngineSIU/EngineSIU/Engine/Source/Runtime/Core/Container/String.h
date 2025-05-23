@@ -92,35 +92,11 @@ public:
     FString(const WIDECHAR* InString) : PrivateString(InString) {}
     FString(const std::string& InString) : PrivateString(StringToWString(InString)) {}
     FString(const ANSICHAR* InString) : PrivateString(StringToWString(InString)) {}
-
-    FString& operator=(const WIDECHAR* InString)
-    {
-        PrivateString = InString;
-        return *this;
-    }
-
-    FString& operator=(const ANSICHAR* InString)
-    {
-        PrivateString = StringToWString(InString);
-        return *this;
-    }
 #else
     FString(const std::string& InString) : PrivateString(InString) {}
     FString(const ANSICHAR* InString) : PrivateString(InString) {}
     FString(const std::wstring& InString) : FString(WStringToString(InString)) {}
     FString(const WIDECHAR* InString) : FString(WStringToString(InString)) {}
-
-    FString& operator=(const ANSICHAR* InString)
-    {
-        PrivateString = InString;
-        return *this;
-    }
-
-    FString& operator=(const WIDECHAR* InString)
-    {
-        PrivateString = WStringToString(InString);
-        return *this;
-    }
 #endif
 
 	FORCEINLINE std::string ToAnsiString() const

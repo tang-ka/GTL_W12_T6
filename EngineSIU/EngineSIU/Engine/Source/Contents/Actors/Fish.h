@@ -1,6 +1,7 @@
 #pragma once
 #include "Actors/Player.h"
 #include "Misc/Optional.h"
+#include "Container/String.h"
 
 class UFishBodyComponent;
 class USphereComponent;
@@ -118,48 +119,49 @@ protected:
         FChildStruct, Struct2, {}
     )
 
-    UPROPERTY(
-        EditAnywhere, { .DisplayName = "hello" },
-        FVector, Velocity, = FVector::ZeroVector;
-    )
+    void test()
+    {
+        TOptional<FString> OptStr("hello");
+        TOptional<FString> OpStr2 = FString("hello");
+    }
 
     UPROPERTY(
-        EditAnywhere, ({ .DisplayName = "My u8", .ToolTip = "wa u8" }),
+        EditAnywhere, ({ .DisplayName = FString("My u8"), .ToolTip = FString("wa u8") }),
         uint8, u8, = 0;
     )
 
     UPROPERTY(
-        EditAnywhere, { .ToolTip = "wa 123" },
+        EditAnywhere, { .ToolTip = FString("wa 123") },
         uint8, gudtldn, = 0;
     )
 
     UPROPERTY(
-        EditAnywhere, ({ .ToolTip = "hide alpha", .HideAlphaChannel = true }),
+        EditAnywhere, ({ .ToolTip = {"hide alpha"}, .HideAlphaChannel = true }),
         FColor, color, = FColor::Blue;
     )
 
     UPROPERTY(
-        EditAnywhere, ({ .ToolTip = "hide alpha linear", .HideAlphaChannel = true }),
+        EditAnywhere, ({ .ToolTip = {"hide alpha linear"}, .HideAlphaChannel = true }),
         FLinearColor, lcolor, = FLinearColor::Black;
     )
 
     UPROPERTY(
-        EditAnywhere, ({ .ToolTip = "DragDeltaSpeed 123", .DragDeltaSpeed = 123, .ClampMin = 20.0f, .ClampMax = 200.0f }),
+        EditAnywhere, ({ .ToolTip = {"DragDeltaSpeed 123"}, .DragDeltaSpeed = 123, .ClampMin = 20.0f, .ClampMax = 200.0f }),
         uint32, u32, = 0;
     )
 
     UPROPERTY(
-        EditAnywhere, ({ .ToolTip = "DragDeltaSpeed 0.123f", .DragDeltaSpeed = 0.123f }),
+        EditAnywhere, ({ .ToolTip = {"DragDeltaSpeed 0.123f"}, .DragDeltaSpeed = 0.123f }),
         float, f32, = 0;
     )
 
     UPROPERTY(
-        EditAnywhere, ({ .ToolTip = "DragDeltaSpeed 0.123f", .InlineEditConditionToggle = true }),
+        EditAnywhere, ({ .ToolTip = {"DragDeltaSpeed 0.123f"}, .InlineEditConditionToggle = true }),
         bool, my_bool, = false;
     )
 
     UPROPERTY(
-        EditAnywhere, { .ToolTip = "Inline String" },
+        EditAnywhere, { .ToolTip = {"Inline String"} },
         FString, InlineString, ;
     )
     
