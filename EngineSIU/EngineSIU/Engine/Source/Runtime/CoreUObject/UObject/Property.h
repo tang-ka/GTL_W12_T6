@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <utility>
 #include <variant>
 #include <optional>
@@ -616,9 +616,10 @@ struct FDistributionFloatProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -633,9 +634,10 @@ struct FDistributionVectorProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::LinearColor, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1195,9 +1197,10 @@ struct UMaterialProperty : public FProperty
         const char* InPropertyName,
         int64 InSize,
         int64 InOffset,
-        EPropertyFlags InFlags
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
     )
-        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags)
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Object, InSize, InOffset, InFlags, std::move(InMetadata))
     {
     }
 
@@ -1310,24 +1313,6 @@ FProperty* MakeProperty(
     else if constexpr (TypeEnum == EPropertyType::Float)       { return new FFloatProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::Double)      { return new FDoubleProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::Bool)        { return new FBoolProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
-
-<<<<<<< HEAD
-    else if constexpr (TypeEnum == EPropertyType::String)      { return new FStrProperty         { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Name)        { return new FNameProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Vector2D)    { return new FVector2DProperty    { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Vector)      { return new FVectorProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Vector4)     { return new FVector4Property     { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Rotator)     { return new FRotatorProperty     { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Quat)        { return new FQuatProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Transform)   { return new FTransformProperty   { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Matrix)      { return new FMatrixProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::Color)       { return new FColorProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::DistributionFloat) { return new FDistributionFloatProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-    else if constexpr (TypeEnum == EPropertyType::DistributionVector) { return new FDistributionVectorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-
-    else if constexpr (TypeEnum == EPropertyType::Material) { return new UMaterialProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags }; }
-=======
     else if constexpr (TypeEnum == EPropertyType::String)      { return new FStrProperty         { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::Name)        { return new FNameProperty        { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::Vector2D)    { return new FVector2DProperty    { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
@@ -1339,7 +1324,10 @@ FProperty* MakeProperty(
     else if constexpr (TypeEnum == EPropertyType::Matrix)      { return new FMatrixProperty      { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::Color)       { return new FColorProperty       { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::LinearColor) { return new FLinearColorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
->>>>>>> upstream/main
+
+    else if constexpr (TypeEnum == EPropertyType::DistributionFloat) { return new FDistributionFloatProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::DistributionVector) { return new FDistributionVectorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::Material) { return new UMaterialProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
 
     else if constexpr (TypeEnum == EPropertyType::Array)
     {
