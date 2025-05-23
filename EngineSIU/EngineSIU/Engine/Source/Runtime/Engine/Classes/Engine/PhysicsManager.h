@@ -22,6 +22,13 @@ struct GameObject {
 
 class FPhysicsSimulationEventCallback;
 
+// 내용이 별로 없어서 커스템 에러콜백 여기서 구현함
+class PhysXErrorCallback : public PxErrorCallback
+{
+public:
+    virtual void reportError(PxErrorCode::Enum code, const char* message, const char* file, int line) override;
+};
+
 class UPhysicsManager : public UObject
 {
     DECLARE_CLASS(UPhysicsManager, UObject)
@@ -50,7 +57,7 @@ public:
 
 private:
     PxDefaultAllocator Allocator;
-    PxDefaultErrorCallback ErrorCallback;
+    PhysXErrorCallback ErrorCallback;
     PxFoundation* Foundation = nullptr;
     PxPhysics* Physics = nullptr;
     PxScene* Scene = nullptr;
@@ -61,3 +68,4 @@ private:
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;
 };
+

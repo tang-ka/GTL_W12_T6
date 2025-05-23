@@ -1,5 +1,6 @@
 #include "PhysicsManager.h"
 #include "Physics/PhysicsSimulationEventCallback.h"
+#include "Userinterface/Console.h"
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -47,6 +48,7 @@ GameObject* UPhysicsManager::SpawnGameObject(const PxVec3& Position,
 {
     SCOPED_READ_LOCK(*Scene);
 
+    // 엔진에서 생성한 메쉬 형상에 맞는 Body를 생성해주면 될 듯
     //PxMaterial* PxMaterial = Material ? Material->GetPhysXMaterial() : Physics->createMaterial(0.5f, 0.5f, 0.6f);
     PxMaterial* PxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
     PxTransform transform(Position);
@@ -87,4 +89,15 @@ void GameObject::UpdateFromPhysics()
     PxTransform t = rigidBody->getGlobalPose();
     PxMat44 mat(t);
     worldMatrix = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&mat));
+}
+
+void PhysXErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)
+{
+    const char* fileName = strrchr(file, '\\');
+    
+    if (!fileName) fileName = strrchr(file, '/');
+    fileName = fileName ? fileName + 1 : file;
+
+    UE_LOG(ELogLevel::Error, TEXT("[PhysX] %s (%s:%d)"), message, fileName, line);
+    printf("[PhysX %s] %s (%s:%d)\n", code, message, fileName, line);
 }
