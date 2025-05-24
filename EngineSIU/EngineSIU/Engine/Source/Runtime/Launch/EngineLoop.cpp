@@ -16,6 +16,7 @@
 #include "Renderer/TileLightCullingPass.h"
 
 #include "SoundManager.h"
+#include "Engine/PhysicsManager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
@@ -85,7 +86,8 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     PrimitiveDrawBatch.Initialize(&GraphicDevice);
     UIManager->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
     ResourceManager.Initialize(&Renderer, &GraphicDevice);
-    
+    UPhysicsManager::Get().Initialize();
+
     uint32 ClientWidth = 0;
     uint32 ClientHeight = 0;
     GetClientSize(ClientWidth, ClientHeight);
