@@ -18,8 +18,10 @@ public:
     const FSkeletalMeshRenderData* GetRenderData() const;
 
     USkeleton* GetSkeleton() const { return Skeleton; }
-
     void SetSkeleton(USkeleton* InSkeleton) { Skeleton = InSkeleton; }
+
+    UPhysicsAsset* GetPhysicsAsset() const { return PhysicsAsset; }
+    void SetPhysicsAsset(UPhysicsAsset* InPhysicsAsset) { PhysicsAsset = InPhysicsAsset; }
 
     virtual void SerializeAsset(FArchive& Ar) override;
 

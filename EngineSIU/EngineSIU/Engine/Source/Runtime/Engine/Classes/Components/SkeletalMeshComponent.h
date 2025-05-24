@@ -5,6 +5,7 @@
 #include "Engine/Asset/SkeletalMeshAsset.h"
 #include "Template/SubclassOf.h"
 #include "Animation/AnimNodeBase.h"
+//#include "Engine\Asset\PhysicsAsset.h"
 
 class UAnimSequence;
 class USkeletalMesh;
@@ -12,6 +13,7 @@ class FAnimNotifyEvent;
 class UAnimSequenceBase;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
+class UPhysicsAsset;
 
 struct FBodyInstance;
 struct FConstraintInstance;
@@ -154,4 +156,9 @@ public:
 public:
     TArray<FBodyInstance*> Bodies;
     TArray<FConstraintInstance*> Constraints;
+
+    UPhysicsAsset* GetPhysicsAsset() const;
+    void SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset);
+
+    void CreateBodies();
 };
