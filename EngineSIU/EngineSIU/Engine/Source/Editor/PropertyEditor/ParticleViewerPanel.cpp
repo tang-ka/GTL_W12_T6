@@ -406,8 +406,6 @@ void ParticleViewerPanel::RenderEffectSet(UParticleEmitter* Emitter)
         
         ImGui::PopID();
     }
-
-    
     
     ImGui::EndGroup();
 }

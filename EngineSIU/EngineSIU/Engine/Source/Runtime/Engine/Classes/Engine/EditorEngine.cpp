@@ -18,7 +18,6 @@
 #include "PropertyEditor/ParticleViewerPanel.h"
 #include "UnrealEd/UnrealEd.h"
 #include "World/ParticleViewerWorld.h"
-#include "World/PhysicsViewerWorld.h"
 
 extern FEngineLoop GEngineLoop;
 
@@ -348,8 +347,8 @@ void UEditorEngine::StartPhysicsViewer(FName SkeletalMeshName)
 
     WorldContext.SetCurrentWorld(PhysicsViewerWorld);
     ActiveWorld = PhysicsViewerWorld;
+    PhysicsViewerWorld->WorldType = EWorldType::PhysicsViewer;
 
-    // 스켈레탈 액터 스폰
     ASkeletalMeshActor* SkeletalActor = PhysicsViewerWorld->SpawnActor<ASkeletalMeshActor>();
     SkeletalActor->SetActorTickInEditor(true);
 
@@ -485,6 +484,31 @@ void UEditorEngine::EndParticleViewer()
         Camera.SetLocation(CameraLocation);
         Camera.SetRotation(CameraRotation);
         
+        ClearActorSelection();
+        ClearComponentSelection();
+    }
+    ActiveWorld = EditorWorld;
+
+    if (AEditorPlayer* Player = GetEditorPlayer())
+    {
+        Player->SetCoordMode(ECoordMode::CDM_WORLD);
+    }
+}
+
+void UEditorEngine::EndPhysicsViewer()
+{
+    if (PhysicsViewerWorld)
+    {
+        this->ClearActorSelection();
+        WorldList.Remove(GetWorldContextFromWorld(PhysicsViewerWorld));
+        PhysicsViewerWorld->Release();
+        GUObjectArray.MarkRemoveObject(PhysicsViewerWorld);
+        PhysicsViewerWorld = nullptr;
+
+        FViewportCamera& Camera = *GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetPerspectiveCamera();
+        Camera.SetLocation(CameraLocation);
+        Camera.SetRotation(CameraRotation);
+
         ClearActorSelection();
         ClearComponentSelection();
     }

@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "Actors/Player.h"
 #include "World/SkeletalViewerWorld.h"
+#include "World/PhysicsViewerWorld.h"
 
 /*
     Editor 모드에서 사용될 엔진.
@@ -11,7 +12,6 @@
 
 class UParticleViewerWorld;
 class UParticleSystem;
-class UPhysicsViewerWorld;
 class AActor;
 class USceneComponent;
 
@@ -41,6 +41,7 @@ public:
     void EndPIE();
     void EndSkeletalMeshViewer();
     void EndParticleViewer();
+    void EndPhysicsViewer();
     
     void BindEssentialObjects();
 
