@@ -1,9 +1,8 @@
 #pragma once
 
-#include "UObject/Object.h"
 #include "Physics/BodyInstance.h"
 #include "PhysicsEngine/AggregateGeom.h"
-
+#include "PhysicsEngine/BodySetupCore.h"
 
 class UPhysicalMaterial;
 class UPrimitiveComponent;
@@ -12,9 +11,9 @@ class UPrimitiveComponent;
  * BodySetup contains all collision information that is associated with a single asset.
  * A single BodySetup instance is shared among many BodyInstances so that geometry data is not duplicated.
  */
-class UBodySetup : public UObject
+class UBodySetup : public UBodySetupCore
 {
-    DECLARE_CLASS(UBodySetup, UObject)
+    DECLARE_CLASS(UBodySetup, UBodySetupCore)
 
 public:
     UBodySetup();
