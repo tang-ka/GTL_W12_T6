@@ -5,6 +5,7 @@
 #include "Define.h"
 
 struct FStaticMeshRenderData;
+class UBodySetup;
 
 class UStaticMesh : public UObject
 {
@@ -30,4 +31,6 @@ public:
 private:
     FStaticMeshRenderData* RenderData = nullptr;
     TArray<FStaticMaterial*> Materials;
+
+    UBodySetup* BodySetup = nullptr; // 물리 엔진에서 사용되는 바디 설정
 };

@@ -13,6 +13,9 @@ class UAnimSequenceBase;
 class UAnimInstance;
 class UAnimSingleNodeInstance;
 
+struct FBodyInstance;
+struct FConstraintInstance;
+
 enum class EAnimationMode : uint8
 {
     AnimationBlueprint,
@@ -147,4 +150,8 @@ public:
     UClass* GetAnimClass();
     
     void SetAnimInstanceClass(class UClass* NewClass);
+
+public:
+    TArray<FBodyInstance*> Bodies;
+    TArray<FConstraintInstance*> Constraints;
 };
