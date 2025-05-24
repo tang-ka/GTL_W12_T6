@@ -11,6 +11,7 @@ enum class EWorldType
     GameRPC,
     SkeletalViewer,
     ParticleViewer,
+    PhysicsViewer,
     Inactive
 };
 

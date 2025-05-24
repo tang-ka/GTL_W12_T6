@@ -11,6 +11,7 @@
 
 class UParticleViewerWorld;
 class UParticleSystem;
+class UPhysicsViewerWorld;
 class AActor;
 class USceneComponent;
 
@@ -28,12 +29,14 @@ public:
     UWorld* PIEWorld = nullptr;
     USkeletalViewerWorld* SkeletalMeshViewerWorld = nullptr;
     UParticleViewerWorld* ParticleViewerWorld = nullptr;
+    UPhysicsViewerWorld* PhysicsViewerWorld = nullptr;
     UWorld* EditorWorld = nullptr;
     
 
     void StartPIE();
     void StartSkeletalMeshViewer(FName SkeletalMeshName, UAnimationAsset* AnimAsset);
     void StartParticleViewer(FName ParticleName, UParticleSystem* ParticleSystem);
+    void StartPhysicsViewer(FName SkeletalMeshName);
 
     void EndPIE();
     void EndSkeletalMeshViewer();
