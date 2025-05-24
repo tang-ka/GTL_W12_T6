@@ -717,6 +717,19 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                 Engine->StartSkeletalMeshViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName), SkeletalMeshComp->GetAnimation());
             }
         }
+
+        if (ImGui::Button("Open Physics Editor"))
+        {
+            UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+            if (!Engine)
+            {
+                return;
+            }
+            if (SkeletalMeshComp->GetSkeletalMeshAsset())
+            {
+                Engine->StartPhysicsViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
+            }
+        }
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();

@@ -1,4 +1,4 @@
-﻿#include "SlateRenderPass.h"
+#include "SlateRenderPass.h"
 
 #include "RendererHelpers.h"
 #include "UnrealClient.h"
@@ -46,13 +46,26 @@ void FSlateRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
         ClientHeightFloat /= 0.5f;
         
         Transform.Scale = FVector2D(
-    Rect.Width / ClientWidthFloat,
-    Rect.Height / ClientHeightFloat
+            Rect.Width / ClientWidthFloat,
+            Rect.Height / ClientHeightFloat
         );
         
         Transform.Offset = FVector2D(
-    (Rect.TopLeftX + Rect.Width * 0.5f) / ClientWidthFloat * 2.0f - 1.0f,
-    1.0f - (Rect.TopLeftY + Rect.Height * 0.5f) / ClientHeightFloat * 2.0f
+            (Rect.TopLeftX + Rect.Width * 0.5f) / ClientWidthFloat * 2.0f - 1.0f,
+            1.0f - (Rect.TopLeftY + Rect.Height * 0.5f) / ClientHeightFloat * 2.0f
+        );
+    }
+    else if (GEngine->ActiveWorld->WorldType == EWorldType::PhysicsViewer)
+    {
+        // Magic Number
+        Transform.Scale = FVector2D(
+            (Rect.Width / ClientWidthFloat) * 0.75f,
+            Rect.Height / ClientHeightFloat
+        );
+
+        Transform.Offset = FVector2D(
+            (Rect.TopLeftX + Rect.Width * 0.625f) / ClientWidthFloat * 2.0f - 1.0f,
+            1.0f - (Rect.TopLeftY + Rect.Height * 0.5f) / ClientHeightFloat * 2.0f
         );
     }
     else

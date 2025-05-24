@@ -7,10 +7,10 @@ class USkeletalMesh;
 class FReferenceSkeleton;
 class USkeletalMeshComponent;
 class UAnimDataModel;
-class SkeletalMeshViewerPanel : public UEditorPanel
+class PhysicsViewerPanel : public UEditorPanel
 {
 public:
-    SkeletalMeshViewerPanel();
+    PhysicsViewerPanel();
 
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
@@ -29,9 +29,10 @@ private:
     void CopyRefSkeleton();
 
     void RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine);
+    // Body - Constraint 연결 정보 표시
+    void RenderConstraintPanel();
+    void RenderPhysicsDetailPanel();
 
-    void RenderAnimationSequence(const FReferenceSkeleton& RefSkeleton, UEditorEngine* Engine); 
-    void RenderAnimationPanel(float PanelPosX, float PanelTopY, float PanelWidth, float PanelHeight);
     FString GetCleanBoneName(const FString& InFullName);
 
     ID3D11ShaderResourceView* BoneIconSRV = nullptr;
@@ -41,18 +42,4 @@ private:
 
     FReferenceSkeleton* CopiedRefSkeleton = nullptr;
     USkeletalMeshComponent* RefSkeletalMeshComponent = nullptr;
-
-    UAnimDataModel* PrevAnimDataModel = nullptr;
-    
-    int32 PreviousFrame = 0;
-    int32 SelectedTrackIndex_ForRename = INDEX_NONE;
-    int32 SelectedNotifyGlobalIndex_ForRename = INDEX_NONE;
-    TCHAR RenameTrackBuffer[256];
-    TCHAR RenameNotifyBuffer[256];
-    
-private:
-    char NewNotifyNameBuffer[128] = "NewNotify";
-    float NewNotifyTime = 0.0f;
-    float RenameNotifyDuration = 1.0f; 
-
 };
