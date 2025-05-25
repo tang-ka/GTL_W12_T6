@@ -489,6 +489,32 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         {
             StaticMeshComp->SimulatePhysics(bPhysics);
         }
+        
+        if (bPhysics)
+        {
+            ImGui::Text("Physics Material Setting");
+            bool bChanged = false;
+            float StaticFriction = StaticMeshComp->GetStaticMesh()->GetStaticFriction();
+            float DynamicFriction = StaticMeshComp->GetStaticMesh()->GetDynamicFriction();
+            float Restitution = StaticMeshComp->GetStaticMesh()->GetRestitution();
+            ImGui::Text("Static Friction"); ImGui::SameLine();
+            if (ImGui::DragFloat("##StaticFriction", &StaticFriction, 0.01f, 0.0f, 10.0f))
+            {
+                bChanged = true;
+            }
+            ImGui::Text("Dynamic Friction"); ImGui::SameLine();
+            if (ImGui::DragFloat("##DynamicFriction", &DynamicFriction, 0.01f, 0.0f, 10.0f))
+            {
+                bChanged = true;
+            }
+            ImGui::Text("Restitution"); ImGui::SameLine();
+            if (ImGui::DragFloat("##Restitution", &Restitution, 0.01f, 0.0f, 10.0f))
+            {
+                bChanged = true;
+            }
+            if (bChanged)
+                StaticMeshComp->SetPhysMaterial(StaticFriction, DynamicFriction, Restitution);
+        }
 
         ImGui::TreePop();
     }

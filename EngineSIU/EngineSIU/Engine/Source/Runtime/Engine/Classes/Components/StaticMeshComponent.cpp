@@ -244,3 +244,15 @@ void UStaticMeshComponent::SimulatePhysics(bool Value)
         Body->TermBody();
     }
 }
+
+void UStaticMeshComponent::SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution)
+{
+    StaticMesh->SetPhysMaterial(InStaticFric, InDynamicFric, InRestitution);
+    if (Body)
+        Body->TermBody();
+    if (bSimulatePhysics)
+    {
+        if (StaticMesh->GetBodySetup())
+            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform());
+    }
+}

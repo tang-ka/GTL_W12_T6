@@ -37,6 +37,8 @@ public:
     bool ShouldSimulatePhysics() { return bSimulatePhysics; }
     void SimulatePhysics(bool Value);
 
+    void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution);
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;

@@ -1,5 +1,6 @@
 #include "BodyInstance.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicalMaterial.h"
 
 FBodyInstance::FBodyInstance()
 {
@@ -18,7 +19,6 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
     PxQuat PxRotation(Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
 
     const FKAggregateGeom& AggGeom = Setup->AggGeom;
-    PxMaterial* PxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
 
     TArray<PxShape*> Shapes;
 
@@ -30,7 +30,7 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
         PxQuat BoxRotation(BoxQuat.X, BoxQuat.Y, BoxQuat.Z, BoxQuat.W);
         PxTransform LocalPose(BoxCenter, BoxRotation);
 
-        PxShape* Shape = Physics->createShape(BoxGeom, *PxMaterial);
+        PxShape* Shape = Physics->createShape(BoxGeom, *(Setup->PhysMaterial->GetMaterial()));
         Shape->setLocalPose(LocalPose);
 
         Shapes.Add(Shape);
@@ -42,11 +42,10 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
     //    PxVec3 SphereCenter(Sphere.Center.X, Sphere.Center.Y, Sphere.Center.Z);
     //    PxTransform LocalPose = PxTransform(SphereCenter);
     //
-    //    PxShape* Shape = gPhysics->createShape(SphereGeom, *PxMaterial);
+    //    PxShape* Shape = gPhysics->createShape(SphereGeom, *(Setup->PhysMaterial->GetMaterial()));
     //    Shape->setLocalPose(LocalPose);
     //    Shapes.Add(Shape);
     //}
-    PxMaterial->release();
 
     Actor = UPhysicsManager::Get().SpawnGameObject(PxLocation, PxRotation, Shapes);
 } 
