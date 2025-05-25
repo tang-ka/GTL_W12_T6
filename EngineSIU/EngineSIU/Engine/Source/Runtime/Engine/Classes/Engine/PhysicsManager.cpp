@@ -43,7 +43,8 @@ void UPhysicsManager::Initialize()
 }
 
 GameObject* UPhysicsManager::SpawnGameObject(const PxVec3& Position,
-    const PxGeometry& Geometry,
+    const PxQuat& Rotation,
+    const TArray<PxShape*> Shapes,
     UPhysicalMaterial* Material)
 {
     SCOPED_READ_LOCK(*Scene);
@@ -51,12 +52,14 @@ GameObject* UPhysicsManager::SpawnGameObject(const PxVec3& Position,
     // 엔진에서 생성한 메쉬 형상에 맞는 Body를 생성해주면 될 듯
     //PxMaterial* PxMaterial = Material ? Material->GetPhysXMaterial() : Physics->createMaterial(0.5f, 0.5f, 0.6f);
     PxMaterial* PxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
-    PxTransform transform(Position);
+    PxTransform transform(Position, Rotation);
     PxRigidDynamic* body = Physics->createRigidDynamic(transform);
 
-    PxShape* shape = Physics->createShape(Geometry, *PxMaterial);
-    body->attachShape(*shape);
-    shape->release();
+    for (PxShape* Shape : Shapes)
+    {
+        body->attachShape(*Shape);
+        Shape->release();
+    }
 
     PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
     Scene->addActor(*body);
@@ -76,11 +79,21 @@ void UPhysicsManager::Simulate(float DeltaTime)
     {
         Object->UpdateFromPhysics();
     }
+
+    for (GameObject* Object : PendingRemoveGameObjects)
+    {
+        GameObjects.Remove(Object);
+    }
 }
 
 PxScene* UPhysicsManager::GetScene()
 {
     return Scene;
+}
+
+void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
+{
+    PendingRemoveGameObjects.Add(InGameObject);
 }
 
 void GameObject::UpdateFromPhysics()

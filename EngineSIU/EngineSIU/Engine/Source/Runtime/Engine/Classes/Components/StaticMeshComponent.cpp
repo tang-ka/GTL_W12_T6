@@ -226,7 +226,21 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
     {
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
-        if(StaticMesh->GetBodySetup())
-            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform(), false);
+        if(StaticMesh->GetBodySetup() && bSimulatePhysics)
+            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform());
+    }
+}
+
+void UStaticMeshComponent::SimulatePhysics(bool Value)
+{
+    bSimulatePhysics = Value;
+    if (bSimulatePhysics)
+    {
+        if (StaticMesh->GetBodySetup())
+            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform());
+    }
+    else
+    {
+        Body->TermBody();
     }
 }
