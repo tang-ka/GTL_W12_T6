@@ -13,6 +13,8 @@
 #include "Engine/Engine.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
+#include "Engine/Asset/PhysicsAsset.h"
+#include "PhysicsEngine/BodySetup.h"
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -32,6 +34,7 @@ void USkeletalMeshComponent::InitializeComponent()
     Super::InitializeComponent();
 
     InitAnim();
+    CreateBodies();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -166,6 +169,8 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
     CPURenderData->Indices = InSkeletalMeshAsset->GetRenderData()->Indices;
     CPURenderData->ObjectName = InSkeletalMeshAsset->GetRenderData()->ObjectName;
     CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
+
+
 }
 
 FTransform USkeletalMeshComponent::GetSocketTransform(FName SocketName) const
@@ -500,7 +505,33 @@ void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset)
 
 void USkeletalMeshComponent::CreateBodies()
 {
+    if (!GetPhysicsAsset())
+    {
+        return;
+    }
+
+    for (auto* BodyInstance : Bodies)
+    {
+        BodyInstance->TermBody(); // 기존 바디 인스턴스를 초기화합니다.
+        delete BodyInstance;
+    }
+    Bodies.Empty(); // 기존 바디 인스턴스를 모두 제거합니다.
+
+    for (auto* BodySetup : GetPhysicsAsset()->GetBodySetup())
+    {
+        if (!BodySetup) continue;
+
+        FBodyInstance* NewInstance = new FBodyInstance();
+
+        FName BoneName = BodySetup->GetFName();
+        const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+        int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BoneName);
+
+        //if (RawName  )
+        //FTransform BoneTransform = 
+    }
 }
+
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
 {

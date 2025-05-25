@@ -217,6 +217,7 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
     {
         Body->TermBody();
     }
+
     if (StaticMesh == nullptr)
     {
         OverrideMaterials.SetNum(0);

@@ -12,7 +12,10 @@ public:
     UPhysicsAsset();
     ~UPhysicsAsset() = default;
 
+    TArray<UBodySetup*> GetBodySetup() { return BodySetups; }
+
 private:
     TArray<UBodySetup*> BodySetups;
+
 };
 

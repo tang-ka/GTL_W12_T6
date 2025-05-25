@@ -44,6 +44,8 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
         Actor->attachShape(*Shape);
     }
 
+    // TODO : Geometry별로 생성 로직 추가
+
     //for (const FKSphereElem& Sphere : AggGeom.SphereElems)
     //{
     //    PxSphereGeometry SphereGeom(Sphere.Radius);
