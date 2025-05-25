@@ -55,6 +55,8 @@ public:
 
     PxScene* GetScene();
 
+    PxPhysics* GetPhysics() { return Physics; }
+
 private:
     PxDefaultAllocator Allocator;
     PhysXErrorCallback ErrorCallback;

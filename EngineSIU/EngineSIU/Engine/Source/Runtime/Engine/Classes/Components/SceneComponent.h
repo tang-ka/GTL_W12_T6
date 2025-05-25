@@ -70,6 +70,8 @@ public:
 
     FMatrix GetWorldMatrix() const;
 
+    FTransform GetWorldTransform() const;
+
     void UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps = nullptr, bool bDoNotifies = true, const TArray<const FOverlapInfo>* OverlapsAtEndLocation = nullptr);
 
     bool MoveComponent(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* OutHit = nullptr);

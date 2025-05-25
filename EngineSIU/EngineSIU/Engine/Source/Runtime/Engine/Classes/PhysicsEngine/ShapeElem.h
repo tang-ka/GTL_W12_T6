@@ -52,7 +52,7 @@ struct FKShapeElem
     {
     }
 
-    virtual ~FKShapeElem();
+    virtual ~FKShapeElem() = default;
 
     const FKShapeElem& operator=(const FKShapeElem& Other)
     {
@@ -131,4 +131,14 @@ private:
     ECollisionEnabled::Type CollisionEnabled;
 
     //FUserData UserData;
+};
+
+struct FKBoxElem : public FKShapeElem
+{
+    FKBoxElem()
+        : FKShapeElem(EAggCollisionShape::Box) { }
+
+    FVector Center;
+    FVector Extent;
+    FRotator Rotation;
 };

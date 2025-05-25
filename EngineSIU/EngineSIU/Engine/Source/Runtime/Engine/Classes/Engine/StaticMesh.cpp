@@ -4,6 +4,7 @@
 #include "UObject/ObjectFactory.h"
 
 #include "Engine/Asset/StaticMeshAsset.h"
+#include "PhysicsEngine/BodySetup.h"
 
 UObject* UStaticMesh::Duplicate(UObject* InOuter)
 {
@@ -42,6 +43,9 @@ void UStaticMesh::SetData(FStaticMeshRenderData* InRenderData)
 {
     RenderData = InRenderData;
 
+    if (BodySetup)
+        delete BodySetup;
+
     for (int MaterialIndex = 0; MaterialIndex < RenderData->Materials.Num(); MaterialIndex++)
     {
         FStaticMaterial* NewMaterialSlot = new FStaticMaterial();
@@ -52,6 +56,14 @@ void UStaticMesh::SetData(FStaticMeshRenderData* InRenderData)
 
         Materials.Add(NewMaterialSlot);
     }
+
+    BodySetup = new UBodySetup();
+
+    FKBoxElem Box;
+    Box.Center = (RenderData->BoundingBoxMax + RenderData->BoundingBoxMin) * 0.5f;
+    Box.Extent = (RenderData->BoundingBoxMax - RenderData->BoundingBoxMin) * 0.5f;
+    
+    BodySetup->AggGeom.BoxElems.Add(Box);
 }
 
 void UStaticMesh::SerializeAsset(FArchive& Ar)

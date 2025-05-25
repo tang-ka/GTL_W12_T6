@@ -6,26 +6,26 @@
 struct FKAggregateGeom
 {
     // 각 Geometry Shape에 대한 내용
-    /*UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Spheres", TitleProperty = "Name"))
-    TArray<FKSphereElem> SphereElems;
-
-    UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Boxes", TitleProperty = "Name"))
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Spheres", TitleProperty = "Name"))
+    //TArray<FKSphereElem> SphereElems;
+    //
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Boxes", TitleProperty = "Name"))
     TArray<FKBoxElem> BoxElems;
-
-    UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Capsules", TitleProperty = "Name"))
-    TArray<FKSphylElem> SphylElems;
-
-    UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Convex Elements", TitleProperty = "Name"))
-    TArray<FKConvexElem> ConvexElems;
-
-    UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Tapered Capsules", TitleProperty = "Name"))
-    TArray<FKTaperedCapsuleElem> TaperedCapsuleElems;
-
-    UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Level Sets", TitleProperty = "Name"))
-    TArray<FKLevelSetElem> LevelSetElems;
-
-    UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "(Experimental) Skinned Level Sets", TitleProperty = "Name"), Experimental)
-    TArray<FKSkinnedLevelSetElem> SkinnedLevelSetElems;*/
+    //
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Capsules", TitleProperty = "Name"))
+    //TArray<FKSphylElem> SphylElems;
+    //
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Convex Elements", TitleProperty = "Name"))
+    //TArray<FKConvexElem> ConvexElems;
+    //
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Tapered Capsules", TitleProperty = "Name"))
+    //TArray<FKTaperedCapsuleElem> TaperedCapsuleElems;
+    //
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Level Sets", TitleProperty = "Name"))
+    //TArray<FKLevelSetElem> LevelSetElems;
+    //
+    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "(Experimental) Skinned Level Sets", TitleProperty = "Name"), Experimental)
+    //TArray<FKSkinnedLevelSetElem> SkinnedLevelSetElems;
 
     FKAggregateGeom()
         : RenderInfoPtr(nullptr)

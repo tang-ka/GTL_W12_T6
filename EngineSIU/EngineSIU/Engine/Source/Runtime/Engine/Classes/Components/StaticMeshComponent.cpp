@@ -8,6 +8,12 @@
 #include "UObject/ObjectFactory.h"
 
 #include "GameFramework/Actor.h"
+#include "Physics/BodyInstance.h"
+
+UStaticMeshComponent::UStaticMeshComponent()
+{
+    Body = new FBodyInstance();
+}
 
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
 {
@@ -202,4 +208,25 @@ int UStaticMeshComponent::CheckRayIntersection(const FVector& InRayOrigin, const
 
     }
     return IntersectionNum;
+}
+
+void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
+{
+    StaticMesh = Value;
+    if (Body)
+    {
+        Body->TermBody();
+    }
+    if (StaticMesh == nullptr)
+    {
+        OverrideMaterials.SetNum(0);
+        AABB = FBoundingBox(FVector::ZeroVector, FVector::ZeroVector);
+    }
+    else
+    {
+        OverrideMaterials.SetNum(Value->GetMaterials().Num());
+        AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
+        if(StaticMesh->GetBodySetup())
+            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform(), false);
+    }
 }

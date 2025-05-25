@@ -317,6 +317,11 @@ FMatrix USceneComponent::GetWorldMatrix() const
     return ScaleMat * RTMat;
 }
 
+FTransform USceneComponent::GetWorldTransform() const
+{
+    return FTransform(GetComponentRotation(), GetComponentLocation(), GetComponentScale3D());
+}
+
 void USceneComponent::SetupAttachment(USceneComponent* InParent)
 {
     if (

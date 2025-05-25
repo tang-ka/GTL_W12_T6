@@ -4,12 +4,14 @@
 
 #include "Engine/Asset/StaticMeshAsset.h"
 
+class FBodyInstance;
+
 class UStaticMeshComponent : public UMeshComponent
 {
     DECLARE_CLASS(UStaticMeshComponent, UMeshComponent)
 
 public:
-    UStaticMeshComponent() = default;
+    UStaticMeshComponent();
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
@@ -30,22 +32,10 @@ public:
     virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance) const override;
     
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
-    void SetStaticMesh(UStaticMesh* Value)
-    { 
-        StaticMesh = Value;
-        if (StaticMesh == nullptr)
-        {
-            OverrideMaterials.SetNum(0);
-            AABB = FBoundingBox(FVector::ZeroVector, FVector::ZeroVector);
-        }
-        else
-        {
-            OverrideMaterials.SetNum(Value->GetMaterials().Num());
-            AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
-        }
-    }
+    void SetStaticMesh(UStaticMesh* Value);
 
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;
+    FBodyInstance* Body = nullptr;
 };
