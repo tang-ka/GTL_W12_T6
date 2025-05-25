@@ -15,7 +15,7 @@
 #include "UObject/ObjectFactory.h"
 #include "Engine/Asset/PhysicsAsset.h"
 #include "PhysicsEngine/BodySetup.h"
-#include "PhysicsEngine/BodyInstance.h"
+#include "Physics/BodyInstance.h"
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -35,7 +35,9 @@ void USkeletalMeshComponent::InitializeComponent()
     Super::InitializeComponent();
 
     InitAnim();
+
     CreateBodies();
+    SyncComponentToBody();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -577,6 +579,43 @@ void USkeletalMeshComponent::SyncBodyToComponent()
                 BonePoseContext.Pose[BoneIndex] = BodyTransform;
             }
         }
+    }
+}
+
+void USkeletalMeshComponent::SyncComponentToBody()
+{
+    if (!GetPhysicsAsset())
+    {
+        return;
+    }
+
+    const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+    const TArray<UBodySetup*>& BodySetups = GetPhysicsAsset()->GetBodySetup();
+
+    TArray<FMatrix> CurrentGlobalBoneMatrices;
+    GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
+
+    for (int32 i = 0; i < Bodies.Num() && i < BodySetups.Num(); i++)
+    {
+        FBodyInstance* BodyInstance = Bodies[i];
+        UBodySetup* BodySetup = BodySetups[i];
+
+        if (!BodyInstance || !BodySetup)
+        {
+            continue;
+        }
+
+        int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BodySetup->BoneName);
+        if (BoneIndex == INDEX_NONE)
+        {
+            continue;
+        }
+
+        const FMatrix& BoneMatrix = CurrentGlobalBoneMatrices[BoneIndex];
+        FTransform BoneTransform = FTransform(BoneMatrix);
+
+        BodyInstance->TermBody();
+        BodyInstance->InitBody(BodySetup, BoneTransform);
     }
 }
 
