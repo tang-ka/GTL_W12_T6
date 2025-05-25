@@ -133,12 +133,41 @@ private:
     //FUserData UserData;
 };
 
+struct FKSphereElem : public FKShapeElem
+{
+    FKSphereElem() : FKShapeElem(EAggCollisionShape::Sphere) { }
+
+    FVector Center = FVector::ZeroVector;
+    float Radius = 0;
+};
+
 struct FKBoxElem : public FKShapeElem
 {
-    FKBoxElem()
-        : FKShapeElem(EAggCollisionShape::Box) { }
+    FKBoxElem() : FKShapeElem(EAggCollisionShape::Box) { }
 
-    FVector Center;
-    FVector Extent;
-    FRotator Rotation;
+    FVector Center = FVector::ZeroVector;
+    FVector Extent = FVector::ZeroVector;
+    FRotator Rotation = FRotator::ZeroRotator;
+};
+
+struct FKSphylElem : public FKShapeElem
+{
+    FKSphylElem() : FKShapeElem(EAggCollisionShape::Sphyl) { }
+
+    FVector Center = FVector::ZeroVector;
+    float Radius = 0;
+    float HalfHeight = 0;
+    FRotator Rotation = FRotator::ZeroRotator;
+};
+
+struct FKConvexElem : public FKShapeElem
+{
+    FKConvexElem() : FKShapeElem(EAggCollisionShape::Convex) { }
+
+    FVector Center = FVector::ZeroVector;
+    FRotator Rotation = FRotator::ZeroRotator;
+
+    TArray<FVector> VertexData;
+    TArray<int32> FaceIndexBuffer;
+    TArray<FVector> FaceNormalBuffer;
 };

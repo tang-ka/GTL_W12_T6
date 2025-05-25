@@ -7,16 +7,16 @@ struct FKAggregateGeom
 {
     // 각 Geometry Shape에 대한 내용
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Spheres", TitleProperty = "Name"))
-    //TArray<FKSphereElem> SphereElems;
+    TArray<FKSphereElem> SphereElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Boxes", TitleProperty = "Name"))
     TArray<FKBoxElem> BoxElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Capsules", TitleProperty = "Name"))
-    //TArray<FKSphylElem> SphylElems;
+    TArray<FKSphylElem> SphylElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Convex Elements", TitleProperty = "Name"))
-    //TArray<FKConvexElem> ConvexElems;
+    TArray<FKConvexElem> ConvexElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Tapered Capsules", TitleProperty = "Name"))
     //TArray<FKTaperedCapsuleElem> TaperedCapsuleElems;
@@ -48,34 +48,53 @@ struct FKAggregateGeom
     // 모든 형상의 개수 합쳐서 던져주기
     int32 GetElementCount() const
     {
+        return SphereElems.Num() + SphylElems.Num() + BoxElems.Num() + ConvexElems.Num() /*+ TaperedCapsuleElems.Num() + LevelSetElems.Num() + SkinnedLevelSetElems.Num()*/;
         //return SphereElems.Num() + SphylElems.Num() + BoxElems.Num() + ConvexElems.Num() + TaperedCapsuleElems.Num() + LevelSetElems.Num() + SkinnedLevelSetElems.Num();
     }
 
-    int32 GetElementCount(EAggCollisionShape::Type Type) const;
+    int32 GetElementCount(EAggCollisionShape::Type Type) const
+    {
+        switch (Type)
+        {
+        case EAggCollisionShape::Sphere:
+            return SphereElems.Num();
+            break;
+        case EAggCollisionShape::Box:
+            return BoxElems.Num();
+            break;
+        case EAggCollisionShape::Sphyl:
+            return SphylElems.Num();
+            break;
+        case EAggCollisionShape::Convex:
+            return ConvexElems.Num();
+            break;
+        default:
+            return -1;
+            break;
+        }
+    }
 
     FKShapeElem* GetElement(const EAggCollisionShape::Type Type, const int32 Index)
     {
-        /*switch (Type)
+
+        switch (Type)
         {
         case EAggCollisionShape::Sphere:
-            if (ensure(SphereElems.IsValidIndex(Index))) { return &SphereElems[Index]; }
+            if (SphereElems.IsValidIndex(Index)) { return &SphereElems[Index]; }
+            break;
         case EAggCollisionShape::Box:
-            if (ensure(BoxElems.IsValidIndex(Index))) { return &BoxElems[Index]; }
+            if (BoxElems.IsValidIndex(Index)) { return &BoxElems[Index]; }
+            break;
         case EAggCollisionShape::Sphyl:
-            if (ensure(SphylElems.IsValidIndex(Index))) { return &SphylElems[Index]; }
+            if (SphylElems.IsValidIndex(Index)) { return &SphylElems[Index]; }
+            break;
         case EAggCollisionShape::Convex:
-            if (ensure(ConvexElems.IsValidIndex(Index))) { return &ConvexElems[Index]; }
-        case EAggCollisionShape::TaperedCapsule:
-            if (ensure(TaperedCapsuleElems.IsValidIndex(Index))) { return &TaperedCapsuleElems[Index]; }
-        case EAggCollisionShape::LevelSet:
-            if (ensure(LevelSetElems.IsValidIndex(Index))) { return &LevelSetElems[Index]; }
-        case EAggCollisionShape::SkinnedLevelSet:
-            if (ensure(SkinnedLevelSetElems.IsValidIndex(Index))) { return &SkinnedLevelSetElems[Index]; }
+            if (ConvexElems.IsValidIndex(Index)) { return &ConvexElems[Index]; }
+            break;
         default:
-            ensure(false);
             return nullptr;
-        }*/
-        return nullptr;
+            break;
+        }
     }
 
     FKShapeElem* GetElement(const int32 InIndex)

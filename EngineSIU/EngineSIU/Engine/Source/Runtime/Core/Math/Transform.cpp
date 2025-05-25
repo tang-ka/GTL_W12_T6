@@ -59,6 +59,20 @@ FTransform::FTransform(const FMatrix& InMatrix)
     SetFromMatrix(InMatrix);
 }
 
+FTransform::FTransform(const DirectX::XMMATRIX InMatrix)
+{
+    FMatrix ConvertedMatrix;
+    for (int i = 0; i < 4; i++)
+    {
+        ConvertedMatrix.M[i][0] = InMatrix.r[i].m128_f32[0];
+        ConvertedMatrix.M[i][1] = InMatrix.r[i].m128_f32[1];
+        ConvertedMatrix.M[i][2] = InMatrix.r[i].m128_f32[2];
+        ConvertedMatrix.M[i][3] = InMatrix.r[i].m128_f32[3];
+    }
+
+    SetFromMatrix(ConvertedMatrix);
+}
+
 FVector FTransform::TransformDirection(const FVector& V) const
 {
     // 방향 벡터는 이동(Translation)과 스케일(Scale)의 영향을 받지 않고 회전만 변환.

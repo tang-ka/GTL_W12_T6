@@ -1,4 +1,6 @@
 #pragma once
+#include <DirectXMath.h>
+
 #include "Quat.h"
 #include "Vector.h"
 #include "Container/String.h"
@@ -21,6 +23,7 @@ struct FTransform
     explicit FTransform(const FQuat& InRotation);
     explicit FTransform(const FRotator& InRotation);
     explicit FTransform(const FMatrix& InMatrix);
+    explicit FTransform(const DirectX::XMMATRIX InMatrix);
     
     // 변환 함수들
     FVector TransformPosition(const FVector& V) const;

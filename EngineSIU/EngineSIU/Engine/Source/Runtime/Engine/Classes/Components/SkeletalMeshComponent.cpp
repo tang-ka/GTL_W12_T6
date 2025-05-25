@@ -15,6 +15,7 @@
 #include "UObject/ObjectFactory.h"
 #include "Engine/Asset/PhysicsAsset.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/BodyInstance.h"
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -64,6 +65,8 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     TickPose(DeltaTime);
+
+    SyncBodyToComponent();
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)
@@ -517,21 +520,65 @@ void USkeletalMeshComponent::CreateBodies()
     }
     Bodies.Empty(); // 기존 바디 인스턴스를 모두 제거합니다.
 
+    const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
     for (auto* BodySetup : GetPhysicsAsset()->GetBodySetup())
     {
         if (!BodySetup) continue;
 
         FBodyInstance* NewInstance = new FBodyInstance();
 
-        FName BoneName = BodySetup->GetFName();
-        const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+        FName BoneName = BodySetup->BoneName;
         int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BoneName);
 
-        //if (RawName  )
-        //FTransform BoneTransform = 
+        FTransform BoneTransform = FTransform::Identity;
+        if (BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
+        {
+            BoneTransform = RefBonePoseTransforms[BoneIndex];
+        }
+
+        NewInstance->InitBody(BodySetup, BoneTransform);
+        Bodies.Add(NewInstance);
     }
 }
 
+void USkeletalMeshComponent::SyncBodyToComponent()
+{
+    const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+
+    for (int32 i = 0; i < Bodies.Num(); i++)
+    {
+        FBodyInstance* BodyInstance = Bodies[i];
+        GameObject* BodyActor = BodyInstance->GetActor();
+
+        if (!BodyInstance || !BodyActor || !BodyActor->rigidBody)
+        {
+            continue;
+        }
+
+        const XMMATRIX WorldMatrix = BodyActor->worldMatrix;
+        FTransform BodyTransform = FTransform(WorldMatrix);
+
+        UBodySetup* BodySetup = GetPhysicsAsset()->GetBodySetup()[i];
+        int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BodySetup->BoneName);
+        
+        if(BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
+        {
+            // BodyTransform을 로컬 본 기준으로 변환
+            int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
+            if (ParentIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(ParentIndex))
+            {
+                // ParentWorld^-1 * BodyWorld = Local
+                FTransform ParentWorld = FTransform(Bodies[ParentIndex]->GetActor()->worldMatrix);
+                FTransform LocalTransform = BodyTransform.GetRelativeTransform(ParentWorld);
+                BonePoseContext.Pose[BoneIndex] = LocalTransform;
+            }
+            else
+            {
+                BonePoseContext.Pose[BoneIndex] = BodyTransform;
+            }
+        }
+    }
+}
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
 {

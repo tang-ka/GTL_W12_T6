@@ -40,6 +40,8 @@ void UPhysicsManager::Initialize()
     SceneDesc.simulationEventCallback = SimCallback;
 
     Scene = Physics->createScene(SceneDesc);
+
+    Cooking = PxCreateCooking(PX_PHYSICS_VERSION, *Foundation, PxCookingParams(Physics->getTolerancesScale()));
 }
 
 GameObject* UPhysicsManager::SpawnGameObject(const PxVec3& Position,
@@ -84,11 +86,6 @@ void UPhysicsManager::Simulate(float DeltaTime)
     {
         GameObjects.Remove(Object);
     }
-}
-
-PxScene* UPhysicsManager::GetScene()
-{
-    return Scene;
 }
 
 void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)

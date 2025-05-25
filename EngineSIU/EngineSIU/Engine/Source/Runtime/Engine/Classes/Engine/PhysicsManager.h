@@ -54,9 +54,9 @@ public:
 
     void Simulate(float DeltaTime);
 
-    PxScene* GetScene();
-
     PxPhysics* GetPhysics() { return Physics; }
+    PxScene* GetScene() { return Scene; }
+    PxCooking* GetCooking() { return Cooking; }
 
     void RemoveGameObject(GameObject* InGameObject);
 
@@ -66,6 +66,7 @@ private:
     PxFoundation* Foundation = nullptr;
     PxPhysics* Physics = nullptr;
     PxScene* Scene = nullptr;
+    PxCooking* Cooking = nullptr;
     PxDefaultCpuDispatcher* Dispatcher = nullptr;
 
     TArray<GameObject*> GameObjects;
