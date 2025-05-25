@@ -48,7 +48,8 @@ public:
 
     // Spawn Physics scne game object
     class GameObject* SpawnGameObject(const PxVec3& Position,
-        const PxGeometry& Geometry,
+        const PxQuat& Rotation,
+        const TArray<PxShape*> Shapes,
         class UPhysicalMaterial* Material = nullptr);
 
     void Simulate(float DeltaTime);
@@ -56,6 +57,8 @@ public:
     PxScene* GetScene();
 
     PxPhysics* GetPhysics() { return Physics; }
+
+    void RemoveGameObject(GameObject* InGameObject);
 
 private:
     PxDefaultAllocator Allocator;
@@ -66,6 +69,7 @@ private:
     PxDefaultCpuDispatcher* Dispatcher = nullptr;
 
     TArray<GameObject*> GameObjects;
+    TArray<GameObject*> PendingRemoveGameObjects;
 
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;

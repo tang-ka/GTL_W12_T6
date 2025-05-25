@@ -9,9 +9,9 @@ struct FBodyInstance : public FBodyInstanceCore
 {
 public:
     FBodyInstance();
-    void InitBody(UBodySetup* Setup, const FTransform& WorldTransform, bool bIsDynamic = true);
+    void InitBody(UBodySetup* Setup, const FTransform& WorldTransform);
     void TermBody();
 
 private:
-    PxRigidActor* Actor = nullptr;
+    GameObject* Actor = nullptr;
 };

@@ -33,8 +33,12 @@ public:
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
     void SetStaticMesh(UStaticMesh* Value);
 
+    bool ShouldSimulatePhysics() { return bSimulatePhysics; }
+    void SimulatePhysics(bool Value);
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;
     FBodyInstance* Body = nullptr;
+    bool bSimulatePhysics = false;
 };

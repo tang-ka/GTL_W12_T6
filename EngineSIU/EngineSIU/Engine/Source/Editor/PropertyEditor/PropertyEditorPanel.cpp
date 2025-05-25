@@ -484,6 +484,12 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
             ImGui::EndCombo();
         }
 
+        bool bPhysics = StaticMeshComp->ShouldSimulatePhysics();
+        if (ImGui::Checkbox("Simulate Physics", &bPhysics))
+        {
+            StaticMeshComp->SimulatePhysics(bPhysics);
+        }
+
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
