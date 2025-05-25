@@ -482,6 +482,26 @@ void USkeletalMeshComponent::SetAnimInstanceClass(class UClass* NewClass)
     }
 }
 
+UPhysicsAsset* USkeletalMeshComponent::GetPhysicsAsset() const
+{
+    if (USkeletalMesh* SkelMesh = GetSkeletalMeshAsset())
+    {
+        return SkelMesh->GetPhysicsAsset();
+    }
+}
+
+void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset)
+{
+    if (USkeletalMesh* SkelMesh = GetSkeletalMeshAsset())
+    {
+        SkelMesh->SetPhysicsAsset(NewPhysicsAsset);
+    }
+}
+
+void USkeletalMeshComponent::CreateBodies()
+{
+}
+
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
 {
     if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())

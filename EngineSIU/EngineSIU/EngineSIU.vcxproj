@@ -228,6 +228,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Physics\ConstraintInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\BodyInstanceCore.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\BodyInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.cpp" />
@@ -469,6 +470,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     <ClCompile Include="Engine\Source\Runtime\Physics\PhysicsSimulationEventCallback.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\World\PhysicsViewerWorld.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PhysicsViewerPanel.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\PhysicsAsset.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <None Include="Shaders\CompositingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -540,6 +542,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Physics\ConstraintInstance.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\AggregateGeom.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\BodyInstanceCore.h" />
@@ -889,6 +892,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     <ClInclude Include="Engine\Source\Runtime\Physics\PhysicsSimulationEventCallback.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\World\PhysicsViewerWorld.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PhysicsViewerPanel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\PhysicsAsset.h" />
     <ClInclude Include="SoundManager.h" />
     <None Include="Shaders\EditorShaderConstants.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
