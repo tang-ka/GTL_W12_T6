@@ -3,6 +3,7 @@
 #include "UObject/Object.h"
 
 class UBodySetup;
+class UConstraintSetup;
 class USkeletalMesh;
 
 class UPhysicsAsset : public UObject
@@ -14,12 +15,12 @@ public:
     ~UPhysicsAsset() = default;
 
     TArray<UBodySetup*> GetBodySetups() { return BodySetups; }
-    TArray<FConstraintInstance*> GetConstraintSetups() { return ConstraintSetups; }
+    TArray<UConstraintSetup*> GetConstraintSetups() { return ConstraintSetups; }
     
     void GenerateRagdollFromSkeletalMesh(USkeletalMesh* InSkeletalMesh);
 
 private:
     TArray<UBodySetup*> BodySetups;
-    TArray<FConstraintInstance*> ConstraintSetups;
+    TArray<UConstraintSetup*> ConstraintSetups;
 };
 

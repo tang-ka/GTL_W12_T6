@@ -570,20 +570,13 @@ void USkeletalMeshComponent::CreateConstraints()
     }
     Constraints.Empty(); // 기존 제약 조건을 모두 제거합니다.
 
-    const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
     for (auto* ConstraintSetup : GetPhysicsAsset()->GetConstraintSetups())
     {
-        //if (!ConstraintSetup) continue;
-        //FConstraintInstance* NewConstraint = new FConstraintInstance();
-        //FName ConstraintName = ConstraintSetup->Name;
-        //int32 BoneIndex = RefSkeleton.FindRawBoneIndex(ConstraintName);
-        //FTransform BoneTransform = FTransform::Identity;
-        //if (BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
-        //{
-        //    BoneTransform = RefBonePoseTransforms[BoneIndex];
-        //}
-        //NewConstraint->InitConstraint(this, ConstraintSetup, BoneTransform);
-        //Constraints.Add(NewConstraint);
+        if (!ConstraintSetup) continue;
+
+        FConstraintInstance* NewConstraint = new FConstraintInstance();
+        NewConstraint->InitConstraint(this, ConstraintSetup);
+        Constraints.Add(NewConstraint);
     }
 }
 
