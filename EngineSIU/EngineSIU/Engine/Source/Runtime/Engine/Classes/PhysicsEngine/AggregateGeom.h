@@ -7,15 +7,18 @@
 
 struct FKAggregateGeom
 {
+    DECLARE_STRUCT(FKAggregateGeom)
     // 각 Geometry Shape에 대한 내용
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Spheres", TitleProperty = "Name"))
-    TArray<FKSphereElem> SphereElems;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, TArray<FKSphereElem>, SphereElems)
+    //TArray<FKSphereElem> SphereElems;
     //
-    //UPROPERTY_WITH_FLAGS(EditAnywhere, TArray<FKBoxElem>, BoxElems)
-    TArray<FKBoxElem> BoxElems;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, TArray<FKBoxElem>, BoxElems)
+    //TArray<FKBoxElem> BoxElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Capsules", TitleProperty = "Name"))
-    TArray<FKSphylElem> SphylElems;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, TArray<FKSphylElem>, SphylElems)
+    //TArray<FKSphylElem> SphylElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Convex Elements", TitleProperty = "Name"))
     TArray<FKConvexElem> ConvexElems;

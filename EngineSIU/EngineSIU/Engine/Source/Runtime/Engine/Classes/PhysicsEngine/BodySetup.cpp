@@ -258,3 +258,12 @@ void UBodySetup::SetProperties(const TMap<FString, FString>& InProperties)
         //BoxExtent.InitFromString(*TempStr);
     //}
 }
+
+void UBodySetup::DisplayProperty()
+{
+    Super::DisplayProperty();
+    for (const auto& Property : StaticClass()->GetProperties())
+    {
+        Property->DisplayInImGui(this);
+    }
+}

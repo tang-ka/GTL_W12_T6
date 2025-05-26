@@ -7,13 +7,11 @@
 //USTRUCT()
 struct FKSphereElem : public FKShapeElem
 {
-    /** Position of the sphere's origin */
-    //UPROPERTY(Category = Sphere, EditAnywhere)
-    FVector Center;
+    DECLARE_STRUCT_WITH_SUPER(FKSphereElem, FKShapeElem)
 
-    /** Radius of the sphere */
-    //UPROPERTY(Category = Sphere, EditAnywhere)
-    float Radius;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, Center)
+    
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, Radius)
 
     FKSphereElem()
         : FKShapeElem(EAggCollisionShape::Sphere)

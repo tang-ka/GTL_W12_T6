@@ -13,7 +13,7 @@ public:
     UPhysicsAsset();
     ~UPhysicsAsset() = default;
 
-    TArray<UBodySetup*> GetBodySetups() { return BodySetups; }
+    TArray<UBodySetup*>& GetBodySetup() { return BodySetups; }
     TArray<FConstraintInstance*> GetConstraintSetups() { return ConstraintSetups; }
     
     void GenerateRagdollFromSkeletalMesh(USkeletalMesh* InSkeletalMesh);
