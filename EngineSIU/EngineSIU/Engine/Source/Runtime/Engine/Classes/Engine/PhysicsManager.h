@@ -63,6 +63,7 @@ public:
     PxPhysics* GetPhysics() { return Physics; }
     PxScene* GetScene() { return Scene; }
     PxCooking* GetCooking() { return Cooking; }
+    const PxTolerancesScale* GetTolerancesScale() const { return TolerancesScale; }
 
     void RemoveGameObject(GameObject* InGameObject);
 
@@ -73,6 +74,7 @@ private:
     PxPhysics* Physics = nullptr;
     PxScene* Scene = nullptr;
     PxCooking* Cooking = nullptr;
+    PxTolerancesScale* TolerancesScale = nullptr;
     PxDefaultCpuDispatcher* Dispatcher = nullptr;
 
     TArray<GameObject*> GameObjects;

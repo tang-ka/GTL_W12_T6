@@ -160,9 +160,14 @@ public:
     UPhysicsAsset* GetPhysicsAsset() const;
     void SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset);
 
+    FBodyInstance* GetBodyInstance(FName BoneName) const;
+
+	void InitializePhysics();
     void CreateBodies();
 	void CreateConstraints();
 
     void SyncBodyToComponent();
+
     void SyncComponentToBody();
+	void SyncComponentToConstraint();
 };

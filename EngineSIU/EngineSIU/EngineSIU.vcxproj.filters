@@ -1700,6 +1700,12 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Acceleration\ParticleModuleAccelerationBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\PhysicsManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\PhysicsSimulationEventCallback.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Physics\ConstraintInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Physics\PhysicalMaterial.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\World\PhysicsViewerWorld.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\PhysicsViewerPanel.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\PhysicsAsset.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintSetup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1820,6 +1826,15 @@
     <ClInclude Include="Engine\Source\Runtime\Physics\PhysicsSimulationEventCallback.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\AggregateGeom.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ShapeElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BoxElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphereElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphylElem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Physics\ConstraintInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Physics\PhysicalMaterial.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\World\PhysicsViewerWorld.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\PhysicsViewerPanel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\PhysicsAsset.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintSetup.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />

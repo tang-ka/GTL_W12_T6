@@ -22,7 +22,7 @@ void UPhysicsManager::Initialize()
 #endif
 
     // Physics Core
-    Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, pvd);
+    Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, *TolerancesScale, true, pvd);
 
     PxMaterial* DefaultMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
 
@@ -45,6 +45,8 @@ void UPhysicsManager::Initialize()
     Scene = Physics->createScene(SceneDesc);
 
     Cooking = PxCreateCooking(PX_PHYSICS_VERSION, *Foundation, PxCookingParams(Physics->getTolerancesScale()));
+
+    TolerancesScale
 }
 
 GameObject* UPhysicsManager::SpawnGameObject(

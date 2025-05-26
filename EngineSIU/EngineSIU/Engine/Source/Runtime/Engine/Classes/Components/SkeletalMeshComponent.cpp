@@ -37,8 +37,7 @@ void USkeletalMeshComponent::InitializeComponent()
 
     InitAnim();
 
-    CreateBodies();
-    SyncComponentToBody();
+    InitializePhysics();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -510,6 +509,18 @@ void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset)
     }
 }
 
+FBodyInstance* USkeletalMeshComponent::GetBodyInstance(FName BoneName) const
+{
+    return nullptr;
+}
+
+void USkeletalMeshComponent::InitializePhysics()
+{
+    CreateBodies();
+    CreateConstraints();
+    SyncComponentToBody();
+}
+
 void USkeletalMeshComponent::CreateBodies()
 {
     if (!GetPhysicsAsset())
@@ -650,6 +661,11 @@ void USkeletalMeshComponent::SyncComponentToBody()
         BodyInstance->TermBody();
         BodyInstance->InitBody(this, BodySetup, BoneTransform);
     }
+}
+
+void USkeletalMeshComponent::SyncComponentToConstraint()
+{
+    // Constraints 순회하면 UpdateFrames 호출
 }
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
