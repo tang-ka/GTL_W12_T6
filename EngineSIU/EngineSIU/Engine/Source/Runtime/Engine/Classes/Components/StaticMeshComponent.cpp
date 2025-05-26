@@ -278,6 +278,24 @@ void UStaticMeshComponent::SimulateGravity(bool Value)
 {
     bSimulateGravity = Value;
     PhysicsBody->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Value);
+    if (Value)
+    {
+        if (PhysicsBody->rigidBody->is<PxRigidDynamic>())
+        {
+            PxRigidDynamic* DynamicBody = static_cast<PxRigidDynamic*>(PhysicsBody->rigidBody);
+            DynamicBody->wakeUp();
+        }
+    }
+    else
+    {
+        if (PhysicsBody->rigidBody->is<PxRigidDynamic>())
+        {
+            PxRigidDynamic* DynamicBody = static_cast<PxRigidDynamic*>(PhysicsBody->rigidBody);
+            PxVec3 oldVelocity = DynamicBody->getLinearVelocity();
+            oldVelocity.z = 0.f;
+            DynamicBody->setLinearVelocity(oldVelocity);
+        }
+    }
 }
 
 void UStaticMeshComponent::CheckPhysSize()
