@@ -780,6 +780,16 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
                 Engine->StartPhysicsViewer(FName(SkeletalMeshComp->GetSkeletalMeshAsset()->GetRenderData()->ObjectName));
             }
         }
+
+        if (ImGui::Button("Initialize Physics"))
+        {
+            USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMeshAsset();
+            if (SkeletalMesh)
+            {
+                SkeletalMeshComp->InitializePhysics();
+            }
+        }
+
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();

@@ -15,8 +15,8 @@ FBodyInstance::FBodyInstance()
 void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform, const bool bIsStatic)
 {
     UWorld* World = InOwner->GetWorld();
-    if (InOwner->GetWorld()->WorldType != EWorldType::None)
-        return;
+    //if (InOwner->GetWorld()->WorldType != EWorldType::None)
+    //    return;
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
     PxCooking* Cooking = UPhysicsManager::Get().GetCooking();
@@ -100,7 +100,9 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         Shapes.Add(Shape);
     }
 
-    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);  
+    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);
+    Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, true);
+
     if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
     {
         Comp->SetPhysBody(Actor);

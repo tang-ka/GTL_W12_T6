@@ -91,6 +91,8 @@ void UEditorEngine::Tick(float DeltaTime)
                         }
                     }
                 }
+                if (DeltaTime > 0.f)
+                    UPhysicsManager::Get().Simulate(DeltaTime);
             }
         }
         else if (WorldContext->WorldType == EWorldType::PIE)
