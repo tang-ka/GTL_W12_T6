@@ -49,6 +49,8 @@ public:
 
     void SimulateGravity(bool Value);
 
+    void CheckPhysSize();
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;

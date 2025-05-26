@@ -115,7 +115,6 @@ void GameObject::UpdateFromPhysics()
 
     Owner->SetWorldLocation(Location);
     Owner->SetWorldRotation(Quat);
-    Owner->SetWorldScale3D(Scale);
 }
 
 void PhysXErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)
