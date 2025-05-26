@@ -8,6 +8,7 @@
 
 UPhysicsManager::UPhysicsManager()
 {
+    TolerancesScale = new PxTolerancesScale();
 }
 
 void UPhysicsManager::Initialize()
@@ -56,8 +57,6 @@ void UPhysicsManager::Initialize()
 #endif
 
     Cooking = PxCreateCooking(PX_PHYSICS_VERSION, *Foundation, PxCookingParams(Physics->getTolerancesScale()));
-
-    TolerancesScale
 }
 
 GameObject* UPhysicsManager::SpawnGameObject(

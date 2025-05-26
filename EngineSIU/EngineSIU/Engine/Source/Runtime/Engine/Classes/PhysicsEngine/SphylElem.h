@@ -9,21 +9,15 @@ class FMeshElementCollector;
 //USTRUCT()
 struct FKSphylElem : public FKShapeElem
 {
-    /** Position of the capsule's origin */
-    //UPROPERTY(Category = Capsule, EditAnywhere)
-    FVector Center;
+    DECLARE_STRUCT_WITH_SUPER(FKSphylElem, FKShapeElem)
 
-    /** Rotation of the capsule */
-    //UPROPERTY(Category = Capsule, EditAnywhere, meta = (ClampMin = "-360", ClampMax = "360"))
-    FRotator Rotation;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, Center)
 
-    /** Radius of the capsule */
-    //UPROPERTY(Category = Capsule, EditAnywhere)
-    float Radius;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FRotator, Rotation)
 
-    /** This is of line-segment ie. add Radius to both ends to find total length. */
-    //UPROPERTY(Category = Capsule, EditAnywhere)
-    float Length;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, Radius)
+
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, Length)
 
     FKSphylElem()
         : FKShapeElem(EAggCollisionShape::Sphyl)

@@ -5,6 +5,7 @@
 class UBodySetup;
 class UConstraintSetup;
 class USkeletalMesh;
+struct FConstraintInstance;
 
 class UPhysicsAsset : public UObject
 {
@@ -14,8 +15,8 @@ public:
     UPhysicsAsset();
     ~UPhysicsAsset() = default;
 
-    TArray<UBodySetup*> GetBodySetups() { return BodySetups; }
-    TArray<UConstraintSetup*> GetConstraintSetups() { return ConstraintSetups; }
+    TArray<UBodySetup*>& GetBodySetups() { return BodySetups; }
+    TArray<UConstraintSetup*>& GetConstraintSetups() { return ConstraintSetups; }
     
     void GenerateRagdollFromSkeletalMesh(USkeletalMesh* InSkeletalMesh);
 

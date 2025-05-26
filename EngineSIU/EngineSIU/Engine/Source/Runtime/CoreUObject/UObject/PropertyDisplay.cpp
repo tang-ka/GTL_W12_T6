@@ -7,6 +7,7 @@
 #include "UObjectHash.h"
 #include "Components/Material/Material.h"
 #include "Distribution/DistributionVector.h"
+#include "PhysicsEngine/AggregateGeom.h"
 #include "Editor/UnrealEd/ImGuiWidget.h"
 #include "Engine/AssetManager.h"
 #include "Engine/FObjLoader.h"
@@ -746,6 +747,248 @@ void FDistributionVectorProperty::DisplayInImGui(UObject* Object) const
         FProperty::DisplayInImGui(Object);
     }
     ImGui::EndDisabled();
+}
+
+void FKAggregateGeomProperty::DisplayInImGui(UObject* Object) const
+{
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
+    {
+        FProperty::DisplayInImGui(Object);
+    }
+    ImGui::EndDisabled();
+}
+
+void FKAggregateGeomProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const
+{
+    if (!DataPtr)
+    {
+        return;
+    }
+
+    FKAggregateGeom* AggGeom = static_cast<FKAggregateGeom*>(DataPtr);
+
+    if (ImGui::TreeNode(PropertyLabel))
+    {
+        // Sphere Elements
+        DisplaySphereElements(AggGeom, OwnerObject);
+
+        // Box Elements  
+        DisplayBoxElements(AggGeom, OwnerObject);
+
+        // Capsule Elements
+        DisplayCapsuleElements(AggGeom, OwnerObject);
+
+        // Convex Elements
+        DisplayConvexElements(AggGeom, OwnerObject);
+
+        ImGui::TreePop();
+    }
+}
+
+void FKAggregateGeomProperty::DisplaySphereElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const
+{
+    if (ImGui::TreeNode(GetData(FString::Printf(TEXT("Spheres (%d)"), AggGeom->SphereElems.Num()))))
+    {
+        // Add Sphere 버튼
+        if (ImGui::Button("Add Sphere"))
+        {
+            FKSphereElem NewSphere;
+            NewSphere.Center = FVector::ZeroVector;
+            NewSphere.Radius = 5.0f;
+            AggGeom->SphereElems.Add(NewSphere);
+        }
+
+        // 각 Sphere Element 편집
+        for (int32 i = 0; i < AggGeom->SphereElems.Num(); ++i)
+        {
+            FKSphereElem& SphereElem = AggGeom->SphereElems[i];
+
+            ImGui::PushID(GetData(FString::Printf(TEXT("Sphere_%d"), i)));
+
+            if (ImGui::TreeNode(GetData(FString::Printf(TEXT("Sphere %d"), i))))
+            {
+                // Radius
+                float radius = SphereElem.Radius;
+                if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.1f, 100.0f))
+                {
+                    SphereElem.Radius = FMath::Max(0.1f, radius);
+                }
+
+                // Center
+                float center[3] = { SphereElem.Center.X, SphereElem.Center.Y, SphereElem.Center.Z };
+                if (ImGui::DragFloat3("Center", center, 0.1f))
+                {
+                    SphereElem.Center = FVector(center[0], center[1], center[2]);
+                }
+
+                // Remove 버튼
+                if (ImGui::Button("Remove"))
+                {
+                    AggGeom->SphereElems.RemoveAt(i);
+                    ImGui::TreePop();
+                    ImGui::PopID();
+                    break;
+                }
+
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void FKAggregateGeomProperty::DisplayBoxElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const
+{
+    if (ImGui::TreeNode(GetData(FString::Printf(TEXT("Boxes (%d)"), AggGeom->BoxElems.Num()))))
+    {
+        // Add Box 버튼
+        if (ImGui::Button("Add Box"))
+        {
+            FKBoxElem NewBox;
+            NewBox.Center = FVector::ZeroVector;
+            NewBox.Extent.X = 10.0f;
+            NewBox.Extent.Y = 10.0f;
+            NewBox.Extent.Z = 10.0f;
+            NewBox.Rotation = FRotator::ZeroRotator;
+            AggGeom->BoxElems.Add(NewBox);
+        }
+
+        // 각 Box Element 편집
+        for (int32 i = 0; i < AggGeom->BoxElems.Num(); ++i)
+        {
+            FKBoxElem& BoxElem = AggGeom->BoxElems[i];
+
+            ImGui::PushID(GetData(FString::Printf(TEXT("Box_%d"), i)));
+
+            if (ImGui::TreeNode(GetData(FString::Printf(TEXT("Box %d"), i))))
+            {
+                // Size
+                float size[3] = { BoxElem.Extent.X, BoxElem.Extent.Y, BoxElem.Extent.Z };
+                if (ImGui::DragFloat3("Size", size, 0.1f, 0.1f, 100.0f))
+                {
+                    BoxElem.Extent.X = FMath::Max(0.1f, size[0]);
+                    BoxElem.Extent.Y = FMath::Max(0.1f, size[1]);
+                    BoxElem.Extent.Z = FMath::Max(0.1f, size[2]);
+                }
+
+                // Center
+                float center[3] = { BoxElem.Center.X, BoxElem.Center.Y, BoxElem.Center.Z };
+                if (ImGui::DragFloat3("Center", center, 0.1f))
+                {
+                    BoxElem.Center = FVector(center[0], center[1], center[2]);
+                }
+
+                // Rotation
+                float rotation[3] = { BoxElem.Rotation.Pitch, BoxElem.Rotation.Yaw, BoxElem.Rotation.Roll };
+                if (ImGui::DragFloat3("Rotation", rotation, 1.0f, -180.0f, 180.0f))
+                {
+                    BoxElem.Rotation = FRotator(rotation[0], rotation[1], rotation[2]);
+                }
+
+                // Remove 버튼
+                if (ImGui::Button("Remove"))
+                {
+                    AggGeom->BoxElems.RemoveAt(i);
+                    ImGui::TreePop();
+                    ImGui::PopID();
+                    break;
+                }
+
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void FKAggregateGeomProperty::DisplayCapsuleElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const
+{
+    if (ImGui::TreeNode(GetData(FString::Printf(TEXT("Sphyls (%d)"), AggGeom->SphylElems.Num()))))
+    {
+        // Add Capsule 버튼
+        if (ImGui::Button("Add Capsule"))
+        {
+            FKSphylElem NewCapsule;
+            NewCapsule.Center = FVector::ZeroVector;
+            NewCapsule.Radius = 5.0f;
+            NewCapsule.Length = 10.0f;
+            NewCapsule.Rotation = FRotator::ZeroRotator;
+            AggGeom->SphylElems.Add(NewCapsule);
+        }
+
+        // 각 Capsule Element 편집
+        for (int32 i = 0; i < AggGeom->SphylElems.Num(); ++i)
+        {
+            FKSphylElem& CapsuleElem = AggGeom->SphylElems[i];
+
+            ImGui::PushID(GetData(FString::Printf(TEXT("Capsule_%d"), i)));
+
+            if (ImGui::TreeNode(GetData(FString::Printf(TEXT("Capsule %d"), i))))
+            {
+                // Radius
+                float radius = CapsuleElem.Radius;
+                if (ImGui::DragFloat("Radius", &radius, 0.1f, 0.1f, 100.0f))
+                {
+                    CapsuleElem.Radius = FMath::Max(0.1f, radius);
+                }
+
+                // Length
+                float length = CapsuleElem.Length;
+                if (ImGui::DragFloat("Length", &length, 0.1f, 0.1f, 100.0f))
+                {
+                    CapsuleElem.Length = FMath::Max(0.1f, length);
+                }
+
+                // Center
+                float center[3] = { CapsuleElem.Center.X, CapsuleElem.Center.Y, CapsuleElem.Center.Z };
+                if (ImGui::DragFloat3("Center", center, 0.1f))
+                {
+                    CapsuleElem.Center = FVector(center[0], center[1], center[2]);
+                }
+
+                // Rotation
+                float rotation[3] = { CapsuleElem.Rotation.Pitch, CapsuleElem.Rotation.Yaw, CapsuleElem.Rotation.Roll };
+                if (ImGui::DragFloat3("Rotation", rotation, 1.0f, -180.0f, 180.0f))
+                {
+                    CapsuleElem.Rotation = FRotator(rotation[0], rotation[1], rotation[2]);
+                }
+
+                // Remove 버튼
+                if (ImGui::Button("Remove"))
+                {
+                    AggGeom->SphylElems.RemoveAt(i);
+                    ImGui::TreePop();
+                    ImGui::PopID();
+                    break;
+                }
+
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void FKAggregateGeomProperty::DisplayConvexElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const
+{
+    /*if (ImGui::TreeNode(FString::Printf(TEXT("Convex Elements (%d)"), AggGeom->ConvexElems.Num()).GetCharArray().GetData()))
+    {
+        for (int32 i = 0; i < AggGeom->ConvexElems.Num(); ++i)
+        {
+            ImGui::Text("Convex %d: %d vertices", i, AggGeom->ConvexElems[i].VertexData.Num());
+        }
+
+        ImGui::TreePop();
+    }*/
 }
 
 void FDistributionVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const

@@ -159,7 +159,6 @@ void PhysicsViewerPanel::LoadBoneIcon()
 {
     BoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/Bone_16x.PNG")->TextureSRV;
     NonWeightBoneIconSRV = FEngineLoop::ResourceManager.GetTexture(L"Assets/Viewer/BoneNonWeighted_16x.PNG")->TextureSRV;
-
 }
 
 void PhysicsViewerPanel::CopyRefSkeleton()
@@ -318,7 +317,9 @@ void PhysicsViewerPanel::RenderPhysicsDetailPanel()
 		ImGui::Text("Selected Bone: %s", *BoneInfo.Name.ToString());
 		ImGui::Separator();
 
-		// 선택된 본의 BodySetup 찾기
+        FTransform BoneTransform = CalculateBoneWorldTransform(SelectedBoneIndex);
+		
+        // 선택된 본의 BodySetup 찾기
 		UBodySetup* CurrentBodySetup = FindBodySetupForBone(SelectedBoneIndex);
 
 		if (CurrentBodySetup)
@@ -332,7 +333,7 @@ void PhysicsViewerPanel::RenderPhysicsDetailPanel()
 
 			if (ImGui::Button("Create Physics Body"))
 			{
-				//CreatePhysicsBodyForBone(SelectedBoneIndex);
+                CreatePhysicsBodySetup(BoneInfo, BoneTransform, SelectedBoneIndex);
 			}
 		}
 	}
@@ -347,94 +348,25 @@ void PhysicsViewerPanel::RenderBodySetupEditor(UBodySetup* BodySetup)
 		return;
 	}
 
-	ImGui::Text("Physics Body: %s", *BodySetup->BoneName.ToString());
-	ImGui::Separator();
-
-	// Shape 추가 버튼들
-	/*if (ImGui::Button("Add Box"))
-	{
-		AddBoxShape(BodySetup);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Add Sphere"))
-	{
-		AddSphereShape(BodySetup);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Add Capsule"))
-	{
-		AddCapsuleShape(BodySetup);
-	}*/
-
+	ImGui::Text("Physics BodySetup: %s", *BodySetup->BoneName.ToString());
 	ImGui::Separator();
 
 	if (BodySetup)
 	{
-		ImGui::Separator();
-		const UClass* Class = BodySetup->GetClass();
-
-		for (; Class; Class = Class->GetSuperClass())
-		{
-			const TArray<FProperty*>& Properties = Class->GetProperties();
-			if (!Properties.IsEmpty())
-			{
-				ImGui::SeparatorText(*Class->GetName());
-			}
-
-			for (const FProperty* Prop : Properties)
-			{
-				Prop->DisplayInImGui(BodySetup);
-			}
-		}
+		BodySetup->DisplayProperty();
 	}
-	// Box Elements 편집
-	/*if (BodySetup->AggGeom.BoxElems.Num() > 0)
-	{
-		ImGui::Text("Box Shapes (%d):", BodySetup->AggGeom.BoxElems.Num());
-
-		for (int32 i = 0; i < BodySetup->AggGeom.BoxElems.Num(); ++i)
-		{
-			FKBoxElem& BoxElem = BodySetup->AggGeom.BoxElems[i];
-			ImGui::PushID(i);
-			if (ImGui::TreeNode((TEXT("Box"))))
-			{
-				if (SelectedActor)
-				{
-					ImGui::Separator();
-					const UClass* Class = SelectedActor->GetClass();
-
-					for (; Class; Class = Class->GetSuperClass())
-					{
-						const TArray<FProperty*>& Properties = Class->GetProperties();
-						if (!Properties.IsEmpty())
-						{
-							ImGui::SeparatorText(*Class->GetName());
-						}
-
-						for (const FProperty* Prop : Properties)
-						{
-							Prop->DisplayInImGui(SelectedActor);
-						}
-					}
-				}
-				ImGui::TreePop();
-			}
-			ImGui::PopID();
-		}
-		ImGui::Separator();
-	}*/
 }
 
 UBodySetup* PhysicsViewerPanel::FindBodySetupForBone(int32 BoneIndex)
 {
-	if (!RefSkeletalMeshComponent->GetPhysicsAsset() || !CopiedRefSkeleton || BoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
+	if (!SkeletalMesh->GetPhysicsAsset() || !CopiedRefSkeleton || BoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
 	{
 		return nullptr;
 	}
 
 	FName BoneName = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex].Name;
 
-	for (UBodySetup* BodySetup : RefSkeletalMeshComponent->GetPhysicsAsset()->GetBodySetup())
+	for (UBodySetup* BodySetup : SkeletalMesh->GetPhysicsAsset()->GetBodySetups())
 	{
 		if (BodySetup && BodySetup->BoneName == BoneName)
 		{
@@ -464,6 +396,7 @@ FString PhysicsViewerPanel::GetCleanBoneName(const FString& InFullName)
     return name;
 }
 
+// SkeletalMesh의 Bone마다 BoxShape를 할당하여 초기화
 void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
 {
 	UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
@@ -482,9 +415,21 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
 
 		FTransform BoneTransform = CalculateBoneWorldTransform(BoneIndex);
 
-		CreatePhysicsBodySetup(BoneInfo, BoneIndex);
+		CreatePhysicsBodySetup(BoneInfo, BoneTransform, BoneIndex);
 
-		CreateBoxComponentForBone(BoneIndex, BoneTransform, BoneInfo.Name);
+        UBodySetup* BodySetup = FindBodySetupForBone(BoneIndex);
+        FKBoxElem BoxElem;
+
+        BoxElem.Center = FVector::ZeroVector;
+        BoxElem.Extent.X = 1.0f;
+        BoxElem.Extent.Y = 1.0f;
+        BoxElem.Extent.Z = 1.0f;
+        BoxElem.Rotation = FRotator::ZeroRotator;
+
+        BodySetup->AggGeom.BoxElems.Add(BoxElem);
+
+		//CreateBoxComponentForBone(BoneIndex, BoneTransform, BoneInfo.Name);
+        CreateHierarchicalBoxComponent(BoneIndex, CopiedRefSkeleton->RawRefBonePose[BoneIndex], BoneInfo.Name);
 	}
 }
 
@@ -508,7 +453,7 @@ FTransform PhysicsViewerPanel::CalculateBoneWorldTransform(int32 BoneIndex)
 	return BoneTransform;
 }
 
-void PhysicsViewerPanel::CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, int32 BoneIndex)
+void PhysicsViewerPanel::CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, const FTransform& BoneTransform, int32 BoneIndex)
 {
 	if (!SkeletalMesh->GetPhysicsAsset()) 
 	{
@@ -522,17 +467,7 @@ void PhysicsViewerPanel::CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, i
 	//NewBodySetup->DefaultInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	//NewBodySetup->DefaultInstance.SetObjectType(ECollisionChannel::ECC_WorldDynamic);
 
-	// FKBoxElem 생성 및 설정
-	FKBoxElem BoxElem;
-	BoxElem.Center = FVector::ZeroVector;
-	BoxElem.Extent.X = 1.0f;
-	BoxElem.Extent.Y = 1.0f;
-	BoxElem.Extent.Z = 1.0f;
-	BoxElem.Rotation = FRotator::ZeroRotator;
-
-	NewBodySetup->AggGeom.BoxElems.Add(BoxElem);
-
-	SkeletalMesh->GetPhysicsAsset()->GetBodySetup().Add(NewBodySetup);
+	SkeletalMesh->GetPhysicsAsset()->GetBodySetups().Add(NewBodySetup);
 }
 
 void PhysicsViewerPanel::CreateBoxComponentForBone(int32 BoneIndex, const FTransform& BoneTransform, const FName& BoneName)
@@ -545,4 +480,67 @@ void PhysicsViewerPanel::CreateBoxComponentForBone(int32 BoneIndex, const FTrans
 
 	// 위치와 회전 설정
 	BoxComponent->SetWorldTransform(BoneTransform);
+}
+
+void PhysicsViewerPanel::CreateHierarchicalBoxComponent(int32 BoneIndex, const FTransform& BoneLocalTransform, const FName& BoneName)
+{
+    if (!CopiedRefSkeleton || BoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
+    {
+        return;
+    }
+
+    const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
+
+    // 부모 컴포넌트 찾기
+    USceneComponent* ParentComponent = nullptr;
+
+    if (BoneInfo.ParentIndex != INDEX_NONE)
+    {
+        // 부모 본의 컴포넌트 찾기
+        if (USceneComponent** ParentCompPtr = BoneComponentMap.Find(BoneInfo.ParentIndex))
+        {
+            ParentComponent = *ParentCompPtr;
+        }
+        else
+        {
+            // 부모 컴포넌트가 아직 생성되지 않은 경우, 먼저 생성
+            CreateHierarchicalBoxComponent(BoneInfo.ParentIndex,
+                CopiedRefSkeleton->RawRefBonePose[BoneInfo.ParentIndex],
+                CopiedRefSkeleton->RawRefBoneInfo[BoneInfo.ParentIndex].Name);
+
+            if (USceneComponent** ParentCompPtr = BoneComponentMap.Find(BoneInfo.ParentIndex))
+            {
+                ParentComponent = *ParentCompPtr;
+            }
+        }
+    }
+    else
+    {
+        // 루트 본인 경우 SkeletalMeshComponent를 부모로 사용
+        ParentComponent = RefSkeletalMeshComponent;
+    }
+
+    // 이미 생성된 컴포넌트가 있는지 확인
+    if (BoneComponentMap.Contains(BoneIndex))
+    {
+        return;
+    }
+
+    // BoxComponent 생성
+    UBoxComponent* BoxComponent = RefSkeletalMeshComponent->GetOwner()->AddComponent<UBoxComponent>();
+
+    FVector BoxExtent(1.0f, 1.0f, 1.0f);
+    BoxComponent->SetBoxExtent(BoxExtent);
+
+    // 부모에 연결
+    if (ParentComponent)
+    {
+        BoxComponent->AttachToComponent(ParentComponent);
+    }
+
+    // 로컬 Transform 설정 (부모 기준 상대적 위치)
+    BoxComponent->SetRelativeTransform(BoneLocalTransform);
+
+    // 매핑 테이블에 추가
+    BoneComponentMap.Add(BoneIndex, BoxComponent);
 }
