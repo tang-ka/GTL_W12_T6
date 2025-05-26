@@ -3,18 +3,20 @@
 #include "UObject/ObjectMacros.h"
 #include "ShapeElem.h"
 #include "PhysicsEngine/BoxElem.h"
+#include "PhysicsEngine/SphereElem.h"
+#include "PhysicsEngine/SphylElem.h"
 
 struct FKAggregateGeom
 {
     // 각 Geometry Shape에 대한 내용
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Spheres", TitleProperty = "Name"))
-    //TArray<FKSphereElem> SphereElems;
+    TArray<FKSphereElem> SphereElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Boxes", TitleProperty = "Name"))
     TArray<FKBoxElem> BoxElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Capsules", TitleProperty = "Name"))
-    //TArray<FKSphylElem> SphylElems;
+    TArray<FKSphylElem> SphylElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Convex Elements", TitleProperty = "Name"))
     //TArray<FKConvexElem> ConvexElems;
@@ -41,7 +43,7 @@ struct FKAggregateGeom
 
     const FKAggregateGeom& operator=(const FKAggregateGeom& Other)
     {
-        FreeRenderInfo();
+        //FreeRenderInfo();
         CloneAgg(Other);
         return *this;
     }
@@ -50,45 +52,45 @@ struct FKAggregateGeom
     int32 GetElementCount() const
     {
         //return SphereElems.Num() + SphylElems.Num() + BoxElems.Num() + ConvexElems.Num() + TaperedCapsuleElems.Num() + LevelSetElems.Num() + SkinnedLevelSetElems.Num();
+        return SphereElems.Num() + SphylElems.Num() + BoxElems.Num();
     }
 
     int32 GetElementCount(EAggCollisionShape::Type Type) const;
 
     FKShapeElem* GetElement(const EAggCollisionShape::Type Type, const int32 Index)
     {
-        /*switch (Type)
+        switch (Type)
         {
         case EAggCollisionShape::Sphere:
-            if (ensure(SphereElems.IsValidIndex(Index))) { return &SphereElems[Index]; }
+            if (SphereElems.IsValidIndex(Index)) { return &SphereElems[Index]; }
         case EAggCollisionShape::Box:
-            if (ensure(BoxElems.IsValidIndex(Index))) { return &BoxElems[Index]; }
+            if (BoxElems.IsValidIndex(Index)) { return &BoxElems[Index]; }
         case EAggCollisionShape::Sphyl:
-            if (ensure(SphylElems.IsValidIndex(Index))) { return &SphylElems[Index]; }
-        case EAggCollisionShape::Convex:
+            if (SphylElems.IsValidIndex(Index)) { return &SphylElems[Index]; }
+       /* case EAggCollisionShape::Convex:
             if (ensure(ConvexElems.IsValidIndex(Index))) { return &ConvexElems[Index]; }
         case EAggCollisionShape::TaperedCapsule:
             if (ensure(TaperedCapsuleElems.IsValidIndex(Index))) { return &TaperedCapsuleElems[Index]; }
         case EAggCollisionShape::LevelSet:
             if (ensure(LevelSetElems.IsValidIndex(Index))) { return &LevelSetElems[Index]; }
         case EAggCollisionShape::SkinnedLevelSet:
-            if (ensure(SkinnedLevelSetElems.IsValidIndex(Index))) { return &SkinnedLevelSetElems[Index]; }
+            if (ensure(SkinnedLevelSetElems.IsValidIndex(Index))) { return &SkinnedLevelSetElems[Index]; }*/
         default:
-            ensure(false);
             return nullptr;
-        }*/
+        }
         return nullptr;
     }
 
     FKShapeElem* GetElement(const int32 InIndex)
     {
-        /*int Index = InIndex;
+        int Index = InIndex;
         if (Index < SphereElems.Num()) { return &SphereElems[Index]; }
         Index -= SphereElems.Num();
         if (Index < BoxElems.Num()) { return &BoxElems[Index]; }
         Index -= BoxElems.Num();
         if (Index < SphylElems.Num()) { return &SphylElems[Index]; }
         Index -= SphylElems.Num();
-        if (Index < ConvexElems.Num()) { return &ConvexElems[Index]; }
+        /*if (Index < ConvexElems.Num()) { return &ConvexElems[Index]; }
         Index -= ConvexElems.Num();
         if (Index < TaperedCapsuleElems.Num()) { return &TaperedCapsuleElems[Index]; }
         Index -= TaperedCapsuleElems.Num();
@@ -101,14 +103,14 @@ struct FKAggregateGeom
 
     const FKShapeElem* GetElement(const int32 InIndex) const
     {
-        /*int Index = InIndex;
+        int Index = InIndex;
         if (Index < SphereElems.Num()) { return &SphereElems[Index]; }
         Index -= SphereElems.Num();
         if (Index < BoxElems.Num()) { return &BoxElems[Index]; }
         Index -= BoxElems.Num();
         if (Index < SphylElems.Num()) { return &SphylElems[Index]; }
         Index -= SphylElems.Num();
-        if (Index < ConvexElems.Num()) { return &ConvexElems[Index]; }
+        /*if (Index < ConvexElems.Num()) { return &ConvexElems[Index]; }
         Index -= ConvexElems.Num();
         if (Index < TaperedCapsuleElems.Num()) { return &TaperedCapsuleElems[Index]; }
         Index -= TaperedCapsuleElems.Num();
@@ -209,37 +211,37 @@ struct FKAggregateGeom
 
     void EmptyElements()
     {
-        /*BoxElems.Empty();
-        ConvexElems.Empty();
+        BoxElems.Empty();
         SphylElems.Empty();
         SphereElems.Empty();
-        TaperedCapsuleElems.Empty();
-        LevelSetElems.Empty();
-        SkinnedLevelSetElems.Empty();*/
+        //ConvexElems.Empty();
+        //TaperedCapsuleElems.Empty();
+        //LevelSetElems.Empty();
+        //SkinnedLevelSetElems.Empty();
 
-        FreeRenderInfo();
+        //FreeRenderInfo();
     }
 
     //void GetAggGeom(const FTransform& Transform, const FColor Color, const FMaterialRenderProxy* MatInst, bool bPerHullColor, bool bDrawSolid, bool bOutputVelocity, int32 ViewIndex, class FMeshElementCollector& Collector) const;
 
     /** Release the RenderInfo (if its there) and safely clean up any resources. Call on the game thread. */
-    void FreeRenderInfo();
+    //void FreeRenderInfo();
 
     /** Returns the volume of this element */
-    FVector::FReal GetScaledVolume(const FVector& Scale3D) const;
+    //FVector::FReal GetScaledVolume(const FVector& Scale3D) const;
 
 private:
 
     /** Helper function for safely copying instances */
     void CloneAgg(const FKAggregateGeom& Other)
     {
-       /* SphereElems = Other.SphereElems;
+        SphereElems = Other.SphereElems;
         BoxElems = Other.BoxElems;
         SphylElems = Other.SphylElems;
-        ConvexElems = Other.ConvexElems;
-        TaperedCapsuleElems = Other.TaperedCapsuleElems;
-        LevelSetElems = Other.LevelSetElems;
-        SkinnedLevelSetElems = Other.SkinnedLevelSetElems;*/
+        //ConvexElems = Other.ConvexElems;
+        //TaperedCapsuleElems = Other.TaperedCapsuleElems;
+        //LevelSetElems = Other.LevelSetElems;
+        //SkinnedLevelSetElems = Other.SkinnedLevelSetElems;
     }
 
     mutable std::atomic<class FKConvexGeomRenderInfo*> RenderInfoPtr;

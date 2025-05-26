@@ -9,6 +9,21 @@ UBodySetup::UBodySetup()
     PhysMaterial = new UPhysicalMaterial;
 }
 
+int32 FKAggregateGeom::GetElementCount(EAggCollisionShape::Type Type) const
+{
+    switch (Type)
+    {
+    case EAggCollisionShape::Box:
+        return BoxElems.Num();
+    case EAggCollisionShape::Sphyl:
+        return SphylElems.Num();
+    case EAggCollisionShape::Sphere:
+        return SphereElems.Num();
+    default:
+        return 0;
+    }
+}
+
 void FKSphereElem::ScaleElem(FVector DeltaSize, float MinSize)
 {
     // Find element with largest magnitude, btu preserve sign.
