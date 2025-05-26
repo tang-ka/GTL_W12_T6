@@ -19,6 +19,9 @@ public:
     UBodySetup();
     ~UBodySetup();
 
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+
     /** Simplified collision representation of this */
     //UPROPERTY(EditAnywhere, Category = BodySetup)
     struct FKAggregateGeom AggGeom;

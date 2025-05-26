@@ -4,6 +4,11 @@
 #include "Engine/Classes/Engine/SkeletalMesh.h"
 #include "Engine/Classes/Animation/Skeleton.h"
 #include "Engine/Classes/Components/SkeletalMeshComponent.h"
+#include "Engine/Asset/PhysicsAsset.h"
+#include "PhysicsEngine/BoxElem.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "Components/BoxComponent.h"
+#include "UObject/ObjectFactory.h"
 
 PhysicsViewerPanel::PhysicsViewerPanel()
 {
@@ -171,29 +176,13 @@ void PhysicsViewerPanel::CopyRefSkeleton()
     CopiedRefSkeleton->RawNameToIndexMap = OrigRef.RawNameToIndexMap;
 
     RefSkeletalMeshComponent = Engine->PhysicsViewerWorld->GetSkeletalMeshComponent();
+	SkeletalMesh = RefSkeletalMeshComponent->GetSkeletalMeshAsset();
 }
 
 void PhysicsViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, int32 BoneIndex, UEditorEngine* Engine /*, const FString& SearchFilter */)
 {
     const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
     const FString& ShortBoneName = GetCleanBoneName(BoneInfo.Name.ToString());
-
-    // 검색 필터 적용 (선택 사항)
-    // if (!SearchFilter.IsEmpty() && !ShortBoneName.Contains(SearchFilter))
-    // {
-    //    // 자식도 검색해야 하므로, 현재 노드가 필터에 맞지 않아도 자식은 재귀 호출
-    //    bool bChildMatchesFilter = false;
-    //    for (int32 i = 0; i < RefSkeleton.RawRefBoneInfo.Num(); ++i)
-    //    {
-    //        if (RefSkeleton.RawRefBoneInfo[i].ParentIndex == BoneIndex)
-    //        {
-    //            // 자식 중 하나라도 필터에 맞으면 현재 노드도 표시해야 할 수 있음 (복잡해짐)
-    //            // 간단하게는 현재 노드가 안 맞으면 그냥 건너뛰도록 할 수 있음
-    //        }
-    //    }
-    //    // 간단한 필터링: 현재 노드가 안 맞으면 그냥 숨김 (자식도 안 나옴)
-    //    // if (!ShortBoneName.Contains(SearchFilter)) return;
-    // }
 
     // 1) ImGui ID 충돌 방지
     ImGui::PushID(BoneIndex);
@@ -202,10 +191,10 @@ void PhysicsViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, i
     ImGui::SameLine();
 
     ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
-    // if (Engine->PhysicsViewerWorld->SelectBoneIndex == BoneIndex) // 가상의 함수 호출
-    // {
-    //     NodeFlags |= ImGuiTreeNodeFlags_Selected; // 선택된 경우 Selected 플래그 추가
-    // }
+     if (SelectedBoneIndex == BoneIndex)
+     {
+         NodeFlags |= ImGuiTreeNodeFlags_Selected;
+     }
 
     // 자식이 없는 본은 리프 노드로 처리 (화살표 없음)
     bool bHasChildren = false;
@@ -232,7 +221,7 @@ void PhysicsViewerPanel::RenderBoneTree(const FReferenceSkeleton& RefSkeleton, i
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) // 왼쪽 마우스 버튼 클릭 시
     {
         // 엔진에 선택된 본 인덱스 설정 (가상의 함수 호출)
-        Engine->PhysicsViewerWorld->SelectBoneIndex = (BoneIndex);
+		SelectedBoneIndex = (BoneIndex);
     }
 
     if (bNodeOpen) // 노드가 열려있다면
@@ -279,6 +268,11 @@ void PhysicsViewerPanel::RenderConstraintPanel()
         ImGui::End();
         return;
     }
+	else 
+	{
+		ImGui::End();
+		return;
+	}
 }
 
 void PhysicsViewerPanel::RenderPhysicsDetailPanel()
@@ -303,73 +297,156 @@ void PhysicsViewerPanel::RenderPhysicsDetailPanel()
 
     ImGui::Begin("Physics Details", nullptr, DetailFlags);
 
-    // No Selected Bone (Shape)
-    if (SelectedBoneIndex == INDEX_NONE)
-    {
-        ImGui::Text("Select a bone to view physics details");
-        ImGui::End();
-        return;
-    }
+	if (ImGui::Button("Generate Box Bodies for All Bones"))
+	{
+		GenerateBoxBodiesForAllBones();
+	}
 
-    // 선택된 본 정보 표시
-    if (CopiedRefSkeleton && SelectedBoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num())
-    {
-        const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[SelectedBoneIndex];
-        ImGui::Text("Selected Bone: %s", *BoneInfo.Name.ToString());
-        ImGui::Separator();
+	ImGui::Separator();
 
-        // Physics Asset 정보 표시
-        //if (CurrentPhysicsAsset)
-        //{
-        //    ImGui::Text("Physics Asset: %s", *CurrentPhysicsAsset->GetName());
+	// No Selected Bone (Shape)
+	if (SelectedBoneIndex == INDEX_NONE)
+	{
+		ImGui::Text("Select a bone to view physics details");
+		ImGui::End();
+		return;
+	}
 
-        //    // 해당 본의 물리 바디 정보 찾기
-        //    for (const auto& BodySetup : CurrentPhysicsAsset->SkeletalBodySetups)
-        //    {
-        //        if (BodySetup && BodySetup->BoneName == BoneInfo.Name)
-        //        {
-        //            ImGui::Text("Physics Body Found");
-        //            ImGui::Text("Collision Enabled: %s",
-        //                BodySetup->CollisionEnabled.GetValue() == ECollisionEnabled::QueryAndPhysics ? "Yes" : "No");
+	if (CopiedRefSkeleton && SelectedBoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num())
+	{
+		const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[SelectedBoneIndex];
+		ImGui::Text("Selected Bone: %s", *BoneInfo.Name.ToString());
+		ImGui::Separator();
 
-        //            // 콜리전 형상 정보
-        //            ImGui::Text("Collision Shapes:");
-        //            ImGui::Indent();
+		// 선택된 본의 BodySetup 찾기
+		UBodySetup* CurrentBodySetup = FindBodySetupForBone(SelectedBoneIndex);
 
-        //            if (BodySetup->AggGeom.BoxElems.Num() > 0)
-        //            {
-        //                ImGui::Text("Box Shapes: %d", BodySetup->AggGeom.BoxElems.Num());
-        //            }
-        //            if (BodySetup->AggGeom.SphereElems.Num() > 0)
-        //            {
-        //                ImGui::Text("Sphere Shapes: %d", BodySetup->AggGeom.SphereElems.Num());
-        //            }
-        //            if (BodySetup->AggGeom.SphylElems.Num() > 0)
-        //            {
-        //                ImGui::Text("Capsule Shapes: %d", BodySetup->AggGeom.SphylElems.Num());
-        //            }
-        //            if (BodySetup->AggGeom.ConvexElems.Num() > 0)
-        //            {
-        //                ImGui::Text("Convex Shapes: %d", BodySetup->AggGeom.ConvexElems.Num());
-        //            }
+		if (CurrentBodySetup)
+		{
+			RenderBodySetupEditor(CurrentBodySetup);
+		}
+		else
+		{
+			ImGui::Text("No Physics Body for this bone");
+			ImGui::Separator();
 
-        //            ImGui::Unindent();
-        //            break;
-        //        }
-        //    }
-        //}
-        //else
-        //{
-        //    ImGui::Text("No Physics Asset assigned");
-        //}
-    }
+			if (ImGui::Button("Create Physics Body"))
+			{
+				//CreatePhysicsBodyForBone(SelectedBoneIndex);
+			}
+		}
+	}
 
-    ImGui::End();
+	ImGui::End();
+}
+
+void PhysicsViewerPanel::RenderBodySetupEditor(UBodySetup* BodySetup)
+{
+	if (!BodySetup)
+	{
+		return;
+	}
+
+	ImGui::Text("Physics Body: %s", *BodySetup->BoneName.ToString());
+	ImGui::Separator();
+
+	// Shape 추가 버튼들
+	/*if (ImGui::Button("Add Box"))
+	{
+		AddBoxShape(BodySetup);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Add Sphere"))
+	{
+		AddSphereShape(BodySetup);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Add Capsule"))
+	{
+		AddCapsuleShape(BodySetup);
+	}*/
+
+	ImGui::Separator();
+
+	if (BodySetup)
+	{
+		ImGui::Separator();
+		const UClass* Class = BodySetup->GetClass();
+
+		for (; Class; Class = Class->GetSuperClass())
+		{
+			const TArray<FProperty*>& Properties = Class->GetProperties();
+			if (!Properties.IsEmpty())
+			{
+				ImGui::SeparatorText(*Class->GetName());
+			}
+
+			for (const FProperty* Prop : Properties)
+			{
+				Prop->DisplayInImGui(BodySetup);
+			}
+		}
+	}
+	// Box Elements 편집
+	/*if (BodySetup->AggGeom.BoxElems.Num() > 0)
+	{
+		ImGui::Text("Box Shapes (%d):", BodySetup->AggGeom.BoxElems.Num());
+
+		for (int32 i = 0; i < BodySetup->AggGeom.BoxElems.Num(); ++i)
+		{
+			FKBoxElem& BoxElem = BodySetup->AggGeom.BoxElems[i];
+			ImGui::PushID(i);
+			if (ImGui::TreeNode((TEXT("Box"))))
+			{
+				if (SelectedActor)
+				{
+					ImGui::Separator();
+					const UClass* Class = SelectedActor->GetClass();
+
+					for (; Class; Class = Class->GetSuperClass())
+					{
+						const TArray<FProperty*>& Properties = Class->GetProperties();
+						if (!Properties.IsEmpty())
+						{
+							ImGui::SeparatorText(*Class->GetName());
+						}
+
+						for (const FProperty* Prop : Properties)
+						{
+							Prop->DisplayInImGui(SelectedActor);
+						}
+					}
+				}
+				ImGui::TreePop();
+			}
+			ImGui::PopID();
+		}
+		ImGui::Separator();
+	}*/
+}
+
+UBodySetup* PhysicsViewerPanel::FindBodySetupForBone(int32 BoneIndex)
+{
+	if (!RefSkeletalMeshComponent->GetPhysicsAsset() || !CopiedRefSkeleton || BoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
+	{
+		return nullptr;
+	}
+
+	FName BoneName = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex].Name;
+
+	for (UBodySetup* BodySetup : RefSkeletalMeshComponent->GetPhysicsAsset()->GetBodySetup())
+	{
+		if (BodySetup && BodySetup->BoneName == BoneName)
+		{
+			return BodySetup;
+		}
+	}
+
+	return nullptr;
 }
 
 FString PhysicsViewerPanel::GetCleanBoneName(const FString& InFullName)
 {
-    // 1) 계층 구분자 '|' 뒤 이름만 취하기
     int32 barIdx = InFullName.FindChar(TEXT('|'),
         /*case*/ ESearchCase::CaseSensitive,
         /*dir*/  ESearchDir::FromEnd);
@@ -377,7 +454,6 @@ FString PhysicsViewerPanel::GetCleanBoneName(const FString& InFullName)
         ? InFullName.RightChop(barIdx + 1)
         : InFullName;
 
-    // 2) 네임스페이스 구분자 ':' 뒤 이름만 취하기
     int32 colonIdx = name.FindChar(TEXT(':'),
         /*case*/ ESearchCase::CaseSensitive,
         /*dir*/  ESearchDir::FromEnd);
@@ -386,4 +462,87 @@ FString PhysicsViewerPanel::GetCleanBoneName(const FString& InFullName)
         return name.RightChop(colonIdx + 1);
     }
     return name;
+}
+
+void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
+{
+	UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+	if (!CopiedRefSkeleton || !Engine->PhysicsViewerWorld)
+	{
+		return;
+	}
+
+	// 추후 초기화 작업 등 추가
+	//ClearExistingBoxComponents();
+
+	// 각 본에 대해 Shape 생성
+	for (int32 BoneIndex = 0; BoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++BoneIndex)
+	{
+		const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
+
+		FTransform BoneTransform = CalculateBoneWorldTransform(BoneIndex);
+
+		CreatePhysicsBodySetup(BoneInfo, BoneIndex);
+
+		CreateBoxComponentForBone(BoneIndex, BoneTransform, BoneInfo.Name);
+	}
+}
+
+FTransform PhysicsViewerPanel::CalculateBoneWorldTransform(int32 BoneIndex)
+{
+	if (!CopiedRefSkeleton || BoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
+	{
+		return FTransform::Identity;
+	}
+
+	FTransform BoneTransform = CopiedRefSkeleton->RawRefBonePose[BoneIndex];
+
+	int32 ParentIndex = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex].ParentIndex;
+	while (ParentIndex != INDEX_NONE)
+	{
+		FTransform ParentTransform = CopiedRefSkeleton->RawRefBonePose[ParentIndex];
+		BoneTransform = ParentTransform * BoneTransform;
+		ParentIndex = CopiedRefSkeleton->RawRefBoneInfo[ParentIndex].ParentIndex;
+	}
+
+	return BoneTransform;
+}
+
+void PhysicsViewerPanel::CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, int32 BoneIndex)
+{
+	if (!SkeletalMesh->GetPhysicsAsset()) 
+	{
+		UPhysicsAsset* NewPhysicsAsset = FObjectFactory::ConstructObject<UPhysicsAsset>(nullptr);
+		SkeletalMesh->SetPhysicsAsset(NewPhysicsAsset);
+	}
+	UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(SkeletalMesh->GetPhysicsAsset());
+	NewBodySetup->BoneName = BoneInfo.Name;
+
+	NewBodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
+	//NewBodySetup->DefaultInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//NewBodySetup->DefaultInstance.SetObjectType(ECollisionChannel::ECC_WorldDynamic);
+
+	// FKBoxElem 생성 및 설정
+	FKBoxElem BoxElem;
+	BoxElem.Center = FVector::ZeroVector;
+	BoxElem.Extent.X = 1.0f;
+	BoxElem.Extent.Y = 1.0f;
+	BoxElem.Extent.Z = 1.0f;
+	BoxElem.Rotation = FRotator::ZeroRotator;
+
+	NewBodySetup->AggGeom.BoxElems.Add(BoxElem);
+
+	SkeletalMesh->GetPhysicsAsset()->GetBodySetup().Add(NewBodySetup);
+}
+
+void PhysicsViewerPanel::CreateBoxComponentForBone(int32 BoneIndex, const FTransform& BoneTransform, const FName& BoneName)
+{
+	UBoxComponent* BoxComponent = RefSkeletalMeshComponent->GetOwner()->AddComponent<UBoxComponent>();
+	// 박스 크기 설정
+	// 초기에 적절한 사이즈를 주는 방법은 추후 고려
+	FVector BoxExtent(1.0f, 1.0f, 1.0f);
+	BoxComponent->SetBoxExtent(BoxExtent);
+
+	// 위치와 회전 설정
+	BoxComponent->SetWorldTransform(BoneTransform);
 }
