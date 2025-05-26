@@ -141,23 +141,16 @@ protected:
     
 public:
     FTViewTarget ViewTarget;
-
     FTViewTarget PendingViewTarget;
-
     FTViewTarget LastFrameViewTarget;
 
     float BlendTimeToGo;
-
     FViewTargetTransitionParams BlendParams;
-    
+
     FLinearColor FadeColor;
-
     float FadeAmount;
-
     FVector2D FadeAlpha;
-
     float FadeTime;
-
     float FadeTimeRemaining;
 
     FName CameraStyle;
@@ -183,30 +176,28 @@ public:
     
     // [TEMP] Vignette factor
     FVector2D VignetteCenter;
-
     FLinearColor VignetteColor;
-
     float VignetteRadius;
-
     float VignetteIntensity;
-
     float VignetteSmoothness;
-
     float VignetteTime;
-
     float VignetteTimeRemaining;
-
     float VignetteStartIntensity;
-
     float VignetteTargetIntensity;
 
     // [TEMP] LetterBox factor;
     float LetterBoxWidth;
-
     float LetterBoxHeight;
 
     uint32 bEnableFading : 1;
     uint32 bAnimateVignette : 1;
     uint32 bHoldFadeWhenFinished : 1; /* true일 경우 페이드 종료 상태 유지 */
+
+    // Depth of Field
+    float Aperture = 2.8f; // FNumber
+    float SensorWidth = 50.0f;  // mm
+    float FocalDistance = 0.0f; // cm
+
+    float GetFocalLength() const;
 };
 
