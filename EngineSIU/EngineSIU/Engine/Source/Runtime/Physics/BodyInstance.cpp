@@ -1,11 +1,17 @@
 #include "BodyInstance.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicalMaterial.h"
+#include "Components/SceneComponent.h"
+#include <Components/StaticMeshComponent.h>
+#include "UObject/Casts.h"
+#include "PhysicsEngine/BoxElem.h"
+#include "PhysicsEngine/AggregateGeom.h"
 
 FBodyInstance::FBodyInstance()
 {
 }
 
-void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform)
+void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform)
 {
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
@@ -22,7 +28,6 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
     PxQuat PxRotation(Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
 
     const FKAggregateGeom& AggGeom = Setup->AggGeom;
-    PxMaterial* PxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
 
     TArray<PxShape*> Shapes;
 
@@ -32,7 +37,7 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
         PxVec3 SphereCenter(Sphere.Center.X, Sphere.Center.Y, Sphere.Center.Z);
         PxTransform LocalPose(SphereCenter);
 
-        PxShape* Shape = Physics->createShape(SphereGeom, *PxMaterial);
+        PxShape* Shape = Physics->createShape(SphereGeom, *(Setup->PhysMaterial->GetMaterial()));
         Shape->setLocalPose(LocalPose);
         Shapes.Add(Shape);
     }
@@ -45,20 +50,20 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
         PxQuat BoxRotation(BoxQuat.X, BoxQuat.Y, BoxQuat.Z, BoxQuat.W);
         PxTransform LocalPose(BoxCenter, BoxRotation);
 
-        PxShape* Shape = Physics->createShape(BoxGeom, *PxMaterial);
+        PxShape* Shape = Physics->createShape(BoxGeom, *(Setup->PhysMaterial->GetMaterial()));
         Shape->setLocalPose(LocalPose);
         Shapes.Add(Shape);
     }
 
     for (const FKSphylElem& Sphyl : AggGeom.SphylElems)
     {
-        PxCapsuleGeometry CapsuleGeom(Sphyl.Radius, Sphyl.HalfHeight);
+        PxCapsuleGeometry CapsuleGeom(Sphyl.Radius, Sphyl.GetScaledHalfLength());
         PxVec3 CapsuleCenter(Sphyl.Center.X, Sphyl.Center.Y, Sphyl.Center.Z);
         FQuat CapsuleQuat(FRotator(Sphyl.Rotation));
         PxQuat CapsuleRotation(CapsuleQuat.X, CapsuleQuat.Y, CapsuleQuat.Z, CapsuleQuat.W);
         PxTransform LocalPose(CapsuleCenter, CapsuleRotation);
 
-        PxShape* Shape = Physics->createShape(CapsuleGeom, *PxMaterial);
+        PxShape* Shape = Physics->createShape(CapsuleGeom, *(Setup->PhysMaterial->GetMaterial()));
         Shape->setLocalPose(LocalPose);
         Shapes.Add(Shape);
     }
@@ -86,15 +91,18 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
         PxQuat ConvexRotation(ConvexQuat.X, ConvexQuat.Y, ConvexQuat.Z, ConvexQuat.W);
         PxTransform LocalPose(ConvexCenter, ConvexRotation);
 
-        PxShape* Shape = Physics->createShape(ConvexGeom, *PxMaterial);
+        PxShape* Shape = Physics->createShape(ConvexGeom, *(Setup->PhysMaterial->GetMaterial()));
         Shape->setLocalPose(LocalPose);
         Shapes.Add(Shape);
     }
 
-    PxMaterial->release();
-
-    Actor = UPhysicsManager::Get().SpawnGameObject(PxLocation, PxRotation, Shapes);
-}
+    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes);
+    if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
+    {
+        Comp->SetPhysBody(Actor);
+        Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Comp->IsUseGravity());
+    }
+} 
 
 void FBodyInstance::TermBody()
 {
@@ -104,6 +112,8 @@ void FBodyInstance::TermBody()
         if (Scene)
             Scene->removeActor(*(Actor->rigidBody));
         UPhysicsManager::Get().RemoveGameObject(Actor);
+        if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(Actor->Owner))
+            Comp->SetPhysBody(nullptr);
         Actor = nullptr;
     }
 }

@@ -539,7 +539,7 @@ void USkeletalMeshComponent::CreateBodies()
             BoneTransform = RefBonePoseTransforms[BoneIndex];
         }
 
-        NewInstance->InitBody(BodySetup, BoneTransform);
+        NewInstance->InitBody(this, BodySetup, BoneTransform);
         Bodies.Add(NewInstance);
     }
 }
@@ -616,7 +616,7 @@ void USkeletalMeshComponent::SyncComponentToBody()
         FTransform BoneTransform = FTransform(BoneMatrix);
 
         BodyInstance->TermBody();
-        BodyInstance->InitBody(BodySetup, BoneTransform);
+        BodyInstance->InitBody(this, BodySetup, BoneTransform);
     }
 }
 

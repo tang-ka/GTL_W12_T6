@@ -172,6 +172,8 @@ void FEngineLoop::Tick()
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
+        if (DeltaTime > 0.f)
+            UPhysicsManager::Get().Simulate(DeltaTime);
         Render();
         UIManager->BeginFrame();
         UnrealEditor->Render();

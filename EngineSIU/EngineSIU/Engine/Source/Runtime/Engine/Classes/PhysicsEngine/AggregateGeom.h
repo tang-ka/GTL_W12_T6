@@ -1,7 +1,9 @@
 #pragma once
 
 #include "UObject/ObjectMacros.h"
-#include "ShapeElem.h"
+#include "BoxElem.h"
+#include "SphereElem.h"
+#include "SphylElem.h"
 
 struct FKAggregateGeom
 {
@@ -49,7 +51,6 @@ struct FKAggregateGeom
     int32 GetElementCount() const
     {
         return SphereElems.Num() + SphylElems.Num() + BoxElems.Num() + ConvexElems.Num() /*+ TaperedCapsuleElems.Num() + LevelSetElems.Num() + SkinnedLevelSetElems.Num()*/;
-        //return SphereElems.Num() + SphylElems.Num() + BoxElems.Num() + ConvexElems.Num() + TaperedCapsuleElems.Num() + LevelSetElems.Num() + SkinnedLevelSetElems.Num();
     }
 
     int32 GetElementCount(EAggCollisionShape::Type Type) const

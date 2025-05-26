@@ -27,9 +27,11 @@ struct FTransform
     
     // 변환 함수들
     FVector TransformPosition(const FVector& V) const;
+    FVector TransformPositionNoScale(const FVector& V) const;
     FVector InverseTransformPosition(const FVector& V) const;
+    FVector InverseTransformPositionNoScale(const FVector& V) const;
     FVector TransformVector(const FVector& V) const;
-    FVector TransformVectorWithoutScale(const FVector& V) const;
+    FVector TransformVectorNoScale(const FVector& V) const;
     FVector InverseTransformVector(const FVector& V) const;
     FVector TransformDirection(const FVector& V) const;
     FVector InverseTransformDirection(const FVector& V) const;

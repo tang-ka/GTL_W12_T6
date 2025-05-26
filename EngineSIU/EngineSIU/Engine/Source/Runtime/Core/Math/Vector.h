@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cassert>
 #include <compare>
 #include "MathUtility.h"
@@ -199,6 +199,11 @@ public:
     static inline FVector GetAbs(const FVector& v)
     {
          return FVector{abs(v.X), abs(v.Y), abs(v.Z)};
+    }
+
+    inline FVector::FReal GetAbsMin() const
+    {
+        return FMath::Min3(FMath::Abs(X), FMath::Abs(Y), FMath::Abs(Z));
     }
 public:
     bool Equals(const FVector& V, float Tolerance = KINDA_SMALL_NUMBER) const;

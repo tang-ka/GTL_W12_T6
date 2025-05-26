@@ -11,9 +11,12 @@
 using namespace physx;
 using namespace DirectX;
 
+class USceneComponent;
+
 #define SCOPED_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene);
 
 struct GameObject {
+    USceneComponent* Owner = nullptr;
     PxRigidDynamic* rigidBody = nullptr;
     XMMATRIX worldMatrix = XMMatrixIdentity();
 
@@ -47,7 +50,9 @@ public:
     //void Shutdown();
 
     // Spawn Physics scne game object
-    class GameObject* SpawnGameObject(const PxVec3& Position,
+    class GameObject* SpawnGameObject(
+        USceneComponent* InOwner,
+        const PxVec3& Position,
         const PxQuat& Rotation,
         const TArray<PxShape*> Shapes,
         class UPhysicalMaterial* Material = nullptr);
