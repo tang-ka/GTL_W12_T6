@@ -45,7 +45,7 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
     }
 
     constexpr EResourceType ResourceType = EResourceType::ERT_PostProcessCompositing; 
-    FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
 
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Fog), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_Fog)->SRV);
 
@@ -65,7 +65,7 @@ void FPostProcessCompositingPass::Render(const std::shared_ptr<FEditorViewportCl
     Graphics->DeviceContext->IASetInputLayout(nullptr);
     Graphics->DeviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
     
-    Graphics->DeviceContext->Draw(6, 0);
+    //Graphics->DeviceContext->Draw(6, 0);
 
     // Finish
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);

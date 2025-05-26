@@ -3,6 +3,7 @@
 #include "RenderPassBase.h"
 
 class FFogRenderPass;
+class FDepthOfFieldRenderPass;
 class FCameraEffectRenderPass;
 class FPostProcessCompositingPass;
 
@@ -19,6 +20,7 @@ protected:
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     FFogRenderPass* FogRenderPass = nullptr;
+    FDepthOfFieldRenderPass* DepthOfFieldRenderPass = nullptr;
     FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
     FPostProcessCompositingPass* PostProcessCompositingPass = nullptr;
 };
