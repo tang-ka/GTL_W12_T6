@@ -241,3 +241,20 @@ UBodySetup::~UBodySetup()
     if (PhysMaterial)
         delete PhysMaterial;
 }
+
+void UBodySetup::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    Super::GetProperties(OutProperties);
+    //OutProperties.Add(TEXT("BoxExtent"), AggGeom.ToString());
+}
+
+void UBodySetup::SetProperties(const TMap<FString, FString>& InProperties)
+{
+    Super::SetProperties(InProperties);
+    //const FString* TempStr = nullptr;
+    //TempStr = InProperties.Find(TEXT("BoxExtent"));
+    //if (TempStr)
+    //{
+        //BoxExtent.InitFromString(*TempStr);
+    //}
+}

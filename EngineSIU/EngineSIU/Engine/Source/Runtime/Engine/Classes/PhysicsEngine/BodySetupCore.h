@@ -16,6 +16,9 @@ public:
     UBodySetupCore();
     ~UBodySetupCore() = default;
 
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties);
+
     ECollisionTraceFlag GetCollisionTraceFlag() const;
 
     //UPROPERTY(Category = BodySetup, VisibleAnywhere)

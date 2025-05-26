@@ -11,7 +11,7 @@ struct FKAggregateGeom
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Spheres", TitleProperty = "Name"))
     TArray<FKSphereElem> SphereElems;
     //
-    //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Boxes", TitleProperty = "Name"))
+    //UPROPERTY_WITH_FLAGS(EditAnywhere, TArray<FKBoxElem>, BoxElems)
     TArray<FKBoxElem> BoxElems;
     //
     //UPROPERTY(EditAnywhere, editfixedsize, Category = "Aggregate Geometry", meta = (DisplayName = "Capsules", TitleProperty = "Name"))

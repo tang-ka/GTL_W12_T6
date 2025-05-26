@@ -24,6 +24,8 @@ namespace EAggCollisionShape
 /** Base class of shapes used for collision, such as Sphere, Box, Sphyl, Convex, TaperedCapsule or LevelSet */
 struct FKShapeElem
 {
+    DECLARE_STRUCT(FKShapeElem)
+
     FKShapeElem()
         : RestOffset(0.f)
         , ShapeType(EAggCollisionShape::Unknown)

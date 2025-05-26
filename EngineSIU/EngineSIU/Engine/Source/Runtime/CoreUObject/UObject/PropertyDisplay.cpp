@@ -87,7 +87,6 @@ struct FPropertyUIHelper
     }
 };
 
-
 void FProperty::DisplayInImGui(UObject* Object) const
 {
     void* Data = GetPropertyData(Object);
