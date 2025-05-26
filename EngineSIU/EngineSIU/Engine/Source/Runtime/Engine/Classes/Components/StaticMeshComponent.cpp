@@ -278,6 +278,8 @@ void UStaticMeshComponent::SetPhysBody(GameObject* InBody)
 void UStaticMeshComponent::SimulateGravity(bool Value)
 {
     bSimulateGravity = Value;
+    if (!PhysicsBody)
+        return;
     PhysicsBody->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Value);
     if (Value)
     {
@@ -301,7 +303,7 @@ void UStaticMeshComponent::SimulateGravity(bool Value)
 
 void UStaticMeshComponent::CheckPhysSize()
 {
-    if (!bSimulatePhysics)
+    if (!bSimulatePhysics || !PhysicsBody)
         return;
     FVector Extent = (AABB.MaxLocation - AABB.MinLocation) * 0.5f * RelativeScale3D;
     PxShape* Shape;

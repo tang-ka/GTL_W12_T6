@@ -38,12 +38,22 @@ void UPhysicsManager::Initialize()
     SceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
     SceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
 
-    SceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    SceneDesc.filterShader = MySimulationFilterShader;
 
     SimCallback = new FPhysicsSimulationEventCallback();
     SceneDesc.simulationEventCallback = SimCallback;
 
     Scene = Physics->createScene(SceneDesc);
+
+#ifdef _DEBUG
+    PxPvdSceneClient* PvdClient = Scene->getScenePvdClient();
+    if (PvdClient)
+    {
+        PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+        PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+        PvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+    }
+#endif
 
     Cooking = PxCreateCooking(PX_PHYSICS_VERSION, *Foundation, PxCookingParams(Physics->getTolerancesScale()));
 }
@@ -85,8 +95,8 @@ GameObject* UPhysicsManager::SpawnGameObject(
 
     
     Scene->addActor(*body);
-
-    GameObject* NewGameObject = new GameObject(InOwner, body);
+    body->userData = InOwner;
+    GameObject* NewGameObject = new GameObject(body);
     GameObjects.Add(NewGameObject);
 
     return NewGameObject;
@@ -105,10 +115,13 @@ void UPhysicsManager::Simulate(float DeltaTime)
 
 void UPhysicsManager::RemoveGameObjects()
 {
+    SCOPED_WRITE_LOCK(*Scene);
     for (GameObject* Object : PendingRemoveGameObjects)
     {
+        Scene->removeActor(*Object->rigidBody);
         GameObjects.Remove(Object);
         Object->Release();
+        delete Object;
         Object = nullptr;
     }
     PendingRemoveGameObjects.Empty();
@@ -121,6 +134,7 @@ void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
 
 void GameObject::UpdateFromPhysics()
 {
+    USceneComponent* Owner = reinterpret_cast<USceneComponent*>(rigidBody->userData);
     if(!Owner || Owner->GetWorld()->WorldType != EWorldType::PIE && Owner->GetWorld()->WorldType != EWorldType::Game)
         return;
     SCOPED_READ_LOCK(*UPhysicsManager::Get().GetScene());
@@ -147,7 +161,6 @@ void GameObject::UpdateFromPhysics()
 
 void GameObject::Release()
 {
-    Owner = nullptr;
     rigidBody->release();
     rigidBody = nullptr;
 }
@@ -161,4 +174,22 @@ void PhysXErrorCallback::reportError(PxErrorCode::Enum code, const char* message
 
     UE_LOG(ELogLevel::Error, TEXT("[PhysX] %s (%s:%d)"), message, fileName, line);
     printf("[PhysX %s] %s (%s:%d)\n", code, message, fileName, line);
+}
+
+PxFilterFlags MySimulationFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0, PxFilterObjectAttributes attributes1, PxFilterData filterData1, PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+{
+    // 1) 기본 시뮬레이션 필터링
+    PxFilterFlags flags = PxDefaultSimulationFilterShader(
+        attributes0, filterData0,
+        attributes1, filterData1,
+        pairFlags, constantBlock, constantBlockSize);
+
+    // 2) 충돌 이벤트를 꼭 받아오도록 플래그 추가
+    pairFlags = PxPairFlag::eCONTACT_DEFAULT
+        | PxPairFlag::eNOTIFY_TOUCH_FOUND
+        //| PxPairFlag::eNOTIFY_TOUCH_LOST
+        //| PxPairFlag::eNOTIFY_CONTACT_POINTS
+        ;
+
+    return flags;
 }
