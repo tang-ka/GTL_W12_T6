@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include "Container/Array.h"
 #include "Container/Map.h"
@@ -39,6 +39,9 @@ enum class EPropertyType : uint8
 
     DistributionFloat,             // FDistributionFloat
     DistributionVector,            // FDistributionVector
+
+    AggregateGeom,
+    BoxElem,
 
     Array,                         // TArray<T>
     Map,                           // TMap<T>

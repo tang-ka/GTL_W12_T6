@@ -645,6 +645,32 @@ struct FDistributionVectorProperty : public FProperty
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
 };
 
+struct FKAggregateGeom;
+
+struct FKAggregateGeomProperty : public FProperty
+{
+    FKAggregateGeomProperty(
+        UStruct* InOwnerStruct,
+        const char* InPropertyName,
+        int64 InSize,
+        int64 InOffset,
+        EPropertyFlags InFlags,
+        FPropertyMetadata InMetadata
+    )
+        : FProperty(InOwnerStruct, InPropertyName, EPropertyType::Struct, InSize, InOffset, InFlags, std::move(InMetadata))
+    {
+    }
+
+    virtual void DisplayInImGui(UObject* Object) const override;
+    virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr, UObject* OwnerObject) const override;
+
+private:
+    void DisplaySphereElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const;
+    void DisplayBoxElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const;
+    void DisplayCapsuleElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const;
+    void DisplayConvexElements(FKAggregateGeom* AggGeom, UObject* OwnerObject) const;
+};
+
 template <typename InArrayType>
 struct TArrayProperty : public FProperty
 {
@@ -1327,6 +1353,7 @@ FProperty* MakeProperty(
 
     else if constexpr (TypeEnum == EPropertyType::DistributionFloat) { return new FDistributionFloatProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::DistributionVector) { return new FDistributionVectorProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
+    else if constexpr (TypeEnum == EPropertyType::AggregateGeom) { return new FKAggregateGeomProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
     else if constexpr (TypeEnum == EPropertyType::Material) { return new UMaterialProperty { InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags, std::move(InMetadata) }; }
 
     else if constexpr (TypeEnum == EPropertyType::Array)
