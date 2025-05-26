@@ -2,6 +2,7 @@
 
 #include "UObject/ObjectMacros.h"
 #include "ShapeElem.h"
+#include "PhysicsEngine/BoxElem.h"
 
 struct FKAggregateGeom
 {

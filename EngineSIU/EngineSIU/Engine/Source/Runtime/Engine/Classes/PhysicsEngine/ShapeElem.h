@@ -133,12 +133,14 @@ private:
     //FUserData UserData;
 };
 
-struct FKBoxElem : public FKShapeElem
+static FORCEINLINE void SetupNonUniformHelper(const FVector& Scale3D, float& MinScale, float& MinScaleAbs, FVector& Scale3DAbs)
 {
-    FKBoxElem()
-        : FKShapeElem(EAggCollisionShape::Box) { }
+    float AbsX = FMath::Abs<float>(Scale3D.X);
+    float AbsY = FMath::Abs<float>(Scale3D.Y);
+    float AbsZ = FMath::Abs<float>(Scale3D.Z);
 
-    FVector Center;
-    FVector Extent;
-    FRotator Rotation;
-};
+    MinScale = FMath::Min3<float>(Scale3D.X, Scale3D.Y, Scale3D.Z);
+    MinScaleAbs = FMath::Min3<float>(AbsX, AbsY, AbsZ);
+
+    Scale3DAbs = FVector(AbsX, AbsY, AbsZ);
+}

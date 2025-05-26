@@ -5,6 +5,7 @@
 
 #include "Engine/Asset/StaticMeshAsset.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/BoxElem.h"
 #include "Engine/PhysicsManager.h"
 #include "Physics/PhysicalMaterial.h"
 

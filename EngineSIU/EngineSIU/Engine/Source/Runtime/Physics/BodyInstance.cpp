@@ -4,6 +4,7 @@
 #include "Components/SceneComponent.h"
 #include <Components/StaticMeshComponent.h>
 #include "UObject/Casts.h"
+#include "PhysicsEngine/BoxElem.h"
 
 FBodyInstance::FBodyInstance()
 {
