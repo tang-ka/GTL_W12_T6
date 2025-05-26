@@ -10,17 +10,20 @@ class FMeshElementCollector;
 //USTRUCT()
 struct FKBoxElem : public FKShapeElem
 {
+    DECLARE_STRUCT_WITH_SUPER(FKBoxElem, FKShapeElem)
     /** Position of the box's origin */
-    //UPROPERTY(Category = Box, EditAnywhere)
-    FVector Center;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, Center)
+    //FVector Center;
 
     /** Rotation of the box */
     //UPROPERTY(Category = Box, EditAnywhere, meta = (ClampMin = "-360", ClampMax = "360"))
-    FRotator Rotation;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FRotator, Rotation)
+    //FRotator Rotation;
 
     /** Extent of the box */
     //UPROPERTY(Category = Box, EditAnywhere, meta = (DisplayName = "X Extent"))
-    FVector Extent;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FVector, Extent)
+    //FVector Extent;
 
 
     FKBoxElem()

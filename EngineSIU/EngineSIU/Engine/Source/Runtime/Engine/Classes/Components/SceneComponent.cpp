@@ -371,8 +371,8 @@ void USceneComponent::SetRelativeTransform(const FTransform& InTransform)
     RelativeLocation = InTransform.GetTranslation();
     RelativeRotation = InTransform.GetRotation().GetNormalized().Rotator();
     RelativeScale3D = InTransform.GetScale3D();
-
-    UpdateOverlaps();
+    // 비물리 충돌 일단 주석 (Overlap)
+    //UpdateOverlaps();
 }
 
 void USceneComponent::SetWorldTransform(const FTransform& InTransform)
@@ -397,7 +397,8 @@ void USceneComponent::SetWorldTransform(const FTransform& InTransform)
     }
     
     // 오버랩 업데이트 (충돌 관련 컴포넌트인 경우)
-    UpdateOverlaps();
+    // 비물리 충돌 일단 주석 (Overlap)
+    //UpdateOverlaps();
 }
 
 void USceneComponent::UpdateOverlaps(const TArray<FOverlapInfo>* PendingOverlaps, bool bDoNotifies, const TArray<const FOverlapInfo>* OverlapsAtEndLocation)

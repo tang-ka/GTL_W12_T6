@@ -117,4 +117,10 @@ struct FTransform
                   << Transform.Rotation
                   << Transform.Scale3D;
     }
+
+    // Physics 관련 함수들
+    physx::PxTransform ToPxTransform() const
+    {
+        return physx::PxTransform(Translation.ToPxVec3(), Rotation.ToPxQuat());
+    }
 };

@@ -10,7 +10,7 @@ class USkeletalMesh : public USkinnedAsset
     DECLARE_CLASS(USkeletalMesh, USkinnedAsset)
 
 public:
-    USkeletalMesh() = default;
+    USkeletalMesh();
     virtual ~USkeletalMesh() override = default;
 
     void SetRenderData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData);

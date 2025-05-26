@@ -6,6 +6,9 @@ DECLARE_MULTICAST_DELEGATE_FiveParams(FComponentHitSignature, UPrimitiveComponen
 DECLARE_MULTICAST_DELEGATE_SixParams(FComponentBeginOverlapSignature, UPrimitiveComponent* /* OverlappedComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, int32 /* OtherBodyIndex */, bool /* bFromSweep */, const FHitResult& /* Hit */);
 DECLARE_MULTICAST_DELEGATE_FourParams(FComponentEndOverlapSignature, UPrimitiveComponent* /* OverlappedComponent */, AActor* /* OtherActor */, UPrimitiveComponent* /* OtherComp */, int32 /* OtherBodyIndex */);
 
+class FBodyInstance;
+class GameObject;
+
 class UPrimitiveComponent : public USceneComponent
 {
     DECLARE_CLASS(UPrimitiveComponent, USceneComponent)
@@ -99,9 +102,29 @@ public:
 protected:
     TArray<FOverlapInfo> OverlappingComponents;
 
+    FBodyInstance* Body = nullptr;
+    GameObject* PhysicsBody = nullptr;
+    bool bSimulatePhysics = false;
+    bool bSimulateGravity = false;
+    bool bIsStatic = false;
+
     virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps = nullptr, bool bDoNotifies = true, const TArray<const FOverlapInfo>* OverlapsAtEndLocation = nullptr) override;
 
     void ClearComponentOverlaps(bool bDoNotifies, bool bSkipNotifySelf);
+
+public:
+    void SetPhysBody(GameObject* InBody) { PhysicsBody = InBody; }
+
+    GameObject* GetPhysBody() { return PhysicsBody; }
+
+    bool ShouldSimulatePhysics() { return bSimulatePhysics; }
+    bool IsUseGravity() { return bSimulateGravity; }
+    bool GetIsStatic() { return bIsStatic; }
+
+    virtual void SimulatePhysics(bool Value) {}
+    virtual void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution) {}
+    virtual void SimulateGravity(bool Value) {}
+    virtual void SetIsStatic(bool Value) {}
     
 private:
     FString m_Type;

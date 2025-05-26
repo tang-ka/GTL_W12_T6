@@ -22,6 +22,9 @@ public:
 
     void ClearRefSkeletalMeshComponent();
 private:
+private:
+    TMap<int32, USceneComponent*> BoneComponentMap;
+
     float Width = 0, Height = 0;
     USkeletalMesh* SkeletalMesh;
 
@@ -33,7 +36,23 @@ private:
     void RenderConstraintPanel();
     void RenderPhysicsDetailPanel();
 
+    void RenderBodySetupEditor(UBodySetup* BodySetup);
+
+    UBodySetup* FindBodySetupForBone(int32 BoneIndex);
+
     FString GetCleanBoneName(const FString& InFullName);
+
+    void GenerateBoxBodiesForAllBones();
+
+    FTransform CalculateBoneWorldTransform(int32 BoneIndex);
+
+    //void ClearExistingBoxComponents();
+
+    void CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, const FTransform& BoneTransform, int32 BoneIndex);
+
+    void CreateBoxComponentForBone(int32 BoneIndex, const FTransform& BoneTransform, const FName& BoneName);
+
+    void CreateHierarchicalBoxComponent(int32 BoneIndex, const FTransform& BoneLocalTransform, const FName& BoneName);
 
     ID3D11ShaderResourceView* BoneIconSRV = nullptr;
     ID3D11ShaderResourceView* NonWeightBoneIconSRV = nullptr;

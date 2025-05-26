@@ -272,10 +272,10 @@ void FEditorRenderPass::BindBuffers(const FDebugPrimitiveData& InPrimitiveData) 
 
 void FEditorRenderPass::PrepareRenderArr()
 {
-    if (GEngine->ActiveWorld->WorldType != EWorldType::Editor)
-    {
-        return;
-    }
+	if (GEngine->ActiveWorld->WorldType != EWorldType::Editor && GEngine->ActiveWorld->WorldType != EWorldType::PhysicsViewer)
+	{
+		return;
+	}
     
     // gizmo 제외하고 넣기
     for (const auto* Actor : TObjectRange<AActor>())

@@ -2,6 +2,11 @@
 #include "Asset/SkeletalMeshAsset.h"
 #include "SkeletalMesh.h"
 
+USkeletalMesh::USkeletalMesh()
+{
+    PhysicsAsset = nullptr;
+}
+
 void USkeletalMesh::SetRenderData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData)
 {
     RenderData = std::move(InRenderData);

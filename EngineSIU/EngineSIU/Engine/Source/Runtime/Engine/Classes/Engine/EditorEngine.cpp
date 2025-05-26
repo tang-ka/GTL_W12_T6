@@ -360,7 +360,7 @@ void UEditorEngine::StartPhysicsViewer(FName SkeletalMeshName)
     SkeletalActor->SetActorLabel(TEXT("OBJ_SKELETALMESH"));
     MeshComp->SetSkeletalMeshAsset(UAssetManager::Get().GetSkeletalMesh(SkeletalMeshName.ToString()));
     PhysicsViewerWorld->SetSkeletalMeshComponent(MeshComp);
-
+    
     ADirectionalLight* DirectionalLight = PhysicsViewerWorld->SpawnActor<ADirectionalLight>();
     DirectionalLight->SetActorRotation(FRotator(45.f, 45.f, 0.f));
     DirectionalLight->GetComponentByClass<UDirectionalLightComponent>()->SetIntensity(4.0f);

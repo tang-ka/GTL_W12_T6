@@ -19,9 +19,14 @@ public:
     UBodySetup();
     ~UBodySetup();
 
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+
+    virtual void DisplayProperty() override;
+
     /** Simplified collision representation of this */
-    //UPROPERTY(EditAnywhere, Category = BodySetup)
-    struct FKAggregateGeom AggGeom;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FKAggregateGeom, AggGeom)
+    //struct FKAggregateGeom AggGeom;
 
     /** Should this BodySetup be considered for the bounding box */
     //UPROPERTY(EditAnywhere, Category = BodySetup)
