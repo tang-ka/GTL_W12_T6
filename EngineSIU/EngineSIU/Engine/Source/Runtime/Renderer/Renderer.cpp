@@ -1,36 +1,40 @@
-
 #include "Renderer.h"
 
 #include <array>
 #include "World/World.h"
-#include "Engine/EditorEngine.h"
+#include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "PropertyEditor/ShowFlags.h"
+// Helper
+#include "ParticleHelper.h"
+// Managers
 #include "D3D11RHI/DXDShaderManager.h"
-#include "OpaqueRenderPass.h"
-#include "WorldBillboardRenderPass.h"
-#include "EditorBillboardRenderPass.h"
-#include "GizmoRenderPass.h"
-#include "UpdateLightBufferPass.h"
-#include "LineRenderPass.h"
-#include "FogRenderPass.h"
-#include "CameraEffectRenderPass.h"
-#include "SlateRenderPass.h"
-#include "EditorRenderPass.h"
+#include "ShadowManager.h"
+
+// PreScene Passes
 #include "DepthPrePass.h"
 #include "TileLightCullingPass.h"
-#include "TranslucentRenderPass.h"
-
-#include "CompositingPass.h"
-#include "ParticleHelper.h"
-#include "ParticleSpriteRenderPass.h"
-#include "ParticleMeshRenderPass.h"
-#include "PostProcessCompositingPass.h"
-#include "ShadowManager.h"
+#include "UpdateLightBufferPass.h"
 #include "ShadowRenderPass.h"
-#include "UnrealClient.h"
-#include "GameFrameWork/Actor.h"
+// Opaque Passes
+#include "OpaqueRenderPass.h"
+#include "ParticleMeshRenderPass.h"
+// EditorDepthElement Passes
+#include "EditorRenderPass.h"
+#include "LineRenderPass.h"
+// Translucent Passes
+#include "TranslucentRenderPass.h"
+#include "ParticleSpriteRenderPass.h"
+#include "WorldBillboardRenderPass.h"
+#include "EditorBillboardRenderPass.h"
+// EditorOverlay Passes
+#include "GizmoRenderPass.h"
+// Final Passes
+#include "PostProcessRenderPass.h"
+#include "CompositingPass.h"
+#include "SlateRenderPass.h"
 
-#include "PropertyEditor/ShowFlags.h"
+// Console
 #include "Stats/Stats.h"
 #include "Stats/GPUTimingManager.h"
 
@@ -45,39 +49,46 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
 
     ShaderManager = new FDXDShaderManager(Graphics->Device);
     ShadowManager = new FShadowManager();
-    ShadowRenderPass = AddRenderPass<FShadowRenderPass>();
 
     CreateConstantBuffers();
     CreateCommonShader();
-    
-    OpaqueRenderPass = AddRenderPass<FOpaqueRenderPass>();
-    WorldBillboardRenderPass = AddRenderPass<FWorldBillboardRenderPass>();
-    EditorBillboardRenderPass = AddRenderPass<FEditorBillboardRenderPass>();
-    GizmoRenderPass = AddRenderPass<FGizmoRenderPass>();
-    UpdateLightBufferPass = AddRenderPass<FUpdateLightBufferPass>();
-    LineRenderPass = AddRenderPass<FLineRenderPass>();
-    FogRenderPass = AddRenderPass<FFogRenderPass>();
-    CameraEffectRenderPass = AddRenderPass<FCameraEffectRenderPass>();
-    EditorRenderPass = AddRenderPass<FEditorRenderPass>();
-    TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
 
-    ParticleSpriteRenderPass = AddRenderPass<FParticleSpriteRenderPass>();
-    ParticleMeshRenderPass = AddRenderPass<FParticleMeshRenderPass>();
-    
+    // PreScene Passes
     DepthPrePass = AddRenderPass<FDepthPrePass>();
     TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
-    
-    CompositingPass = AddRenderPass<FCompositingPass>();
-    PostProcessCompositingPass = AddRenderPass<FPostProcessCompositingPass>();
-    SlateRenderPass = AddRenderPass<FSlateRenderPass>();
+    UpdateLightBufferPass = AddRenderPass<FUpdateLightBufferPass>();
+    ShadowRenderPass = AddRenderPass<FShadowRenderPass>();
+    {
+        assert(ShadowManager->Initialize(Graphics, BufferManager) && "ShadowManager Initialize Failed");
+        ShadowRenderPass->InitializeShadowManager(ShadowManager);
+    }
 
-    assert(ShadowManager->Initialize(Graphics, BufferManager) && "ShadowManager Initialize Failed");
+    // Opaque Passes
+    OpaqueRenderPass = AddRenderPass<FOpaqueRenderPass>();
+    ParticleMeshRenderPass = AddRenderPass<FParticleMeshRenderPass>();
+
+    // EditorDepthElement Passes
+    EditorRenderPass = AddRenderPass<FEditorRenderPass>();
+    LineRenderPass = AddRenderPass<FLineRenderPass>();
+
+    // Translucent Passes
+    TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
+    ParticleSpriteRenderPass = AddRenderPass<FParticleSpriteRenderPass>();
+    WorldBillboardRenderPass = AddRenderPass<FWorldBillboardRenderPass>();
+    EditorBillboardRenderPass = AddRenderPass<FEditorBillboardRenderPass>();
+
+    // EditorOverlay Passes
+    GizmoRenderPass = AddRenderPass<FGizmoRenderPass>();
+
+    // Final Passes
+    PostProcessRenderPass = AddRenderPass<FPostProcessRenderPass>();
+    CompositingPass = AddRenderPass<FCompositingPass>();
+    SlateRenderPass = AddRenderPass<FSlateRenderPass>();
 
     for (IRenderPass* RenderPass : RenderPasses)
     {
         RenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     }
-    ShadowRenderPass->InitializeShadowManager(ShadowManager);
 }
 
 void FRenderer::Release()
@@ -291,25 +302,22 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
      *   2. 렌더 타겟의 생명주기와 용도가 명확함
      *   3. RTV -> SRV 전환 타이밍이 정확히 지켜짐
      */
-    
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-    const EViewModeIndex ViewMode = Viewport->GetViewMode();
-
     QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
     QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
+    {
+        BeginRender(Viewport);
+        
+        RenderPreScene(Viewport);
+        RenderOpaque(Viewport);
+        RenderEditorDepthElement(Viewport);
+        RenderTranslucent(Viewport);
+        RenderEditorOverlay(Viewport);
+        RenderPostProcess(Viewport);
 
-    BeginRender(Viewport);
-    
-    RenderPreScene(Viewport);
-    RenderOpaque(Viewport);
-    RenderEditorDepthElement(Viewport);
-    RenderTranslucent(Viewport);
-    RenderEditorOverlay(Viewport);
-    RenderPostProcess(Viewport);
+        RenderFinalResult(Viewport);
 
-    RenderFinalResult(Viewport);
-
-    EndRender();
+        EndRender();
+    }
 }
 
 void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
@@ -458,33 +466,13 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
 
 void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
-    const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
     if (ViewMode < EViewModeIndex::VMI_Unlit)
     {
-        if (ShowFlag & EEngineShowFlags::SF_Fog)
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
-            FogRenderPass->Render(Viewport);
-        }
-
-        // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
-
-        /**
-         * TODO: 반드시 씬에 먼저 반영되어야 하는 포스트 프로세싱 효과는 먼저 씬에 반영하고,
-         *       그 외에는 렌더한 포스트 프로세싱 효과들을 이 시점에서 하나로 합친 후에, 다음에 올 컴포짓 과정에서 합성.
-         */
-        {
-            CameraEffectRenderPass->Render(Viewport);
-        }
-
-        {
-            QUICK_SCOPE_CYCLE_COUNTER(PostProcessCompositing_CPU)
-            QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessCompositing_GPU, *GPUTimingManager)
-            PostProcessCompositingPass->Render(Viewport);
-        }
+        QUICK_SCOPE_CYCLE_COUNTER(PostProcessPass_CPU)
+        QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessPass_GPU, *GPUTimingManager)
+        PostProcessRenderPass->Render(Viewport);
     }
 }
 

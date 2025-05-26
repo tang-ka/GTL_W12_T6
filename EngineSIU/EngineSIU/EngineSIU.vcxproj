@@ -424,6 +424,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     <ClCompile Include="Engine\Source\Runtime\Renderer\ParticleMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ParticleSpriteRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcessRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Renderer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPassBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowManager.cpp" />
@@ -799,6 +800,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     <ClInclude Include="Engine\Source\Runtime\Renderer\ParticleMeshRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ParticleSpriteRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcessRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Renderer.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RendererHelpers.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPassBase.h" />

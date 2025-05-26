@@ -1,4 +1,4 @@
-﻿#include "RenderPassBase.h"
+#include "RenderPassBase.h"
 
 #include "Define.h"
 #include "RendererHelpers.h"
@@ -14,11 +14,37 @@ FRenderPassBase::FRenderPassBase()
 {
 }
 
-void FRenderPassBase::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)
+FRenderPassBase::~FRenderPassBase()
+{
+    FRenderPassBase::Release();
+}
+
+void FRenderPassBase::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     BufferManager = InBufferManager;
     Graphics = InGraphics;
-    ShaderManager = InShaderManage;
+    ShaderManager = InShaderManager;
+
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        RenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    }
+}
+
+void FRenderPassBase::PrepareRenderArr()
+{
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        RenderPass->PrepareRenderArr();
+    }
+}
+
+void FRenderPassBase::ClearRenderArr()
+{
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        RenderPass->ClearRenderArr();
+    }
 }
 
 void FRenderPassBase::UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const
@@ -209,4 +235,17 @@ void FRenderPassBase::UpdateBones(const USkeletalMeshComponent* SkeletalMeshComp
     }
 
     BufferManager->UpdateStructuredBuffer(TEXT("BoneBuffer"), FinalBoneMatrices);
+}
+
+void FRenderPassBase::Release()
+{
+    for (IRenderPass* RenderPass : ChildRenderPasses)
+    {
+        delete RenderPass;
+    }
+
+    ChildRenderPasses.Empty();
+    BufferManager = nullptr;
+    Graphics = nullptr;
+    ShaderManager = nullptr;
 }
