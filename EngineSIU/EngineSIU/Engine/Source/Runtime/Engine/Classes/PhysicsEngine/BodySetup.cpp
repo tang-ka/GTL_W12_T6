@@ -6,6 +6,7 @@
 
 UBodySetup::UBodySetup()
 {
+    PhysMaterial = new UPhysicalMaterial;
 }
 
 void FKSphereElem::ScaleElem(FVector DeltaSize, float MinSize)
@@ -233,7 +234,6 @@ float FKSphylElem::GetClosestPointAndNormal(const FVector& WorldPosition, const 
     ClosestWorldPosition = WorldPosition - Normal * DistToEdge;
 
     return bIsOutside ? DistToEdge : 0.f;
-    PhysMaterial = new UPhysicalMaterial;
 }
 
 UBodySetup::~UBodySetup()
