@@ -8,6 +8,7 @@
 
 UPhysicsManager::UPhysicsManager()
 {
+    TolerancesScale = new PxTolerancesScale();
 }
 
 void UPhysicsManager::Initialize()
