@@ -5,6 +5,7 @@
 
 #include "Engine/Asset/StaticMeshAsset.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/BoxElem.h"
 
 UObject* UStaticMesh::Duplicate(UObject* InOuter)
 {

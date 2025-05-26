@@ -423,9 +423,19 @@ FVector FTransform::TransformPosition(const FVector& V) const
     return Rotation.RotateVector(Scale3D * V) + Translation;
 }
 
+FVector FTransform::TransformPositionNoScale(const FVector& V) const
+{
+    return Rotation.RotateVector(V) + Translation;
+}
+
 FVector FTransform::InverseTransformPosition(const FVector& V) const
 {
     return (Rotation.Inverse().RotateVector(V - Translation)) / Scale3D;
+}
+
+FVector FTransform::InverseTransformPositionNoScale(const FVector& V) const
+{
+    return Rotation.Inverse().RotateVector(V - Translation);
 }
 
 FVector FTransform::TransformVector(const FVector& V) const
@@ -433,7 +443,7 @@ FVector FTransform::TransformVector(const FVector& V) const
     return Rotation.RotateVector(Scale3D * V);
 }
 
-FVector FTransform::TransformVectorWithoutScale(const FVector& V) const
+FVector FTransform::TransformVectorNoScale(const FVector& V) const
 {
     return Rotation.RotateVector(V);
 }

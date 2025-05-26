@@ -1,5 +1,6 @@
 #include "BodyInstance.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/BoxElem.h"
 
 FBodyInstance::FBodyInstance()
 {
