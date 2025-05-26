@@ -17,7 +17,7 @@ class UBodySetup : public UBodySetupCore
 
 public:
     UBodySetup();
-    ~UBodySetup() = default;
+    ~UBodySetup();
 
     /** Simplified collision representation of this */
     //UPROPERTY(EditAnywhere, Category = BodySetup)

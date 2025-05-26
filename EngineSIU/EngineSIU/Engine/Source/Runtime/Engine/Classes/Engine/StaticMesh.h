@@ -5,6 +5,7 @@
 #include "Define.h"
 
 class UBodySetup;
+class UPhysicalMaterial;
 
 struct FStaticMeshRenderData;
 
@@ -30,6 +31,14 @@ public:
     virtual void SerializeAsset(FArchive& Ar) override;
 
     UBodySetup* GetBodySetup() { return BodySetup; }
+
+    void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution);
+
+    float GetStaticFriction();
+    float GetDynamicFriction();
+    float GetRestitution();
+
+    UPhysicalMaterial* GetPhysMaterial();
 
 private:
     FStaticMeshRenderData* RenderData = nullptr;

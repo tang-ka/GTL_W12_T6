@@ -6,6 +6,8 @@
 #include "Engine/Asset/StaticMeshAsset.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "PhysicsEngine/BoxElem.h"
+#include "Engine/PhysicsManager.h"
+#include "Physics/PhysicalMaterial.h"
 
 UObject* UStaticMesh::Duplicate(UObject* InOuter)
 {
@@ -63,7 +65,7 @@ void UStaticMesh::SetData(FStaticMeshRenderData* InRenderData)
     FKBoxElem Box;
     Box.Center = (RenderData->BoundingBoxMax + RenderData->BoundingBoxMin) * 0.5f;
     Box.Extent = (RenderData->BoundingBoxMax - RenderData->BoundingBoxMin) * 0.5f;
-    
+    BodySetup->BoneName = FName("Root");
     BodySetup->AggGeom.BoxElems.Add(Box);
 }
 
@@ -78,4 +80,29 @@ void UStaticMesh::SerializeAsset(FArchive& Ar)
     }
 
     RenderData->Serialize(Ar);
+}
+
+void UStaticMesh::SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution)
+{
+    BodySetup->PhysMaterial->SetInfo(InStaticFric, InDynamicFric, InRestitution);
+}
+
+float UStaticMesh::GetStaticFriction()
+{
+    return BodySetup->PhysMaterial->GetStaticFriction();
+}
+
+float UStaticMesh::GetDynamicFriction()
+{
+    return BodySetup->PhysMaterial->GetDynamicFriction();
+}
+
+float UStaticMesh::GetRestitution()
+{
+    return BodySetup->PhysMaterial->GetRestitution();
+}
+
+UPhysicalMaterial* UStaticMesh::GetPhysMaterial()
+{
+    return BodySetup->PhysMaterial;
 }

@@ -2,9 +2,11 @@
 #include "PhysicsEngine/SphereElem.h"
 #include "PhysicsEngine/BoxElem.h"
 #include "PhysicsEngine/SphylElem.h"
+#include "PhysicalMaterial.h"
 
 UBodySetup::UBodySetup()
 {
+    PhysMaterial = new UPhysicalMaterial;
 }
 
 void FKSphereElem::ScaleElem(FVector DeltaSize, float MinSize)
@@ -232,4 +234,10 @@ float FKSphylElem::GetClosestPointAndNormal(const FVector& WorldPosition, const 
     ClosestWorldPosition = WorldPosition - Normal * DistToEdge;
 
     return bIsOutside ? DistToEdge : 0.f;
+}
+
+UBodySetup::~UBodySetup()
+{
+    if (PhysMaterial)
+        delete PhysMaterial;
 }

@@ -9,10 +9,19 @@
 
 #include "GameFramework/Actor.h"
 #include "Physics/BodyInstance.h"
+#include "Engine/PhysicsManager.h"
 
 UStaticMeshComponent::UStaticMeshComponent()
 {
     Body = new FBodyInstance();
+}
+
+UStaticMeshComponent::~UStaticMeshComponent()
+{
+    if (Body)
+    {
+        Body->TermBody();
+    }
 }
 
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
@@ -226,7 +235,44 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
     {
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
-        if(StaticMesh->GetBodySetup())
-            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform(), false);
+        if(StaticMesh->GetBodySetup() && bSimulatePhysics)
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
     }
+}
+
+void UStaticMeshComponent::SimulatePhysics(bool Value)
+{
+    bSimulatePhysics = Value;
+    if (bSimulatePhysics)
+    {
+        if (StaticMesh->GetBodySetup())
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
+    }
+    else
+    {
+        Body->TermBody();
+    }
+}
+
+void UStaticMeshComponent::SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution)
+{
+    StaticMesh->SetPhysMaterial(InStaticFric, InDynamicFric, InRestitution);
+    if (Body)
+        Body->TermBody();
+    if (bSimulatePhysics)
+    {
+        if (StaticMesh->GetBodySetup())
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
+    }
+}
+
+void UStaticMeshComponent::SetPhysBody(GameObject* InBody)
+{
+    PhysicsBody = InBody;
+}
+
+void UStaticMeshComponent::SimulateGravity(bool Value)
+{
+    bSimulateGravity = Value;
+    PhysicsBody->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Value);
 }

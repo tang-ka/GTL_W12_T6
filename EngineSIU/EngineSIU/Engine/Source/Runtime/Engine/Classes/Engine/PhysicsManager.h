@@ -11,9 +11,12 @@
 using namespace physx;
 using namespace DirectX;
 
+class USceneComponent;
+
 #define SCOPED_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene);
 
 struct GameObject {
+    USceneComponent* Owner = nullptr;
     PxRigidDynamic* rigidBody = nullptr;
     XMMATRIX worldMatrix = XMMatrixIdentity();
 
@@ -47,8 +50,11 @@ public:
     //void Shutdown();
 
     // Spawn Physics scne game object
-    class GameObject* SpawnGameObject(const PxVec3& Position,
-        const PxGeometry& Geometry,
+    class GameObject* SpawnGameObject(
+        USceneComponent* InOwner,
+        const PxVec3& Position,
+        const PxQuat& Rotation,
+        const TArray<PxShape*> Shapes,
         class UPhysicalMaterial* Material = nullptr);
 
     void Simulate(float DeltaTime);
@@ -56,6 +62,8 @@ public:
     PxScene* GetScene();
 
     PxPhysics* GetPhysics() { return Physics; }
+
+    void RemoveGameObject(GameObject* InGameObject);
 
 private:
     PxDefaultAllocator Allocator;
@@ -66,6 +74,7 @@ private:
     PxDefaultCpuDispatcher* Dispatcher = nullptr;
 
     TArray<GameObject*> GameObjects;
+    TArray<GameObject*> PendingRemoveGameObjects;
 
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;
