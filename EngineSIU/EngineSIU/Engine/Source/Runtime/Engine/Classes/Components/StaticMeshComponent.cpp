@@ -9,10 +9,19 @@
 
 #include "GameFramework/Actor.h"
 #include "Physics/BodyInstance.h"
+#include "Engine/PhysicsManager.h"
 
 UStaticMeshComponent::UStaticMeshComponent()
 {
     Body = new FBodyInstance();
+}
+
+UStaticMeshComponent::~UStaticMeshComponent()
+{
+    if (Body)
+    {
+        Body->TermBody();
+    }
 }
 
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
@@ -227,7 +236,7 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
         if(StaticMesh->GetBodySetup() && bSimulatePhysics)
-            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform());
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
     }
 }
 
@@ -237,7 +246,7 @@ void UStaticMeshComponent::SimulatePhysics(bool Value)
     if (bSimulatePhysics)
     {
         if (StaticMesh->GetBodySetup())
-            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform());
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
     }
     else
     {
@@ -253,6 +262,17 @@ void UStaticMeshComponent::SetPhysMaterial(float InStaticFric, float InDynamicFr
     if (bSimulatePhysics)
     {
         if (StaticMesh->GetBodySetup())
-            Body->InitBody(StaticMesh->GetBodySetup(), GetWorldTransform());
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
     }
+}
+
+void UStaticMeshComponent::SetPhysBody(GameObject* InBody)
+{
+    PhysicsBody = InBody;
+}
+
+void UStaticMeshComponent::SimulateGravity(bool Value)
+{
+    bSimulateGravity = Value;
+    PhysicsBody->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Value);
 }

@@ -5,6 +5,7 @@
 #include "Engine/Asset/StaticMeshAsset.h"
 
 class FBodyInstance;
+class GameObject;
 
 class UStaticMeshComponent : public UMeshComponent
 {
@@ -13,8 +14,9 @@ class UStaticMeshComponent : public UMeshComponent
 public:
     UStaticMeshComponent();
 
-    virtual UObject* Duplicate(UObject* InOuter) override;
+    ~UStaticMeshComponent();
 
+    virtual UObject* Duplicate(UObject* InOuter) override;
 
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
 
@@ -39,9 +41,19 @@ public:
 
     void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution);
 
+    void SetPhysBody(GameObject* InBody);
+
+    GameObject* GetPhysBody() { return PhysicsBody; }
+
+    bool IsUseGravity() { return bSimulateGravity; }
+
+    void SimulateGravity(bool Value);
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;
     FBodyInstance* Body = nullptr;
     bool bSimulatePhysics = false;
+    GameObject* PhysicsBody = nullptr;
+    bool bSimulateGravity = false;
 };

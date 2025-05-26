@@ -1,6 +1,7 @@
 #include "PhysicsManager.h"
 #include "Physics/PhysicsSimulationEventCallback.h"
 #include "Userinterface/Console.h"
+#include "Components/SceneComponent.h"
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -25,7 +26,7 @@ void UPhysicsManager::Initialize()
 
     // Scene Configuration
     PxSceneDesc SceneDesc(Physics->getTolerancesScale());
-    SceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+    SceneDesc.gravity = PxVec3(0.0f, 0.0f, -9.81f);
     Dispatcher = PxDefaultCpuDispatcherCreate(4);
 
     SceneDesc.cpuDispatcher = Dispatcher;
@@ -42,7 +43,9 @@ void UPhysicsManager::Initialize()
     Scene = Physics->createScene(SceneDesc);
 }
 
-GameObject* UPhysicsManager::SpawnGameObject(const PxVec3& Position,
+GameObject* UPhysicsManager::SpawnGameObject(
+    USceneComponent* InOwner,
+    const PxVec3& Position,
     const PxQuat& Rotation,
     const TArray<PxShape*> Shapes,
     UPhysicalMaterial* Material)
@@ -64,7 +67,7 @@ GameObject* UPhysicsManager::SpawnGameObject(const PxVec3& Position,
     PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
     Scene->addActor(*body);
 
-    GameObject* NewGameObject = new GameObject(body);
+    GameObject* NewGameObject = new GameObject(InOwner, body);
     GameObjects.Add(NewGameObject);
 
     return NewGameObject;
@@ -101,7 +104,21 @@ void GameObject::UpdateFromPhysics()
     SCOPED_READ_LOCK(*UPhysicsManager::Get().GetScene());
     PxTransform t = rigidBody->getGlobalPose();
     PxMat44 mat(t);
-    worldMatrix = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&mat));
+    XMMATRIX worldMatrix = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&mat));
+
+    XMFLOAT4X4 temp;
+    XMStoreFloat4x4(&temp, worldMatrix); // XMMATRIX → XMFLOAT4X4로 복사
+
+    FMatrix WorldMatrix;
+    memcpy(&WorldMatrix, &temp, sizeof(FMatrix)); // 안전하게 float[4][4] 복사
+    
+    FVector Location = WorldMatrix.GetTranslationVector();
+    FQuat Quat = WorldMatrix.GetMatrixWithoutScale().ToQuat();
+    FVector Scale = WorldMatrix.GetScaleVector();
+
+    Owner->SetWorldLocation(Location);
+    Owner->SetWorldRotation(Quat);
+    Owner->SetWorldScale3D(Scale);
 }
 
 void PhysXErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)

@@ -1,12 +1,15 @@
 #include "BodyInstance.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "PhysicalMaterial.h"
+#include "Components/SceneComponent.h"
+#include <Components/StaticMeshComponent.h>
+#include "UObject/Casts.h"
 
 FBodyInstance::FBodyInstance()
 {
 }
 
-void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform)
+void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform)
 {
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
@@ -47,7 +50,12 @@ void FBodyInstance::InitBody(UBodySetup* Setup, const FTransform& WorldTransform
     //    Shapes.Add(Shape);
     //}
 
-    Actor = UPhysicsManager::Get().SpawnGameObject(PxLocation, PxRotation, Shapes);
+    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes);
+    if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
+    {
+        Comp->SetPhysBody(Actor);
+        Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Comp->IsUseGravity());
+    }
 } 
 
 void FBodyInstance::TermBody()
@@ -58,6 +66,8 @@ void FBodyInstance::TermBody()
         if(Scene)
             Scene->removeActor(*(Actor->rigidBody));
         UPhysicsManager::Get().RemoveGameObject(Actor);
+        if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(Actor->Owner))
+            Comp->SetPhysBody(nullptr);
         Actor = nullptr;
     }
 }

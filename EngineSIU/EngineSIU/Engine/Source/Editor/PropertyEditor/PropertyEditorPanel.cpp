@@ -492,6 +492,11 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         
         if (bPhysics)
         {
+            bool bGravity = StaticMeshComp->IsUseGravity();
+            if (ImGui::Checkbox("Simulate Gravity", &bGravity))
+            {
+                StaticMeshComp->SimulateGravity(bGravity);
+            }
             ImGui::Text("Physics Material Setting");
             bool bChanged = false;
             float StaticFriction = StaticMeshComp->GetStaticMesh()->GetStaticFriction();
