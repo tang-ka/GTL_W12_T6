@@ -6,6 +6,7 @@
 #include "UObject/Casts.h"
 #include "PhysicsEngine/BoxElem.h"
 #include "PhysicsEngine/AggregateGeom.h"
+#include "World/World.h"
 
 FBodyInstance::FBodyInstance()
 {
@@ -13,6 +14,9 @@ FBodyInstance::FBodyInstance()
 
 void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform, const bool bIsStatic)
 {
+    UWorld* World = InOwner->GetWorld();
+    if (InOwner->GetWorld()->WorldType != EWorldType::None)
+        return;
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
     PxCooking* Cooking = UPhysicsManager::Get().GetCooking();
@@ -108,11 +112,8 @@ void FBodyInstance::TermBody()
 {
     if (Actor)
     {
-        PxScene* Scene = UPhysicsManager::Get().GetScene();
-        if (Scene)
-            Scene->removeActor(*(Actor->rigidBody));
         UPhysicsManager::Get().RemoveGameObject(Actor);
-        if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(Actor->Owner))
+        if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(reinterpret_cast<USceneComponent*>(Actor->rigidBody->userData)))
             Comp->SetPhysBody(nullptr);
         Actor = nullptr;
     }

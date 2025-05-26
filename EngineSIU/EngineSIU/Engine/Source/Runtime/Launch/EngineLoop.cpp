@@ -172,8 +172,6 @@ void FEngineLoop::Tick()
 
         GEngine->Tick(DeltaTime);
         LevelEditor->Tick(DeltaTime);
-        if (DeltaTime > 0.f)
-            UPhysicsManager::Get().Simulate(DeltaTime);
         Render();
         UIManager->BeginFrame();
         UnrealEditor->Render();
@@ -189,6 +187,12 @@ void FEngineLoop::Tick()
         if (GPUTimingManager.IsInitialized())
         {
             GPUTimingManager.EndFrame();        // End GPU frame timing
+        }
+
+        //Physics GameObject 제거
+        if (UPhysicsManager::Get().GetRemoveGameObjectNum() > 0)
+        {
+            UPhysicsManager::Get().RemoveGameObjects();
         }
 
         GraphicDevice.SwapBuffer();

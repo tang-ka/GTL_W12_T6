@@ -14,13 +14,15 @@ using namespace DirectX;
 class USceneComponent;
 
 #define SCOPED_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene);
+#define SCOPED_WRITE_LOCK(scene) PxSceneWriteLock scopedWriteLock(scene);
 
 struct GameObject {
-    USceneComponent* Owner = nullptr;
     PxRigidActor* rigidBody = nullptr;
     XMMATRIX worldMatrix = XMMatrixIdentity();
 
     void UpdateFromPhysics();
+
+    void Release();
 };
 
 class FPhysicsSimulationEventCallback;
@@ -60,6 +62,10 @@ public:
 
     void Simulate(float DeltaTime);
 
+    void RemoveGameObjects();
+
+    int GetRemoveGameObjectNum() { return PendingRemoveGameObjects.Num(); }
+
     PxPhysics* GetPhysics() { return Physics; }
     PxScene* GetScene() { return Scene; }
     PxCooking* GetCooking() { return Cooking; }
@@ -83,4 +89,9 @@ private:
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;
 };
+
+PxFilterFlags MySimulationFilterShader(
+    PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+    PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+    PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize);
 
