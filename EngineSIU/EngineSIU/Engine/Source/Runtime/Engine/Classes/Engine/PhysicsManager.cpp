@@ -4,6 +4,7 @@
 #include "Components/SceneComponent.h"
 #include <Components/StaticMeshComponent.h>
 #include <UObject/Casts.h>
+#include "World/World.h"
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -100,11 +101,17 @@ void UPhysicsManager::Simulate(float DeltaTime)
     {
         Object->UpdateFromPhysics();
     }
+}
 
+void UPhysicsManager::RemoveGameObjects()
+{
     for (GameObject* Object : PendingRemoveGameObjects)
     {
         GameObjects.Remove(Object);
+        Object->Release();
+        Object = nullptr;
     }
+    PendingRemoveGameObjects.Empty();
 }
 
 void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
@@ -114,6 +121,8 @@ void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
 
 void GameObject::UpdateFromPhysics()
 {
+    if(!Owner || Owner->GetWorld()->WorldType != EWorldType::PIE && Owner->GetWorld()->WorldType != EWorldType::Game)
+        return;
     SCOPED_READ_LOCK(*UPhysicsManager::Get().GetScene());
     PxTransform t = rigidBody->getGlobalPose();
     PxMat44 mat(t);
@@ -134,6 +143,13 @@ void GameObject::UpdateFromPhysics()
         Owner->SetWorldLocation(Location);
         Owner->SetWorldRotation(Quat);
     }
+}
+
+void GameObject::Release()
+{
+    Owner = nullptr;
+    rigidBody->release();
+    rigidBody = nullptr;
 }
 
 void PhysXErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)

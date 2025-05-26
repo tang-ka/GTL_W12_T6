@@ -18,6 +18,7 @@
 #include "PropertyEditor/ParticleViewerPanel.h"
 #include "UnrealEd/UnrealEd.h"
 #include "World/ParticleViewerWorld.h"
+#include "Engine/PhysicsManager.h"
 
 extern FEngineLoop GEngineLoop;
 
@@ -109,6 +110,8 @@ void UEditorEngine::Tick(float DeltaTime)
                         }
                     }
                 }
+                if (DeltaTime > 0.f)
+                    UPhysicsManager::Get().Simulate(DeltaTime);
             }
         }
         else if (WorldContext->WorldType == EWorldType::SkeletalViewer)

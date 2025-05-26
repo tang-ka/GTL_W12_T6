@@ -21,16 +21,17 @@ UStaticMeshComponent::UStaticMeshComponent()
 UStaticMeshComponent::~UStaticMeshComponent()
 {
     if (Body)
-    {
         Body->TermBody();
-    }
 }
 
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-    NewComponent->StaticMesh = StaticMesh;
+    NewComponent->bSimulatePhysics = bSimulatePhysics;
+    NewComponent->bIsStatic = bIsStatic;
+    NewComponent->bSimulateGravity = bSimulateGravity;
+    NewComponent->SetStaticMesh(StaticMesh);
     NewComponent->SelectedSubMeshIndex = SelectedSubMeshIndex;
 
     return NewComponent;

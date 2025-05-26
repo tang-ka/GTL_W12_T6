@@ -21,6 +21,8 @@ struct GameObject {
     XMMATRIX worldMatrix = XMMatrixIdentity();
 
     void UpdateFromPhysics();
+
+    void Release();
 };
 
 class FPhysicsSimulationEventCallback;
@@ -59,6 +61,10 @@ public:
         class UPhysicalMaterial* Material = nullptr);
 
     void Simulate(float DeltaTime);
+
+    void RemoveGameObjects();
+
+    int GetRemoveGameObjectNum() { return PendingRemoveGameObjects.Num(); }
 
     PxPhysics* GetPhysics() { return Physics; }
     PxScene* GetScene() { return Scene; }
