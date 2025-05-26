@@ -16,6 +16,7 @@
 #include "Engine/Asset/PhysicsAsset.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Physics/BodyInstance.h"
+#include "Physics/ConstraintInstance.h"
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -36,8 +37,7 @@ void USkeletalMeshComponent::InitializeComponent()
 
     InitAnim();
 
-    CreateBodies();
-    SyncComponentToBody();
+    InitializePhysics();
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -509,6 +509,18 @@ void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset)
     }
 }
 
+FBodyInstance* USkeletalMeshComponent::GetBodyInstance(FName BoneName) const
+{
+    return nullptr;
+}
+
+void USkeletalMeshComponent::InitializePhysics()
+{
+    CreateBodies();
+    CreateConstraints();
+    SyncComponentToBody();
+}
+
 void USkeletalMeshComponent::CreateBodies()
 {
     if (!GetPhysicsAsset())
@@ -524,7 +536,7 @@ void USkeletalMeshComponent::CreateBodies()
     Bodies.Empty(); // 기존 바디 인스턴스를 모두 제거합니다.
 
     const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
-    for (auto* BodySetup : GetPhysicsAsset()->GetBodySetup())
+    for (auto* BodySetup : GetPhysicsAsset()->GetBodySetups())
     {
         if (!BodySetup) continue;
 
@@ -541,6 +553,37 @@ void USkeletalMeshComponent::CreateBodies()
 
         NewInstance->InitBody(this, BodySetup, BoneTransform);
         Bodies.Add(NewInstance);
+    }
+}
+
+void USkeletalMeshComponent::CreateConstraints()
+{
+    if (!GetPhysicsAsset())
+    {
+        return;
+    }
+
+    for (auto* Constraint : Constraints)
+    {
+        Constraint->TermConstraint(); // 기존 제약 조건을 초기화합니다.
+        delete Constraint;
+    }
+    Constraints.Empty(); // 기존 제약 조건을 모두 제거합니다.
+
+    const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+    for (auto* ConstraintSetup : GetPhysicsAsset()->GetConstraintSetups())
+    {
+        //if (!ConstraintSetup) continue;
+        //FConstraintInstance* NewConstraint = new FConstraintInstance();
+        //FName ConstraintName = ConstraintSetup->Name;
+        //int32 BoneIndex = RefSkeleton.FindRawBoneIndex(ConstraintName);
+        //FTransform BoneTransform = FTransform::Identity;
+        //if (BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
+        //{
+        //    BoneTransform = RefBonePoseTransforms[BoneIndex];
+        //}
+        //NewConstraint->InitConstraint(this, ConstraintSetup, BoneTransform);
+        //Constraints.Add(NewConstraint);
     }
 }
 
@@ -561,7 +604,7 @@ void USkeletalMeshComponent::SyncBodyToComponent()
         const XMMATRIX WorldMatrix = BodyActor->worldMatrix;
         FTransform BodyTransform = FTransform(WorldMatrix);
 
-        UBodySetup* BodySetup = GetPhysicsAsset()->GetBodySetup()[i];
+        UBodySetup* BodySetup = GetPhysicsAsset()->GetBodySetups()[i];
         int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BodySetup->BoneName);
         
         if(BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
@@ -591,7 +634,7 @@ void USkeletalMeshComponent::SyncComponentToBody()
     }
 
     const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
-    const TArray<UBodySetup*>& BodySetups = GetPhysicsAsset()->GetBodySetup();
+    const TArray<UBodySetup*>& BodySetups = GetPhysicsAsset()->GetBodySetups();
 
     TArray<FMatrix> CurrentGlobalBoneMatrices;
     GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrices);
@@ -618,6 +661,11 @@ void USkeletalMeshComponent::SyncComponentToBody()
         BodyInstance->TermBody();
         BodyInstance->InitBody(this, BodySetup, BoneTransform);
     }
+}
+
+void USkeletalMeshComponent::SyncComponentToConstraint()
+{
+    // Constraints 순회하면 UpdateFrames 호출
 }
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)
