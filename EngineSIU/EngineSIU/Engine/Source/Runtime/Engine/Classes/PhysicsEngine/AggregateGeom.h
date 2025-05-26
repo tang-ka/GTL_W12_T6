@@ -59,25 +59,19 @@ struct FKAggregateGeom
         {
         case EAggCollisionShape::Sphere:
             return SphereElems.Num();
-            break;
         case EAggCollisionShape::Box:
             return BoxElems.Num();
-            break;
         case EAggCollisionShape::Sphyl:
             return SphylElems.Num();
-            break;
         case EAggCollisionShape::Convex:
             return ConvexElems.Num();
-            break;
         default:
-            return -1;
-            break;
+            return 0;
         }
     }
 
     FKShapeElem* GetElement(const EAggCollisionShape::Type Type, const int32 Index)
     {
-
         switch (Type)
         {
         case EAggCollisionShape::Sphere:

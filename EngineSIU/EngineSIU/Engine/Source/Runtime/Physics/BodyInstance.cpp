@@ -57,7 +57,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
 
     for (const FKSphylElem& Sphyl : AggGeom.SphylElems)
     {
-        PxCapsuleGeometry CapsuleGeom(Sphyl.Radius, Sphyl.GetScaledHalfLength());
+        PxCapsuleGeometry CapsuleGeom(Sphyl.Radius, Sphyl.GetScaledHalfLength(FVector::One()));
         PxVec3 CapsuleCenter(Sphyl.Center.X, Sphyl.Center.Y, Sphyl.Center.Z);
         FQuat CapsuleQuat(FRotator(Sphyl.Rotation));
         PxQuat CapsuleRotation(CapsuleQuat.X, CapsuleQuat.Y, CapsuleQuat.Z, CapsuleQuat.W);
