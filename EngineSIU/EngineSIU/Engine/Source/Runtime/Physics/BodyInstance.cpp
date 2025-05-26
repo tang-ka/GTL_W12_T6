@@ -100,7 +100,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         Shapes.Add(Shape);
     }
 
-    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);
+    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);  
     if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
     {
         Comp->SetPhysBody(Actor);
