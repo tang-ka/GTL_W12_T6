@@ -366,7 +366,7 @@ UBodySetup* PhysicsViewerPanel::FindBodySetupForBone(int32 BoneIndex)
 
 	FName BoneName = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex].Name;
 
-	for (UBodySetup* BodySetup : SkeletalMesh->GetPhysicsAsset()->GetBodySetup())
+	for (UBodySetup* BodySetup : SkeletalMesh->GetPhysicsAsset()->GetBodySetups())
 	{
 		if (BodySetup && BodySetup->BoneName == BoneName)
 		{
@@ -467,7 +467,7 @@ void PhysicsViewerPanel::CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, c
 	//NewBodySetup->DefaultInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	//NewBodySetup->DefaultInstance.SetObjectType(ECollisionChannel::ECC_WorldDynamic);
 
-	SkeletalMesh->GetPhysicsAsset()->GetBodySetup().Add(NewBodySetup);
+	SkeletalMesh->GetPhysicsAsset()->GetBodySetups().Add(NewBodySetup);
 }
 
 void PhysicsViewerPanel::CreateBoxComponentForBone(int32 BoneIndex, const FTransform& BoneTransform, const FName& BoneName)
