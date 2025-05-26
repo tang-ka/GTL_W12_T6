@@ -270,11 +270,6 @@ void UStaticMeshComponent::SetPhysMaterial(float InStaticFric, float InDynamicFr
     }
 }
 
-void UStaticMeshComponent::SetPhysBody(GameObject* InBody)
-{
-    PhysicsBody = InBody;
-}
-
 void UStaticMeshComponent::SimulateGravity(bool Value)
 {
     bSimulateGravity = Value;

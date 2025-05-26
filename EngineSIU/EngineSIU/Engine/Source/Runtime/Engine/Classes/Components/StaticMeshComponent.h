@@ -36,31 +36,17 @@ public:
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
     void SetStaticMesh(UStaticMesh* Value);
 
-    bool ShouldSimulatePhysics() { return bSimulatePhysics; }
-    void SimulatePhysics(bool Value);
+    virtual void SimulatePhysics(bool Value) override;
 
-    void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution);
+    virtual void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution) override;
 
-    void SetPhysBody(GameObject* InBody);
+    virtual void SimulateGravity(bool Value) override;
 
-    GameObject* GetPhysBody() { return PhysicsBody; }
-
-    bool IsUseGravity() { return bSimulateGravity; }
-
-    void SimulateGravity(bool Value);
+    virtual void SetIsStatic(bool Value) override;
 
     void CheckPhysSize();
-
-    bool GetIsStatic() { return bIsStatic; }
-
-    void SetIsStatic(bool Value);
 
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;
-    FBodyInstance* Body = nullptr;
-    bool bSimulatePhysics = false;
-    GameObject* PhysicsBody = nullptr;
-    bool bSimulateGravity = false;
-    bool bIsStatic = false;
 };
