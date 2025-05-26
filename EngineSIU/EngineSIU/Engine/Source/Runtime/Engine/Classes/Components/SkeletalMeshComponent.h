@@ -161,6 +161,8 @@ public:
     void SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset);
 
     void CreateBodies();
+	void CreateConstraints();
+
     void SyncBodyToComponent();
     void SyncComponentToBody();
 };
