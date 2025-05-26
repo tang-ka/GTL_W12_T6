@@ -34,7 +34,6 @@ void FGizmoRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsD
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 
-    CreateBuffer();
     CreateShader();
 
     D3D11_SAMPLER_DESC SamplerDesc = {};
@@ -71,11 +70,6 @@ void FGizmoRenderPass::UpdateShader()
 
 void FGizmoRenderPass::ReleaseShader()
 {
-}
-
-void FGizmoRenderPass::CreateBuffer()
-{
-    BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 }
 
 void FGizmoRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)

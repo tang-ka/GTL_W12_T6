@@ -33,8 +33,6 @@ public:
     void CreateShader();
     void UpdateShader();
     void ReleaseShader();
-
-    void CreateBuffer();
     
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
