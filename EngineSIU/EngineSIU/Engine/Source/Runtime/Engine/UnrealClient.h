@@ -17,15 +17,23 @@ enum class EViewScreenLocation : uint8
 
 enum class EResourceType : uint8
 {
-    ERT_Compositing,
-    ERT_Scene,
-    ERT_PP_Fog,
-    ERT_PP_CameraEffect,
     ERT_Debug,
+    ERT_Scene,
     ERT_Editor,
     ERT_Gizmo,
-    ERT_Overlay,
+    //ERT_Overlay,
+    ERT_PP_Fog,
+    ERT_PP_CameraEffect,
+    /// Begine DoF
+    ERT_DoF_LayerInfo,
+    ERT_DoF_LayerNear,
+    ERT_DoF_LayerFar,
+    ERT_DoF_Compositing,
+    /// End Dof
     ERT_PostProcessCompositing,
+    ERT_Compositing,
+    ERT_Temp1,
+    ERT_Temp2,
     ERT_MAX,
 };
 
