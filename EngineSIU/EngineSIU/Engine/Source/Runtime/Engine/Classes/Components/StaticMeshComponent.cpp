@@ -10,6 +10,8 @@
 #include "GameFramework/Actor.h"
 #include "Physics/BodyInstance.h"
 #include "Engine/PhysicsManager.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "Physics/PhysicalMaterial.h"
 
 UStaticMeshComponent::UStaticMeshComponent()
 {
@@ -275,4 +277,30 @@ void UStaticMeshComponent::SimulateGravity(bool Value)
 {
     bSimulateGravity = Value;
     PhysicsBody->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Value);
+}
+
+void UStaticMeshComponent::CheckPhysSize()
+{
+    if (!bSimulatePhysics)
+        return;
+    FVector Extent = (AABB.MaxLocation - AABB.MinLocation) * 0.5f * RelativeScale3D;
+    PxShape* Shape;
+    PhysicsBody->rigidBody->getShapes(&Shape, 1);
+    PxGeometryHolder Geom = Shape->getGeometry();
+    if (Geom.getType() == PxGeometryType::eBOX)
+    {
+        PxBoxGeometry Box = Geom.box();;
+        FVector BoxExtent(Box.halfExtents.x, Box.halfExtents.y, Box.halfExtents.z);
+        PxTransform LocalPose = Shape->getLocalPose();
+        if (BoxExtent != Extent)
+        {
+            PhysicsBody->rigidBody->detachShape(*Shape);
+            PxBoxGeometry BoxGeom(PxVec3(Extent.X, Extent.Y, Extent.Z));
+            PxShape* NewShape = UPhysicsManager::Get().GetPhysics()->createShape(BoxGeom, *StaticMesh->GetPhysMaterial()->GetMaterial());
+            NewShape->setLocalPose(LocalPose);
+            PhysicsBody->rigidBody->attachShape(*NewShape);
+            NewShape->release();
+        }
+
+    }
 }

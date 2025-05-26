@@ -305,6 +305,11 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
 
         SceneComponent->SetRelativeTransform(FTransform(Rotation, Location, Scale));
 
+        if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(SceneComponent))
+        {
+            StaticMeshComp->CheckPhysSize();
+        }
+
         std::string CoordiButtonLabel;
         if (Player->GetCoordMode() == ECoordMode::CDM_WORLD)
         {
