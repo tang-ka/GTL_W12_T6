@@ -239,7 +239,7 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
         if(StaticMesh->GetBodySetup() && bSimulatePhysics)
-            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }
 
@@ -249,7 +249,7 @@ void UStaticMeshComponent::SimulatePhysics(bool Value)
     if (bSimulatePhysics)
     {
         if (StaticMesh->GetBodySetup())
-            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
     else
     {
@@ -265,7 +265,7 @@ void UStaticMeshComponent::SetPhysMaterial(float InStaticFric, float InDynamicFr
     if (bSimulatePhysics)
     {
         if (StaticMesh->GetBodySetup())
-            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform());
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }
 
@@ -302,6 +302,17 @@ void UStaticMeshComponent::CheckPhysSize()
             PhysicsBody->rigidBody->attachShape(*NewShape);
             NewShape->release();
         }
+    }
+}
 
+void UStaticMeshComponent::SetIsStatic(bool Value)
+{
+    bIsStatic = Value;
+    if (Body)
+        Body->TermBody();
+    if (bSimulatePhysics)
+    {
+        if (StaticMesh->GetBodySetup())
+            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }

@@ -11,7 +11,7 @@ FBodyInstance::FBodyInstance()
 {
 }
 
-void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform)
+void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform, const bool bIsStatic)
 {
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
@@ -96,7 +96,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         Shapes.Add(Shape);
     }
 
-    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes);
+    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);
     if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
     {
         Comp->SetPhysBody(Actor);

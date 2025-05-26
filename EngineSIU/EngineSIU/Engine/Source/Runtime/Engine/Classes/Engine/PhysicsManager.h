@@ -17,7 +17,7 @@ class USceneComponent;
 
 struct GameObject {
     USceneComponent* Owner = nullptr;
-    PxRigidDynamic* rigidBody = nullptr;
+    PxRigidActor* rigidBody = nullptr;
     XMMATRIX worldMatrix = XMMatrixIdentity();
 
     void UpdateFromPhysics();
@@ -55,6 +55,7 @@ public:
         const PxVec3& Position,
         const PxQuat& Rotation,
         const TArray<PxShape*> Shapes,
+        const bool bIsStatic = false,
         class UPhysicalMaterial* Material = nullptr);
 
     void Simulate(float DeltaTime);

@@ -2,6 +2,8 @@
 #include "Physics/PhysicsSimulationEventCallback.h"
 #include "Userinterface/Console.h"
 #include "Components/SceneComponent.h"
+#include <Components/StaticMeshComponent.h>
+#include <UObject/Casts.h>
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -50,6 +52,7 @@ GameObject* UPhysicsManager::SpawnGameObject(
     const PxVec3& Position,
     const PxQuat& Rotation,
     const TArray<PxShape*> Shapes,
+    const bool bIsStatic,
     UPhysicalMaterial* Material)
 {
     SCOPED_READ_LOCK(*Scene);
@@ -58,7 +61,20 @@ GameObject* UPhysicsManager::SpawnGameObject(
     //PxMaterial* PxMaterial = Material ? Material->GetPhysXMaterial() : Physics->createMaterial(0.5f, 0.5f, 0.6f);
     PxMaterial* PxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
     PxTransform transform(Position, Rotation);
-    PxRigidDynamic* body = Physics->createRigidDynamic(transform);
+    PxRigidActor* body;
+
+    if (bIsStatic)
+    {
+        PxRigidStatic* StaticBody = Physics->createRigidStatic(transform);
+        body = StaticBody;
+        body->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, true);
+    }
+    else
+    {
+        PxRigidDynamic* DynamicBody = Physics->createRigidDynamic(transform);
+        PxRigidBodyExt::updateMassAndInertia(*DynamicBody, 10.0f);
+        body = DynamicBody;
+    }
 
     for (PxShape* Shape : Shapes)
     {
@@ -66,7 +82,7 @@ GameObject* UPhysicsManager::SpawnGameObject(
         Shape->release();
     }
 
-    PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+    
     Scene->addActor(*body);
 
     GameObject* NewGameObject = new GameObject(InOwner, body);
@@ -113,8 +129,11 @@ void GameObject::UpdateFromPhysics()
     FQuat Quat = WorldMatrix.GetMatrixWithoutScale().ToQuat();
     FVector Scale = WorldMatrix.GetScaleVector();
 
-    Owner->SetWorldLocation(Location);
-    Owner->SetWorldRotation(Quat);
+    if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(Owner))
+    {
+        Owner->SetWorldLocation(Location);
+        Owner->SetWorldRotation(Quat);
+    }
 }
 
 void PhysXErrorCallback::reportError(PxErrorCode::Enum code, const char* message, const char* file, int line)

@@ -10,7 +10,7 @@ struct FBodyInstance : public FBodyInstanceCore
 {
 public:
     FBodyInstance();
-    void InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform);
+    void InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform, const bool bIsStatic = false);
     void TermBody();
 
     GameObject* GetActor() const { return Actor; }

@@ -51,6 +51,10 @@ public:
 
     void CheckPhysSize();
 
+    bool GetIsStatic() { return bIsStatic; }
+
+    void SetIsStatic(bool Value);
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;
@@ -58,4 +62,5 @@ protected:
     bool bSimulatePhysics = false;
     GameObject* PhysicsBody = nullptr;
     bool bSimulateGravity = false;
+    bool bIsStatic = false;
 };
