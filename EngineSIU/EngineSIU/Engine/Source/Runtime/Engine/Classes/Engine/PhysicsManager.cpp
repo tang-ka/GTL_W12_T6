@@ -105,6 +105,15 @@ GameObject* UPhysicsManager::SpawnGameObject(
 
 void UPhysicsManager::Simulate(float DeltaTime)
 {
+    for (GameObject* Object : GameObjects)
+    {
+        USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
+        if (!Owner)
+            continue;
+        PxTransform CompTransform = Owner->GetComponentTransform().ToPxTransform();
+        Object->rigidBody->setGlobalPose(CompTransform);
+    }
+
     Scene->simulate(DeltaTime);
     Scene->fetchResults(true);
 
@@ -139,6 +148,7 @@ void GameObject::UpdateFromPhysics()
     if(!Owner || Owner->GetWorld()->WorldType != EWorldType::PIE && Owner->GetWorld()->WorldType != EWorldType::Game)
         return;
     SCOPED_READ_LOCK(*UPhysicsManager::Get().GetScene());
+
     PxTransform t = rigidBody->getGlobalPose();
     PxMat44 mat(t);
     XMMATRIX worldMatrix = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&mat));
