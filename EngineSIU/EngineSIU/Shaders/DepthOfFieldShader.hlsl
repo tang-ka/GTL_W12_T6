@@ -29,8 +29,8 @@ Texture2D BlurredCoCTexture : register(t94);
 Texture2D DepthTexture : register(t99);
 Texture2D SceneTexture : register(t100);
 
-SamplerState LinearSampler : register(s0);
-SamplerState PointSampler : register(s1);
+SamplerState LinearSampler : register(s10);
+SamplerState PointSampler : register(s11);
 
 static const float MAX_KERNEL_PIXEL_RADIUS = 5.0f;
 
@@ -51,31 +51,6 @@ struct PS_Input
     float4 Position : SV_POSITION;
     float2 UV : TEXCOORD;
 };
-
-// 버텍스 셰이더 - 풀스크린 쿼드
-PS_Input mainVS(uint VertexID : SV_VertexID)
-{
-    PS_Input Output;
-
-    float2 QuadPositions[6] = {
-        float2(-1,  1),  // Top Left
-        float2(1,  1),  // Top Right
-        float2(-1, -1),  // Bottom Left
-        float2(1,  1),  // Top Right
-        float2(1, -1),  // Bottom Right
-        float2(-1, -1)   // Bottom Left
-    };
-
-    float2 UVs[6] = {
-        float2(0, 0), float2(1, 0), float2(0, 1),
-        float2(1, 0), float2(1, 1), float2(0, 1)
-    };
-
-    Output.Position = float4(QuadPositions[VertexID], 0, 1);
-    Output.UV = UVs[VertexID];
-
-    return Output;
-}
 
 float LinearizeDepth(float Depth)
 {

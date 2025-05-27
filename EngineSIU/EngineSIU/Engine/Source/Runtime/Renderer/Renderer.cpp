@@ -212,6 +212,12 @@ void FRenderer::CreateCommonShader() const
         return;
     }
 #pragma endregion UberShader
+
+    hr = ShaderManager->AddVertexShader(L"FullScreenQuadVertexShader", L"Shaders/FullScreenQuadVertexShader.hlsl", "main");
+    if (FAILED(hr))
+    {
+        return;
+    }
 }
 
 void FRenderer::PrepareRender(FViewportResource* ViewportResource) const

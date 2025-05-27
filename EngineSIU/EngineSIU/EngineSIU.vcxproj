@@ -1029,6 +1029,12 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     <Compile Include="Engine\Source\ThirdParty\fmod\inc\fmod_dsp.cs" />
     <Compile Include="Engine\Source\ThirdParty\fmod\inc\fmod_errors.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\FullScreenQuadVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
