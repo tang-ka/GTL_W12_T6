@@ -87,6 +87,7 @@ private:
 
     TArray<GameObject*> GameObjects;
     TArray<GameObject*> PendingRemoveGameObjects;
+    TArray<GameObject*> PendingSpawnGameObjects;
 
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;

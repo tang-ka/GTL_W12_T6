@@ -16,6 +16,8 @@ public:
 
     ~UStaticMeshComponent();
 
+    virtual void BeginPlay() override;
+
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
@@ -47,6 +49,8 @@ public:
     void CheckPhysSize();
 
     void HandlePhysicsContact(USceneComponent* A, USceneComponent* B);
+
+    void HandleContactPoint(FVector Pos, FVector Norm);
 
 protected:
     UStaticMesh* StaticMesh = nullptr;

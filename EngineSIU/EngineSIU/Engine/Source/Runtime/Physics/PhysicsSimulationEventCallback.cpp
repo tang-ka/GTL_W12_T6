@@ -18,12 +18,31 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
             UPhysicsManager::Get().OnPhysicsContact.Broadcast(CompA, CompB);
             UE_LOG(ELogLevel::Display, "%s and %s Contact", *CompA->GetOwner()->GetActorLabel(), *CompB->GetOwner()->GetActorLabel());
         }
-    }
-
-    for (PxU32 i = 0; i < nbPairs; ++i)
-    {
-        const PxContactPair& cp = pairs[i];
-        // cp.shapes[0], cp.contactCount, cp.flags, etc...
+        for (PxU32 i = 0; i < nbPairs; ++i)
+        {
+            const PxContactPair& cp = pairs[i];
+            // 최대 16개 접촉점까지 복사
+            PxContactPairPoint pts[16];
+            PxU32 count = cp.extractContacts(pts, 16);
+            if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+            {
+                /* 새로 닿았을 때 */
+                for (PxU32 j = 0; j < count; ++j)
+                {
+                    const PxContactPairPoint& pt = pts[j];
+                    // pt.position, pt.normal, pt.impulse, pt.separation
+                }
+            }
+            if (cp.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+            {
+                /* 계속 닿고 있을 때 */
+            }
+            if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
+            {
+                /* 떨어졌을 때 */
+            }
+            
+        }
     }
 }
 

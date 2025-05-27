@@ -13,6 +13,9 @@
 #include "PhysicsEngine/BodySetup.h"
 #include "Physics/PhysicalMaterial.h"
 
+#include "World/World.h"
+#include <Actors/Cube.h>
+
 UStaticMeshComponent::UStaticMeshComponent()
 {
     Body = new FBodyInstance();
@@ -20,8 +23,16 @@ UStaticMeshComponent::UStaticMeshComponent()
 
 UStaticMeshComponent::~UStaticMeshComponent()
 {
-    if (Body)
+    if (Body && PhysicsBody)
         Body->TermBody();
+}
+
+void UStaticMeshComponent::BeginPlay()
+{
+    if (StaticMesh->GetBodySetup() && bSimulatePhysics)
+    {
+        Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
+    }
 }
 
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
@@ -239,8 +250,6 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
     {
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
-        if(StaticMesh->GetBodySetup() && bSimulatePhysics)
-            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }
 
@@ -249,7 +258,7 @@ void UStaticMeshComponent::SimulatePhysics(bool Value)
     bSimulatePhysics = Value;
     if (bSimulatePhysics)
     {
-        if (StaticMesh->GetBodySetup())
+        if (StaticMesh && StaticMesh->GetBodySetup())
             Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
     else
@@ -327,6 +336,31 @@ void UStaticMeshComponent::HandlePhysicsContact(USceneComponent* A, USceneCompon
         return;
     USceneComponent* Me = (A == this) ? A : B;
     UE_LOG(ELogLevel::Display, "%s got Hit!", *Me->GetOwner()->GetActorLabel());
+}
+
+void UStaticMeshComponent::HandleContactPoint(FVector Pos, FVector Norm)
+{
+    ACube* ContactEffect = GEngine->ActiveWorld->SpawnActor<ACube>();
+    
+    ContactEffect->SetActorScale(FVector(0.1f));
+    FVector Loc = (Pos + Norm)*2.f;
+    ContactEffect->SetActorLocation(Loc);
+    ContactEffect->BeginPlay();
+    // 1) RigidActor* → RigidDynamic* 캐스트
+    PxRigidActor* actor = ContactEffect
+        ->GetStaticMeshComponent()
+        ->GetPhysBody()
+        ->rigidBody;
+
+    // (안전하게) dynamic_cast 대신 static_cast
+    PxRigidDynamic* dyn = static_cast<PxRigidDynamic*>(actor);
+
+    PxVec3 newVelocity = (Loc.GetSafeNormal() * 3.f).ToPxVec3();
+    dyn->setLinearVelocity(newVelocity, true);
+
+    static int SpawnCount = 1;
+    UE_LOG(ELogLevel::Display, "Spawn Count : %d", SpawnCount);
+    SpawnCount++;
 }
 
 void UStaticMeshComponent::SetIsStatic(bool Value)

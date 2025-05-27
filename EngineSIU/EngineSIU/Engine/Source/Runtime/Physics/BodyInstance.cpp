@@ -15,8 +15,13 @@ FBodyInstance::FBodyInstance()
 
 void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform, const bool bIsStatic)
 {
-    UWorld* World = InOwner->GetWorld();
-    if (InOwner->GetWorld()->WorldType != EWorldType::None)
+    //UWorld* World = InOwner->GetWorld();
+    //if (!World)
+    //    return;
+    //if (InOwner->GetWorld()->WorldType != EWorldType::None)
+    //    return;
+    UWorld* World = GEngine->ActiveWorld;
+    if (GEngine->ActiveWorld->WorldType != EWorldType::Game && GEngine->ActiveWorld->WorldType != EWorldType::PIE)
         return;
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
@@ -49,7 +54,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
 
     for (const FKBoxElem& Box : AggGeom.BoxElems)
     {
-        PxBoxGeometry BoxGeom(Box.Extent.X, Box.Extent.Y, Box.Extent.Z);
+        PxBoxGeometry BoxGeom((Box.Extent * InOwner->GetComponentScale3D()).ToPxVec3());
         PxVec3 BoxCenter(Box.Center.X, Box.Center.Y, Box.Center.Z);
         FQuat BoxQuat(FRotator(Box.Rotation));
         PxQuat BoxRotation(BoxQuat.X, BoxQuat.Y, BoxQuat.Z, BoxQuat.W);
@@ -108,12 +113,12 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Comp->IsUseGravity());
         //Delegate 구독
         UPhysicsManager::Get().OnPhysicsContact.AddUObject(Comp, &UStaticMeshComponent::HandlePhysicsContact);
+        UPhysicsManager::Get().OnContactPoint.AddUObject(Comp, &UStaticMeshComponent::HandleContactPoint);
     }
     if (USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(InOwner))
     {
         //스켈레탈 메시 처리
     }
-    
 } 
 
 void FBodyInstance::TermBody()
