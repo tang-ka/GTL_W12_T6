@@ -1,21 +1,16 @@
 #include "DepthOfFieldRenderPass.h"
 
-#include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
-#include "D3D11RHI/DXDBufferManager.h"
-
 #include "Engine/Engine.h"
 #include "World/World.h"
 #include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
-
 #include "RendererHelpers.h"
-#include "GameFramework/PlayerController.h"
 
 void FDepthOfFieldRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
-    
+
     CreateShaders();
 }
 
@@ -107,7 +102,7 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     }
 
     PrepareRender(Viewport);
-    
+
     // Begin Layer Mask
     PrepareLayerPass(Viewport);
     Graphics->DeviceContext->Draw(6, 0);
@@ -127,7 +122,7 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->Draw(6, 0);
     CleanUpCoCBlur(Viewport);
 
-    // Begin Near Layer Blur
+    // Begin Near Layer
     PrepareDownSample(Viewport, true);
     Graphics->DeviceContext->Draw(6, 0);
     CleanUpDownSample(Viewport);
@@ -136,7 +131,7 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->Draw(6, 0);
     CleanUpBlur(Viewport);
 
-    // Begin Far Layer Blur
+    // Begin Far Layer
     PrepareDownSample(Viewport, false);
     Graphics->DeviceContext->Draw(6, 0);
     CleanUpDownSample(Viewport);
@@ -168,13 +163,6 @@ void FDepthOfFieldRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewpor
 {
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DepthOfField_LayerInfo), 1, NullSRV);
-
-    //// 렌더 타겟 해제
-    //Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-
-    //// 셰이더 리소스 해제
-    //ID3D11ShaderResourceView* NullSRV[2] = { nullptr, nullptr };
-    //Graphics->DeviceContext->PSSetShaderResources(0, 2, NullSRV);
 }
 
 void FDepthOfFieldRenderPass::PrepareLayerPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
