@@ -66,7 +66,7 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     BufferManager->UpdateConstantBuffer<FGammaConstants>("FGammaConstants", GammaConstantData);
 
     // Render
-    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"Compositing");
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"FullScreenQuadVertexShader");
     ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"Compositing");
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);

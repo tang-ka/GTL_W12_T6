@@ -31,15 +31,7 @@ void FDepthOfFieldRenderPass::ClearRenderArr()
 
 void FDepthOfFieldRenderPass::CreateShaders()
 {
-    // 풀스크린 쿼드용 버텍스 셰이더
-    HRESULT hr = ShaderManager->AddVertexShader(L"DOFVertexShader", L"Shaders/DepthOfFieldShader.hlsl", "mainVS");
-    if (FAILED(hr))
-    {
-        return;
-    }
-    
-    //HRESULT hr = ShaderManager->AddPixelShader(L"GenerateLayer", L"Shaders/DepthOfFieldShader.hlsl", "PS_GenerateLayer");
-    hr = ShaderManager->AddPixelShader(L"GenerateLayer", L"Shaders/DepthOfFieldShader.hlsl", "PS_GenerateLayer");
+    HRESULT hr = ShaderManager->AddPixelShader(L"GenerateLayer", L"Shaders/DepthOfFieldShader.hlsl", "PS_GenerateLayer");
     if (FAILED(hr))
     {
         MessageBox(nullptr, L"Failed to Compile GenerateLayer", L"Error", MB_ICONERROR | MB_OK);
@@ -166,8 +158,7 @@ void FDepthOfFieldRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
     Graphics->DeviceContext->PSSetSamplers(0, 1, &Graphics->SamplerState_LinearClamp);
     Graphics->DeviceContext->PSSetSamplers(1, 1, &Graphics->SamplerState_PointClamp);
 
-    // 셰이더 설정
-    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"DOFVertexShader");
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"FullScreenQuadVertexShader");
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
 
     Graphics->DeviceContext->IASetInputLayout(nullptr);
@@ -411,7 +402,7 @@ void FDepthOfFieldRenderPass::PrepareComposite(const std::shared_ptr<FEditorView
     D3DViewport.TopLeftY = 0.f;
     Graphics->DeviceContext->RSSetViewports(1, &D3DViewport);
 
-    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"DOFVertexShader");
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"FullScreenQuadVertexShader");
     ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"Composite");
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
