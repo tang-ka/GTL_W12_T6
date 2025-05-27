@@ -887,7 +887,7 @@ void FEditorRenderPass::RenderInstancedCapsules(const TArray<FConstantBufferDebu
 
 void FEditorRenderPass::RenderPhysicsAssetsDebug(uint64 ShowFlag)
 {
-    // PhysicsViewer 월드에서 PhysicsAsset 찾기
+    // [TEMP] PhysicsViewer 월드에서 PhysicsAsset 찾기
     if (GEngine->ActiveWorld->WorldType == EWorldType::PhysicsViewer || GEngine->ActiveWorld->WorldType == EWorldType::Editor)
     {
         for (const auto* Actor : TObjectRange<AActor>())

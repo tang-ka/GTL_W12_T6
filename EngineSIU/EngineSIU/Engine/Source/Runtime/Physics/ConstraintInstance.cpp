@@ -42,8 +42,8 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
 
     // 리밋 값 설정 (라디안 단위)
     D6Joint->setSwingLimit(PxJointLimitCone(
-        FMath::DegreesToRadians(ConstraintSetup->Swing1LimitAngle),
-        FMath::DegreesToRadians(ConstraintSetup->Swing1LimitAngle),
+        FMath::DegreesToRadians(ConstraintSetup->SwingLimitAngle),
+        FMath::DegreesToRadians(ConstraintSetup->SwingLimitAngle),
         0.0f));
     D6Joint->setTwistLimit(PxJointAngularLimitPair(
         -FMath::DegreesToRadians(ConstraintSetup->TwistLimitAngle),
