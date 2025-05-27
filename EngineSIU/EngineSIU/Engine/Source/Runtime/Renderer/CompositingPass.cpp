@@ -16,17 +16,6 @@ void FCompositingPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsD
     ShaderManager->AddVertexShader(L"Compositing", L"Shaders/CompositingShader.hlsl", "mainVS");
     ShaderManager->AddPixelShader(L"Compositing", L"Shaders/CompositingShader.hlsl", "mainPS");
 
-    D3D11_SAMPLER_DESC SamplerDesc = {};
-    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    SamplerDesc.MinLOD = 0;
-    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    
-    Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
-
     ViewModeBuffer = BufferManager->GetConstantBuffer("FViewModeConstants");
 
     UINT DiffuseMultiplierSize = sizeof(FGammaConstants);
@@ -59,7 +48,8 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
 
     Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Graphics->DeviceContext->PSSetSamplers(0, 1, &Sampler);
+    //Graphics->DeviceContext->PSSetSamplers(0, 1, &Graphics->SamplerState_PointWrap);
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &Graphics->SamplerState_PointClamp);
 
     // 버퍼 바인딩
     Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &ViewModeBuffer);

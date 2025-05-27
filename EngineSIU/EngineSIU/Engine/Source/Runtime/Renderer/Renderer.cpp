@@ -107,63 +107,44 @@ void FRenderer::Release()
 //------------------------------------------------------------------------------
 void FRenderer::CreateConstantBuffers()
 {
-    UINT CascadeBufferSize = sizeof(FCascadeConstantBuffer);
-    BufferManager->CreateBufferGeneric<FCascadeConstantBuffer>("FCascadeConstantBuffer", nullptr, CascadeBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    // 공통
+    BufferManager->CreateBufferGeneric<FCameraConstantBuffer>("FCameraConstantBuffer", nullptr, sizeof(FCameraConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT PointLightGSBufferSize = sizeof(FPointLightGSBuffer);
-    BufferManager->CreateBufferGeneric<FPointLightGSBuffer>("FPointLightGSBuffer", nullptr, PointLightGSBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    // Light
+    BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, sizeof(FLightInfoBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FLitUnlitConstants>("FLitUnlitConstants", nullptr, sizeof(FLitUnlitConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT IsShadowBufferSize = sizeof(FIsShadowConstants);
-    BufferManager->CreateBufferGeneric<FIsShadowConstants>("FIsShadowConstants", nullptr, IsShadowBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    // Shadow
+    BufferManager->CreateBufferGeneric<FPointLightGSBuffer>("FPointLightGSBuffer", nullptr, sizeof(FPointLightGSBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FCascadeConstantBuffer>("FCascadeConstantBuffer", nullptr, sizeof(FCascadeConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FIsShadowConstants>("FIsShadowConstants", nullptr, sizeof(FIsShadowConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FShadowConstantBuffer>("FShadowConstantBuffer", nullptr, sizeof(FShadowConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT ShadowBufferSize = sizeof(FShadowConstantBuffer);
-    BufferManager->CreateBufferGeneric<FShadowConstantBuffer>("FShadowConstantBuffer", nullptr, ShadowBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    // Mesh
+    BufferManager->CreateBufferGeneric<FObjectConstantBuffer>("FObjectConstantBuffer", nullptr, sizeof(FObjectConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FMaterialConstants>("FMaterialConstants", nullptr, sizeof(FMaterialConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT ObjectBufferSize = sizeof(FObjectConstantBuffer);
-    BufferManager->CreateBufferGeneric<FObjectConstantBuffer>("FObjectConstantBuffer", nullptr, ObjectBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    // Texture
+    BufferManager->CreateBufferGeneric<FSubMeshConstants>("FSubMeshConstants", nullptr, sizeof(FSubMeshConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FTextureUVConstants>("FTextureConstants", nullptr, sizeof(FTextureUVConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FSubUVConstant>("FSubUVConstant", nullptr, sizeof(FSubUVConstant), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT CameraConstantBufferSize = sizeof(FCameraConstantBuffer);
-    BufferManager->CreateBufferGeneric<FCameraConstantBuffer>("FCameraConstantBuffer", nullptr, CameraConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT SubUVBufferSize = sizeof(FSubUVConstant);
-    BufferManager->CreateBufferGeneric<FSubUVConstant>("FSubUVConstant", nullptr, SubUVBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT MaterialBufferSize = sizeof(FMaterialConstants);
-    BufferManager->CreateBufferGeneric<FMaterialConstants>("FMaterialConstants", nullptr, MaterialBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT SubMeshBufferSize = sizeof(FSubMeshConstants);
-    BufferManager->CreateBufferGeneric<FSubMeshConstants>("FSubMeshConstants", nullptr, SubMeshBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT TextureBufferSize = sizeof(FTextureUVConstants);
-    BufferManager->CreateBufferGeneric<FTextureUVConstants>("FTextureConstants", nullptr, TextureBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    
-    UINT LitUnlitBufferSize = sizeof(FLitUnlitConstants);
-    BufferManager->CreateBufferGeneric<FLitUnlitConstants>("FLitUnlitConstants", nullptr, LitUnlitBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT ViewModeBufferSize = sizeof(FViewModeConstants);
-    BufferManager->CreateBufferGeneric<FViewModeConstants>("FViewModeConstants", nullptr, ViewModeBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT ScreenConstantsBufferSize = sizeof(FScreenConstants);
-    BufferManager->CreateBufferGeneric<FScreenConstants>("FScreenConstants", nullptr, ScreenConstantsBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT FogConstantBufferSize = sizeof(FFogConstants);
-    BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, FogConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
+    // Viewport
+    BufferManager->CreateBufferGeneric<FViewModeConstants>("FViewModeConstants", nullptr, sizeof(FViewModeConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FScreenConstants>("FScreenConstants", nullptr, sizeof(FScreenConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    BufferManager->CreateBufferGeneric<FDepthOfFieldConstants>("FDepthOfFieldConstants", nullptr, sizeof(FDepthOfFieldConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT LightInfoBufferSize = sizeof(FLightInfoBuffer);
-    BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-    UINT CPUSkinningBufferSize = sizeof(FCPUSkinningConstants);
-    BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, CPUSkinningBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
+    // Skeletal Mesh
+    BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, sizeof(FCPUSkinningConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     BufferManager->CreateStructuredBufferGeneric<FMatrix>("BoneBuffer", nullptr, MaxBoneNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
+    // Particle
     BufferManager->CreateStructuredBufferGeneric<FParticleSpriteVertex>("ParticleSpriteInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
     BufferManager->CreateStructuredBufferGeneric<FMeshParticleInstanceVertex>("ParticleMeshInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    // Post Processing
+    BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, sizeof(FFogConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FDepthOfFieldConstants>("FDepthOfFieldConstants", nullptr, sizeof(FDepthOfFieldConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     
     // TODO: 함수로 분리
