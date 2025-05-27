@@ -7,6 +7,9 @@ class USkeletalMesh;
 class FReferenceSkeleton;
 class USkeletalMeshComponent;
 class UAnimDataModel;
+class UBodySetup;
+class UConstraintSetup;
+
 class PhysicsViewerPanel : public UEditorPanel
 {
 public:
@@ -21,7 +24,6 @@ public:
     FString GetSelectedBoneName() const;
 
     void ClearRefSkeletalMeshComponent();
-private:
 private:
     TMap<int32, USceneComponent*> BoneComponentMap;
 
@@ -38,11 +40,17 @@ private:
 
     void RenderBodySetupEditor(UBodySetup* BodySetup);
 
+    void RenderConstrainSetupEditor(UConstraintSetup* ConstraintSetup);
+
     UBodySetup* FindBodySetupForBone(int32 BoneIndex);
+
+    UConstraintSetup* FindConstraintSetupForBone(int32 BoneIndex);
 
     FString GetCleanBoneName(const FString& InFullName);
 
     void GenerateBoxBodiesForAllBones();
+
+    void CalculateConstraintTransforms(int32 ParentBoneIndex, int32 ChildBoneIndex, UConstraintSetup* ConstraintSetup);
 
     FTransform CalculateBoneWorldTransform(int32 BoneIndex);
 

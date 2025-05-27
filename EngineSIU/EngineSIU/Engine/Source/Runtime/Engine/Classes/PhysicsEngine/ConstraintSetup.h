@@ -10,14 +10,16 @@ public:
     UConstraintSetup();
     ~UConstraintSetup() = default;
 
-    FName BoneNameA;
-    FName BoneNameB;
+    virtual void DisplayProperty() override;
 
-    FTransform TransformInA;
-    FTransform TransformInB;
+    UPROPERTY_WITH_FLAGS(VisibleAnywhere, FName, BoneNameA)
+    UPROPERTY_WITH_FLAGS(VisibleAnywhere, FName, BoneNameB)
 
-    float Swing1LimitAngle;
-    float TwistLimitAngle;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FTransform, TransformInA)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, FTransform, TransformInB)
+
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, SwingLimitAngle)
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, TwistLimitAngle)
 
     // --- 선형(위치) 제약 ---
     // 각 축별 모션 타입: Free, Limited, Locked
@@ -27,6 +29,6 @@ public:
 
     //// 제한 모드가 Limited일 때 적용할 최대 이동 거리
     //UPROPERTY(EditAnywhere, meta = (EditCondition = "LinearXMotion==LCM_Limited || LinearYMotion==LCM_Limited || LinearZMotion==LCM_Limited"))
-    float LinearLimitSize;
+    UPROPERTY_WITH_FLAGS(EditAnywhere, float, LinearLimitSize)
 };
 
