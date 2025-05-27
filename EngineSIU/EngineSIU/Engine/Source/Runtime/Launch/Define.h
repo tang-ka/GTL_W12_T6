@@ -502,8 +502,7 @@ struct FLinePrimitiveBatchArgs
 struct FViewportSize
 {
     FVector2D ViewportSize;
-    float Padding1;
-    float Padding2;
+    FVector2D Padding;
 };
 
 struct FVertexInfo
@@ -546,19 +545,6 @@ struct FFogConstants
     float FogDistanceWeight;
     float padding1;
     float padding2;
-};
-
-struct FDepthOfFieldConstants
-{
-    float Aperture = 2.8f;
-    float SensorWidth = 24.576f;    // mm
-    float FocalDistance = 0.f;      // cm
-    float FocalLength = 0.f;        // mm
-
-    float CoCScaleFactor = 2.f;
-    float InFocusThreshold = 0.0f;
-    float padding1 = 0.f;
-    float padding2 = 0.f;
 };
 
 struct FGammaConstants

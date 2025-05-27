@@ -17,40 +17,16 @@ enum class EViewScreenLocation : uint8
 
 enum class EResourceType : uint8
 {
-    ERT_Debug,
+    ERT_Compositing,
     ERT_Scene,
-    ERT_Editor,
-    ERT_Gizmo,
-    //ERT_Overlay,
     ERT_PP_Fog,
     ERT_PP_CameraEffect,
-    /// Begine DoF
-    ERT_DoF_LayerInfo,
-    ERT_DoF_LayerNear,
-    ERT_DoF_LayerFar,
-    ERT_DoF_Compositing,
-    /// End Dof
+    ERT_Debug,
+    ERT_Editor,
+    ERT_Gizmo,
+    ERT_Overlay,
     ERT_PostProcessCompositing,
-    ERT_Compositing,
-    ERT_Temp1,
-    ERT_Temp2,
     ERT_MAX,
-};
-
-/**
- * 텍스처의 한 축을 기준으로 길이를 얼마나 줄일지를 결정
- *
- *   e.g. 2x: Down Sampled Width = Original Width / 2;
- *            Down Sampled Height = Original Height / 2;
- *            --> Down Sampled Size = Original Size / (2 * 2);
- */
-enum class EDownSampleScale : uint8
-{
-    DSS_None = 1,
-    DSS_2x = 2,
-    DSS_4x = 4,
-    DSS_8x = 8,
-    DSS_MAX = UINT8_MAX,
 };
 
 struct FRenderTargetRHI
@@ -121,34 +97,35 @@ public:
     ////////
     /// Depth Stencil
     ////////
-    HRESULT CreateDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
-
+    HRESULT CreateDepthStencil(EResourceType Type);
+    
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    FDepthStencilRHI* GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    FDepthStencilRHI* GetDepthStencil(EResourceType Type);
 
-    bool HasDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None) const;
+    bool HasDepthStencil(EResourceType Type) const;
 
     // 가지고있는 모든 리소스의 렌더 타겟 뷰를 clear
     void ClearDepthStencils(ID3D11DeviceContext* DeviceContext);
 
-    // 지정한 타입의 렌더 타겟 뷰를 clear
-    void ClearDepthStencil(ID3D11DeviceContext* DeviceContext, EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
+    void ClearDepthStencil(ID3D11DeviceContext* DeviceContext, EResourceType Type);
+
 
     ////////
     /// Render Target
     ////////
-    HRESULT CreateRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
-
+    HRESULT CreateRenderTarget(EResourceType Type);
+    
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    FRenderTargetRHI* GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    FRenderTargetRHI* GetRenderTarget(EResourceType Type);
 
-    bool HasRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None) const;
+    bool HasRenderTarget(EResourceType Type) const;
 
     // 가지고있는 모든 리소스의 렌더 타겟 뷰를 clear
     void ClearRenderTargets(ID3D11DeviceContext* DeviceContext);
 
-    // 지정한 타입의 렌더 타겟 뷰를 clear
-    void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
+    void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type);
 
     ////////
     /// ClearColor
@@ -159,12 +136,12 @@ private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
 
-    TMap<EResourceType, TMap<EDownSampleScale, FDepthStencilRHI>> DepthStencils;
-    TMap<EResourceType, TMap<EDownSampleScale, FRenderTargetRHI>> RenderTargets;
+    TMap<EResourceType, FDepthStencilRHI> DepthStencils;
+    TMap<EResourceType, FRenderTargetRHI> RenderTargets;
 
     void ReleaseAllResources();
-    void ReleaseDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_MAX);
-    void ReleaseRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_MAX);
+    void ReleaseDepthStencil(EResourceType Type);
+    void ReleaseRenderTarget(EResourceType Type);
 
     /**
      * ClearColors 맵에는 모든 EResourceType에 대응하는 색상을

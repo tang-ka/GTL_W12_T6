@@ -142,18 +142,6 @@ public:
     float AspectRatio;
     float NearClip = 0.1f;
     float FarClip = 1000.0f;
-
-    float Aperture = 2.8f;
-    float SensorWidth = 50.0f; // mm
-    float FocalDistance = 0.f; // cm
-
-    float GetFocalLength() const
-    {
-        const float FovRad = FMath::DegreesToRadians(ViewFOV);
-        const float FocalLength = SensorWidth / (2.f * FMath::Tan(FovRad / 2.0f));
-        return FocalLength;
-    }
-
     static FVector Pivot;
     static float OrthoSize;
     ELevelViewportType ViewportType;

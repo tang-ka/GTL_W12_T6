@@ -1,40 +1,36 @@
+
 #include "Renderer.h"
 
 #include <array>
 #include "World/World.h"
-#include "UnrealClient.h"
+#include "Engine/EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "PropertyEditor/ShowFlags.h"
-// Helper
-#include "ParticleHelper.h"
-// Managers
 #include "D3D11RHI/DXDShaderManager.h"
-#include "ShadowManager.h"
-
-// PreScene Passes
-#include "DepthPrePass.h"
-#include "TileLightCullingPass.h"
-#include "UpdateLightBufferPass.h"
-#include "ShadowRenderPass.h"
-// Opaque Passes
 #include "OpaqueRenderPass.h"
-#include "ParticleMeshRenderPass.h"
-// EditorDepthElement Passes
-#include "EditorRenderPass.h"
-#include "LineRenderPass.h"
-// Translucent Passes
-#include "TranslucentRenderPass.h"
-#include "ParticleSpriteRenderPass.h"
 #include "WorldBillboardRenderPass.h"
 #include "EditorBillboardRenderPass.h"
-// EditorOverlay Passes
 #include "GizmoRenderPass.h"
-// Final Passes
-#include "PostProcessRenderPass.h"
-#include "CompositingPass.h"
+#include "UpdateLightBufferPass.h"
+#include "LineRenderPass.h"
+#include "FogRenderPass.h"
+#include "CameraEffectRenderPass.h"
 #include "SlateRenderPass.h"
+#include "EditorRenderPass.h"
+#include "DepthPrePass.h"
+#include "TileLightCullingPass.h"
+#include "TranslucentRenderPass.h"
 
-// Console
+#include "CompositingPass.h"
+#include "ParticleHelper.h"
+#include "ParticleSpriteRenderPass.h"
+#include "ParticleMeshRenderPass.h"
+#include "PostProcessCompositingPass.h"
+#include "ShadowManager.h"
+#include "ShadowRenderPass.h"
+#include "UnrealClient.h"
+#include "GameFrameWork/Actor.h"
+
+#include "PropertyEditor/ShowFlags.h"
 #include "Stats/Stats.h"
 #include "Stats/GPUTimingManager.h"
 
@@ -49,46 +45,39 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
 
     ShaderManager = new FDXDShaderManager(Graphics->Device);
     ShadowManager = new FShadowManager();
+    ShadowRenderPass = AddRenderPass<FShadowRenderPass>();
 
     CreateConstantBuffers();
     CreateCommonShader();
-
-    // PreScene Passes
-    DepthPrePass = AddRenderPass<FDepthPrePass>();
-    TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
-    UpdateLightBufferPass = AddRenderPass<FUpdateLightBufferPass>();
-    ShadowRenderPass = AddRenderPass<FShadowRenderPass>();
-    {
-        assert(ShadowManager->Initialize(Graphics, BufferManager) && "ShadowManager Initialize Failed");
-        ShadowRenderPass->InitializeShadowManager(ShadowManager);
-    }
-
-    // Opaque Passes
+    
     OpaqueRenderPass = AddRenderPass<FOpaqueRenderPass>();
-    ParticleMeshRenderPass = AddRenderPass<FParticleMeshRenderPass>();
-
-    // EditorDepthElement Passes
-    EditorRenderPass = AddRenderPass<FEditorRenderPass>();
-    LineRenderPass = AddRenderPass<FLineRenderPass>();
-
-    // Translucent Passes
-    TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
-    ParticleSpriteRenderPass = AddRenderPass<FParticleSpriteRenderPass>();
     WorldBillboardRenderPass = AddRenderPass<FWorldBillboardRenderPass>();
     EditorBillboardRenderPass = AddRenderPass<FEditorBillboardRenderPass>();
-
-    // EditorOverlay Passes
     GizmoRenderPass = AddRenderPass<FGizmoRenderPass>();
+    UpdateLightBufferPass = AddRenderPass<FUpdateLightBufferPass>();
+    LineRenderPass = AddRenderPass<FLineRenderPass>();
+    FogRenderPass = AddRenderPass<FFogRenderPass>();
+    CameraEffectRenderPass = AddRenderPass<FCameraEffectRenderPass>();
+    EditorRenderPass = AddRenderPass<FEditorRenderPass>();
+    TranslucentRenderPass = AddRenderPass<FTranslucentRenderPass>();
 
-    // Final Passes
-    PostProcessRenderPass = AddRenderPass<FPostProcessRenderPass>();
+    ParticleSpriteRenderPass = AddRenderPass<FParticleSpriteRenderPass>();
+    ParticleMeshRenderPass = AddRenderPass<FParticleMeshRenderPass>();
+    
+    DepthPrePass = AddRenderPass<FDepthPrePass>();
+    TileLightCullingPass = AddRenderPass<FTileLightCullingPass>();
+    
     CompositingPass = AddRenderPass<FCompositingPass>();
+    PostProcessCompositingPass = AddRenderPass<FPostProcessCompositingPass>();
     SlateRenderPass = AddRenderPass<FSlateRenderPass>();
+
+    assert(ShadowManager->Initialize(Graphics, BufferManager) && "ShadowManager Initialize Failed");
 
     for (IRenderPass* RenderPass : RenderPasses)
     {
         RenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     }
+    ShadowRenderPass->InitializeShadowManager(ShadowManager);
 }
 
 void FRenderer::Release()
@@ -107,44 +96,59 @@ void FRenderer::Release()
 //------------------------------------------------------------------------------
 void FRenderer::CreateConstantBuffers()
 {
-    // 공통
-    BufferManager->CreateBufferGeneric<FCameraConstantBuffer>("FCameraConstantBuffer", nullptr, sizeof(FCameraConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT CascadeBufferSize = sizeof(FCascadeConstantBuffer);
+    BufferManager->CreateBufferGeneric<FCascadeConstantBuffer>("FCascadeConstantBuffer", nullptr, CascadeBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Light
-    BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, sizeof(FLightInfoBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FLitUnlitConstants>("FLitUnlitConstants", nullptr, sizeof(FLitUnlitConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT PointLightGSBufferSize = sizeof(FPointLightGSBuffer);
+    BufferManager->CreateBufferGeneric<FPointLightGSBuffer>("FPointLightGSBuffer", nullptr, PointLightGSBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Shadow
-    BufferManager->CreateBufferGeneric<FPointLightGSBuffer>("FPointLightGSBuffer", nullptr, sizeof(FPointLightGSBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FCascadeConstantBuffer>("FCascadeConstantBuffer", nullptr, sizeof(FCascadeConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FIsShadowConstants>("FIsShadowConstants", nullptr, sizeof(FIsShadowConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FShadowConstantBuffer>("FShadowConstantBuffer", nullptr, sizeof(FShadowConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT IsShadowBufferSize = sizeof(FIsShadowConstants);
+    BufferManager->CreateBufferGeneric<FIsShadowConstants>("FIsShadowConstants", nullptr, IsShadowBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Mesh
-    BufferManager->CreateBufferGeneric<FObjectConstantBuffer>("FObjectConstantBuffer", nullptr, sizeof(FObjectConstantBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FMaterialConstants>("FMaterialConstants", nullptr, sizeof(FMaterialConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT ShadowBufferSize = sizeof(FShadowConstantBuffer);
+    BufferManager->CreateBufferGeneric<FShadowConstantBuffer>("FShadowConstantBuffer", nullptr, ShadowBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Texture
-    BufferManager->CreateBufferGeneric<FSubMeshConstants>("FSubMeshConstants", nullptr, sizeof(FSubMeshConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FTextureUVConstants>("FTextureConstants", nullptr, sizeof(FTextureUVConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FSubUVConstant>("FSubUVConstant", nullptr, sizeof(FSubUVConstant), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT ObjectBufferSize = sizeof(FObjectConstantBuffer);
+    BufferManager->CreateBufferGeneric<FObjectConstantBuffer>("FObjectConstantBuffer", nullptr, ObjectBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Viewport
-    BufferManager->CreateBufferGeneric<FViewModeConstants>("FViewModeConstants", nullptr, sizeof(FViewModeConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FScreenConstants>("FScreenConstants", nullptr, sizeof(FScreenConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT CameraConstantBufferSize = sizeof(FCameraConstantBuffer);
+    BufferManager->CreateBufferGeneric<FCameraConstantBuffer>("FCameraConstantBuffer", nullptr, CameraConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Skeletal Mesh
-    BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, sizeof(FCPUSkinningConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT SubUVBufferSize = sizeof(FSubUVConstant);
+    BufferManager->CreateBufferGeneric<FSubUVConstant>("FSubUVConstant", nullptr, SubUVBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT MaterialBufferSize = sizeof(FMaterialConstants);
+    BufferManager->CreateBufferGeneric<FMaterialConstants>("FMaterialConstants", nullptr, MaterialBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT SubMeshBufferSize = sizeof(FSubMeshConstants);
+    BufferManager->CreateBufferGeneric<FSubMeshConstants>("FSubMeshConstants", nullptr, SubMeshBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT TextureBufferSize = sizeof(FTextureUVConstants);
+    BufferManager->CreateBufferGeneric<FTextureUVConstants>("FTextureConstants", nullptr, TextureBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    
+    UINT LitUnlitBufferSize = sizeof(FLitUnlitConstants);
+    BufferManager->CreateBufferGeneric<FLitUnlitConstants>("FLitUnlitConstants", nullptr, LitUnlitBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT ViewModeBufferSize = sizeof(FViewModeConstants);
+    BufferManager->CreateBufferGeneric<FViewModeConstants>("FViewModeConstants", nullptr, ViewModeBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT ScreenConstantsBufferSize = sizeof(FScreenConstants);
+    BufferManager->CreateBufferGeneric<FScreenConstants>("FScreenConstants", nullptr, ScreenConstantsBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT FogConstantBufferSize = sizeof(FFogConstants);
+    BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, FogConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT LightInfoBufferSize = sizeof(FLightInfoBuffer);
+    BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+    UINT CPUSkinningBufferSize = sizeof(FCPUSkinningConstants);
+    BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, CPUSkinningBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
     BufferManager->CreateStructuredBufferGeneric<FMatrix>("BoneBuffer", nullptr, MaxBoneNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Particle
     BufferManager->CreateStructuredBufferGeneric<FParticleSpriteVertex>("ParticleSpriteInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateStructuredBufferGeneric<FMeshParticleInstanceVertex>("ParticleMeshInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    // Post Processing
-    BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, sizeof(FFogConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-    BufferManager->CreateBufferGeneric<FDepthOfFieldConstants>("FDepthOfFieldConstants", nullptr, sizeof(FDepthOfFieldConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateStructuredBufferGeneric<FMeshParticleInstanceVertex>("ParticleMeshInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     
     // TODO: 함수로 분리
@@ -287,22 +291,25 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
      *   2. 렌더 타겟의 생명주기와 용도가 명확함
      *   3. RTV -> SRV 전환 타이밍이 정확히 지켜짐
      */
+    
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    const EViewModeIndex ViewMode = Viewport->GetViewMode();
+
     QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
     QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
-    {
-        BeginRender(Viewport);
-        
-        RenderPreScene(Viewport);
-        RenderOpaque(Viewport);
-        RenderEditorDepthElement(Viewport);
-        RenderTranslucent(Viewport);
-        RenderEditorOverlay(Viewport);
-        RenderPostProcess(Viewport);
 
-        RenderFinalResult(Viewport);
+    BeginRender(Viewport);
+    
+    RenderPreScene(Viewport);
+    RenderOpaque(Viewport);
+    RenderEditorDepthElement(Viewport);
+    RenderTranslucent(Viewport);
+    RenderEditorOverlay(Viewport);
+    RenderPostProcess(Viewport);
 
-        EndRender();
-    }
+    RenderFinalResult(Viewport);
+
+    EndRender();
 }
 
 void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
@@ -451,13 +458,33 @@ void FRenderer::RenderEditorOverlay(const std::shared_ptr<FEditorViewportClient>
 
 void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
+    const uint64 ShowFlag = Viewport->GetShowFlag();
     const EViewModeIndex ViewMode = Viewport->GetViewMode();
 
     if (ViewMode < EViewModeIndex::VMI_Unlit)
     {
-        QUICK_SCOPE_CYCLE_COUNTER(PostProcessPass_CPU)
-        QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessPass_GPU, *GPUTimingManager)
-        PostProcessRenderPass->Render(Viewport);
+        if (ShowFlag & EEngineShowFlags::SF_Fog)
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(FogPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
+            FogRenderPass->Render(Viewport);
+        }
+
+        // TODO: 포스트 프로세스 별로 각자의 렌더 타겟 뷰에 렌더하기
+
+        /**
+         * TODO: 반드시 씬에 먼저 반영되어야 하는 포스트 프로세싱 효과는 먼저 씬에 반영하고,
+         *       그 외에는 렌더한 포스트 프로세싱 효과들을 이 시점에서 하나로 합친 후에, 다음에 올 컴포짓 과정에서 합성.
+         */
+        {
+            CameraEffectRenderPass->Render(Viewport);
+        }
+
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(PostProcessCompositing_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(PostProcessCompositing_GPU, *GPUTimingManager)
+            PostProcessCompositingPass->Render(Viewport);
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "IRenderPass.h"
 #include "Container/Array.h"
 #include "Math/Matrix.h"
@@ -15,16 +15,9 @@ class FRenderPassBase : public IRenderPass
 {
 public:
     FRenderPassBase();
-    virtual ~FRenderPassBase() override;
+    virtual ~FRenderPassBase() override = default;
 
-    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
-
-    virtual void PrepareRenderArr() override;
-    virtual void ClearRenderArr() override;
-
-    template <typename RenderPassType>
-        requires std::derived_from<RenderPassType, IRenderPass>
-    RenderPassType* AddRenderPass();
+    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
 
 protected:
     void UpdateObjectConstant(const FMatrix& WorldMatrix, const FVector4& UUIDColor, bool bIsSelected) const;
@@ -35,20 +28,8 @@ protected:
     void RenderSkeletalMesh_Internal(const FSkeletalMeshRenderData* RenderData);
 
     void UpdateBones(const USkeletalMeshComponent* SkeletalMeshComponent);
-
-    virtual void Release();
     
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
-
-    TArray<IRenderPass*> ChildRenderPasses;
 };
-
-template <typename RenderPassType> requires std::derived_from<RenderPassType, IRenderPass>
-RenderPassType* FRenderPassBase::AddRenderPass()
-{
-    RenderPassType* RenderPass = new RenderPassType();
-    ChildRenderPasses.Add(RenderPass);
-    return RenderPass;
-}

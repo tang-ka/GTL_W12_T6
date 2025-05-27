@@ -7,49 +7,45 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#include "EngineBaseTypes.h"
 #include "Define.h"
 #include "Container/Set.h"
 
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDBufferManager.h"
 
+
+class FParticleMeshRenderPass;
+class FParticleSpriteRenderPass;
+class FTranslucentRenderPass;
+class IRenderPass;
+class FLightHeatMapRenderPass;
+class FPostProcessCompositingPass;
 enum class EResourceType : uint8;
 
-class UObject;
 class UWorld;
-
-class FViewportResource;
-class FEditorViewportClient;
+class UObject;
 
 class FDXDShaderManager;
-class FShadowManager;
+class FEditorViewportClient;
 
-class FGPUTimingManager;
+class FViewportResource;
 
-class IRenderPass;
-// PreScene Passes
-class FDepthPrePass;
-class FTileLightCullingPass;
-class FUpdateLightBufferPass;
-class FLightHeatMapRenderPass;
-class FShadowRenderPass;
-// Opaque Passes
 class FOpaqueRenderPass;
-class FParticleMeshRenderPass;
-// EditorDepthElement Passes
-class FEditorRenderPass;
-class FLineRenderPass;
-// Translucent Passes
-class FTranslucentRenderPass;
-class FParticleSpriteRenderPass;
 class FWorldBillboardRenderPass;
 class FEditorBillboardRenderPass;
-// EditorOverlay Passes
 class FGizmoRenderPass;
-// Final Passes
-class FPostProcessRenderPass;
+class FUpdateLightBufferPass;
+class FDepthBufferDebugPass;
+class FLineRenderPass;
+class FFogRenderPass;
+class FCameraEffectRenderPass;
 class FCompositingPass;
 class FSlateRenderPass;
+class FEditorRenderPass;
+class FDepthPrePass;
+class FTileLightCullingPass;
+class FGPUTimingManager;
 
 class FRenderer
 {
@@ -97,31 +93,31 @@ public:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager = nullptr;
-    FShadowManager* ShadowManager = nullptr;
-
+    class FShadowManager* ShadowManager = nullptr;
     FGPUTimingManager* GPUTimingManager = nullptr;
+    
+    class FShadowRenderPass* ShadowRenderPass;
 
-    // PreScene Passes
-    FDepthPrePass* DepthPrePass = nullptr;
-    FTileLightCullingPass* TileLightCullingPass = nullptr;
-    FUpdateLightBufferPass* UpdateLightBufferPass = nullptr;
-    FShadowRenderPass* ShadowRenderPass;
-    // Opaque Passes
     FOpaqueRenderPass* OpaqueRenderPass = nullptr;
-    FParticleMeshRenderPass* ParticleMeshRenderPass = nullptr;
-    // EditorDepthElement Passes
-    FEditorRenderPass* EditorRenderPass = nullptr;
-    FLineRenderPass* LineRenderPass = nullptr;
-    // Translucent Passes
-    FTranslucentRenderPass* TranslucentRenderPass = nullptr;
-    FParticleSpriteRenderPass* ParticleSpriteRenderPass = nullptr;
     FWorldBillboardRenderPass* WorldBillboardRenderPass = nullptr;
     FEditorBillboardRenderPass* EditorBillboardRenderPass = nullptr;
-    // EditorOverlay Passes
     FGizmoRenderPass* GizmoRenderPass = nullptr;
-    // Final Passes
-    FPostProcessRenderPass* PostProcessRenderPass = nullptr;
+    FUpdateLightBufferPass* UpdateLightBufferPass = nullptr;
+    FLineRenderPass* LineRenderPass = nullptr;
+    FFogRenderPass* FogRenderPass = nullptr;
+    FCameraEffectRenderPass* CameraEffectRenderPass = nullptr;
+    FEditorRenderPass* EditorRenderPass = nullptr;
+    FTranslucentRenderPass* TranslucentRenderPass = nullptr;
+
+    FParticleSpriteRenderPass* ParticleSpriteRenderPass = nullptr;
+    FParticleMeshRenderPass* ParticleMeshRenderPass = nullptr;
+    
+    FDepthPrePass* DepthPrePass = nullptr;
+    FTileLightCullingPass* TileLightCullingPass = nullptr;
+
     FCompositingPass* CompositingPass = nullptr;
+    FPostProcessCompositingPass* PostProcessCompositingPass = nullptr;
+    
     FSlateRenderPass* SlateRenderPass = nullptr;
 
 private:
@@ -130,8 +126,7 @@ private:
     RenderPassType* AddRenderPass();
 
     TArray<IRenderPass*> RenderPasses;
-
-private:
+    
     const int32 MaxBoneNum = 1024;
     const int32 MaxParticleInstanceNum = 1024;
 };

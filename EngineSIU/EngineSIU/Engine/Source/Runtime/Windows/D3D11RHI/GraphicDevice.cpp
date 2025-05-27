@@ -396,22 +396,6 @@ void FGraphicsDevice::CreateSamplerState()
     {
         MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }
-
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    hr = Device->CreateSamplerState(&SamplerDesc, &SamplerState_PointClamp);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
-    }
-
-    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    hr = Device->CreateSamplerState(&SamplerDesc, &SamplerState_LinearClamp);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr, L"SamplerState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
-    }
 }
 
 void FGraphicsDevice::ChangeRasterizer(EViewModeIndex ViewModeIndex)

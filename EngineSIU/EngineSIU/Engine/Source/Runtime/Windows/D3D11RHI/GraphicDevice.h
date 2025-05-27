@@ -41,9 +41,7 @@ public:
     ID3D11BlendState* BlendState_AlphaBlend = nullptr;
 
     ID3D11SamplerState* SamplerState_LinearWrap = nullptr;
-    ID3D11SamplerState* SamplerState_LinearClamp = nullptr;
     ID3D11SamplerState* SamplerState_PointWrap = nullptr;
-    ID3D11SamplerState* SamplerState_PointClamp = nullptr;
     
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
     

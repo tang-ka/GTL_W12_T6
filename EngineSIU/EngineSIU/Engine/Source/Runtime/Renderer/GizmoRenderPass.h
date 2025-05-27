@@ -33,6 +33,8 @@ public:
     void CreateShader();
     void UpdateShader();
     void ReleaseShader();
+
+    void CreateBuffer();
     
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -41,4 +43,6 @@ protected:
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+
+    ID3D11SamplerState* Sampler;
 };

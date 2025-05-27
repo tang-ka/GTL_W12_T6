@@ -420,13 +420,6 @@ void FTileLightCullingPass::CreateBuffers(uint32 InWidth, uint32 InHeight)
 
 void FTileLightCullingPass::Release()
 {
-    FRenderPassBase::Release();
-
-    ReleaseResources();
-}
-
-void FTileLightCullingPass::ReleaseResources()
-{
     // Compute Shader Release는 ShaderManager에서 관리
     SAFE_RELEASE(PerTilePointLightIndexMaskBuffer)
     SAFE_RELEASE(PerTilePointLightIndexMaskBufferUAV)
@@ -505,7 +498,7 @@ void FTileLightCullingPass::ResizeViewBuffers(const uint32 InWidth, const uint32
 {
     ResizeTiles(InWidth, InHeight);
 
-    ReleaseResources();
+    Release();
 
     CreateViews();
     CreateBuffers(InWidth, InHeight);

@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 #include <memory>
 
@@ -24,6 +24,8 @@ public:
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
+
+    ID3D11SamplerState* Sampler;
 
     ID3D11Buffer* ViewModeBuffer;
 };
