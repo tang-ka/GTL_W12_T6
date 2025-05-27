@@ -5,10 +5,17 @@
 #include "RenderPassBase.h"
 #include "RenderResources.h"
 #include "D3D11RHI/DXDBufferManager.h"
+#include "Math/Transform.h"
 
 class FDXDBufferManager;
 class UWorld;
 class FDXDShaderManager;
+class USkeletalMeshComponent;
+class UPhysicsAsset;
+struct FKAggregateGeom;
+struct FKBoxElem;
+struct FKSphereElem;
+struct FKSphylElem;
 
 class FEditorRenderPass : public FRenderPassBase
 {
@@ -41,6 +48,19 @@ private:
     void RenderBoxInstanced(uint64 ShowFlag);
     void RenderSphereInstanced(uint64 ShowFlag);
     void RenderCapsuleInstanced(uint64 ShowFlag);
+
+    void RenderPhysicsAssetDebug(UPhysicsAsset* PhysicsAsset, USkeletalMeshComponent* SkelMeshComp);
+    void RenderPhysicsAssetsDebug(uint64 ShowFlag);
+
+    TArray<FVector> GenerateUVSphereVertices(int32 Rings, int32 Sectors);
+    TArray<uint32> GenerateUVSphereIndices(int32 Rings, int32 Sectors);
+
+    void RenderBoxElements(const TArray<FKBoxElem>& BoxElems, const FTransform& BoneTransform, const FTransform& BaseTransform);
+    void RenderInstancedBoxes(const TArray<FConstantBufferDebugBox>& BufferAll);
+    void RenderSphereElements(const TArray<FKSphereElem>& SphereElems, const FTransform& BoneTransform, const FTransform& BaseTransform);
+    void RenderInstancedSpheres(const TArray<FConstantBufferDebugSphere>& BufferAll);
+    void RenderCapsuleElements(const TArray<FKSphylElem>& CapsuleElems, const FTransform& BoneTransform, const FTransform& BaseTransform);
+    void RenderInstancedCapsules(const TArray<FConstantBufferDebugCapsule>& BufferAll);
 
     // Grid
     // void RenderGrid(std::shared_ptr<FEditorViewportClient> ActiveViewport);

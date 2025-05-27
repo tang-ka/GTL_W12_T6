@@ -23,6 +23,12 @@
 #include "Engine/Classes/Components/Light/PointLightComponent.h"
 #include "Engine/Classes/Components/HeightFogComponent.h"
 #include "PropertyEditor/ShowFlags.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/AggregateGeom.h"
+#include "Engine/Asset/PhysicsAsset.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/Skeleton.h"
+#include "Components/SkeletalMeshComponent.h"
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -92,12 +98,29 @@ void FEditorRenderPass::CreateBuffers()
     };
 
     const TArray<uint32> CubeFrameIndices = {
-        // Bottom face
-        0, 1, 1, 3, 3, 2, 2, 0,
-        // Top face
-        4, 6, 6, 7, 7, 5, 5, 4,
-        // Side faces
-        0, 4, 1, 6, 2, 5, 3, 7
+        //// Bottom face
+        //0, 1, 1, 3, 3, 2, 2, 0,
+        //// Top face
+        //4, 6, 6, 7, 7, 5, 5, 4,
+        //// Side faces
+        //0, 4, 1, 6, 2, 5, 3, 7
+        // 앞면 (Front face) - z = -1 면
+        0, 1, 3, 0, 3, 2,
+
+        // 뒷면 (Back face) - z = 1 면  
+        4, 5, 7, 4, 7, 6,
+
+        // 왼쪽면 (Left face) - x = -1 면
+        0, 4, 6, 0, 6, 1,
+
+        // 오른쪽면 (Right face) - x = 1 면
+        2, 3, 7, 2, 7, 5,
+
+        // 아래면 (Bottom face) - y = -1 면
+        0, 2, 5, 0, 5, 4,
+
+        // 위면 (Top face) - y = 1 면
+        1, 6, 7, 1, 7, 3
     };
 
 
@@ -109,119 +132,9 @@ void FEditorRenderPass::CreateBuffers()
     
     ////////////////////////////////////
     // Sphere 버퍼 생성
-    const TArray<FVector> SphereFrameVertices =
-    {
-        {1.0, 0.0, 0},
-        {0.9795299412524945, 0.20129852008866006, 0},
-        {0.9189578116202306, 0.39435585511331855, 0},
-        {0.8207634412072763, 0.5712682150947923, 0},
-        {0.6889669190756866, 0.72479278722912, 0},
-        {0.5289640103269624, 0.8486442574947509, 0},
-        {0.3473052528448203, 0.9377521321470804, 0},
-        {0.1514277775045767, 0.9884683243281114, 0},
-        {-0.05064916883871264, 0.9987165071710528, 0},
-        {-0.2506525322587204, 0.9680771188662043, 0},
-        {-0.4403941515576344, 0.8978045395707416, 0},
-        {-0.6121059825476629, 0.7907757369376985, 0},
-        {-0.758758122692791, 0.6513724827222223, 0},
-        {-0.8743466161445821, 0.48530196253108104, 0},
-        {-0.9541392564000488, 0.29936312297335804, 0},
-        {-0.9948693233918952, 0.10116832198743228, 0},
-        {-0.9948693233918952, -0.10116832198743204, 0},
-        {-0.9541392564000489, -0.29936312297335776, 0},
-        {-0.8743466161445822, -0.4853019625310808, 0},
-        {-0.7587581226927911, -0.651372482722222, 0},
-        {-0.6121059825476627, -0.7907757369376986, 0},
-        {-0.44039415155763423, -0.8978045395707417, 0},
-        {-0.2506525322587205, -0.9680771188662043, 0},
-        {-0.05064916883871266, -0.9987165071710528, 0},
-        {0.15142777750457667, -0.9884683243281114, 0},
-        {0.3473052528448203, -0.9377521321470804, 0},
-        {0.5289640103269624, -0.8486442574947509, 0},
-        {0.6889669190756865, -0.72479278722912, 0},
-        {0.8207634412072763, -0.5712682150947924, 0},
-        {0.9189578116202306, -0.3943558551133187, 0},
-        {0.9795299412524945, -0.20129852008866028, 0},
-        {1, 0, 0},
-        {1.0, 0, 0.0},
-        {0.9795299412524945, 0, 0.20129852008866006},
-        {0.9189578116202306, 0, 0.39435585511331855},
-        {0.8207634412072763, 0, 0.5712682150947923},
-        {0.6889669190756866, 0, 0.72479278722912},
-        {0.5289640103269624, 0, 0.8486442574947509},
-        {0.3473052528448203, 0, 0.9377521321470804},
-        {0.1514277775045767, 0, 0.9884683243281114},
-        {-0.05064916883871264, 0, 0.9987165071710528},
-        {-0.2506525322587204, 0, 0.9680771188662043},
-        {-0.4403941515576344, 0, 0.8978045395707416},
-        {-0.6121059825476629, 0, 0.7907757369376985},
-        {-0.758758122692791, 0, 0.6513724827222223},
-        {-0.8743466161445821, 0, 0.48530196253108104},
-        {-0.9541392564000488, 0, 0.29936312297335804},
-        {-0.9948693233918952, 0, 0.10116832198743228},
-        {-0.9948693233918952, 0, -0.10116832198743204},
-        {-0.9541392564000489, 0, -0.29936312297335776},
-        {-0.8743466161445822, 0, -0.4853019625310808},
-        {-0.7587581226927911, 0, -0.651372482722222},
-        {-0.6121059825476627, 0, -0.7907757369376986},
-        {-0.44039415155763423, 0, -0.8978045395707417},
-        {-0.2506525322587205, 0, -0.9680771188662043},
-        {-0.05064916883871266, 0, -0.9987165071710528},
-        {0.15142777750457667, 0, -0.9884683243281114},
-        {0.3473052528448203, 0, -0.9377521321470804},
-        {0.5289640103269624, 0, -0.8486442574947509},
-        {0.6889669190756865, 0, -0.72479278722912},
-        {0.8207634412072763, 0, -0.5712682150947924},
-        {0.9189578116202306, 0, -0.3943558551133187},
-        {0.9795299412524945, 0, -0.20129852008866028},
-        {1, 0, 0},
-        {0, 1.0, 0.0},
-        {0, 0.9795299412524945, 0.20129852008866006},
-        {0, 0.9189578116202306, 0.39435585511331855},
-        {0, 0.8207634412072763, 0.5712682150947923},
-        {0, 0.6889669190756866, 0.72479278722912},
-        {0, 0.5289640103269624, 0.8486442574947509},
-        {0, 0.3473052528448203, 0.9377521321470804},
-        {0, 0.1514277775045767, 0.9884683243281114},
-        {0, -0.05064916883871264, 0.9987165071710528},
-        {0, -0.2506525322587204, 0.9680771188662043},
-        {0, -0.4403941515576344, 0.8978045395707416},
-        {0, -0.6121059825476629, 0.7907757369376985},
-        {0, -0.758758122692791, 0.6513724827222223},
-        {0, -0.8743466161445821, 0.48530196253108104},
-        {0, -0.9541392564000488, 0.29936312297335804},
-        {0, -0.9948693233918952, 0.10116832198743228},
-        {0, -0.9948693233918952, -0.10116832198743204},
-        {0, -0.9541392564000489, -0.29936312297335776},
-        {0, -0.8743466161445822, -0.4853019625310808},
-        {0, -0.7587581226927911, -0.651372482722222},
-        {0, -0.6121059825476627, -0.7907757369376986},
-        {0, -0.44039415155763423, -0.8978045395707417},
-        {0, -0.2506525322587205, -0.9680771188662043},
-        {0, -0.05064916883871266, -0.9987165071710528},
-        {0, 0.15142777750457667, -0.9884683243281114},
-        {0, 0.3473052528448203, -0.9377521321470804},
-        {0, 0.5289640103269624, -0.8486442574947509},
-        {0, 0.6889669190756865, -0.72479278722912},
-        {0, 0.8207634412072763, -0.5712682150947924},
-        {0, 0.9189578116202306, -0.3943558551133187},
-        {0, 0.9795299412524945, -0.20129852008866028},
-        {0, 1, 0}
-    };
+    const TArray<FVector> SphereFrameVertices = GenerateUVSphereVertices(16, 32);
+    const TArray<uint32> SphereFrameIndices = GenerateUVSphereIndices(16, 32);
 
-    const TArray<uint32> SphereFrameIndices =
-    {
-        0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10,
-        11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20,
-        21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30,
-        31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 37, 37, 38, 38, 39, 39, 40, 40,
-        41, 41, 42, 42, 43, 43, 44, 44, 45, 45, 46, 46, 47, 47, 48, 48, 49, 49, 50, 50,
-        51, 51, 52, 52, 53, 53, 54, 54, 55, 55, 56, 56, 57, 57, 58, 58, 59, 59, 60, 60,
-        61, 61, 62, 62, 63, 64, 65, 65, 66, 66, 67, 67, 68, 68, 69, 69, 70, 70,
-        71, 71, 72, 72, 73, 73, 74, 74, 75, 75, 76, 76, 77, 77, 78, 78, 79, 79, 80, 80,
-        81, 81, 82, 82, 83, 83, 84, 84, 85, 85, 86, 86, 87, 87, 88, 88, 89, 89, 90, 90,
-        91, 91, 92, 92, 93, 93, 94, 94, 95
-    };
     
     BufferManager->CreateVertexBuffer<FVector>(TEXT("SphereVertexBuffer"), SphereFrameVertices, OutVertexInfo, D3D11_USAGE_IMMUTABLE, 0);
     BufferManager->CreateIndexBuffer<uint32>(TEXT("SphereIndexBuffer"), SphereFrameIndices, OutIndexInfo);
@@ -392,6 +305,8 @@ void FEditorRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         RenderBoxInstanced(ShowFlag);
         RenderSphereInstanced(ShowFlag);
         RenderCapsuleInstanced(ShowFlag);
+
+        RenderPhysicsAssetsDebug(ShowFlag);
     }
 
     RenderArrowInstanced();
@@ -827,4 +742,267 @@ void FEditorRenderPass::RenderCapsuleInstanced(uint64 ShowFlag)
             Graphics->DeviceContext->DrawInstanced(1184, SubBuffer.Num(), 0, 0);
         }
     }
+}
+
+void FEditorRenderPass::RenderPhysicsAssetDebug(UPhysicsAsset* PhysicsAsset, USkeletalMeshComponent* SkelMeshComp)
+{
+    if (!PhysicsAsset)
+    {
+        return;
+    }
+
+    Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerSolidBack);
+
+    // 각 BodySetup의 AggregateGeom 렌더링
+    for (UBodySetup* BodySetup : PhysicsAsset->GetBodySetups())
+    {
+        if (!BodySetup)
+        {
+            continue;
+        }
+        
+        const FReferenceSkeleton& Skeleton = SkelMeshComp->GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+        int32 BoneIndex = Skeleton.RawNameToIndexMap[BodySetup->BoneName];
+        int32 ParentIndex = Skeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
+        FTransform BoneTransform = Skeleton.GetRawRefBonePose()[BoneIndex];
+        
+        // 이 부분 어딘가에 캐싱하는게 좋을 듯
+        while (ParentIndex != INDEX_NONE)
+        {
+            FTransform ParentTransform = Skeleton.RawRefBonePose[ParentIndex];
+            BoneTransform = ParentTransform * BoneTransform;
+            ParentIndex = Skeleton.RawRefBoneInfo[ParentIndex].ParentIndex;
+        }
+
+        FTransform BaseTransform = SkelMeshComp->GetWorldTransform();
+        FKAggregateGeom* AggGeom = &(BodySetup->AggGeom);
+
+        RenderBoxElements(AggGeom->BoxElems, BoneTransform, BaseTransform);
+        RenderSphereElements(AggGeom->SphereElems, BoneTransform, BaseTransform);
+        RenderCapsuleElements(AggGeom->SphylElems, BoneTransform, BaseTransform);
+    }
+}
+
+void FEditorRenderPass::RenderBoxElements(const TArray<FKBoxElem>& BoxElems, const FTransform& BoneTransform, const FTransform& BaseTransform)
+{
+    if (BoxElems.Num() == 0) return;
+
+    BindShaderResource(L"BoxVS", L"BoxPS", D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    BindBuffers(Resources.Primitives.Box);
+
+    TArray<FConstantBufferDebugBox> BufferAll;
+
+    for (const FKBoxElem& BoxElem : BoxElems)
+    {
+        FTransform LocalTransform(BoxElem.Rotation, BoxElem.Center, BoxElem.Extent);
+        FTransform FinalTransform = BaseTransform * BoneTransform * LocalTransform;
+
+        FConstantBufferDebugBox BufferData;
+        BufferData.WorldMatrix = FinalTransform.ToMatrixWithScale();
+        BufferData.Extent = BoxElem.Extent;
+        BufferAll.Add(BufferData);
+    }
+
+    RenderInstancedBoxes(BufferAll);
+}
+
+void FEditorRenderPass::RenderInstancedBoxes(const TArray<FConstantBufferDebugBox>& BufferAll)
+{
+    BufferManager->BindConstantBuffer("BoxConstantBuffer", 11, EShaderStage::Vertex);
+
+    int BufferIndex = 0;
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeBox) * ConstantBufferSizeBox; ++i)
+    {
+        TArray<FConstantBufferDebugBox> SubBuffer;
+        for (uint32 j = 0; j < ConstantBufferSizeBox; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugBox>(TEXT("BoxConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Box.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
+    }
+}
+
+void FEditorRenderPass::RenderSphereElements(const TArray<FKSphereElem>& SphereElems, const FTransform& BoneTransform, const FTransform& BaseTransform)
+{
+    if (SphereElems.Num() == 0) return;
+
+    BindShaderResource(L"SphereVS", L"SpherePS", D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    BindBuffers(Resources.Primitives.Sphere);
+
+    TArray<FConstantBufferDebugSphere> BufferAll;
+
+    for (const FKSphereElem& SphereElem : SphereElems)
+    {
+        FTransform LocalTransform(FRotator::ZeroRotator, SphereElem.Center, FVector::OneVector);
+        FTransform FinalTransform = BaseTransform * BoneTransform * LocalTransform;
+
+        FConstantBufferDebugSphere BufferData;
+        BufferData.Position = FinalTransform.GetTranslation();
+        BufferData.Radius = SphereElem.Radius;
+        BufferAll.Add(BufferData);
+    }
+
+    RenderInstancedSpheres(BufferAll);
+}
+
+void FEditorRenderPass::RenderInstancedSpheres(const TArray<FConstantBufferDebugSphere>& BufferAll)
+{
+    BufferManager->BindConstantBuffer("SphereConstantBuffer", 11, EShaderStage::Vertex);
+
+    int BufferIndex = 0;
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
+    {
+        TArray<FConstantBufferDebugSphere> SubBuffer;
+        for (uint32 j = 0; j < ConstantBufferSizeSphere; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugSphere>(TEXT("SphereConstantBuffer"), SubBuffer);
+            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
+    }
+}
+
+void FEditorRenderPass::RenderCapsuleElements(const TArray<FKSphylElem>& CapsuleElems, const FTransform& BoneTransform, const FTransform& BaseTransform)
+{
+    if (CapsuleElems.Num() == 0) return;
+
+    BindShaderResource(L"CapsuleVS", L"CapsulePS", D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    TArray<FConstantBufferDebugCapsule> BufferAll;
+
+    for (const FKSphylElem& CapsuleElem : CapsuleElems)
+    {
+        FTransform LocalTransform(CapsuleElem.Rotation, CapsuleElem.Center, FVector::OneVector);
+        FTransform FinalTransform = BaseTransform * BoneTransform * LocalTransform;
+
+        FConstantBufferDebugCapsule BufferData;
+        BufferData.WorldMatrix = FinalTransform.ToMatrixWithScale();
+        BufferData.Height = CapsuleElem.Length;
+        BufferData.Radius = CapsuleElem.Radius;
+        BufferAll.Add(BufferData);
+    }
+
+    RenderInstancedCapsules(BufferAll);
+}
+
+void FEditorRenderPass::RenderInstancedCapsules(const TArray<FConstantBufferDebugCapsule>& BufferAll)
+{
+    BufferManager->BindConstantBuffer("CapsuleConstantBuffer", 11, EShaderStage::Vertex);
+
+    int BufferIndex = 0;
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCapsule) * ConstantBufferSizeCapsule; ++i)
+    {
+        TArray<FConstantBufferDebugCapsule> SubBuffer;
+        for (uint32 j = 0; j < ConstantBufferSizeCapsule; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            BufferManager->UpdateConstantBuffer<FConstantBufferDebugCapsule>(TEXT("CapsuleConstantBuffer"), SubBuffer);
+            //Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Capsule.IndexInfo.NumIndices, SubBuffer.Num(), 0, 0, 0);
+            Graphics->DeviceContext->DrawInstanced(1728, SubBuffer.Num(), 0, 0);
+        }
+    }
+}
+
+void FEditorRenderPass::RenderPhysicsAssetsDebug(uint64 ShowFlag)
+{
+    // PhysicsViewer 월드에서 PhysicsAsset 찾기
+    if (GEngine->ActiveWorld->WorldType == EWorldType::PhysicsViewer || GEngine->ActiveWorld->WorldType == EWorldType::Editor)
+    {
+        for (const auto* Actor : TObjectRange<AActor>())
+        {
+            if (USkeletalMeshComponent* SkelMeshComp = Actor->GetComponentByClass<USkeletalMeshComponent>())
+            {
+                if (UPhysicsAsset* PhysicsAsset = SkelMeshComp->GetPhysicsAsset())
+                {
+                    RenderPhysicsAssetDebug(PhysicsAsset, SkelMeshComp);
+                }
+            }
+        }
+    }
+}
+
+TArray<FVector> FEditorRenderPass::GenerateUVSphereVertices(int32 Rings, int32 Sectors)
+{
+    TArray<FVector> Vertices;
+
+    for (int32 r = 0; r <= Rings; ++r)
+    {
+        float Phi = PI * r / Rings; // 위도 각도
+        float Y = FMath::Cos(Phi);
+        float SinPhi = FMath::Sin(Phi);
+
+        for (int32 s = 0; s <= Sectors; ++s)
+        {
+            float Theta = 2.0f * PI * s / Sectors; // 경도 각도
+            float X = SinPhi * FMath::Cos(Theta);
+            float Z = SinPhi * FMath::Sin(Theta);
+
+            Vertices.Add(FVector(X, Y, Z)); // Y-up 기준
+        }
+    }
+
+    return Vertices;
+}
+
+TArray<uint32> FEditorRenderPass::GenerateUVSphereIndices(int32 Rings, int32 Sectors)
+{
+    TArray<uint32> Indices;
+
+    for (int32 r = 0; r < Rings; ++r)
+    {
+        for (int32 s = 0; s < Sectors; ++s)
+        {
+            int32 Current = r * (Sectors + 1) + s;
+            int32 Next = Current + Sectors + 1;
+
+            // 첫 번째 삼각형
+            Indices.Add(Current);
+            Indices.Add(Next);
+            Indices.Add(Current + 1);
+
+            // 두 번째 삼각형
+            Indices.Add(Current + 1);
+            Indices.Add(Next);
+            Indices.Add(Next + 1);
+        }
+    }
+
+    return Indices;
 }

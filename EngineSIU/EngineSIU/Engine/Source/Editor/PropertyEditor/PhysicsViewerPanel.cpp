@@ -418,7 +418,8 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
 		CreatePhysicsBodySetup(BoneInfo, BoneTransform, BoneIndex);
 
         UBodySetup* BodySetup = FindBodySetupForBone(BoneIndex);
-        FKBoxElem BoxElem;
+        // BOX TEST       
+         FKBoxElem BoxElem;
 
         BoxElem.Center = FVector::ZeroVector;
         BoxElem.Extent.X = 1.0f;
@@ -427,9 +428,27 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
         BoxElem.Rotation = FRotator::ZeroRotator;
 
         BodySetup->AggGeom.BoxElems.Add(BoxElem);
+        
+        // SPHERE TEST
+        /*FKSphereElem SphereElem;
+
+        SphereElem.Center = FVector::ZeroVector;
+        SphereElem.Radius = 1.0f;
+     
+        BodySetup->AggGeom.SphereElems.Add(SphereElem);*/
+
+        // CAPSULE TEST
+       /* FKSphylElem SphylElem;
+
+        SphylElem.Center = FVector::ZeroVector;
+        SphylElem.Radius = 1.0f;
+        SphylElem.Length = 1.0f;
+        SphylElem.Rotation = FRotator::ZeroRotator;
+
+        BodySetup->AggGeom.SphylElems.Add(SphylElem);*/
 
 		//CreateBoxComponentForBone(BoneIndex, BoneTransform, BoneInfo.Name);
-        CreateHierarchicalBoxComponent(BoneIndex, CopiedRefSkeleton->RawRefBonePose[BoneIndex], BoneInfo.Name);
+        //CreateHierarchicalBoxComponent(BoneIndex, CopiedRefSkeleton->RawRefBonePose[BoneIndex], BoneInfo.Name);
 	}
 }
 
