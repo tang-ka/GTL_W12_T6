@@ -95,7 +95,7 @@ void FGizmoRenderPass::PrepareRenderArr()
 void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_Editor);
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_EditorOverlay);
     FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Gizmo);
     
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
@@ -119,6 +119,11 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
 
     if (EditorEngine->GetSelectedActor() == nullptr && EditorEngine->GetSelectedComponent() == nullptr)
     {
+        Graphics->DeviceContext->RSSetState(Graphics->GetCurrentRasterizer());
+
+        Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+        Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, NullSRV);
         return;
     }
     
