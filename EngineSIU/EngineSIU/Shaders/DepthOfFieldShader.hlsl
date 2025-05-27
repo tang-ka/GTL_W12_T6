@@ -530,13 +530,13 @@ float4 PS_Composite(PS_Input Input) : SV_TARGET
     // 여기서는 해당 CoC 값을 블러 강도에 이미 반영했다고 가정하고, RGB만 사용.
     // 또는, 해당 알파값을 추가적인 가중치로 사용할 수도 있습니다.
     float4 BlurredFarColor = BlurredFarTexture.Sample(LinearSampler, Input.UV);
-    //float BlurredFarCoC = FarCoC;
-    float BlurredFarCoC = BlurredFarColor.a;
+    float BlurredFarCoC = FarCoC;
+    //float BlurredFarCoC = BlurredFarColor.a;
 
     // 4. 블러된 니어 레이어 컬러 가져오기 (업샘플링 발생)
     float4 BlurredNearColor = BlurredNearTexture.Sample(LinearSampler, Input.UV);
-    //float BlurredNearCoC = NearCoC;
-    float BlurredNearCoC = BlurredNearColor.a;
+    float BlurredNearCoC = NearCoC;
+    //float BlurredNearCoC = BlurredNearColor.a;
 
     // 5. 합성 로직
     float3 FinalColor = OriginalSceneColor.rgb;
@@ -550,7 +550,7 @@ float4 PS_Composite(PS_Input Input) : SV_TARGET
     FinalColor = lerp(FinalColor, BlurredNearColor.rgb, NearBlendFactor);
 
     // (선택적) 최종적으로 초점 영역은 원본을 확실히 보장 (만약 위 lerp들이 완벽히 0이나 1이 안될 경우 대비)
-    // finalColor = lerp(finalColor, originalSceneColor.rgb, inFocusMask); // inFocusMask가 1이면 originalSceneColor 보장
+    //finalColor = lerp(finalColor, originalSceneColor.rgb, inFocusMask); // inFocusMask가 1이면 originalSceneColor 보장
 
     //return DebugCoC(Input.UV);
 
