@@ -134,7 +134,7 @@ PS_INPUT SphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
     localPos = mul(localPos, ProjectionMatrix);
     output.position = localPos;
 
-    output.color = float4(100.f / 255.f, 220.f / 255.f, 255.f / 255.f, 1.0f);
+    output.color = float4(0.8f, 0.6f, 1.0f, 1.0f);
     
     return output;
 }
