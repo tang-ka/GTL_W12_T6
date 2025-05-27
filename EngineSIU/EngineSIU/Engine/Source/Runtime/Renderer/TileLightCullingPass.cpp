@@ -1,19 +1,18 @@
 #include "TileLightCullingPass.h"
 
 #include "RendererHelpers.h"
-#include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 
 #include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "LevelEditor/SLevelEditor.h"
 #include "UObject/Casts.h"
 #include "Engine/EditorEngine.h"
 #include "Components/Light/LightComponent.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "UObject/UObjectIterator.h"
+#include "PropertyEditor/ShowFlags.h"
 
 #define SAFE_RELEASE(p) if (p) { (p)->Release(); (p) = nullptr; }
 
@@ -82,14 +81,10 @@ void FTileLightCullingPass::Render(const std::shared_ptr<FEditorViewportClient>&
     ComputeShader = ShaderManager->GetComputeShaderByKey(L"TileLightCullingComputeShader");
     Dispatch(Viewport);
 
-    if (Viewport->GetViewMode() == EViewModeIndex::VMI_LightHeatMap)
+    if (Viewport->GetShowFlag() & EEngineShowFlags::SF_LightHeatMap)
     {
         // 디버깅 용도
-        Graphics->DeviceContext->PSSetShaderResources(
-            static_cast<UINT>(EShaderSRVSlot::SRV_Debug),
-            1,
-            &DebugHeatmapSRV
-        );
+        Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Debug), 1, &DebugHeatmapSRV);
     }
 }
 

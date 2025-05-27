@@ -6,6 +6,7 @@
 #include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "RendererHelpers.h"
+#include "PropertyEditor/ShowFlags.h"
 
 void FDepthOfFieldRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -101,6 +102,7 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
         return;
     }
 
+
     PrepareRender(Viewport);
 
     // Begin Layer Mask
@@ -111,6 +113,11 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     // 이 이후로는 LayerInfo가 항상 바인딩 되어있음.
     FRenderTargetRHI* RenderTargetRHI_LayerInfo = ViewportResource->GetRenderTarget(EResourceType::ERT_DoF_LayerInfo);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DepthOfField_LayerInfo), 1, &RenderTargetRHI_LayerInfo->SRV);
+    if (Viewport->GetShowFlag() & EEngineShowFlags::SF_DepthOfFieldLayer)
+    {
+        // LayerInfo 텍스처를 디버그 슬롯에 바인딩
+        Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Debug), 1, &RenderTargetRHI_LayerInfo->SRV);
+    }
 
     // Begin Max Filter (Near Layer) 
     PrepareMaxFilter_Near(Viewport);
@@ -145,7 +152,7 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     Graphics->DeviceContext->Draw(6, 0);
     CleanUpComposite(Viewport);
 
-    CleanUpRender(Viewport);
+    //CleanUpRender(Viewport);
 }
 
 void FDepthOfFieldRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
