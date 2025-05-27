@@ -33,6 +33,9 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
     PxTransform FrameA = TransformInA.ToPxTransform();
     PxTransform FrameB = TransformInB.ToPxTransform();
 
+    //FrameA = FTransform::Identity.ToPxTransform();
+    //FrameB = FTransform::Identity.ToPxTransform();
+
     D6Joint = PxD6JointCreate(*Phys, ActorA, FrameA, ActorB, FrameB);
     D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
 

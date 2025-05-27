@@ -91,6 +91,13 @@ void USkeletalMeshComponent::TickPose(float DeltaTime)
     TickAnimation(DeltaTime);
 }
 
+void USkeletalMeshComponent::DestroyComponent(bool bPromoteChildren)
+{
+    Super::DestroyComponent(bPromoteChildren);
+
+    DestroyPhysics();
+}
+
 void USkeletalMeshComponent::TickAnimation(float DeltaTime)
 {
     if (GetSkeletalMeshAsset())
@@ -518,13 +525,26 @@ void USkeletalMeshComponent::SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset)
 
 FBodyInstance* USkeletalMeshComponent::GetBodyInstance(FName BoneName) const
 {
+    if (UPhysicsAsset* PhysAsset = GetPhysicsAsset())
+    {
+        const TArray<UBodySetup*>& BodySetups = PhysAsset->GetBodySetups();
+        // BodySetups 배열과 Bodies 배열이 같은 순서로 생성되었다고 가정
+        for (int32 i = 0; i < BodySetups.Num() && i < Bodies.Num(); ++i)
+        {
+            UBodySetup* Setup = BodySetups[i];
+            if (Setup && Setup->BoneName == BoneName)
+            {
+                return Bodies[i];
+            }
+        }
+    }
     return nullptr;
 }
 
 void USkeletalMeshComponent::InitializePhysics()
 {
     CreateBodies();
-    CreateConstraints();
+    //CreateConstraints();
     SyncComponentToBody();
     SyncPhysicsFlags();
 }

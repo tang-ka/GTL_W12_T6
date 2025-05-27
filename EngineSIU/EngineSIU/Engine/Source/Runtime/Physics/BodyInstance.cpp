@@ -52,9 +52,9 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
     for (const FKBoxElem& Box : AggGeom.BoxElems)
     {
         PxBoxGeometry BoxGeom((Box.Extent * InOwner->GetComponentScale3D()).ToPxVec3());
-        PxVec3 BoxCenter(Box.Center.X, Box.Center.Y, Box.Center.Z);
+        PxVec3 BoxCenter = Box.Center.ToPxVec3();
         FQuat BoxQuat(FRotator(Box.Rotation));
-        PxQuat BoxRotation(BoxQuat.X, BoxQuat.Y, BoxQuat.Z, BoxQuat.W);
+        PxQuat BoxRotation = BoxQuat.ToPxQuat();
         PxTransform LocalPose(BoxCenter, BoxRotation);
 
         PxShape* Shape = Physics->createShape(BoxGeom, *(Setup->PhysMaterial->GetMaterial()));
@@ -65,9 +65,9 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
     for (const FKSphylElem& Sphyl : AggGeom.SphylElems)
     {
         PxCapsuleGeometry CapsuleGeom(Sphyl.Radius, Sphyl.GetScaledHalfLength(FVector::One()));
-        PxVec3 CapsuleCenter(Sphyl.Center.X, Sphyl.Center.Y, Sphyl.Center.Z);
+        PxVec3 CapsuleCenter = Sphyl.Center.ToPxVec3();
         FQuat CapsuleQuat(FRotator(Sphyl.Rotation));
-        PxQuat CapsuleRotation(CapsuleQuat.X, CapsuleQuat.Y, CapsuleQuat.Z, CapsuleQuat.W);
+        PxQuat CapsuleRotation = CapsuleQuat.ToPxQuat();
         PxTransform LocalPose(CapsuleCenter, CapsuleRotation);
 
         PxShape* Shape = Physics->createShape(CapsuleGeom, *(Setup->PhysMaterial->GetMaterial()));
@@ -93,9 +93,9 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         PxConvexMesh* ConvexMesh = Physics->createConvexMesh(InputStream);
         PxConvexMeshGeometry ConvexGeom = PxConvexMeshGeometry(ConvexMesh);
 
-        PxVec3 ConvexCenter(Convex.Center.X, Convex.Center.Y, Convex.Center.Z);
+        PxVec3 ConvexCenter = Convex.Center.ToPxVec3();
         FQuat ConvexQuat(FRotator(Convex.Rotation));
-        PxQuat ConvexRotation(ConvexQuat.X, ConvexQuat.Y, ConvexQuat.Z, ConvexQuat.W);
+        PxQuat ConvexRotation = ConvexQuat.ToPxQuat();
         PxTransform LocalPose(ConvexCenter, ConvexRotation);
 
         PxShape* Shape = Physics->createShape(ConvexGeom, *(Setup->PhysMaterial->GetMaterial()));

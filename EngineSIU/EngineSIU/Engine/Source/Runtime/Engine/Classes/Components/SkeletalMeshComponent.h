@@ -33,14 +33,11 @@ public:
     virtual ~USkeletalMeshComponent() override = default;
 
     virtual void InitializeComponent() override;
-
     virtual UObject* Duplicate(UObject* InOuter) override;
-
     virtual void BeginPlay() override;
-
     virtual void TickComponent(float DeltaTime) override;
-
     virtual void TickPose(float DeltaTime) override;
+    virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
     void TickAnimation(float DeltaTime);
 
