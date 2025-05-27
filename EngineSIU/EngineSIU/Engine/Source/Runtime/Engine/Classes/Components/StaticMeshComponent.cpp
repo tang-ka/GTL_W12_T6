@@ -15,6 +15,7 @@
 
 #include "World/World.h"
 #include <Actors/Cube.h>
+#include "ProjectileMovementComponent.h"
 
 UStaticMeshComponent::UStaticMeshComponent()
 {
@@ -343,24 +344,39 @@ void UStaticMeshComponent::HandleContactPoint(FVector Pos, FVector Norm)
     ACube* ContactEffect = GEngine->ActiveWorld->SpawnActor<ACube>();
     
     ContactEffect->SetActorScale(FVector(0.1f));
-    FVector Loc = (Pos + Norm)*2.f;
+    FVector Loc;
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, 3);
+
+    int rand = dis(gen);
+    switch (rand)
+    {
+    case 0:
+        Loc = Pos + FVector(1, 0, 0);
+        break;
+    case 1:
+        Loc = Pos + FVector(0, 1, 0);
+        break;
+    case 2:
+        Loc = Pos + FVector(-1, 0, 0);
+        break;
+    case 3:
+        Loc = Pos + FVector(0, -1, 0);
+        break;
+    default:
+        break;
+    }
+
     ContactEffect->SetActorLocation(Loc);
-    ContactEffect->BeginPlay();
-    // 1) RigidActor* → RigidDynamic* 캐스트
-    PxRigidActor* actor = ContactEffect
-        ->GetStaticMeshComponent()
-        ->GetPhysBody()
-        ->rigidBody;
-
-    // (안전하게) dynamic_cast 대신 static_cast
-    PxRigidDynamic* dyn = static_cast<PxRigidDynamic*>(actor);
-
-    PxVec3 newVelocity = (Loc.GetSafeNormal() * 3.f).ToPxVec3();
-    dyn->setLinearVelocity(newVelocity, true);
-
-    static int SpawnCount = 1;
-    UE_LOG(ELogLevel::Display, "Spawn Count : %d", SpawnCount);
-    SpawnCount++;
+    UProjectileMovementComponent* Comp = ContactEffect->AddComponent<UProjectileMovementComponent>();
+    FVector Front = (Loc - GetComponentLocation()).GetSafeNormal();
+    FVector RotAxis = FVector::CrossProduct(FVector(1, 0, 0), Front);
+    float Dot = FVector::DotProduct(FVector(1, 0, 0), Front);
+    float RotAngle = FMath::Acos(Dot);
+    ContactEffect->SetActorRotation(FRotator(FQuat(RotAxis, RotAngle).GetNormalized()));
+    Comp->SetInitialSpeed(2.f);
+    Comp->SetMaxSpeed(10.0f);
 }
 
 void UStaticMeshComponent::SetIsStatic(bool Value)

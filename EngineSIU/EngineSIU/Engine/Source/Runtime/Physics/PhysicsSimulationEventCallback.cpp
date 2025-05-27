@@ -1,5 +1,6 @@
 #include "PhysicsSimulationEventCallback.h"
 #include "Engine/PhysicsManager.h"
+#include "Components/StaticMeshComponent.h"
 
 void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
 {
@@ -15,32 +16,35 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
         USceneComponent* CompB = reinterpret_cast<USceneComponent*>(dataB);
         if (CompA->GetWorld() == CompB->GetWorld())
         {
-            UPhysicsManager::Get().OnPhysicsContact.Broadcast(CompA, CompB);
-        }
-        for (PxU32 i = 0; i < nbPairs; ++i)
-        {
-            const PxContactPair& cp = pairs[i];
-            // 최대 16개 접촉점까지 복사
-            PxContactPairPoint pts[16];
-            PxU32 count = cp.extractContacts(pts, 16);
-            if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+            for (PxU32 i = 0; i < nbPairs; ++i)
             {
-                /* 새로 닿았을 때 */
-                for (PxU32 j = 0; j < count; ++j)
+                const PxContactPair& cp = pairs[i];
+                // 최대 16개 접촉점까지 복사
+                PxContactPairPoint pts[16];
+                PxU32 count = cp.extractContacts(pts, 16);
+                if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
                 {
-                    const PxContactPairPoint& pt = pts[j];
-                    // pt.position, pt.normal, pt.impulse, pt.separation
+                    /* 새로 닿았을 때 */
+                    UPhysicsManager::Get().OnPhysicsContact.Broadcast(CompA, CompB);
+                    for (PxU32 j = 0; j < count; ++j)
+                    {
+                        const PxContactPairPoint& pt = pts[j];
+                        // pt.position, pt.normal, pt.impulse, pt.separation
+                        FVector Pos(pt.position.x, pt.position.y, pt.position.z);
+                        FVector Norm(pt.normal.x, pt.normal.y, pt.normal.z);
+                        Cast<UStaticMeshComponent>(CompA)->HandleContactPoint(Pos, Norm);
+                    }
                 }
+                if (cp.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
+                {
+                    /* 계속 닿고 있을 때 */
+                }
+                if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
+                {
+                    /* 떨어졌을 때 */
+                }
+
             }
-            if (cp.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
-            {
-                /* 계속 닿고 있을 때 */
-            }
-            if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
-            {
-                /* 떨어졌을 때 */
-            }
-            
         }
     }
 }
