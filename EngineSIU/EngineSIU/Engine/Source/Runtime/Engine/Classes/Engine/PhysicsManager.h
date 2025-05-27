@@ -12,6 +12,7 @@ using namespace physx;
 using namespace DirectX;
 
 class USceneComponent;
+class UPxVehicleManager;
 
 #define SCOPED_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene);
 #define SCOPED_WRITE_LOCK(scene) PxSceneWriteLock scopedWriteLock(scene);
@@ -76,6 +77,8 @@ public:
 
     void RemoveGameObject(GameObject* InGameObject);
 
+    void SpawnVehicle();
+
 private:
     PxDefaultAllocator Allocator;
     PhysXErrorCallback ErrorCallback;
@@ -92,9 +95,18 @@ private:
 
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;
+    
 
 public:
     FOnPhysicsContact OnPhysicsContact;
+    UPxVehicleManager* Vehicle = nullptr;
+};
+
+enum ECollisionChannel
+{
+    ECC_CarBody = (1 << 0),
+    ECC_Wheel = (1 << 1),
+    // 필요 시 다른 채널…
 };
 
 PxFilterFlags MySimulationFilterShader(

@@ -1,4 +1,3 @@
-
 #pragma once
 #include <memory>
 
@@ -25,5 +24,5 @@ protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-    ID3D11Buffer* ViewModeBuffer;
+    ID3D11Buffer* ShowFlagBuffer;
 };

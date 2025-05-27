@@ -7,6 +7,7 @@
 #include "Engine/Asset/PhysicsAsset.h"
 #include "PhysicsEngine/BoxElem.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PhysicsEngine/ConstraintSetup.h"
 #include "Components/BoxComponent.h"
 #include "UObject/ObjectFactory.h"
 
@@ -263,15 +264,69 @@ void PhysicsViewerPanel::RenderConstraintPanel()
 
     if (SelectedBoneIndex == INDEX_NONE)
     {
-        ImGui::Text("Select a bone to view physics details");
+        ImGui::Text("Select a bone to view constraint details");
         ImGui::End();
         return;
     }
-	else 
-	{
-		ImGui::End();
-		return;
-	}
+
+    // 선택된 본 이름 가져오기
+    if (!CopiedRefSkeleton || SelectedBoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
+    {
+        ImGui::Text("Invalid selected bone");
+        ImGui::End();
+        return;
+    }
+
+    FName SelectedBoneName = CopiedRefSkeleton->RawRefBoneInfo[SelectedBoneIndex].Name;
+    ImGui::Text("Selected Bone: %s", *SelectedBoneName.ToString());
+    ImGui::Separator();
+
+    // 선택된 본과 연결된 Constraint 찾기
+    TArray<UConstraintSetup*> ConnectedConstraints;
+
+    if (SkeletalMesh->GetPhysicsAsset() && SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups().Num() > 0)
+    {
+        for (UConstraintSetup* Constraint : SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups())
+        {
+            if (Constraint && (Constraint->BoneNameA == SelectedBoneName || Constraint->BoneNameB == SelectedBoneName))
+            {
+                ConnectedConstraints.Add(Constraint);
+            }
+        }
+    }
+
+    if (ConnectedConstraints.Num() == 0)
+    {
+        ImGui::Text("No constraints connected to this bone");
+    }
+    else
+    {
+        ImGui::Text("Connected Constraints (%d):", ConnectedConstraints.Num());
+        ImGui::Separator();
+
+        // 각 Constraint를 트리 노드로 표시
+        for (int32 i = 0; i < ConnectedConstraints.Num(); ++i)
+        {
+            UConstraintSetup* Constraint = ConnectedConstraints[i];
+
+            ImGui::PushID(i);
+
+            // Constraint 이름 생성 (BoneA -> BoneB 형태)
+            FString ConstraintName = FString::Printf(TEXT("Constraint %d: %s -> %s"),
+                i + 1,
+                *Constraint->BoneNameA.ToString(),
+                *Constraint->BoneNameB.ToString());
+
+            if (ImGui::TreeNode(GetData(ConstraintName)))
+            {
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+    }
+
+    ImGui::End();
 }
 
 void PhysicsViewerPanel::RenderPhysicsDetailPanel()
@@ -321,8 +376,9 @@ void PhysicsViewerPanel::RenderPhysicsDetailPanel()
 		
         // 선택된 본의 BodySetup 찾기
 		UBodySetup* CurrentBodySetup = FindBodySetupForBone(SelectedBoneIndex);
-
-		if (CurrentBodySetup)
+        UConstraintSetup* CurrentConstraintSetup = FindConstraintSetupForBone(SelectedBoneIndex);
+		
+        if (CurrentBodySetup)
 		{
 			RenderBodySetupEditor(CurrentBodySetup);
 		}
@@ -336,6 +392,11 @@ void PhysicsViewerPanel::RenderPhysicsDetailPanel()
                 CreatePhysicsBodySetup(BoneInfo, BoneTransform, SelectedBoneIndex);
 			}
 		}
+
+        if (CurrentConstraintSetup)
+        {
+            RenderConstrainSetupEditor(CurrentConstraintSetup);
+        }
 	}
 
 	ImGui::End();
@@ -355,6 +416,23 @@ void PhysicsViewerPanel::RenderBodySetupEditor(UBodySetup* BodySetup)
 	{
 		BodySetup->DisplayProperty();
 	}
+}
+
+void PhysicsViewerPanel::RenderConstrainSetupEditor(UConstraintSetup* ConstraintSetup)
+{
+    if (!ConstraintSetup)
+    {
+        return;
+    }
+
+    ImGui::Text("Constraint BoneA: %s", *ConstraintSetup->BoneNameA.ToString());
+    ImGui::Text("Constraint BoneB: %s", *ConstraintSetup->BoneNameB.ToString());
+    ImGui::Separator();
+
+    if (ConstraintSetup)
+    {
+        ConstraintSetup->DisplayProperty();
+    }
 }
 
 UBodySetup* PhysicsViewerPanel::FindBodySetupForBone(int32 BoneIndex)
@@ -377,6 +455,25 @@ UBodySetup* PhysicsViewerPanel::FindBodySetupForBone(int32 BoneIndex)
 	return nullptr;
 }
 
+UConstraintSetup* PhysicsViewerPanel::FindConstraintSetupForBone(int32 BoneIndex)
+{
+    if (!SkeletalMesh->GetPhysicsAsset() || !CopiedRefSkeleton || BoneIndex >= CopiedRefSkeleton->RawRefBoneInfo.Num())
+    {
+        return nullptr;
+    }
+
+    FName BoneName = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex].Name;
+
+    for (UConstraintSetup* ConstraintSetups : SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups())
+    {
+        if (ConstraintSetups && ConstraintSetups->BoneNameA == BoneName)
+        {
+            return ConstraintSetups;
+        }
+    }
+
+    return nullptr;
+}
 FString PhysicsViewerPanel::GetCleanBoneName(const FString& InFullName)
 {
     int32 barIdx = InFullName.FindChar(TEXT('|'),
@@ -450,6 +547,71 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
 		//CreateBoxComponentForBone(BoneIndex, BoneTransform, BoneInfo.Name);
         //CreateHierarchicalBoxComponent(BoneIndex, CopiedRefSkeleton->RawRefBonePose[BoneIndex], BoneInfo.Name);
 	}
+
+    // 각 본을 순회하며 부모-자식 관계에 따라 Constraint 생성
+    for (int32 BoneIndex = 0; BoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++BoneIndex)
+    {
+        const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
+
+        // 루트 본은 스킵
+        if (BoneInfo.ParentIndex != INDEX_NONE)
+        {
+            UBodySetup* ParentBodySetup = FindBodySetupForBone(BoneInfo.ParentIndex);
+            UBodySetup* ChildBodySetup = FindBodySetupForBone(BoneIndex);
+
+            if (!ParentBodySetup || !ChildBodySetup)
+            {
+                return;
+            }
+
+            UConstraintSetup* ConstraintSetup = FObjectFactory::ConstructObject<UConstraintSetup>(SkeletalMesh->GetPhysicsAsset());
+
+            ConstraintSetup->BoneNameA = ParentBodySetup->BoneName;
+            ConstraintSetup->BoneNameB = ChildBodySetup->BoneName;
+
+            // 로컬 Transform 계산
+            CalculateConstraintTransforms(BoneInfo.ParentIndex, BoneIndex, ConstraintSetup);
+
+            // 기본 제한값 설정
+            ConstraintSetup->SwingLimitAngle = 45.0f;
+            ConstraintSetup->TwistLimitAngle = 30.0f;
+
+            // PhysicsAsset에 추가
+            SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups().Add(ConstraintSetup);
+        }
+    }
+}
+
+void PhysicsViewerPanel::CalculateConstraintTransforms(int32 ParentBoneIndex, int32 ChildBoneIndex, UConstraintSetup* ConstraintSetup)
+{
+    // 본의 레퍼런스 포즈 가져오기
+    const FTransform& ParentRefPose = CopiedRefSkeleton->RawRefBonePose[ParentBoneIndex];
+    const FTransform& ChildRefPose = CopiedRefSkeleton->RawRefBonePose[ChildBoneIndex];
+
+    // 부모 본의 BodySetup에서 박스 크기 가져오기
+    UBodySetup* ParentBodySetup = FindBodySetupForBone(ParentBoneIndex);
+    float ParentBoneLength = 2.0f; // 기본값
+    if (ParentBodySetup && ParentBodySetup->AggGeom.BoxElems.Num() > 0)
+    {
+        ParentBoneLength = ParentBodySetup->AggGeom.BoxElems[0].Extent.Z; // Z축을 본의 길이로 가정
+    }
+
+    // TransformInA: 부모 본의 로컬 좌표계에서 관절까지의 Transform
+    // 일반적으로 부모 본의 끝부분에 관절이 위치
+    FVector JointLocationInParent = FVector(0, 0, ParentBoneLength * 0.5f); // 본의 끝부분
+    ConstraintSetup->TransformInA = FTransform(
+        FRotator::ZeroRotator,      // 부모 본의 기본 방향 사용
+        JointLocationInParent,      // 부모 본 끝부분
+        FVector::OneVector          // 스케일 1,1,1
+    );
+
+    // TransformInB: 자식 본의 로컬 좌표계에서 관절까지의 Transform
+    // 일반적으로 자식 본의 시작점에 관절이 위치
+    ConstraintSetup->TransformInB = FTransform(
+        FRotator::ZeroRotator,      // 자식 본의 기본 방향 사용
+        FVector::ZeroVector,        // 자식 본의 시작점
+        FVector::OneVector          // 스케일 1,1,1
+    );
 }
 
 FTransform PhysicsViewerPanel::CalculateBoneWorldTransform(int32 BoneIndex)

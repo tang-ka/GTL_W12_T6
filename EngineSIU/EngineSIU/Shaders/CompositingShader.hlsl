@@ -1,27 +1,19 @@
-
 Texture2D SceneTexture : register(t100);
 Texture2D PP_PostProcessTexture : register(t101);
 Texture2D EditorTexture : register(t102);
-Texture2D DebugTexture : register(t104);
-Texture2D CameraEffectTexture : register(t105);
+Texture2D DebugTexture : register(t110);
+Texture2D CameraEffectTexture : register(t111);
 
 SamplerState CompositingSampler : register(s0);
 
-#define VMI_Lit_Gouraud      0
-#define VMI_Lit_Lambert      1
-#define VMI_Lit_BlinnPhong   2
-#define VMI_Lit_SG           3
-#define VMI_Unlit            4
-#define VMI_Wireframe        5
-#define VMI_SceneDepth       6
-#define VMI_WorldNormal      7
-#define VMI_WorldTangent     8
-#define VMI_LightHeatMap     9
+// ShowFlag 정의 (ShowFlags.h와 동일하게 유지)
+#define SF_DepthOfFieldLayer (1U << 13)
+#define SF_LightHeatMap (1U << 14)
 
-cbuffer ViewMode : register(b0)
+cbuffer ShowFlagBuffer : register(b0)
 {
-    uint ViewMode; 
-    float3 Padding;
+    uint ShowFlags;
+    uint3 ShowFlagPadding;
 }
 
 cbuffer Gamma : register(b1)
@@ -69,19 +61,24 @@ float4 mainPS(PS_Input Input) : SV_TARGET
     float4 Debug = DebugTexture.Sample(CompositingSampler, Input.UV);
     float4 CameraEffect = CameraEffectTexture.Sample(CompositingSampler, Input.UV);
     
-    float4 FinalColor = float4(0, 0, 0, 0);
-    if (ViewMode == VMI_LightHeatMap)
-    {
-        FinalColor = lerp(Scene, Debug, 0.5);
-        FinalColor = lerp(FinalColor, Editor, Editor.a);
-    }
-    else
-    {
-        FinalColor = lerp(Scene, PostProcess, PostProcess.a);
-        FinalColor = lerp(FinalColor, Editor, Editor.a);
-        FinalColor = lerp(FinalColor, CameraEffect, CameraEffect.a);
-        // FinalColor = CameraEffect;
-    }
+    float4 FinalColor = Scene;
 
+    FinalColor = lerp(FinalColor, PostProcess, PostProcess.a);
+    FinalColor = lerp(FinalColor, Editor, Editor.a);
+    FinalColor = lerp(FinalColor, CameraEffect, CameraEffect.a);
+
+    if (ShowFlags & SF_LightHeatMap)
+    {
+        FinalColor = lerp(FinalColor, Debug, 0.5);
+    }
+    if (ShowFlags & SF_DepthOfFieldLayer)
+    {
+        // Skip if Focal Distance is 0.0f
+        if(Debug.b != 1.0f)
+        {
+            FinalColor = lerp(FinalColor, Debug.bgra, 0.5);
+        }
+    }
+    
     return FinalColor;
 }

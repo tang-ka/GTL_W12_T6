@@ -19,6 +19,7 @@
 #include "UnrealEd/UnrealEd.h"
 #include "World/ParticleViewerWorld.h"
 #include "Engine/PhysicsManager.h"
+#include "Engine/PxVehicleManager.h"
 
 extern FEngineLoop GEngineLoop;
 
@@ -184,6 +185,11 @@ void UEditorEngine::StartPIE()
     BindEssentialObjects();
     
     PIEWorld->BeginPlay();
+
+    if (UPhysicsManager::Get().Vehicle)
+    {
+        UPhysicsManager::Get().Vehicle->Initialize(UPhysicsManager::Get().GetPhysics(), UPhysicsManager::Get().GetScene());
+    }
     // 여기서 Actor들의 BeginPlay를 해줄지 안에서 해줄 지 고민.
     // WorldList.Add(GetWorldContextFromWorld(PIEWorld));
 }

@@ -34,6 +34,7 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
     PxTransform FrameB = TransformInB.ToPxTransform();
 
     D6Joint = PxD6JointCreate(*Phys, ActorA, FrameA, ActorB, FrameB);
+    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
 
     // 축별 모션 제한 설정
     D6Joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
@@ -42,8 +43,8 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
 
     // 리밋 값 설정 (라디안 단위)
     D6Joint->setSwingLimit(PxJointLimitCone(
-        FMath::DegreesToRadians(ConstraintSetup->Swing1LimitAngle),
-        FMath::DegreesToRadians(ConstraintSetup->Swing1LimitAngle),
+        FMath::DegreesToRadians(ConstraintSetup->SwingLimitAngle),
+        FMath::DegreesToRadians(ConstraintSetup->SwingLimitAngle),
         0.0f));
     D6Joint->setTwistLimit(PxJointAngularLimitPair(
         -FMath::DegreesToRadians(ConstraintSetup->TwistLimitAngle),
