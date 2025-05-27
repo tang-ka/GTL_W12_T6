@@ -134,7 +134,7 @@ PS_INPUT SphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
     localPos = mul(localPos, ProjectionMatrix);
     output.position = localPos;
 
-    output.color = float4(100.f / 255.f, 220.f / 255.f, 255.f / 255.f, 1.0f);
+    output.color = float4(0.8f, 0.6f, 1.0f, 1.0f);
     
     return output;
 }
@@ -625,19 +625,16 @@ float4 ArrowPS(PS_INPUT input) : SV_Target
     return input.color;
 }
 
-
-// 상단 반구 삼각형 생성 (winding order 수정)
+// 상단 반구 생성
 float3 GenerateTopHemisphereTriangle(uint triangleID, uint vertexInTriangle, uint segments, uint stacks, float Radius, float centerOffset)
 {
     static const float PI = 3.1415926535897932f;
     
-    // 스택과 세그먼트 계산
     uint stackID = triangleID / (segments * 2);
     uint segmentTriangleID = triangleID % (segments * 2);
     uint segmentID = segmentTriangleID / 2;
     bool isUpperTriangle = (segmentTriangleID % 2) == 0;
     
-    // 4개의 정점으로 쿼드를 만들고 2개의 삼각형으로 분할
     float t0 = stackID / float(stacks);
     float t1 = (stackID + 1) / float(stacks);
     float theta0 = t0 * (PI / 2);
@@ -646,7 +643,6 @@ float3 GenerateTopHemisphereTriangle(uint triangleID, uint vertexInTriangle, uin
     float phi0 = (segmentID / float(segments)) * 2 * PI;
     float phi1 = ((segmentID + 1) / float(segments)) * 2 * PI;
     
-    // 4개 정점
     float3 v0 = float3(sin(theta0) * cos(phi0), sin(theta0) * sin(phi0), cos(theta0));
     float3 v1 = float3(sin(theta0) * cos(phi1), sin(theta0) * sin(phi1), cos(theta0));
     float3 v2 = float3(sin(theta1) * cos(phi0), sin(theta1) * sin(phi0), cos(theta1));
@@ -655,7 +651,6 @@ float3 GenerateTopHemisphereTriangle(uint triangleID, uint vertexInTriangle, uin
     float3 result;
     if (isUpperTriangle)
     {
-        // 첫 번째 삼각형: v0, v2, v1 (반시계 방향)
         if (vertexInTriangle == 0)
             result = v0;
         else if (vertexInTriangle == 1)
@@ -665,7 +660,6 @@ float3 GenerateTopHemisphereTriangle(uint triangleID, uint vertexInTriangle, uin
     }
     else
     {
-        // 두 번째 삼각형: v1, v2, v3 (반시계 방향)
         if (vertexInTriangle == 0)
             result = v1;
         else if (vertexInTriangle == 1)
@@ -679,7 +673,7 @@ float3 GenerateTopHemisphereTriangle(uint triangleID, uint vertexInTriangle, uin
     return result;
 }
 
-// 실린더 삼각형 생성 (winding order 수정)
+// 원기둥 부분 생성
 float3 GenerateCylinderTriangle(uint triangleID, uint vertexInTriangle, uint segments, float Radius, float centerOffset)
 {
     static const float PI = 3.1415926535897932f;
@@ -690,15 +684,13 @@ float3 GenerateCylinderTriangle(uint triangleID, uint vertexInTriangle, uint seg
     float phi0 = (segmentID / float(segments)) * 2 * PI;
     float phi1 = ((segmentID + 1) / float(segments)) * 2 * PI;
     
-    // 4개 정점 (상단과 하단 원)
-    float3 v0 = float3(cos(phi0) * Radius, sin(phi0) * Radius, centerOffset); // 상단 원
-    float3 v1 = float3(cos(phi1) * Radius, sin(phi1) * Radius, centerOffset); // 상단 원
-    float3 v2 = float3(cos(phi0) * Radius, sin(phi0) * Radius, -centerOffset); // 하단 원
-    float3 v3 = float3(cos(phi1) * Radius, sin(phi1) * Radius, -centerOffset); // 하단 원
+    float3 v0 = float3(cos(phi0) * Radius, sin(phi0) * Radius, centerOffset);
+    float3 v1 = float3(cos(phi1) * Radius, sin(phi1) * Radius, centerOffset);
+    float3 v2 = float3(cos(phi0) * Radius, sin(phi0) * Radius, -centerOffset);
+    float3 v3 = float3(cos(phi1) * Radius, sin(phi1) * Radius, -centerOffset);
     
     if (isUpperTriangle)
     {
-        // 첫 번째 삼각형: v0, v2, v1 (반시계 방향)
         if (vertexInTriangle == 0)
             return v0;
         else if (vertexInTriangle == 1)
@@ -708,7 +700,6 @@ float3 GenerateCylinderTriangle(uint triangleID, uint vertexInTriangle, uint seg
     }
     else
     {
-        // 두 번째 삼각형: v1, v2, v3 (반시계 방향)
         if (vertexInTriangle == 0)
             return v1;
         else if (vertexInTriangle == 1)
@@ -718,18 +709,16 @@ float3 GenerateCylinderTriangle(uint triangleID, uint vertexInTriangle, uint seg
     }
 }
 
-// 하단 반구 삼각형 생성 (winding order 수정)
+// 하단 반구 생성
 float3 GenerateBottomHemisphereTriangle(uint triangleID, uint vertexInTriangle, uint segments, uint stacks, float Radius, float centerOffset)
 {
     static const float PI = 3.1415926535897932f;
     
-    // 스택과 세그먼트 계산
     uint stackID = triangleID / (segments * 2);
     uint segmentTriangleID = triangleID % (segments * 2);
     uint segmentID = segmentTriangleID / 2;
     bool isUpperTriangle = (segmentTriangleID % 2) == 0;
     
-    // 4개의 정점으로 쿼드를 만들고 2개의 삼각형으로 분할
     float t0 = stackID / float(stacks);
     float t1 = (stackID + 1) / float(stacks);
     float theta0 = t0 * (PI / 2);
@@ -738,7 +727,6 @@ float3 GenerateBottomHemisphereTriangle(uint triangleID, uint vertexInTriangle, 
     float phi0 = (segmentID / float(segments)) * 2 * PI;
     float phi1 = ((segmentID + 1) / float(segments)) * 2 * PI;
     
-    // 4개 정점 (하단 반구용 - Z축 반전)
     float3 v0 = float3(sin(theta0) * cos(phi0), sin(theta0) * sin(phi0), -cos(theta0));
     float3 v1 = float3(sin(theta0) * cos(phi1), sin(theta0) * sin(phi1), -cos(theta0));
     float3 v2 = float3(sin(theta1) * cos(phi0), sin(theta1) * sin(phi0), -cos(theta1));
@@ -747,7 +735,6 @@ float3 GenerateBottomHemisphereTriangle(uint triangleID, uint vertexInTriangle, 
     float3 result;
     if (isUpperTriangle)
     {
-        // 첫 번째 삼각형: v0, v1, v2 (하단 반구는 시계 방향으로 뒤집어야 함)
         if (vertexInTriangle == 0)
             result = v0;
         else if (vertexInTriangle == 1)
@@ -757,7 +744,6 @@ float3 GenerateBottomHemisphereTriangle(uint triangleID, uint vertexInTriangle, 
     }
     else
     {
-        // 두 번째 삼각형: v1, v3, v2 (하단 반구는 시계 방향으로 뒤집어야 함)
         if (vertexInTriangle == 0)
             result = v1;
         else if (vertexInTriangle == 1)
@@ -767,7 +753,7 @@ float3 GenerateBottomHemisphereTriangle(uint triangleID, uint vertexInTriangle, 
     }
     
     result *= Radius;
-    result.z -= centerOffset; // 하단 오프셋 적용
+    result.z -= centerOffset;
     return result;
 }
 
@@ -777,27 +763,23 @@ PS_INPUT CapsuleVS(
 )
 {
     PS_INPUT output;
-    //— 1) 인스턴스별 파라미터
     float halfHeight = DataCapsule[instanceID].HalfHeight;
     float Radius = DataCapsule[instanceID].Radius;
     float4x4 World = DataCapsule[instanceID].WorldMatrix;
 
-    //— 2) 분할 개수
+    // 분할 개수
     static const uint segments = 16;
     static const uint stacks = 8;
     static const float PI = 3.1415926535897932f;
 
-    //— 3) offset 계산
-    float centerOffset = halfHeight - Radius;
+    float centerOffset = halfHeight; // 원기둥 중심에서 반구 중심까지의 거리
 
-    //— 4) TriangleList용 삼각형 개수 계산
     uint trianglesTop = (stacks + 1) * segments + stacks * segments; // 272개 삼각형
     uint trianglesCyl = segments * 2; // 32개 삼각형
     uint trianglesBottom = trianglesTop; // 272개 삼각형
     uint totalTriangles = trianglesTop + trianglesCyl + trianglesBottom; // 576개 삼각형
-    uint totalVertices = totalTriangles * 3; // 1728개 정점
+    uint totalVertices = totalTriangles * 3; // 1728개 정점 - Draw 시 맞춰야 함 
 
-    //— 5) 삼각형 기반 절차적 매핑
     float3 localPos;
     
     // 삼각형 ID와 삼각형 내 정점 인덱스
@@ -806,31 +788,26 @@ PS_INPUT CapsuleVS(
     
     if (triangleID < trianglesTop)
     {
-        // --- 상단 반구 삼각형 ---
         localPos = GenerateTopHemisphereTriangle(triangleID, vertexInTriangle, segments, stacks, Radius, centerOffset);
     }
     else if (triangleID < trianglesTop + trianglesCyl)
     {
-        // --- 실린더 삼각형 ---
         uint cylTriangleID = triangleID - trianglesTop;
         localPos = GenerateCylinderTriangle(cylTriangleID, vertexInTriangle, segments, Radius, centerOffset);
     }
     else
     {
-        // --- 하단 반구 삼각형 ---
         uint bottomTriangleID = triangleID - trianglesTop - trianglesCyl;
         localPos = GenerateBottomHemisphereTriangle(bottomTriangleID, vertexInTriangle, segments, stacks, Radius, centerOffset);
     }
 
-    float totalHeight = 2.0 * (centerOffset + Radius);
-    float heightNormalized = (localPos.z + centerOffset + Radius) / totalHeight;
+    float totalHeight = 2.0 * halfHeight + 2.0 * Radius;
+    float heightNormalized = (localPos.z + halfHeight + Radius) / totalHeight;
     
     float3 baseColor = float3(0.8, 0.6, 1.0);
-
     float brightness = lerp(0.5, 1.0, heightNormalized);
     float3 finalColor = baseColor * brightness;
     
-    //— 6) 월드·뷰·투영
     float4 worldP = mul(float4(localPos, 1), World);
     worldP = mul(worldP, ViewMatrix);
     worldP = mul(worldP, ProjectionMatrix);

@@ -794,7 +794,7 @@ void FKAggregateGeomProperty::DisplaySphereElements(FKAggregateGeom* AggGeom, UO
         {
             FKSphereElem NewSphere;
             NewSphere.Center = FVector::ZeroVector;
-            NewSphere.Radius = 5.0f;
+            NewSphere.Radius = 1.0f;
             AggGeom->SphereElems.Add(NewSphere);
         }
 
@@ -849,9 +849,9 @@ void FKAggregateGeomProperty::DisplayBoxElements(FKAggregateGeom* AggGeom, UObje
         {
             FKBoxElem NewBox;
             NewBox.Center = FVector::ZeroVector;
-            NewBox.Extent.X = 10.0f;
-            NewBox.Extent.Y = 10.0f;
-            NewBox.Extent.Z = 10.0f;
+            NewBox.Extent.X = 1.0f;
+            NewBox.Extent.Y = 1.0f;
+            NewBox.Extent.Z = 1.0f;
             NewBox.Rotation = FRotator::ZeroRotator;
             AggGeom->BoxElems.Add(NewBox);
         }
@@ -916,8 +916,8 @@ void FKAggregateGeomProperty::DisplayCapsuleElements(FKAggregateGeom* AggGeom, U
         {
             FKSphylElem NewCapsule;
             NewCapsule.Center = FVector::ZeroVector;
-            NewCapsule.Radius = 5.0f;
-            NewCapsule.Length = 10.0f;
+            NewCapsule.Radius = 1.0f;
+            NewCapsule.Length = 2.0f;
             NewCapsule.Rotation = FRotator::ZeroRotator;
             AggGeom->SphylElems.Add(NewCapsule);
         }
