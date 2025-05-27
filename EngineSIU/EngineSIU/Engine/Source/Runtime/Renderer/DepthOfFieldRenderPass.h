@@ -30,6 +30,9 @@ private:
     void PrepareCoCBlur(const std::shared_ptr<FEditorViewportClient>& Viewport);
     void CleanUpCoCBlur(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
+    void PrepareDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport, bool bNear);
+    void CleanUpDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport);
+
     void PrepareBlur(const std::shared_ptr<FEditorViewportClient>& Viewport, bool bNear);
     void CleanUpBlur(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
