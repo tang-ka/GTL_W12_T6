@@ -130,7 +130,7 @@ void FRenderer::CreateConstantBuffers()
     BufferManager->CreateBufferGeneric<FSubUVConstant>("FSubUVConstant", nullptr, sizeof(FSubUVConstant), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     // Viewport
-    BufferManager->CreateBufferGeneric<FViewModeConstants>("FViewModeConstants", nullptr, sizeof(FViewModeConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateBufferGeneric<FShowFlagConstants>("FShowFlagConstants", nullptr, sizeof(FShowFlagConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     BufferManager->CreateBufferGeneric<FScreenConstants>("FScreenConstants", nullptr, sizeof(FScreenConstants), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 

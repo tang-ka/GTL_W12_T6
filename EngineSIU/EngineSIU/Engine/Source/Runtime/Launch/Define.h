@@ -469,10 +469,10 @@ struct FIsShadowConstants
     FVector pad;
 };
 
-struct FViewModeConstants
+struct FShowFlagConstants
 {
-    uint32 ViewMode;
-    FVector pad;
+    uint32 ShowFlag;
+    uint32 Padding[3]; // 16바이트 정렬을 위한 패딩
 };
 
 struct FSubMeshConstants
