@@ -7,16 +7,11 @@
 #include "Actors/FireballActor.h"
 
 #include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/ParticleSubUVComponent.h"
 #include "Components/TextComponent.h"
-#include "Camera/CameraComponent.h"
-#include "Components/ProjectileMovementComponent.h"
 
 #include "Engine/FObjLoader.h"
-#include "Engine/StaticMeshActor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -34,18 +29,15 @@
 #include "Actors/CubeActor.h"
 #include "Actors/SphereActor.h"
 #include "Actors/CapsuleActor.h"
-#include "Animation/SkeletalMeshActor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Contents/Actors/Fish.h"
 #include "Contents/Actors/ItemActor.h"
 #include "Contents/Actors/PlatformActor.h"
 #include "Contents/Actors/GoalPlatformActor.h"
-#include "Contents/Actors/SkeletalMeshActorTest.h"
 #include "Contents/Actors/TriggerBox.h"
 #include "Renderer/CompositingPass.h"
 #include <Engine/FbxLoader.h>
-#include "Engine/Classes/Engine/AssetManager.h"
 #include "Particles/ParticleSystemComponent.h"
 
 ControlEditorPanel::ControlEditorPanel()
@@ -272,18 +264,20 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
 
     if (ImGui::BeginPopup("SliderControl"))
     {
+        auto ActiveViewportClient = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
+
         ImGui::Text("Grid Scale");
-        GridScale = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetGridSize();
+        GridScale = ActiveViewportClient->GetGridSize();
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##Grid Scale", &GridScale, 0.1f, 1.0f, 20.0f, "%.1f"))
         {
-            GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->SetGridSize(GridScale);
+            ActiveViewportClient->SetGridSize(GridScale);
         }
 
         ImGui::Separator();
 
         ImGui::Text("Camera FOV");
-        FOV = &GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->ViewFOV;
+        FOV = &ActiveViewportClient->ViewFOV;
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##Fov", FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
         {
@@ -293,11 +287,11 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         ImGui::Spacing();
 
         ImGui::Text("Camera Speed");
-        CameraSpeed = GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
+        CameraSpeed = ActiveViewportClient->GetCameraSpeedScalar();
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##CamSpeed", &CameraSpeed, 0.1f, 0.198f, 192.0f, "%.1f"))
         {
-            GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeed(CameraSpeed);
+            ActiveViewportClient->SetCameraSpeed(CameraSpeed);
         }
 
         ImGui::Separator();
@@ -308,6 +302,31 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         if (ImGui::DragFloat("##Gamma", &Gamma, 0.01f, 0.01f, 4.0f, "%.1f"))
         {
             FEngineLoop::Renderer.CompositingPass->GammaValue = Gamma;
+        }
+
+        ImGui::Separator();
+
+        ImGui::Text("Depth of Field Settings");
+        
+        float Aperture = ActiveViewportClient->Aperture;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("f 값(조리개)", &Aperture, 0.1f, 1.0f, 64.0f, "%.1f"))
+        {
+            ActiveViewportClient->Aperture = Aperture;
+        }
+
+        float SensorWidth = ActiveViewportClient->SensorWidth;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("센서너비(mm)", &SensorWidth, 0.1f, 0.1f, 1000.0f, "%.3f"))
+        {
+            ActiveViewportClient->SensorWidth = SensorWidth;
+        }
+
+        float FocalDistance = ActiveViewportClient->FocalDistance;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("초점거리(cm)", &FocalDistance, 0.1f, 0.0f, 10000.0f, "%.1f"))
+        {
+            ActiveViewportClient->FocalDistance = FocalDistance;
         }
 
         ImGui::EndPopup();

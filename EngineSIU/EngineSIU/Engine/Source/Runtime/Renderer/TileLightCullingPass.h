@@ -63,7 +63,8 @@ public:
     void CreateSpotLightBufferGPU();
     void CreateViews();
     void CreateBuffers(uint32 InWidth, uint32 InHeight);
-    void Release();
+    virtual void Release() override;
+    void ReleaseResources();
     void Dispatch(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void ClearUAVs() const;
     void UpdateTileLightConstantBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;

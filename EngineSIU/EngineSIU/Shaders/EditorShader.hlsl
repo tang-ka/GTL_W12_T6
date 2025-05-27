@@ -116,7 +116,7 @@ PS_INPUT BoxVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
 
 float4 BoxPS(PS_INPUT input) : SV_Target
 {
-    return float4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 Box Collider
+    return float4(0.8f, 0.6f, 1.0f, 1.0f);;
 }
 
 /////////////////////////////////////////////
@@ -625,6 +625,152 @@ float4 ArrowPS(PS_INPUT input) : SV_Target
     return input.color;
 }
 
+
+// 상단 반구 삼각형 생성 (winding order 수정)
+float3 GenerateTopHemisphereTriangle(uint triangleID, uint vertexInTriangle, uint segments, uint stacks, float Radius, float centerOffset)
+{
+    static const float PI = 3.1415926535897932f;
+    
+    // 스택과 세그먼트 계산
+    uint stackID = triangleID / (segments * 2);
+    uint segmentTriangleID = triangleID % (segments * 2);
+    uint segmentID = segmentTriangleID / 2;
+    bool isUpperTriangle = (segmentTriangleID % 2) == 0;
+    
+    // 4개의 정점으로 쿼드를 만들고 2개의 삼각형으로 분할
+    float t0 = stackID / float(stacks);
+    float t1 = (stackID + 1) / float(stacks);
+    float theta0 = t0 * (PI / 2);
+    float theta1 = t1 * (PI / 2);
+    
+    float phi0 = (segmentID / float(segments)) * 2 * PI;
+    float phi1 = ((segmentID + 1) / float(segments)) * 2 * PI;
+    
+    // 4개 정점
+    float3 v0 = float3(sin(theta0) * cos(phi0), sin(theta0) * sin(phi0), cos(theta0));
+    float3 v1 = float3(sin(theta0) * cos(phi1), sin(theta0) * sin(phi1), cos(theta0));
+    float3 v2 = float3(sin(theta1) * cos(phi0), sin(theta1) * sin(phi0), cos(theta1));
+    float3 v3 = float3(sin(theta1) * cos(phi1), sin(theta1) * sin(phi1), cos(theta1));
+    
+    float3 result;
+    if (isUpperTriangle)
+    {
+        // 첫 번째 삼각형: v0, v2, v1 (반시계 방향)
+        if (vertexInTriangle == 0)
+            result = v0;
+        else if (vertexInTriangle == 1)
+            result = v2;
+        else
+            result = v1;
+    }
+    else
+    {
+        // 두 번째 삼각형: v1, v2, v3 (반시계 방향)
+        if (vertexInTriangle == 0)
+            result = v1;
+        else if (vertexInTriangle == 1)
+            result = v2;
+        else
+            result = v3;
+    }
+    
+    result *= Radius;
+    result.z += centerOffset;
+    return result;
+}
+
+// 실린더 삼각형 생성 (winding order 수정)
+float3 GenerateCylinderTriangle(uint triangleID, uint vertexInTriangle, uint segments, float Radius, float centerOffset)
+{
+    static const float PI = 3.1415926535897932f;
+    
+    uint segmentID = triangleID / 2;
+    bool isUpperTriangle = (triangleID % 2) == 0;
+    
+    float phi0 = (segmentID / float(segments)) * 2 * PI;
+    float phi1 = ((segmentID + 1) / float(segments)) * 2 * PI;
+    
+    // 4개 정점 (상단과 하단 원)
+    float3 v0 = float3(cos(phi0) * Radius, sin(phi0) * Radius, centerOffset); // 상단 원
+    float3 v1 = float3(cos(phi1) * Radius, sin(phi1) * Radius, centerOffset); // 상단 원
+    float3 v2 = float3(cos(phi0) * Radius, sin(phi0) * Radius, -centerOffset); // 하단 원
+    float3 v3 = float3(cos(phi1) * Radius, sin(phi1) * Radius, -centerOffset); // 하단 원
+    
+    if (isUpperTriangle)
+    {
+        // 첫 번째 삼각형: v0, v2, v1 (반시계 방향)
+        if (vertexInTriangle == 0)
+            return v0;
+        else if (vertexInTriangle == 1)
+            return v2;
+        else
+            return v1;
+    }
+    else
+    {
+        // 두 번째 삼각형: v1, v2, v3 (반시계 방향)
+        if (vertexInTriangle == 0)
+            return v1;
+        else if (vertexInTriangle == 1)
+            return v2;
+        else
+            return v3;
+    }
+}
+
+// 하단 반구 삼각형 생성 (winding order 수정)
+float3 GenerateBottomHemisphereTriangle(uint triangleID, uint vertexInTriangle, uint segments, uint stacks, float Radius, float centerOffset)
+{
+    static const float PI = 3.1415926535897932f;
+    
+    // 스택과 세그먼트 계산
+    uint stackID = triangleID / (segments * 2);
+    uint segmentTriangleID = triangleID % (segments * 2);
+    uint segmentID = segmentTriangleID / 2;
+    bool isUpperTriangle = (segmentTriangleID % 2) == 0;
+    
+    // 4개의 정점으로 쿼드를 만들고 2개의 삼각형으로 분할
+    float t0 = stackID / float(stacks);
+    float t1 = (stackID + 1) / float(stacks);
+    float theta0 = t0 * (PI / 2);
+    float theta1 = t1 * (PI / 2);
+    
+    float phi0 = (segmentID / float(segments)) * 2 * PI;
+    float phi1 = ((segmentID + 1) / float(segments)) * 2 * PI;
+    
+    // 4개 정점 (하단 반구용 - Z축 반전)
+    float3 v0 = float3(sin(theta0) * cos(phi0), sin(theta0) * sin(phi0), -cos(theta0));
+    float3 v1 = float3(sin(theta0) * cos(phi1), sin(theta0) * sin(phi1), -cos(theta0));
+    float3 v2 = float3(sin(theta1) * cos(phi0), sin(theta1) * sin(phi0), -cos(theta1));
+    float3 v3 = float3(sin(theta1) * cos(phi1), sin(theta1) * sin(phi1), -cos(theta1));
+    
+    float3 result;
+    if (isUpperTriangle)
+    {
+        // 첫 번째 삼각형: v0, v1, v2 (하단 반구는 시계 방향으로 뒤집어야 함)
+        if (vertexInTriangle == 0)
+            result = v0;
+        else if (vertexInTriangle == 1)
+            result = v1;
+        else
+            result = v2;
+    }
+    else
+    {
+        // 두 번째 삼각형: v1, v3, v2 (하단 반구는 시계 방향으로 뒤집어야 함)
+        if (vertexInTriangle == 0)
+            result = v1;
+        else if (vertexInTriangle == 1)
+            result = v3;
+        else
+            result = v2;
+    }
+    
+    result *= Radius;
+    result.z -= centerOffset; // 하단 오프셋 적용
+    return result;
+}
+
 PS_INPUT CapsuleVS(
     uint vertexID : SV_VertexID,
     uint instanceID : SV_InstanceID
@@ -644,134 +790,56 @@ PS_INPUT CapsuleVS(
     //— 3) offset 계산
     float centerOffset = halfHeight - Radius;
 
-    //— 4) 파트별 라인/버텍스 개수
-    uint horizTop = (stacks + 1) * segments;    // 수평 링: stacks+1 개
-    uint vertTop = stacks * segments;           // 수직 줄: stacks 개
-    uint linesTop = horizTop + vertTop;         // = segments*(2*stacks+1)
-    uint vertsTop = linesTop * 2;               // 544 (stacks=8, segments=16)
+    //— 4) TriangleList용 삼각형 개수 계산
+    uint trianglesTop = (stacks + 1) * segments + stacks * segments; // 272개 삼각형
+    uint trianglesCyl = segments * 2; // 32개 삼각형
+    uint trianglesBottom = trianglesTop; // 272개 삼각형
+    uint totalTriangles = trianglesTop + trianglesCyl + trianglesBottom; // 576개 삼각형
+    uint totalVertices = totalTriangles * 3; // 1728개 정점
 
-    uint linesCyl = segments * 3;               // 48
-    uint vertsCyl = linesCyl * 2;               // 96
-
-    uint vertsInst = vertsTop + vertsCyl + vertsTop; // 544+96+544 = 1184
-
-    //— 5) 절차적 매핑
+    //— 5) 삼각형 기반 절차적 매핑
     float3 localPos;
-    uint v = vertexID % vertsInst;
-    if (v < vertsTop)
+    
+    // 삼각형 ID와 삼각형 내 정점 인덱스
+    uint triangleID = vertexID / 3;
+    uint vertexInTriangle = vertexID % 3;
+    
+    if (triangleID < trianglesTop)
     {
-        // --- 상단 반구 ---
-        uint lineIdx = v / 2; // [0 .. linesTop-1]
-        bool isEnd = (v & 1) == 1;
-
-        float3 p0, p1;
-        if (lineIdx < horizTop)
-        {
-            // 1) 수평 링
-            uint stackId = lineIdx / segments; // 0..stacks
-            uint segId = lineIdx % segments;
-
-            float t = stackId / float(stacks);
-            float theta = t * (PI / 2);
-            float z0 = cos(theta), r0 = sin(theta);
-            float phi = (segId / float(segments)) * 2 * PI;
-            p0 = float3(r0 * cos(phi), r0 * sin(phi), z0);
-            // 다음 세그먼트
-            float phi1 = (((segId + 1) % segments) / float(segments)) * 2 * PI;
-            p1 = float3(r0 * cos(phi1), r0 * sin(phi1), z0);
-        }
-        else
-        {
-            // 2) 수직 줄
-            uint vertIdx = lineIdx - horizTop; // 0..vertTop-1
-            uint stackId = vertIdx / segments; // 0..stacks-1
-            uint segId = vertIdx % segments;
-
-            // 두 스택 간의 점
-            float t0 = stackId / float(stacks);
-            float t1 = (stackId + 1) / float(stacks);
-            float theta0 = t0 * (PI / 2), theta1 = t1 * (PI / 2);
-            float z0 = cos(theta0), z1 = cos(theta1);
-            float r0 = sin(theta0), r1 = sin(theta1);
-            float phi = (segId / float(segments)) * 2 * PI;
-            p0 = float3(r0 * cos(phi), r0 * sin(phi), z0);
-            p1 = float3(r1 * cos(phi), r1 * sin(phi), z1);
-        }
-
-        // 적용: 반지름 스케일 + offset
-        float3 sph0 = p0 * Radius;
-        sph0.z += centerOffset;
-        float3 sph1 = p1 * Radius;
-        sph1.z += centerOffset;
-        localPos = isEnd ? sph1 : sph0;
+        // --- 상단 반구 삼각형 ---
+        localPos = GenerateTopHemisphereTriangle(triangleID, vertexInTriangle, segments, stacks, Radius, centerOffset);
     }
-    else if (v < vertsTop + vertsCyl)
+    else if (triangleID < trianglesTop + trianglesCyl)
     {
-        // --- 실린더 (unchanged) ---
-        uint cylID = (v - vertsTop) / 2;
-        bool isEnd = ((v - vertsTop) & 1) == 1;
-        uint segId = cylID % segments;
-        float ang = (2 * PI * segId) / segments;
-        float2 circ = float2(cos(ang), sin(ang)) * Radius;
-        float z = isEnd ? -centerOffset : +centerOffset;
-        localPos = float3(circ.x, circ.y, z);
+        // --- 실린더 삼각형 ---
+        uint cylTriangleID = triangleID - trianglesTop;
+        localPos = GenerateCylinderTriangle(cylTriangleID, vertexInTriangle, segments, Radius, centerOffset);
     }
     else
     {
-        // --- 하단 반구 (mirror of 상단) ---
-        uint vv = v - (vertsTop + vertsCyl);
-        uint lineIdx = vv / 2;
-        bool isEnd = (vv & 1) == 1;
-
-        float3 p0, p1;
-        if (lineIdx < horizTop)
-        {
-            // 수평 링
-            uint stackId = lineIdx / segments; // 0..stacks
-            uint segId = lineIdx % segments;
-
-            float t = stackId / float(stacks);
-            float theta = t * (PI / 2);
-            float z0 = -cos(theta), r0 = sin(theta);
-            float phi = (segId / float(segments)) * 2 * PI;
-            p0 = float3(r0 * cos(phi), r0 * sin(phi), z0);
-            float phi1 = (((segId + 1) % segments) / float(segments)) * 2 * PI;
-            p1 = float3(r0 * cos(phi1), r0 * sin(phi1), z0);
-        }
-        else
-        {
-            // 수직 줄
-            uint vertIdx = lineIdx - horizTop;
-            uint stackId = vertIdx / segments;
-            uint segId = vertIdx % segments;
-
-            float t0 = stackId / float(stacks);
-            float t1 = (stackId + 1) / float(stacks);
-            float theta0 = t0 * (PI / 2), theta1 = t1 * (PI / 2);
-            float z0 = -cos(theta0), z1 = -cos(theta1);
-            float r0 = sin(theta0), r1 = sin(theta1);
-            float phi = (segId / float(segments)) * 2 * PI;
-            p0 = float3(r0 * cos(phi), r0 * sin(phi), z0);
-            p1 = float3(r1 * cos(phi), r1 * sin(phi), z1);
-        }
-
-        float3 sph0 = p0 * Radius;
-        sph0.z -= centerOffset;
-        float3 sph1 = p1 * Radius;
-        sph1.z -= centerOffset;
-        localPos = isEnd ? sph1 : sph0;
+        // --- 하단 반구 삼각형 ---
+        uint bottomTriangleID = triangleID - trianglesTop - trianglesCyl;
+        localPos = GenerateBottomHemisphereTriangle(bottomTriangleID, vertexInTriangle, segments, stacks, Radius, centerOffset);
     }
 
+    float totalHeight = 2.0 * (centerOffset + Radius);
+    float heightNormalized = (localPos.z + centerOffset + Radius) / totalHeight;
+    
+    float3 baseColor = float3(0.8, 0.6, 1.0);
+
+    float brightness = lerp(0.5, 1.0, heightNormalized);
+    float3 finalColor = baseColor * brightness;
+    
     //— 6) 월드·뷰·투영
     float4 worldP = mul(float4(localPos, 1), World);
     worldP = mul(worldP, ViewMatrix);
     worldP = mul(worldP, ProjectionMatrix);
     output.position = worldP;
-    output.color = float4(0, 1, 0, 1);
+    output.color = float4(finalColor, 1.0);
     return output;
 }
 
 float4 CapsulePS(PS_INPUT input) : SV_Target
 {
-    return float4(0, 1, 0, 1);
+    return input.color;
 }
