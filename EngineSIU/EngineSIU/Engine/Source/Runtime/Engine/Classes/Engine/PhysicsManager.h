@@ -34,6 +34,8 @@ public:
     virtual void reportError(PxErrorCode::Enum code, const char* message, const char* file, int line) override;
 };
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnPhysicsContact, USceneComponent*, USceneComponent*);
+
 class UPhysicsManager : public UObject
 {
     DECLARE_CLASS(UPhysicsManager, UObject)
@@ -88,6 +90,9 @@ private:
 
     // 콜백 시스템
     FPhysicsSimulationEventCallback* SimCallback = nullptr;
+
+public:
+    FOnPhysicsContact OnPhysicsContact;
 };
 
 PxFilterFlags MySimulationFilterShader(

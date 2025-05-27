@@ -46,6 +46,8 @@ public:
 
     void CheckPhysSize();
 
+    void HandlePhysicsContact(USceneComponent* A, USceneComponent* B);
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;

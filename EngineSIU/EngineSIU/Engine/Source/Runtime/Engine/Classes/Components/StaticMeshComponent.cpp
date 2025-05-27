@@ -321,6 +321,14 @@ void UStaticMeshComponent::CheckPhysSize()
     }
 }
 
+void UStaticMeshComponent::HandlePhysicsContact(USceneComponent* A, USceneComponent* B)
+{
+    if (A != this && B != this)
+        return;
+    USceneComponent* Me = (A == this) ? A : B;
+    UE_LOG(ELogLevel::Display, "%s got Hit!", *Me->GetOwner()->GetActorLabel());
+}
+
 void UStaticMeshComponent::SetIsStatic(bool Value)
 {
     bIsStatic = Value;

@@ -1,4 +1,5 @@
 #include "PhysicsSimulationEventCallback.h"
+#include "Engine/PhysicsManager.h"
 
 void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
 {
@@ -14,6 +15,7 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
         USceneComponent* CompB = reinterpret_cast<USceneComponent*>(dataB);
         if (CompA->GetWorld() == CompB->GetWorld())
         {
+            UPhysicsManager::Get().OnPhysicsContact.Broadcast(CompA, CompB);
             UE_LOG(ELogLevel::Display, "%s and %s Contact", *CompA->GetOwner()->GetActorLabel(), *CompB->GetOwner()->GetActorLabel());
         }
     }

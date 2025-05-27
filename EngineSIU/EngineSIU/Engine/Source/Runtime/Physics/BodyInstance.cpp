@@ -3,6 +3,7 @@
 #include "PhysicalMaterial.h"
 #include "Components/SceneComponent.h"
 #include <Components/StaticMeshComponent.h>
+#include <Components/SkeletalMeshComponent.h>
 #include "UObject/Casts.h"
 #include "PhysicsEngine/BoxElem.h"
 #include "PhysicsEngine/AggregateGeom.h"
@@ -105,7 +106,14 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
     {
         Comp->SetPhysBody(Actor);
         Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Comp->IsUseGravity());
+        //Delegate 구독
+        UPhysicsManager::Get().OnPhysicsContact.AddUObject(Comp, &UStaticMeshComponent::HandlePhysicsContact);
     }
+    if (USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(InOwner))
+    {
+        //스켈레탈 메시 처리
+    }
+    
 } 
 
 void FBodyInstance::TermBody()
