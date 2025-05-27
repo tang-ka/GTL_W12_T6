@@ -34,19 +34,7 @@ void FGizmoRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsD
 {
     FRenderPassBase::Initialize(InBufferManager, InGraphics, InShaderManager);
 
-    CreateBuffer();
     CreateShader();
-
-    D3D11_SAMPLER_DESC SamplerDesc = {};
-    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    SamplerDesc.MinLOD = 0;
-    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    
-    Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
 }
 
 void FGizmoRenderPass::CreateShader()
@@ -73,11 +61,6 @@ void FGizmoRenderPass::ReleaseShader()
 {
 }
 
-void FGizmoRenderPass::CreateBuffer()
-{
-    BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-}
-
 void FGizmoRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
 }
@@ -102,7 +85,7 @@ void FGizmoRenderPass::PrepareRenderState() const
 
     BufferManager->BindConstantBuffer(TEXT("FViewportSize"), 2, EShaderStage::Pixel);
     
-    Graphics->DeviceContext->PSSetSamplers(0, 1, &Sampler);
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &Graphics->SamplerState_LinearClamp);
 }
 
 void FGizmoRenderPass::PrepareRenderArr()

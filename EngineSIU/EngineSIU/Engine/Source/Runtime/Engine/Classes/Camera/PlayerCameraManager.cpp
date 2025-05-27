@@ -395,3 +395,10 @@ float APlayerCameraManager::GetLetterBoxRatio()
 {
     return LetterBoxWidth / LetterBoxHeight;
 }
+
+float APlayerCameraManager::GetFocalLength() const
+{
+    const float FovRad = FMath::DegreesToRadians(DefaultFOV);
+    const float FocalLength = SensorWidth / (2.f * FMath::Tan(FovRad / 2.0f));
+    return FocalLength;
+}
