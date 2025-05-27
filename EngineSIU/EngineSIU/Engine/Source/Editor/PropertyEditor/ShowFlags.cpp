@@ -119,11 +119,6 @@ uint64 ShowFlags::ConvertSelectionToFlags(const bool Selected[])
     {
         Flags |= static_cast<uint64>(EEngineShowFlags::SF_Grid);
     }
-    if (Selected[16])
-    {
-        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Grid);
-        Flags |= static_cast<uint64>(EEngineShowFlags::SF_GridSelectedOnly);
-    }
 
     return Flags;
 }
