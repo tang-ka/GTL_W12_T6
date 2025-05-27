@@ -53,7 +53,8 @@ void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex, cons
 
 void FEditorViewportClient::Tick(const float DeltaTime)
 {
-    if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+    // 이거 주석 꼭 풀어야함.
+    //if (GEngine->ActiveWorld->WorldType != EWorldType::PIE)
     {
         UpdateEditorCameraMovement(DeltaTime);
     }
@@ -504,7 +505,7 @@ void FEditorViewportClient::PivotMoveUp(const float InValue) const
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
-    if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE && false)
     {
         FMinimalViewInfo ViewInfo;
         GetViewInfo(ViewInfo);
