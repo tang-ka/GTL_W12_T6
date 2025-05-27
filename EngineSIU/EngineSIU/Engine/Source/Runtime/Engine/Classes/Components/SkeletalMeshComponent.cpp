@@ -104,7 +104,7 @@ bool USkeletalMeshComponent::ShouldTickAnimation() const
 {
     if (GEngine->GetWorldContextFromWorld(GetWorld())->WorldType == EWorldType::Editor)
     {
-        return false;
+        //return false;
     }
     return GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
 }
@@ -582,39 +582,50 @@ void USkeletalMeshComponent::CreateConstraints()
 
 void USkeletalMeshComponent::SyncBodyToComponent()
 {
+    if (!GetPhysicsAsset())
+    {
+        return;
+    }
+
     const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+    FTransform WorldTransform = GetWorldTransform();
 
     for (int32 i = 0; i < Bodies.Num(); i++)
     {
-        FBodyInstance* BodyInstance = Bodies[i];
-        GameObject* BodyActor = BodyInstance->GetActor();
+        //FBodyInstance* BodyInstance = Bodies[i];
 
-        if (!BodyInstance || !BodyActor || !BodyActor->rigidBody)
+        GameObject* BodyActor = Bodies[i]->GetActor();
+        UBodySetup* BodySetup = GetPhysicsAsset()->GetBodySetups()[i];
+
+        if (!BodyActor || !BodyActor->rigidBody || !BodySetup)
         {
             continue;
         }
 
-        const XMMATRIX WorldMatrix = BodyActor->worldMatrix;
-        FTransform BodyTransform = FTransform(WorldMatrix);
+        // BodyActor의 World Trasform을 가져옵니다.
+        FTransform BodyWorldTransform = FTransform(BodyActor->worldMatrix);
+        // BodyActor의 World Transform에 WorldMatrix의 역행렬을 곱해 Local Transform을 구합니다.
+        FTransform BodyLocalTransform = BodyWorldTransform.GetRelativeTransform(WorldTransform);
 
-        UBodySetup* BodySetup = GetPhysicsAsset()->GetBodySetups()[i];
         int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BodySetup->BoneName);
-        
-        if(BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
+        if (BoneIndex == INDEX_NONE)
         {
-            // BodyTransform을 로컬 본 기준으로 변환
-            int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
-            if (ParentIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(ParentIndex))
-            {
-                // ParentWorld^-1 * BodyWorld = Local
-                FTransform ParentWorld = FTransform(Bodies[ParentIndex]->GetActor()->worldMatrix);
-                FTransform LocalTransform = BodyTransform.GetRelativeTransform(ParentWorld);
-                BonePoseContext.Pose[BoneIndex] = LocalTransform;
-            }
-            else
-            {
-                BonePoseContext.Pose[BoneIndex] = BodyTransform;
-            }
+            continue; // 본이 없으면 다음으로 넘어갑니다.
+        }
+
+        int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
+        if (ParentIndex != INDEX_NONE)
+        {
+            FBodyInstance* ParentBody = Bodies[ParentIndex];
+            FTransform ParentWorldTransform = FTransform(ParentBody->GetActor()->worldMatrix);
+            FTransform ParentLocalTransform = ParentWorldTransform.GetRelativeTransform(WorldTransform);
+
+            FTransform LocalTransform = BodyLocalTransform.GetRelativeTransform(ParentLocalTransform);
+            BonePoseContext.Pose[BoneIndex] = LocalTransform;
+        }
+        else
+        {
+            BonePoseContext.Pose[BoneIndex] = BodyLocalTransform; // 부모가 없으면 로컬 변환을 그대로 사용합니다.
         }
     }
 }
@@ -649,10 +660,9 @@ void USkeletalMeshComponent::SyncComponentToBody()
         }
 
         const FMatrix& BoneMatrix = CurrentGlobalBoneMatrices[BoneIndex];
-        FTransform BoneTransform = FTransform(BoneMatrix);
+        FTransform BoneWorldTransform = FTransform(BoneMatrix * GetWorldMatrix());
 
-        BodyInstance->TermBody();
-        BodyInstance->InitBody(this, BodySetup, BoneTransform);
+        BodyInstance->SetBodyTransform(BoneWorldTransform);
     }
 }
 

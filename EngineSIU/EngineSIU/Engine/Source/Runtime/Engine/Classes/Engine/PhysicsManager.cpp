@@ -110,8 +110,16 @@ void UPhysicsManager::Simulate(float DeltaTime)
         USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
         if (!Owner)
             continue;
-        PxTransform CompTransform = Owner->GetComponentTransform().ToPxTransform();
-        Object->rigidBody->setGlobalPose(CompTransform);
+
+        if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(Owner))
+        {
+            PxTransform CompTransform = Owner->GetComponentTransform().ToPxTransform();
+            Object->rigidBody->setGlobalPose(CompTransform);
+        }
+        else if (USkeletalMeshComponent* SkeletalComp = Cast<USkeletalMeshComponent>(Owner))
+        {
+            SkeletalComp->SyncComponentToBody();
+        }
     }
 
     Scene->simulate(DeltaTime);
@@ -145,8 +153,8 @@ void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
 void GameObject::UpdateFromPhysics()
 {
     USceneComponent* Owner = reinterpret_cast<USceneComponent*>(rigidBody->userData);
-    if(!Owner || Owner->GetWorld()->WorldType != EWorldType::PIE && Owner->GetWorld()->WorldType != EWorldType::Game)
-        return;
+    //if(!Owner || Owner->GetWorld()->WorldType != EWorldType::PIE && Owner->GetWorld()->WorldType != EWorldType::Game)
+    //    return;
     SCOPED_READ_LOCK(*UPhysicsManager::Get().GetScene());
 
     PxTransform t = rigidBody->getGlobalPose();
@@ -155,6 +163,7 @@ void GameObject::UpdateFromPhysics()
 
     XMFLOAT4X4 temp;
     XMStoreFloat4x4(&temp, worldMatrix); // XMMATRIX → XMFLOAT4X4로 복사
+    this->worldMatrix = worldMatrix;
 
     FMatrix WorldMatrix;
     memcpy(&WorldMatrix, &temp, sizeof(FMatrix)); // 안전하게 float[4][4] 복사
@@ -167,6 +176,11 @@ void GameObject::UpdateFromPhysics()
     {
         Owner->SetWorldLocation(Location);
         Owner->SetWorldRotation(Quat);
+    }
+    else if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
+    {
+        // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
+        SkeletalMeshComp->SyncBodyToComponent();
     }
 }
 
