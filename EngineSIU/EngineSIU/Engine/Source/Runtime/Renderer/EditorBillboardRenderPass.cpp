@@ -8,7 +8,7 @@
 
 FEditorBillboardRenderPass::FEditorBillboardRenderPass()
 {
-    ResourceType = EResourceType::ERT_Editor;
+    ResourceType = EResourceType::ERT_EditorOverlay;
 }
 
 void FEditorBillboardRenderPass::PrepareRenderArr()

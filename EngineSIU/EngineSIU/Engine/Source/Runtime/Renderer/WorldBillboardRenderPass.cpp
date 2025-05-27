@@ -8,7 +8,7 @@
 
 FWorldBillboardRenderPass::FWorldBillboardRenderPass()
 {
-    ResourceType = EResourceType::ERT_Scene;
+    ResourceType = EResourceType::ERT_Translucent;
 }
 
 void FWorldBillboardRenderPass::PrepareRenderArr()
