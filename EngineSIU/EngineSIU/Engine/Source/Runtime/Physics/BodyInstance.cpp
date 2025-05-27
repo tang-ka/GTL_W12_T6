@@ -113,7 +113,6 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !Comp->IsUseGravity());
         //Delegate 구독
         UPhysicsManager::Get().OnPhysicsContact.AddUObject(Comp, &UStaticMeshComponent::HandlePhysicsContact);
-        UPhysicsManager::Get().OnContactPoint.AddUObject(Comp, &UStaticMeshComponent::HandleContactPoint);
     }
     if (USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(InOwner))
     {

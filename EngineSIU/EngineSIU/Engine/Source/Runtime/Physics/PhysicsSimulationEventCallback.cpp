@@ -16,7 +16,6 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
         if (CompA->GetWorld() == CompB->GetWorld())
         {
             UPhysicsManager::Get().OnPhysicsContact.Broadcast(CompA, CompB);
-            UE_LOG(ELogLevel::Display, "%s and %s Contact", *CompA->GetOwner()->GetActorLabel(), *CompB->GetOwner()->GetActorLabel());
         }
         for (PxU32 i = 0; i < nbPairs; ++i)
         {
