@@ -13,6 +13,10 @@
 #include "PhysicsEngine/BodySetup.h"
 #include "Physics/PhysicalMaterial.h"
 
+#include "World/World.h"
+#include <Actors/Cube.h>
+#include "ProjectileMovementComponent.h"
+
 UStaticMeshComponent::UStaticMeshComponent()
 {
     Body = new FBodyInstance();
@@ -20,8 +24,16 @@ UStaticMeshComponent::UStaticMeshComponent()
 
 UStaticMeshComponent::~UStaticMeshComponent()
 {
-    if (Body)
+    if (Body && PhysicsBody)
         Body->TermBody();
+}
+
+void UStaticMeshComponent::BeginPlay()
+{
+    if (StaticMesh->GetBodySetup() && bSimulatePhysics)
+    {
+        Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
+    }
 }
 
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
@@ -239,8 +251,6 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
     {
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
-        if(StaticMesh->GetBodySetup() && bSimulatePhysics)
-            Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }
 
@@ -249,7 +259,7 @@ void UStaticMeshComponent::SimulatePhysics(bool Value)
     bSimulatePhysics = Value;
     if (bSimulatePhysics)
     {
-        if (StaticMesh->GetBodySetup())
+        if (StaticMesh && StaticMesh->GetBodySetup())
             Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
     else
@@ -319,6 +329,54 @@ void UStaticMeshComponent::CheckPhysSize()
             NewShape->release();
         }
     }
+}
+
+void UStaticMeshComponent::HandlePhysicsContact(USceneComponent* A, USceneComponent* B)
+{
+    if (A != this && B != this)
+        return;
+    USceneComponent* Me = (A == this) ? A : B;
+    UE_LOG(ELogLevel::Display, "%s got Hit!", *Me->GetOwner()->GetActorLabel());
+}
+
+void UStaticMeshComponent::HandleContactPoint(FVector Pos, FVector Norm)
+{
+    ACube* ContactEffect = GEngine->ActiveWorld->SpawnActor<ACube>();
+    
+    ContactEffect->SetActorScale(FVector(0.1f));
+    FVector Loc;
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, 3);
+
+    int rand = dis(gen);
+    switch (rand)
+    {
+    case 0:
+        Loc = Pos + FVector(1, 0, 0);
+        break;
+    case 1:
+        Loc = Pos + FVector(0, 1, 0);
+        break;
+    case 2:
+        Loc = Pos + FVector(-1, 0, 0);
+        break;
+    case 3:
+        Loc = Pos + FVector(0, -1, 0);
+        break;
+    default:
+        break;
+    }
+
+    ContactEffect->SetActorLocation(Loc);
+    UProjectileMovementComponent* Comp = ContactEffect->AddComponent<UProjectileMovementComponent>();
+    FVector Front = (Loc - GetComponentLocation()).GetSafeNormal();
+    FVector RotAxis = FVector::CrossProduct(FVector(1, 0, 0), Front);
+    float Dot = FVector::DotProduct(FVector(1, 0, 0), Front);
+    float RotAngle = FMath::Acos(Dot);
+    ContactEffect->SetActorRotation(FRotator(FQuat(RotAxis, RotAngle).GetNormalized()));
+    Comp->SetInitialSpeed(2.f);
+    Comp->SetMaxSpeed(10.0f);
 }
 
 void UStaticMeshComponent::SetIsStatic(bool Value)

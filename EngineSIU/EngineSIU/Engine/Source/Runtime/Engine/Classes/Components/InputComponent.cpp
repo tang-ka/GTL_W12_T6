@@ -64,6 +64,7 @@ void UInputComponent::ClearBindDelegate()
     
     BindKeyDownDelegateHandles.Empty();
     BindKeyUpDelegateHandles.Empty();
+    KeyBindDelegate.Empty();
 }
 
 void UInputComponent::InputKey(const FKeyEvent& InKeyEvent)
