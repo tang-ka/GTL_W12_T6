@@ -23,6 +23,7 @@ namespace EEngineShowFlags
         SF_DepthOfField = 1ULL << 12,
         SF_DepthOfFieldLayer = 1ULL << 13,
         SF_LightHeatMap = 1ULL << 14,
+        SF_Grid = 1ULL << 15,
     };
 }
 

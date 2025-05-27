@@ -16,6 +16,8 @@
 #include "UObject/UObjectIterator.h"
 
 #include "UnrealEd/EditorViewportClient.h"
+#include "Engine/EditorEngine.h"
+#include "PropertyEditor/ShowFlags.h"
 
 // 생성자/소멸자
 FLineRenderPass::FLineRenderPass()
@@ -117,6 +119,14 @@ void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewport
 
 void FLineRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    const uint64 ShowFlag = Viewport->GetShowFlag();
+    
+    // Check if Grid should be rendered
+    if (!(ShowFlag & EEngineShowFlags::SF_Grid))
+    {
+        return; // Skip Grid rendering if SF_Grid is not enabled
+    }
+
     PrepareRender(Viewport);
 
     ProcessLineRendering(Viewport);
