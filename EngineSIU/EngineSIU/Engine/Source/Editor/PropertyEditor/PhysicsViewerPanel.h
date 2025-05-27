@@ -49,6 +49,7 @@ private:
     FString GetCleanBoneName(const FString& InFullName);
 
     void GenerateBoxBodiesForAllBones();
+    void GenerateConstraintsForAllBones();
 
     void CalculateConstraintTransforms(int32 ParentBoneIndex, int32 ChildBoneIndex, UConstraintSetup* ConstraintSetup);
 

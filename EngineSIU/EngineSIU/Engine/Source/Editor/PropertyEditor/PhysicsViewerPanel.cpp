@@ -549,69 +549,115 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
 	}
 
     // 각 본을 순회하며 부모-자식 관계에 따라 Constraint 생성
-    for (int32 BoneIndex = 0; BoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++BoneIndex)
+    GenerateConstraintsForAllBones();
+    //for (int32 BoneIndex = 0; BoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++BoneIndex)
+    //{
+    //    const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
+
+    //    // 루트 본은 스킵
+    //    if (BoneInfo.ParentIndex != INDEX_NONE)
+    //    {
+    //        UBodySetup* ParentBodySetup = FindBodySetupForBone(BoneInfo.ParentIndex);
+    //        UBodySetup* ChildBodySetup = FindBodySetupForBone(BoneIndex);
+
+    //        if (!ParentBodySetup || !ChildBodySetup)
+    //        {
+    //            return;
+    //        }
+
+    //        UConstraintSetup* ConstraintSetup = FObjectFactory::ConstructObject<UConstraintSetup>(SkeletalMesh->GetPhysicsAsset());
+
+    //        ConstraintSetup->BoneNameA = ParentBodySetup->BoneName;
+    //        ConstraintSetup->BoneNameB = ChildBodySetup->BoneName;
+
+    //        // 로컬 Transform 계산
+    //        CalculateConstraintTransforms(BoneInfo.ParentIndex, BoneIndex, ConstraintSetup);
+
+    //        // 기본 제한값 설정
+    //        ConstraintSetup->SwingLimitAngle = 45.0f;
+    //        ConstraintSetup->TwistLimitAngle = 30.0f;
+
+    //        // PhysicsAsset에 추가
+    //        SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups().Add(ConstraintSetup);
+    //    }
+    //}
+}
+
+void PhysicsViewerPanel::GenerateConstraintsForAllBones()
+{
+    for (int32 i = 0; i < CopiedRefSkeleton->RawRefBoneInfo.Num(); ++i)
     {
-        const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
+        const auto& Info = CopiedRefSkeleton->RawRefBoneInfo[i];
+        if (Info.ParentIndex == INDEX_NONE) continue;
 
-        // 루트 본은 스킵
-        if (BoneInfo.ParentIndex != INDEX_NONE)
-        {
-            UBodySetup* ParentBodySetup = FindBodySetupForBone(BoneInfo.ParentIndex);
-            UBodySetup* ChildBodySetup = FindBodySetupForBone(BoneIndex);
+        UBodySetup* BodyA = FindBodySetupForBone(Info.ParentIndex);
+        UBodySetup* BodyB = FindBodySetupForBone(i);
+        if (!BodyA || !BodyB) continue;
 
-            if (!ParentBodySetup || !ChildBodySetup)
-            {
-                return;
-            }
+        UConstraintSetup* C = FObjectFactory::ConstructObject<UConstraintSetup>(SkeletalMesh->GetPhysicsAsset());
+        C->BoneNameA = BodyA->BoneName;
+        C->BoneNameB = BodyB->BoneName;
 
-            UConstraintSetup* ConstraintSetup = FObjectFactory::ConstructObject<UConstraintSetup>(SkeletalMesh->GetPhysicsAsset());
+        // 개선된 로컬 프레임 계산
+        CalculateConstraintTransforms(Info.ParentIndex, i, C);
 
-            ConstraintSetup->BoneNameA = ParentBodySetup->BoneName;
-            ConstraintSetup->BoneNameB = ChildBodySetup->BoneName;
-
-            // 로컬 Transform 계산
-            CalculateConstraintTransforms(BoneInfo.ParentIndex, BoneIndex, ConstraintSetup);
-
-            // 기본 제한값 설정
-            ConstraintSetup->SwingLimitAngle = 45.0f;
-            ConstraintSetup->TwistLimitAngle = 30.0f;
-
-            // PhysicsAsset에 추가
-            SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups().Add(ConstraintSetup);
-        }
+        C->SwingLimitAngle = 45.0f;   // 필요하면 조정
+        C->TwistLimitAngle = 30.0f;   // 필요하면 조정
+        SkeletalMesh->GetPhysicsAsset()->GetConstraintSetups().Add(C);
     }
 }
 
 void PhysicsViewerPanel::CalculateConstraintTransforms(int32 ParentBoneIndex, int32 ChildBoneIndex, UConstraintSetup* ConstraintSetup)
 {
-    // 본의 레퍼런스 포즈 가져오기
-    const FTransform& ParentRefPose = CopiedRefSkeleton->RawRefBonePose[ParentBoneIndex];
-    const FTransform& ChildRefPose = CopiedRefSkeleton->RawRefBonePose[ChildBoneIndex];
+    FTransform WorldA = CalculateBoneWorldTransform(ParentBoneIndex);
+    FTransform WorldB = CalculateBoneWorldTransform(ChildBoneIndex);
 
-    // 부모 본의 BodySetup에서 박스 크기 가져오기
-    UBodySetup* ParentBodySetup = FindBodySetupForBone(ParentBoneIndex);
-    float ParentBoneLength = 2.0f; // 기본값
-    if (ParentBodySetup && ParentBodySetup->AggGeom.BoxElems.Num() > 0)
-    {
-        ParentBoneLength = ParentBodySetup->AggGeom.BoxElems[0].Extent.Z; // Z축을 본의 길이로 가정
-    }
+    // 참조 포즈의 부모→자식 오프셋 벡터
+    FVector RefOffset =
+        CopiedRefSkeleton->RawRefBonePose[ChildBoneIndex].GetTranslation()
+        - CopiedRefSkeleton->RawRefBonePose[ParentBoneIndex].GetTranslation();
 
-    // TransformInA: 부모 본의 로컬 좌표계에서 관절까지의 Transform
-    // 일반적으로 부모 본의 끝부분에 관절이 위치
-    FVector JointLocationInParent = FVector(0, 0, ParentBoneLength * 0.5f); // 본의 끝부분
-    ConstraintSetup->TransformInA = FTransform(
-        FRotator::ZeroRotator,      // 부모 본의 기본 방향 사용
-        JointLocationInParent,      // 부모 본 끝부분
-        FVector::OneVector          // 스케일 1,1,1
+    // 월드 좌표로 변환
+    FVector JointWorldPos = WorldA.TransformPosition(RefOffset);
+
+    FTransform JointWorldTransform(
+        WorldA.GetRotation(),  // Joint 회전: 부모 본 축을 따른다
+        JointWorldPos,
+        FVector::OneVector     // 스케일은 1:1
     );
 
-    // TransformInB: 자식 본의 로컬 좌표계에서 관절까지의 Transform
-    // 일반적으로 자식 본의 시작점에 관절이 위치
-    ConstraintSetup->TransformInB = FTransform(
-        FRotator::ZeroRotator,      // 자식 본의 기본 방향 사용
-        FVector::ZeroVector,        // 자식 본의 시작점
-        FVector::OneVector          // 스케일 1,1,1
-    );
+    // 동일한 JointWorldPos 를 기준으로 로컬 프레임 설정
+    ConstraintSetup->TransformInA = JointWorldTransform.GetRelativeTransform(WorldA);
+    ConstraintSetup->TransformInB = JointWorldTransform.GetRelativeTransform(WorldB);
+
+    //// 본의 레퍼런스 포즈 가져오기
+    //const FTransform& ParentRefPose = CopiedRefSkeleton->RawRefBonePose[ParentBoneIndex];
+    //const FTransform& ChildRefPose = CopiedRefSkeleton->RawRefBonePose[ChildBoneIndex];
+
+    //// 부모 본의 BodySetup에서 박스 크기 가져오기
+    //UBodySetup* ParentBodySetup = FindBodySetupForBone(ParentBoneIndex);
+    //float ParentBoneLength = 2.0f; // 기본값
+    //if (ParentBodySetup && ParentBodySetup->AggGeom.BoxElems.Num() > 0)
+    //{
+    //    ParentBoneLength = ParentBodySetup->AggGeom.BoxElems[0].Extent.Z; // Z축을 본의 길이로 가정
+    //}
+
+    //// TransformInA: 부모 본의 로컬 좌표계에서 관절까지의 Transform
+    //// 일반적으로 부모 본의 끝부분에 관절이 위치
+    //FVector JointLocationInParent = FVector(0, 0, ParentBoneLength * 0.5f); // 본의 끝부분
+    //ConstraintSetup->TransformInA = FTransform(
+    //    FRotator::ZeroRotator,      // 부모 본의 기본 방향 사용
+    //    JointLocationInParent,      // 부모 본 끝부분
+    //    FVector::OneVector          // 스케일 1,1,1
+    //);
+
+    //// TransformInB: 자식 본의 로컬 좌표계에서 관절까지의 Transform
+    //// 일반적으로 자식 본의 시작점에 관절이 위치
+    //ConstraintSetup->TransformInB = FTransform(
+    //    FRotator::ZeroRotator,      // 자식 본의 기본 방향 사용
+    //    FVector::ZeroVector,        // 자식 본의 시작점
+    //    FVector::OneVector          // 스케일 1,1,1
+    //);
 }
 
 FTransform PhysicsViewerPanel::CalculateBoneWorldTransform(int32 BoneIndex)

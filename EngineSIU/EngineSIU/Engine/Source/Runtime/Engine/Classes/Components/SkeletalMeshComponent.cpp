@@ -544,7 +544,7 @@ FBodyInstance* USkeletalMeshComponent::GetBodyInstance(FName BoneName) const
 void USkeletalMeshComponent::InitializePhysics()
 {
     CreateBodies();
-    //CreateConstraints();
+    CreateConstraints();
     SyncComponentToBody();
     SyncPhysicsFlags();
 }
