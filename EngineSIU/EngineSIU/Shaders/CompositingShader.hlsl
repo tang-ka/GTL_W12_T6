@@ -1,6 +1,8 @@
 Texture2D SceneTexture : register(t100);
-Texture2D PP_PostProcessTexture : register(t101);
-Texture2D EditorTexture : register(t102);
+Texture2D TranslucentTexture : register(t101);
+Texture2D PP_PostProcessTexture : register(t103);
+Texture2D EditorTexture : register(t104);
+Texture2D EditorOverlayTextyre : register(t105);
 Texture2D DebugTexture : register(t110);
 Texture2D CameraEffectTexture : register(t111);
 
@@ -56,8 +58,10 @@ float4 mainPS(PS_Input Input) : SV_TARGET
 {
     float4 Scene = SceneTexture.Sample(CompositingSampler, Input.UV);
     Scene = pow(Scene, GammaValue);
+    float4 Translucent = TranslucentTexture.Sample(CompositingSampler, Input.UV);
     float4 PostProcess = PP_PostProcessTexture.Sample(CompositingSampler, Input.UV);
     float4 Editor = EditorTexture.Sample(CompositingSampler, Input.UV);
+    float4 EditorOverlay = EditorOverlayTextyre.Sample(CompositingSampler, Input.UV);
     float4 Debug = DebugTexture.Sample(CompositingSampler, Input.UV);
     float4 CameraEffect = CameraEffectTexture.Sample(CompositingSampler, Input.UV);
     
@@ -65,6 +69,8 @@ float4 mainPS(PS_Input Input) : SV_TARGET
 
     FinalColor = lerp(FinalColor, PostProcess, PostProcess.a);
     FinalColor = lerp(FinalColor, Editor, Editor.a);
+    FinalColor = lerp(FinalColor, Translucent, Translucent.a);
+    FinalColor = lerp(FinalColor, EditorOverlay, EditorOverlay.a);
     FinalColor = lerp(FinalColor, CameraEffect, CameraEffect.a);
 
     if (ShowFlags & SF_LightHeatMap)

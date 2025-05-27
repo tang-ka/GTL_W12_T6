@@ -13,7 +13,7 @@ void ShowFlags::Draw(const std::shared_ptr<FEditorViewportClient>& ActiveViewpor
         ImGui::OpenPopup("ShowFlags");
     }
 
-    const char* Items[] = { "AABB", "Primitives", "BillBoardText", "UUID", "Fog", "LightWireframe", "LightWireframeSelectedOnly", "Shadow", "Collision", "CollisionSelectedOnly", "SkeletalMesh", "Particles", "DepthOfField", "DepthOfFieldLayer", "LightHeatMap" };
+    const char* Items[] = { "AABB", "Primitives", "BillBoardText", "UUID", "Fog", "LightWireframe", "LightWireframeSelectedOnly", "Shadow", "Collision", "CollisionSelectedOnly", "SkeletalMesh", "Particles", "DepthOfField", "DepthOfFieldLayer", "LightHeatMap", "Grid" };
     const uint64 CurFlag = ActiveViewport->GetShowFlag();
 
     if (ImGui::BeginPopup("ShowFlags"))
@@ -35,6 +35,7 @@ void ShowFlags::Draw(const std::shared_ptr<FEditorViewportClient>& ActiveViewpor
             static_cast<bool>(CurFlag & EEngineShowFlags::SF_DepthOfField),
             static_cast<bool>(CurFlag & EEngineShowFlags::SF_DepthOfFieldLayer),
             static_cast<bool>(CurFlag & EEngineShowFlags::SF_LightHeatMap),
+            static_cast<bool>(CurFlag & EEngineShowFlags::SF_Grid),
         }; // 각 항목의 체크 상태 저장
 
         for (int i = 0; i < IM_ARRAYSIZE(Items); i++)
@@ -113,6 +114,10 @@ uint64 ShowFlags::ConvertSelectionToFlags(const bool Selected[])
     if (Selected[14])
     {
         Flags |= static_cast<uint64>(EEngineShowFlags::SF_LightHeatMap);
+    }
+    if (Selected[15])
+    {
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Grid);
     }
 
     return Flags;

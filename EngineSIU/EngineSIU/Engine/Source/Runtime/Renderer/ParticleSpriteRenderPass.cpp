@@ -1,4 +1,4 @@
-﻿#include "ParticleSpriteRenderPass.h"
+#include "ParticleSpriteRenderPass.h"
 
 #include "RendererHelpers.h"
 #include "UnrealClient.h"
@@ -85,10 +85,9 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
 {
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 
-    constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_Translucent);
+    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
 
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
 

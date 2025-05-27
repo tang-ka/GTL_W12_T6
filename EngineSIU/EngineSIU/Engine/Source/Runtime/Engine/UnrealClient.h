@@ -19,9 +19,10 @@ enum class EResourceType : uint8
 {
     ERT_Debug,
     ERT_Scene,
+    ERT_Translucent,
     ERT_Editor,
+    ERT_EditorOverlay,
     ERT_Gizmo,
-    //ERT_Overlay,
     ERT_PP_Fog,
     ERT_PP_CameraEffect,
     /// Begine DoF
