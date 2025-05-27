@@ -51,25 +51,25 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
 
 void FPhysicsSimulationEventCallback::onTrigger(PxTriggerPair* pairs, PxU32 count)
 {
-    int i = 0;
+    
 }
 
 void FPhysicsSimulationEventCallback::onConstraintBreak(PxConstraintInfo* constraints, PxU32 count)
 {
-    int i = 0;
+    
 }
 
 void FPhysicsSimulationEventCallback::onWake(PxActor** actors, PxU32 count)
 {
-    int i = 0;
+    
 }
 
 void FPhysicsSimulationEventCallback::onSleep(PxActor** actors, PxU32 count)
 {
-    int i = 0;
+    
 }
 
 void FPhysicsSimulationEventCallback::onAdvance(const PxRigidBody* const*, const PxTransform*, const PxU32)
 {
-    int i = 0;
+    
 }
