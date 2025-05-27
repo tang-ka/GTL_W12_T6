@@ -452,59 +452,6 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
 }
 
 // 사용 안함
-void FEditorRenderPass::RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
-{
-    // ULightComponentBase::CheckRayIntersection에서도 수정 필요
-    // const float IconScale = 0.3;
-    // BindShaderResource(Resources.Shaders.Icon);
-    // UINT offset = 0;
-    // // input vertex index 없음
-    //
-    // BufferManager->BindConstantBuffer("IconConstantBuffer", 11, EShaderStage::Vertex);
-    // for (ULightComponentBase* LightComp : Resources.Components.Light)
-    // {
-    //     FConstantBufferDebugIcon b;
-    //     b.Position = LightComp->GetWorldLocation();
-    //     b.Scale = IconScale;
-    //     BufferManager->UpdateConstantBuffer<FConstantBufferDebugIcon>(TEXT("IconConstantBuffer"), b);
-    //
-    //     if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
-    //     {
-    //         UpdateTextureIcon(EIconType::PointLight);
-    //     }
-    //     else if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComp))
-    //     {
-    //         UpdateTextureIcon(EIconType::SpotLight);
-    //     }
-    //     else if (UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(LightComp))
-    //     {
-    //         UpdateTextureIcon(EIconType::DirectionalLight);
-    //     }
-    //     else if (UAmbientLightComponent* AmbientLightComp = Cast<UAmbientLightComponent>(LightComp))
-    //     {
-    //         UpdateTextureIcon(EIconType::AmbientLight);
-    //     }
-    //     else
-    //     {
-    //         // 잘못된 light 종류
-    //         continue;
-    //     };
-    //     Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
-    // }
-    //
-    // for (UHeightFogComponent* FogComp : Resources.Components.Fog)
-    // {
-    //     FConstantBufferDebugIcon b;
-    //     b.Position = FogComp->GetWorldLocation();
-    //     b.Scale = IconScale;
-    //     BufferManager->UpdateConstantBuffer<FConstantBufferDebugIcon>(TEXT("IconConstantBuffer"), b);
-    //     UpdateTextureIcon(EIconType::ExponentialFog);
-    //
-    //     Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
-    // }
-}
-
-// 사용 안함
 void FEditorRenderPass::UpdateTextureIcon(EIconType Type)
 {
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &Resources.IconTextures[Type]->TextureSRV);
