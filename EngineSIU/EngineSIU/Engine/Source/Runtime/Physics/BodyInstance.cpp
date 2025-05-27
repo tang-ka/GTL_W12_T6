@@ -31,10 +31,8 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         return;
     }
 
-    FVector Location = WorldTransform.GetTranslation();
-    FQuat Rotation = WorldTransform.GetRotation();
-    PxVec3 PxLocation(Location.X, Location.Y, Location.Z);
-    PxQuat PxRotation(Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+    PxVec3 PxLocation = WorldTransform.GetTranslation().ToPxVec3();
+    PxQuat PxRotation = WorldTransform.GetRotation().ToPxQuat();
 
     const FKAggregateGeom& AggGeom = Setup->AggGeom;
 
@@ -43,7 +41,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
     for (const FKSphereElem& Sphere : AggGeom.SphereElems)
     {
         PxSphereGeometry SphereGeom(Sphere.Radius);
-        PxVec3 SphereCenter(Sphere.Center.X, Sphere.Center.Y, Sphere.Center.Z);
+        PxVec3 SphereCenter = Sphere.Center.ToPxVec3();
         PxTransform LocalPose(SphereCenter);
 
         PxShape* Shape = Physics->createShape(SphereGeom, *(Setup->PhysMaterial->GetMaterial()));
@@ -106,7 +104,6 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
     }
 
     Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);
-    Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, true);
 
     if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
     {
@@ -117,6 +114,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
     }
     if (USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(InOwner))
     {
+        Actor->rigidBody->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, true);
         //스켈레탈 메시 처리
     }
 } 

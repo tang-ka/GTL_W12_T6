@@ -65,6 +65,7 @@ GameObject* UPhysicsManager::SpawnGameObject(
     const PxQuat& Rotation,
     const TArray<PxShape*> Shapes,
     const bool bIsStatic,
+    const bool bIsKinematic,
     UPhysicalMaterial* Material)
 {
     SCOPED_READ_LOCK(*Scene);
@@ -84,7 +85,14 @@ GameObject* UPhysicsManager::SpawnGameObject(
     else
     {
         PxRigidDynamic* DynamicBody = Physics->createRigidDynamic(transform);
-        PxRigidBodyExt::updateMassAndInertia(*DynamicBody, 10.0f);
+        if (bIsKinematic)
+        {
+            DynamicBody->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+        }
+        else
+        {
+            PxRigidBodyExt::updateMassAndInertia(*DynamicBody, 10.0f);
+        }
         body = DynamicBody;
     }
 

@@ -36,8 +36,15 @@ void USkeletalMeshComponent::InitializeComponent()
     Super::InitializeComponent();
 
     InitAnim();
+}
 
-    InitializePhysics();
+void USkeletalMeshComponent::BeginPlay()
+{
+    Super::BeginPlay();
+    if (bIsSimulateSkel)
+    {
+        InitializePhysics();
+    }
 }
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
@@ -59,6 +66,11 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
     }
     NewComponent->SetLooping(this->IsLooping());
     NewComponent->SetPlaying(this->IsPlaying());
+
+    NewComponent->SetSimulateSkel(bIsSimulateSkel);
+    NewComponent->SetUseGravitySkel(bUseGravitySkel);
+    NewComponent->SetKinematicSkel(bIsKinematicSkel);
+
     return NewComponent;
 }
 
@@ -172,8 +184,6 @@ void USkeletalMeshComponent::SetSkeletalMeshAsset(USkeletalMesh* InSkeletalMeshA
     CPURenderData->Indices = InSkeletalMeshAsset->GetRenderData()->Indices;
     CPURenderData->ObjectName = InSkeletalMeshAsset->GetRenderData()->ObjectName;
     CPURenderData->MaterialSubsets = InSkeletalMeshAsset->GetRenderData()->MaterialSubsets;
-
-
 }
 
 FTransform USkeletalMeshComponent::GetSocketTransform(FName SocketName) const
@@ -516,6 +526,22 @@ void USkeletalMeshComponent::InitializePhysics()
     CreateBodies();
     CreateConstraints();
     SyncComponentToBody();
+    SyncPhysicsFlags();
+}
+
+void USkeletalMeshComponent::DestroyPhysics()
+{
+    if (GetPhysicsAsset())
+    {
+        for(auto* BodyInstance : Bodies)
+        {
+            if (BodyInstance)
+            {
+                BodyInstance->TermBody(); // 바디 인스턴스를 초기화합니다.
+                delete BodyInstance; // 메모리 해제
+            }
+        }
+    }
 }
 
 void USkeletalMeshComponent::CreateBodies()
@@ -666,6 +692,80 @@ void USkeletalMeshComponent::SyncComponentToBody()
 void USkeletalMeshComponent::SyncComponentToConstraint()
 {
     // Constraints 순회하면 UpdateFrames 호출
+}
+
+void USkeletalMeshComponent::SyncPhysicsFlags()
+{
+    // 스켈레탈 메시용 설정 값 조회
+    bool bEnableGravity = UseGravitySkel();
+    bool bKinematic = IsKinematicSkel();
+
+    // 개선: FBodyInstance에 Flag래핑함수 만들어서 BodyInstance까지만 접근하도록 변경
+    for (FBodyInstance* BodyInst : Bodies)
+    {
+        if (!BodyInst || !BodyInst->GetActor()|| !BodyInst->GetActor()->rigidBody)
+            continue;
+
+        PxRigidActor* RigidActor = BodyInst->GetActor()->rigidBody;
+
+        // 중력 설정: DISABLE_GRAVITY 플래그
+        RigidActor->setActorFlag(
+            PxActorFlag::eDISABLE_GRAVITY,
+            !bEnableGravity
+        );
+
+        // 키네마틱 설정 (Dynamic만)
+        if (PxRigidDynamic* Dyn = RigidActor->is<PxRigidDynamic>())
+        {
+            Dyn->setRigidBodyFlag(
+                PxRigidBodyFlag::eKINEMATIC,
+                bKinematic
+            );
+        }
+    }
+}
+
+void USkeletalMeshComponent::SetSimulateSkel(bool Value)
+{
+    bIsSimulateSkel = Value;
+}
+
+void USkeletalMeshComponent::SetUseGravitySkel(bool Value)
+{
+    bUseGravitySkel = Value;
+    SyncPhysicsFlags();
+}
+
+void USkeletalMeshComponent::SetKinematicSkel(bool Value)
+{
+    bIsKinematicSkel = Value;
+    SyncPhysicsFlags();
+}
+
+void USkeletalMeshComponent::SimulatePhysics(bool Value)
+{
+    Super::SimulatePhysics(Value);
+    //if (bSimulatePhysics)
+    //{
+    //    if (SkeletalMeshAsset && StaticMesh->GetBodySetup())
+    //        Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
+    //}
+    //else
+    //{
+    //    Body->TermBody();
+    //}
+    bSimulatePhysics = false;
+}
+
+void USkeletalMeshComponent::SimulateGravity(bool Value)
+{
+    Super::SimulateGravity(Value);
+}
+
+void USkeletalMeshComponent:: SetIsStatic(bool Value)
+{
+    // Static 여부 설정
+    Super::SetIsStatic(Value);
 }
 
 void USkeletalMeshComponent::SetAnimation(UAnimationAsset* NewAnimToPlay)

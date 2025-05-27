@@ -36,6 +36,8 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 
+    virtual void BeginPlay() override;
+
     virtual void TickComponent(float DeltaTime) override;
 
     virtual void TickPose(float DeltaTime) override;
@@ -157,12 +159,18 @@ public:
     TArray<FBodyInstance*> Bodies;
     TArray<FConstraintInstance*> Constraints;
 
+    bool bIsSimulateSkel = false;  
+    bool bUseGravitySkel = false;
+    bool bIsKinematicSkel = false;
+
+public:
     UPhysicsAsset* GetPhysicsAsset() const;
     void SetPhysicsAsset(UPhysicsAsset* NewPhysicsAsset);
 
     FBodyInstance* GetBodyInstance(FName BoneName) const;
 
 	void InitializePhysics();
+    void DestroyPhysics();
     void CreateBodies();
 	void CreateConstraints();
 
@@ -170,4 +178,18 @@ public:
 
     void SyncComponentToBody();
 	void SyncComponentToConstraint();
+    void SyncPhysicsFlags();
+
+    bool ShouldSimulateSkel() const { return bIsSimulateSkel; }
+    bool UseGravitySkel() const { return bUseGravitySkel; }
+    bool IsKinematicSkel() const { return bIsKinematicSkel; }
+
+    void SetSimulateSkel(bool Value);
+    void SetUseGravitySkel(bool Value);
+    void SetKinematicSkel(bool Value);
+
+    // Primitive Component의 BodyInstance 설정 관련 함수
+    virtual void SimulatePhysics(bool Value) override;
+    virtual void SimulateGravity(bool Value) override;
+    virtual void SetIsStatic(bool Value) override;
 };

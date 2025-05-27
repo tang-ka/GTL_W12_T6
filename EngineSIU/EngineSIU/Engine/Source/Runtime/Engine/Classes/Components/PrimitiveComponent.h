@@ -108,6 +108,7 @@ protected:
     bool bSimulateGravity = false;
     bool bIsStatic = false;
 
+
     virtual void UpdateOverlapsImpl(const TArray<FOverlapInfo>* PendingOverlaps = nullptr, bool bDoNotifies = true, const TArray<const FOverlapInfo>* OverlapsAtEndLocation = nullptr) override;
 
     void ClearComponentOverlaps(bool bDoNotifies, bool bSkipNotifySelf);
@@ -121,10 +122,10 @@ public:
     bool IsUseGravity() { return bSimulateGravity; }
     bool GetIsStatic() { return bIsStatic; }
 
-    virtual void SimulatePhysics(bool Value) {}
+    virtual void SimulatePhysics(bool Value) { bSimulatePhysics = Value; }
     virtual void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution) {}
-    virtual void SimulateGravity(bool Value) {}
-    virtual void SetIsStatic(bool Value) {}
+    virtual void SimulateGravity(bool Value) { bSimulateGravity = Value; }
+    virtual void SetIsStatic(bool Value) { bIsStatic = Value; }
     
 private:
     FString m_Type;

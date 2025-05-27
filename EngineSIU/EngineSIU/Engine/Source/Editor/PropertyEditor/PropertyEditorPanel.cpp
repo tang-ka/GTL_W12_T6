@@ -489,50 +489,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
             ImGui::EndCombo();
         }
 
-        bool bPhysics = StaticMeshComp->ShouldSimulatePhysics();
-        if (ImGui::Checkbox("Simulate Physics", &bPhysics))
-        {
-            StaticMeshComp->SimulatePhysics(bPhysics);
-        }
-        
-        if (bPhysics)
-        {
-            bool bIsStatic = StaticMeshComp->GetIsStatic();
-            if (ImGui::Checkbox("Static Object", &bIsStatic))
-            {
-                StaticMeshComp->SetIsStatic(bIsStatic);
-            }
-            if (!bIsStatic)
-            {
-                bool bGravity = StaticMeshComp->IsUseGravity();
-                if (ImGui::Checkbox("Simulate Gravity", &bGravity))
-                {
-                    StaticMeshComp->SimulateGravity(bGravity);
-                }
-            }
-            ImGui::Text("Physics Material Setting");
-            bool bChanged = false;
-            float StaticFriction = StaticMeshComp->GetStaticMesh()->GetStaticFriction();
-            float DynamicFriction = StaticMeshComp->GetStaticMesh()->GetDynamicFriction();
-            float Restitution = StaticMeshComp->GetStaticMesh()->GetRestitution();
-            ImGui::Text("Static Friction"); ImGui::SameLine();
-            if (ImGui::DragFloat("##StaticFriction", &StaticFriction, 0.01f, 0.0f, 10.0f))
-            {
-                bChanged = true;
-            }
-            ImGui::Text("Dynamic Friction"); ImGui::SameLine();
-            if (ImGui::DragFloat("##DynamicFriction", &DynamicFriction, 0.01f, 0.0f, 10.0f))
-            {
-                bChanged = true;
-            }
-            ImGui::Text("Restitution"); ImGui::SameLine();
-            if (ImGui::DragFloat("##Restitution", &Restitution, 0.01f, 0.0f, 10.0f))
-            {
-                bChanged = true;
-            }
-            if (bChanged)
-                StaticMeshComp->SetPhysMaterial(StaticFriction, DynamicFriction, Restitution);
-        }
+        RenderForBoundingBody(StaticMeshComp);
 
         ImGui::TreePop();
     }
@@ -768,6 +725,10 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             }
         }
 
+        RenderForBoundingBody(SkeletalMeshComp);
+
+        ImGui::SeparatorText("Physics Asset");
+
         if (ImGui::Button("Open Physics Editor"))
         {
             UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
@@ -781,18 +742,196 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
             }
         }
 
-        if (ImGui::Button("Initialize Physics"))
+        ImGui::PushID("SkelSim");
+        bool bPhysics = SkeletalMeshComp->ShouldSimulateSkel();
+        if (ImGui::Checkbox("Simulate Physics", &bPhysics))
         {
-            USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMeshAsset();
-            if (SkeletalMesh)
+            SkeletalMeshComp->SetSimulateSkel(bPhysics);
+            bPhysics = SkeletalMeshComp->ShouldSimulateSkel(); 
+        }
+        ImGui::PopID();
+
+        if (bPhysics)
+        {
+            bool bUseGravity = SkeletalMeshComp->UseGravitySkel();
+            if (ImGui::Checkbox("UseGravity", &bUseGravity))
             {
-                SkeletalMeshComp->InitializePhysics();
+                SkeletalMeshComp->SetUseGravitySkel(bUseGravity);
             }
+
+            bool bIsKinematic = SkeletalMeshComp->IsKinematicSkel();
+            if (ImGui::Checkbox("Is Kinematic", &bIsKinematic))
+            {
+                SkeletalMeshComp->SetKinematicSkel(bIsKinematic);
+            }
+
+            ImGui::Separator();
+            if (ImGui::Button("Initialize Physics"))
+            {
+                USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMeshAsset();
+                if (SkeletalMesh)
+                {
+                    SkeletalMeshComp->InitializePhysics();
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Destroy Physics"))
+            {
+                USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMeshAsset();
+                if (SkeletalMesh)
+                {
+                    SkeletalMeshComp->DestroyPhysics();
+                }
+            }
+            ImGui::Separator();
         }
 
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForBoundingBody(UPrimitiveComponent* PrimitiveComp) const
+{
+    ImGui::SeparatorText("Bounding Body");
+
+    bool bPhysics = PrimitiveComp->ShouldSimulatePhysics();
+    if (ImGui::Checkbox("Simulate Physics", &bPhysics))
+    {
+        PrimitiveComp->SimulatePhysics(bPhysics);
+        bPhysics = PrimitiveComp->ShouldSimulatePhysics(); // 상태를 다시 가져오기
+    }
+
+    if (bPhysics)
+    {
+        static bool bSphere = false;
+        static bool bBox = true;
+        static bool bCapsule = false;
+        static bool bConvex = false;
+
+        bool prev = bSphere;
+        if (ImGui::Checkbox("Sphere", &bSphere))
+        {
+            if (bSphere) 
+            {
+                // Sphere를 켠 경우 나머지 모두 끄기
+                bBox = bCapsule = bConvex = false;
+            }
+            else 
+            {
+                // 만약 유저가 유일하게 켜진 Sphere를 끄려 하면, 다시 켜준다.
+                if (!bBox && !bCapsule && !bConvex) 
+                {
+                    bSphere = true;
+                }
+            }
+        }
+        ImGui::SameLine(); // 같은 라인에 배치
+
+        // Box
+        prev = bBox;
+        if (ImGui::Checkbox("Box", &bBox)) 
+        {
+            if (bBox) 
+            {
+                bSphere = bCapsule = bConvex = false;
+            }
+            else 
+            {
+                if (!bSphere && !bCapsule && !bConvex)
+                {
+                    bBox = true;
+                }
+            }
+        }
+        ImGui::SameLine();
+
+        // Capsule
+        prev = bCapsule;
+        if (ImGui::Checkbox("Capsule", &bCapsule))
+        {
+            if (bCapsule)
+            {
+                bSphere = bBox = bConvex = false;
+            }
+            else 
+            {
+                if (!bSphere && !bBox && !bConvex)
+                {
+                    bCapsule = true;
+                }
+            }
+        }
+        ImGui::SameLine();
+
+        // Convex
+        prev = bConvex;
+        if (ImGui::Checkbox("Convex", &bConvex))
+        {
+            if (bConvex) 
+            {
+                bSphere = bBox = bCapsule = false;
+            }
+            else 
+            {
+                if (!bSphere && !bBox && !bCapsule)
+                {
+                    bConvex = true;
+                }
+            }
+        }
+
+        bool bIsStatic = PrimitiveComp->GetIsStatic();
+        if (ImGui::Checkbox("Is Static", &bIsStatic))
+        {
+            PrimitiveComp->SetIsStatic(bIsStatic);
+        }
+        if (!bIsStatic)
+        {
+            bool bGravity = PrimitiveComp->IsUseGravity();
+            if (ImGui::Checkbox("Use Gravity", &bGravity))
+            {
+                PrimitiveComp->SimulateGravity(bGravity);
+            }
+        }
+
+        ImGui::Text("Physics Material Setting");
+        UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(PrimitiveComp);
+
+        bool bChanged = false;
+        float StaticFriction;
+        float DynamicFriction;
+        float Restitution;
+
+        if (StaticMeshComp)
+        {
+            StaticFriction = StaticMeshComp->GetStaticMesh()->GetStaticFriction();
+            DynamicFriction = StaticMeshComp->GetStaticMesh()->GetDynamicFriction();
+            Restitution = StaticMeshComp->GetStaticMesh()->GetRestitution();
+        }
+        else
+        {
+            return;
+        }
+
+        ImGui::Text("Static Friction"); ImGui::SameLine();
+        if (ImGui::DragFloat("##StaticFriction", &StaticFriction, 0.01f, 0.0f, 10.0f))
+        {
+            bChanged = true;
+        }
+        ImGui::Text("Dynamic Friction"); ImGui::SameLine();
+        if (ImGui::DragFloat("##DynamicFriction", &DynamicFriction, 0.01f, 0.0f, 10.0f))
+        {
+            bChanged = true;
+        }
+        ImGui::Text("Restitution"); ImGui::SameLine();
+        if (ImGui::DragFloat("##Restitution", &Restitution, 0.01f, 0.0f, 10.0f))
+        {
+            bChanged = true;
+        }
+        if (bChanged)
+            PrimitiveComp->SetPhysMaterial(StaticFriction, DynamicFriction, Restitution);
+    }
 }
 
 void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComponent) const

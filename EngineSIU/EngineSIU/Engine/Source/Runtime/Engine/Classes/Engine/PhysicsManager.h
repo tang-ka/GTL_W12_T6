@@ -60,6 +60,7 @@ public:
         const PxQuat& Rotation,
         const TArray<PxShape*> Shapes,
         const bool bIsStatic = false,
+        const bool bIsKinematic = false,
         class UPhysicalMaterial* Material = nullptr);
 
     void Simulate(float DeltaTime);

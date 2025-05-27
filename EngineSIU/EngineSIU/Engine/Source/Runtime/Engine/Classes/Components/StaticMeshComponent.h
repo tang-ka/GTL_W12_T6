@@ -39,11 +39,8 @@ public:
     void SetStaticMesh(UStaticMesh* Value);
 
     virtual void SimulatePhysics(bool Value) override;
-
     virtual void SetPhysMaterial(float InStaticFric, float InDynamicFric, float InRestitution) override;
-
     virtual void SimulateGravity(bool Value) override;
-
     virtual void SetIsStatic(bool Value) override;
 
     void CheckPhysSize();
