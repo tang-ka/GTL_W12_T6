@@ -94,11 +94,11 @@ GameObject* UPhysicsManager::SpawnGameObject(
         Shape->release();
     }
 
-    
-    Scene->addActor(*body);
-    body->userData = InOwner;
     GameObject* NewGameObject = new GameObject(body);
-    GameObjects.Add(NewGameObject);
+    body->userData = InOwner;
+    PendingSpawnGameObjects.Add(NewGameObject);
+    //Scene->addActor(*body);
+    //GameObjects.Add(NewGameObject);
 
     return NewGameObject;
 }
@@ -124,6 +124,16 @@ void UPhysicsManager::Simulate(float DeltaTime)
 
     Scene->simulate(DeltaTime);
     Scene->fetchResults(true);
+
+    if (PendingSpawnGameObjects.Num() > 0)
+        int i = 0;
+    for (GameObject* Object : PendingSpawnGameObjects)
+    {
+        SCOPED_WRITE_LOCK(*Scene);
+        Scene->addActor(*Object->rigidBody);
+        GameObjects.Add(Object);
+    }
+    PendingSpawnGameObjects.Empty();
 
     for (GameObject* Object : GameObjects)
     {
@@ -212,8 +222,9 @@ PxFilterFlags MySimulationFilterShader(PxFilterObjectAttributes attributes0, PxF
     // 2) 충돌 이벤트를 꼭 받아오도록 플래그 추가
     pairFlags = PxPairFlag::eCONTACT_DEFAULT
         | PxPairFlag::eNOTIFY_TOUCH_FOUND
-        //| PxPairFlag::eNOTIFY_TOUCH_LOST
-        //| PxPairFlag::eNOTIFY_CONTACT_POINTS
+        | PxPairFlag::eNOTIFY_TOUCH_LOST
+        | PxPairFlag::eNOTIFY_CONTACT_POINTS
+        | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
         ;
 
     return flags;
