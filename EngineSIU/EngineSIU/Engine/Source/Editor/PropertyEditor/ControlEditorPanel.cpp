@@ -18,6 +18,7 @@
 #include "tinyfiledialogs.h"
 
 #include "Actors/Cube.h"
+#include "Engine/PhysicsManager.h"
 
 #include "Engine/EditorEngine.h"
 #include <Actors/HeightFogActor.h>
@@ -373,6 +374,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             {.Label = "TriggerBox", .OBJ = OBJ_TRIGGERBOX},
             {.Label = "SkeletalMeshActor", .OBJ = OBJ_SKELETALMESH},
             {.Label = "SequencerPlayer", .OBJ = OBJ_SEQUENCERPLAYER},
+            {.Label = "Vehicle", .OBJ = OBJ_VEHICLE},
         };
 
         for (const auto& primitive : primitives)
@@ -523,7 +525,11 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                 {
                     SpawnedActor = World->SpawnActor<ASequencerPlayer>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_SEQUENCERPLAYER"));
+                    break;
                 }
+                case OBJ_VEHICLE:
+                    UPhysicsManager::Get().SpawnVehicle();
+                    break;
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
                 case OBJ_END:

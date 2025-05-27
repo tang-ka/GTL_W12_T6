@@ -5,6 +5,7 @@
 #include <Components/StaticMeshComponent.h>
 #include <UObject/Casts.h>
 #include "World/World.h"
+#include "PxVehicleManager.h"
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -20,7 +21,7 @@ void UPhysicsManager::Initialize()
 #ifdef _DEBUG
     PxPvd* pvd = PxCreatePvd(*Foundation);
     PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-    pvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
+    pvd->connect(*transport, PxPvdInstrumentationFlag::ePROFILE);
 #endif
 
     // Physics Core
@@ -139,6 +140,9 @@ void UPhysicsManager::Simulate(float DeltaTime)
     {
         Object->UpdateFromPhysics();
     }
+
+    if (Vehicle)
+        Vehicle->Tick(DeltaTime);
 }
 
 void UPhysicsManager::RemoveGameObjects()
@@ -158,6 +162,14 @@ void UPhysicsManager::RemoveGameObjects()
 void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
 {
     PendingRemoveGameObjects.Add(InGameObject);
+}
+
+void UPhysicsManager::SpawnVehicle()
+{
+    if (Vehicle)
+        return;
+    Vehicle = new UPxVehicleManager;
+    //Vehicle->Initialize(Physics, Scene);
 }
 
 void GameObject::UpdateFromPhysics()
@@ -226,6 +238,12 @@ PxFilterFlags MySimulationFilterShader(PxFilterObjectAttributes attributes0, PxF
         | PxPairFlag::eNOTIFY_CONTACT_POINTS
         | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
         ;
+
+    bool bIsCarBodyWheel = ((filterData0.word0 == ECC_CarBody && filterData1.word0 == ECC_Wheel) ||
+        (filterData0.word0 == ECC_Wheel && filterData1.word0 == ECC_CarBody));
+
+    if (bIsCarBodyWheel)
+        return PxFilterFlag::eSUPPRESS;
 
     return flags;
 }
