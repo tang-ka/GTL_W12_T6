@@ -34,6 +34,7 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
     PxTransform FrameB = TransformInB.ToPxTransform();
 
     D6Joint = PxD6JointCreate(*Phys, ActorA, FrameA, ActorB, FrameB);
+    D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
 
     // 축별 모션 제한 설정
     D6Joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
