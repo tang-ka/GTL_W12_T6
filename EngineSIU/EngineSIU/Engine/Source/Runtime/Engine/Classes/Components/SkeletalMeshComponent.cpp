@@ -67,9 +67,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     TickPose(DeltaTime);
-
-    //SyncComponentToBody();
-    //SyncBodyToComponent();
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)

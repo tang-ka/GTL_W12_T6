@@ -15,14 +15,13 @@ FBodyInstance::FBodyInstance()
 
 void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const FTransform& WorldTransform, const bool bIsStatic)
 {
-    //UWorld* World = InOwner->GetWorld();
-    //if (!World)
-    //    return;
-    //if (InOwner->GetWorld()->WorldType != EWorldType::None)
-    //    return;
     UWorld* World = GEngine->ActiveWorld;
-    if (GEngine->ActiveWorld->WorldType != EWorldType::Game && GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+    if (GEngine->ActiveWorld->WorldType != EWorldType::Game && 
+        GEngine->ActiveWorld->WorldType != EWorldType::PIE)
+    {
         return;
+    }
+
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
     PxCooking* Cooking = UPhysicsManager::Get().GetCooking();
