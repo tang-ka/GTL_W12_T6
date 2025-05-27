@@ -32,7 +32,10 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
                         // pt.position, pt.normal, pt.impulse, pt.separation
                         FVector Pos(pt.position.x, pt.position.y, pt.position.z);
                         FVector Norm(pt.normal.x, pt.normal.y, pt.normal.z);
-                        Cast<UStaticMeshComponent>(CompA)->HandleContactPoint(Pos, Norm);
+                        if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(CompA))
+                        {
+                            StaticComp->HandleContactPoint(Pos, Norm);
+                        }
                     }
                 }
                 if (cp.events & PxPairFlag::eNOTIFY_TOUCH_PERSISTS)
