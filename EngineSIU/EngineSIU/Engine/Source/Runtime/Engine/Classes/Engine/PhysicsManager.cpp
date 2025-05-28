@@ -26,6 +26,7 @@ void UPhysicsManager::Initialize()
 
     // Physics Core
     Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, *TolerancesScale, true, pvd);
+    PxInitExtensions(*Physics, pvd);
 
     PxMaterial* DefaultMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
 

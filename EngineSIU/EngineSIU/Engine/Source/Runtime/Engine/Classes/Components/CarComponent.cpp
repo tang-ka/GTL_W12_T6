@@ -102,7 +102,7 @@ void UCarComponent::SpawnComponents()
         AActor* Owner = GetOwner();
         WheelComp[i] = GetOwner()->AddComponent<UStaticMeshComponent>();
         WheelComp[i]->SetupAttachment(GetOwner()->GetRootComponent());
-        WheelComp[i]->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Reference/Reference.obj"));
+        WheelComp[i]->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Tire/tire3.obj"));
         WheelComp[i]->SetWorldLocation(FVector(WheelPos[i].x, WheelPos[i].y, WheelPos[i].z));
         WheelComp[i]->SetWorldScale3D(WheelSize);
         UE_LOG(ELogLevel::Warning, "Spawn Wheel");
