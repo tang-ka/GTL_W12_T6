@@ -127,7 +127,7 @@ void FBodyInstance::TermBody()
     if (Actor)
     {
         UPhysicsManager::Get().RemoveGameObject(Actor);
-        if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(reinterpret_cast<USceneComponent*>(Actor->rigidBody->userData)))
+        if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(reinterpret_cast<FBodyInstance*>(Actor->rigidBody->userData)->Owner))
             Comp->SetPhysBody(nullptr);
         Actor = nullptr;
     }

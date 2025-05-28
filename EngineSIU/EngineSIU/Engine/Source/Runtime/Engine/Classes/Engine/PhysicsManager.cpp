@@ -159,23 +159,23 @@ void UPhysicsManager::Simulate(float DeltaTime)
         Object->UpdateFromPhysics();
     }
 
-    //for (GameObject* Object : GameObjects)
-    //{
-    //    FBodyInstance* UserDataInstance = reinterpret_cast<FBodyInstance*>(Object->rigidBody->userData);
-    //    USceneComponent* Owner = UserDataInstance->Owner;
-    //    //USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
-    //    
-    //    if (!Owner)
-    //    {
-    //        continue;
-    //    }
+    for (GameObject* Object : GameObjects)
+    {
+        FBodyInstance* UserDataInstance = reinterpret_cast<FBodyInstance*>(Object->rigidBody->userData);
+        USceneComponent* Owner = UserDataInstance->Owner;
+        //USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
+        
+        if (!Owner)
+        {
+            continue;
+        }
 
-    //    if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
-    //    {
-    //        // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
-    //        SkeletalMeshComp->SyncBodyToComponent();
-    //    }
-    //}
+        if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
+        {
+            // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
+            SkeletalMeshComp->SyncBodyToComponent(UserDataInstance->GetBoneName(), FTransform(Object->worldMatrix));
+        }
+    }
 
     if (Car)
         Car->UpdatePhysics();
@@ -289,12 +289,12 @@ void GameObject::UpdateFromPhysics()
         Owner->SetWorldLocation(Location);
         Owner->SetWorldRotation(Quat);
     }
-    else if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
-    {
-        // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
+    //else if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
+    //{
+    //    // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
 
-        SkeletalMeshComp->SyncBodyToComponent(UserDataInstance->GetBoneName(), FTransform(this->worldMatrix));
-    }
+    //    SkeletalMeshComp->SyncBodyToComponent(UserDataInstance->GetBoneName(), FTransform(this->worldMatrix));
+    //}
 }
 
 void GameObject::Release()

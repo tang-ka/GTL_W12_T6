@@ -711,9 +711,18 @@ void USkeletalMeshComponent::SyncBodyToComponent(FName InBoneName, FTransform In
     }
 
     int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
+
+    FBodyInstance* ParentBody = Bodies[ParentIndex];
+    for (auto* Instance : Bodies)
+    {
+        if (Instance->GetBoneName() == RefSkeleton.RawRefBoneInfo[ParentIndex].Name)
+        {
+            ParentBody = Instance;
+        }
+    }
+
     if (ParentIndex != INDEX_NONE)
     {
-        FBodyInstance* ParentBody = Bodies[ParentIndex];
         FTransform ParentWorldTransform = FTransform(ParentBody->GetActor()->worldMatrix);
         FTransform ParentLocalTransform = ParentWorldTransform.GetRelativeTransform(WorldTransform);
 
