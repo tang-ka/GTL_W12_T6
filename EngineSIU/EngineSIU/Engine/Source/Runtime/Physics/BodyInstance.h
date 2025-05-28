@@ -16,9 +16,15 @@ public:
     GameObject* GetActor() const { return Actor; }
     void SetActor(GameObject* InActor) { Actor = InActor; }
 
+    FName GetBoneName() const { return BoneName; }
+    void SetBoneName(FName InName) { BoneName = InName; }
+
     void SetBodyTransform(const FTransform& NewTransform);
 
 private:
     GameObject* Actor = nullptr;
-    //USceneComponent* Owner = nullptr;
+    FName BoneName;
+
+public:
+    USceneComponent* Owner = nullptr;
 };

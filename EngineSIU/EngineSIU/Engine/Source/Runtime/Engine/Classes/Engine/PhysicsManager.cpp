@@ -6,6 +6,7 @@
 #include <UObject/Casts.h>
 #include "World/World.h"
 #include "Components/CarComponent.h"
+#include "BodyInstance.h"
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -65,7 +66,7 @@ void UPhysicsManager::Initialize()
 }
 
 GameObject* UPhysicsManager::SpawnGameObject(
-    USceneComponent* InOwner,
+    FBodyInstance* InBodyInstance,
     const PxVec3& Position,
     const PxQuat& Rotation,
     const TArray<PxShape*> Shapes,
@@ -108,7 +109,7 @@ GameObject* UPhysicsManager::SpawnGameObject(
     }
 
     GameObject* NewGameObject = new GameObject(body);
-    body->userData = InOwner;
+    body->userData = InBodyInstance;
     PendingSpawnGameObjects.Add(NewGameObject);
     //Scene->addActor(*body);
     //GameObjects.Add(NewGameObject);
@@ -120,7 +121,9 @@ void UPhysicsManager::Simulate(float DeltaTime)
 {
     for (GameObject* Object : GameObjects)
     {
-        USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
+        FBodyInstance* UserDataInstance = reinterpret_cast<FBodyInstance*>(Object->rigidBody->userData);
+        USceneComponent* Owner = UserDataInstance->Owner;
+        //USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
         if (!Owner)
             continue;
 
@@ -129,10 +132,10 @@ void UPhysicsManager::Simulate(float DeltaTime)
             PxTransform CompTransform = Owner->GetComponentTransform().ToPxTransform();
             Object->rigidBody->setGlobalPose(CompTransform);
         }
-        else if (USkeletalMeshComponent* SkeletalComp = Cast<USkeletalMeshComponent>(Owner))
-        {
-            SkeletalComp->SyncComponentToBody();
-        }
+        //else if (USkeletalMeshComponent* SkeletalComp = Cast<USkeletalMeshComponent>(Owner))
+        //{
+        //    SkeletalComp->SyncComponentToBody();
+        //}
     }
 
     if (Car)
@@ -155,6 +158,24 @@ void UPhysicsManager::Simulate(float DeltaTime)
     {
         Object->UpdateFromPhysics();
     }
+
+    //for (GameObject* Object : GameObjects)
+    //{
+    //    FBodyInstance* UserDataInstance = reinterpret_cast<FBodyInstance*>(Object->rigidBody->userData);
+    //    USceneComponent* Owner = UserDataInstance->Owner;
+    //    //USceneComponent* Owner = reinterpret_cast<USceneComponent*>(Object->rigidBody->userData);
+    //    
+    //    if (!Owner)
+    //    {
+    //        continue;
+    //    }
+
+    //    if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
+    //    {
+    //        // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
+    //        SkeletalMeshComp->SyncBodyToComponent();
+    //    }
+    //}
 
     if (Car)
         Car->UpdatePhysics();
@@ -241,7 +262,9 @@ void UPhysicsManager::InputKey(const FKeyEvent& InKeyEvent)
 
 void GameObject::UpdateFromPhysics()
 {
-    USceneComponent* Owner = reinterpret_cast<USceneComponent*>(rigidBody->userData);
+    FBodyInstance* UserDataInstance = reinterpret_cast<FBodyInstance*>(rigidBody->userData);
+    USceneComponent* Owner = UserDataInstance->Owner;
+    //USceneComponent* Owner = reinterpret_cast<USceneComponent*>(rigidBody->userData);
     //if(!Owner || Owner->GetWorld()->WorldType != EWorldType::PIE && Owner->GetWorld()->WorldType != EWorldType::Game)
     //    return;
     SCOPED_READ_LOCK(*UPhysicsManager::Get().GetScene());
@@ -269,7 +292,8 @@ void GameObject::UpdateFromPhysics()
     else if (USkeletalMeshComponent* SkeletalMeshComp = Cast<USkeletalMeshComponent>(Owner))
     {
         // Skeletal Mesh 컴포넌트의 경우, 위치와 회전만 업데이트
-        SkeletalMeshComp->SyncBodyToComponent();
+
+        SkeletalMeshComp->SyncBodyToComponent(UserDataInstance->GetBoneName(), FTransform(this->worldMatrix));
     }
 }
 

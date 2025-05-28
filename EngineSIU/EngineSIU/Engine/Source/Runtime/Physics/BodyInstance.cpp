@@ -31,6 +31,9 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         return;
     }
 
+    BoneName = Setup->BoneName;
+    Owner = InOwner;
+
     PxVec3 PxLocation = WorldTransform.GetTranslation().ToPxVec3();
     PxQuat PxRotation = WorldTransform.GetRotation().ToPxQuat();
 
@@ -103,7 +106,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
         Shapes.Add(Shape);
     }
 
-    Actor = UPhysicsManager::Get().SpawnGameObject(InOwner, PxLocation, PxRotation, Shapes, bIsStatic);
+    Actor = UPhysicsManager::Get().SpawnGameObject(this, PxLocation, PxRotation, Shapes, bIsStatic);
 
     if (UStaticMeshComponent* Comp = Cast<UStaticMeshComponent>(InOwner))
     {

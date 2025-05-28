@@ -8,11 +8,13 @@
 #include "UObject/ObjectMacros.h"
 #include "Core/Container/Array.h"
 
+
 using namespace physx;
 using namespace DirectX;
 
 class USceneComponent;
 class UCarComponent;
+class FBodyInstance;
 
 #define SCOPED_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene);
 #define SCOPED_WRITE_LOCK(scene) PxSceneWriteLock scopedWriteLock(scene);
@@ -56,7 +58,7 @@ public:
 
     // Spawn Physics scne game object
     class GameObject* SpawnGameObject(
-        USceneComponent* InOwner,
+        FBodyInstance* InBodyInstance,
         const PxVec3& Position,
         const PxQuat& Rotation,
         const TArray<PxShape*> Shapes,

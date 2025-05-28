@@ -1,4 +1,7 @@
 #pragma once
+
+#include <DirectXMath.h>
+
 #include "SkinnedMeshComponent.h"
 #include "Actors/Player.h"
 #include "Engine/AssetManager.h"
@@ -172,6 +175,7 @@ public:
 	void CreateConstraints();
 
     void SyncBodyToComponent();
+    void SyncBodyToComponent(FName InBoneName, FTransform InWorldMatrix);
 
     void SyncComponentToBody();
 	void SyncComponentToConstraint();

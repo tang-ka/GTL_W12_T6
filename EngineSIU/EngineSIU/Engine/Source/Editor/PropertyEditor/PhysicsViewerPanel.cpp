@@ -565,7 +565,8 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
         SphylElem.Center = FVector::ZeroVector;
         //SphylElem.Radius = FMath::Min(BoneLength * 0.1f, 2.0f);
         SphylElem.Radius = 1;
-        SphylElem.Length = (BoneLength - SphylElem.Radius * 2) * 0.9;
+        SphylElem.Length = (BoneLength - SphylElem.Radius * 2) * 0.8;
+        //SphylElem.Length = 1;
         SphylElem.Center.Z += SphylElem.Length * 0.5f;
         SphylElem.Rotation = RotQuat.Rotator();
         //BodySetup->AggGeom.SphylElems.Add(SphylElem);

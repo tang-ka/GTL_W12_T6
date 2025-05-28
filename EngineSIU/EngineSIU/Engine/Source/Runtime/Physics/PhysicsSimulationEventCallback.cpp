@@ -1,6 +1,7 @@
 #include "PhysicsSimulationEventCallback.h"
 #include "Engine/PhysicsManager.h"
 #include "Components/StaticMeshComponent.h"
+#include "BodyInstance.h"
 
 void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)
 {
@@ -12,8 +13,14 @@ void FPhysicsSimulationEventCallback::onContact(const PxContactPairHeader& pairH
 
     if (dataA && dataB)
     {
-        USceneComponent* CompA = reinterpret_cast<USceneComponent*>(dataA);
-        USceneComponent* CompB = reinterpret_cast<USceneComponent*>(dataB);
+        FBodyInstance* InstanceA = reinterpret_cast<FBodyInstance*>(dataA);
+        FBodyInstance* InstanceB = reinterpret_cast<FBodyInstance*>(dataB);
+
+        USceneComponent* CompA = InstanceA->Owner;
+        USceneComponent* CompB = InstanceB->Owner;
+
+        //USceneComponent* CompA = reinterpret_cast<USceneComponent*>(dataA);
+        //USceneComponent* CompB = reinterpret_cast<USceneComponent*>(dataB);
         if (CompA->GetWorld() == CompB->GetWorld())
         {
             for (PxU32 i = 0; i < nbPairs; ++i)

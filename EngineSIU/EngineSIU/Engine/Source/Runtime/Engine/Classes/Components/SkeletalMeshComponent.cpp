@@ -84,6 +84,8 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     TickPose(DeltaTime);
+
+    SyncComponentToBody();
 }
 
 void USkeletalMeshComponent::TickPose(float DeltaTime)
@@ -637,6 +639,7 @@ void USkeletalMeshComponent::CreateConstraints()
 
 void USkeletalMeshComponent::SyncBodyToComponent()
 {
+    //return;
     if (!GetPhysicsAsset())
     {
         return;
@@ -650,9 +653,8 @@ void USkeletalMeshComponent::SyncBodyToComponent()
         //FBodyInstance* BodyInstance = Bodies[i];
 
         GameObject* BodyActor = Bodies[i]->GetActor();
-        UBodySetup* BodySetup = GetPhysicsAsset()->GetBodySetups()[i];
 
-        if (!BodyActor || !BodyActor->rigidBody || !BodySetup)
+        if (!BodyActor || !BodyActor->rigidBody)
         {
             continue;
         }
@@ -662,7 +664,7 @@ void USkeletalMeshComponent::SyncBodyToComponent()
         // BodyActor의 World Transform에 WorldMatrix의 역행렬을 곱해 Local Transform을 구합니다.
         FTransform BodyLocalTransform = BodyWorldTransform.GetRelativeTransform(WorldTransform);
 
-        int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BodySetup->BoneName);
+        int32 BoneIndex = RefSkeleton.FindRawBoneIndex(Bodies[i]->GetBoneName());
         if (BoneIndex == INDEX_NONE)
         {
             continue; // 본이 없으면 다음으로 넘어갑니다.
@@ -682,6 +684,45 @@ void USkeletalMeshComponent::SyncBodyToComponent()
         {
             BonePoseContext.Pose[BoneIndex] = BodyLocalTransform; // 부모가 없으면 로컬 변환을 그대로 사용합니다.
         }
+    }
+}
+
+void USkeletalMeshComponent::SyncBodyToComponent(FName InBoneName, FTransform InWorldMatrix)
+{
+    //return;
+    if (!GetPhysicsAsset())
+    {
+        return;
+    }
+
+    const FReferenceSkeleton& RefSkeleton = GetSkeletalMeshAsset()->GetSkeleton()->GetReferenceSkeleton();
+    FTransform WorldTransform = GetWorldTransform();
+
+    // BodyActor의 World Trasform을 가져옵니다.
+    FTransform BodyWorldTransform = InWorldMatrix;
+    // BodyActor의 World Transform에 WorldMatrix의 역행렬을 곱해 Local Transform을 구합니다.
+    FTransform BodyLocalTransform = BodyWorldTransform.GetRelativeTransform(WorldTransform);
+
+    int32 BoneIndex = RefSkeleton.FindRawBoneIndex(InBoneName);
+
+    if (BoneIndex == INDEX_NONE)
+    {
+        return; // 본이 없으면 다음으로 넘어갑니다.
+    }
+
+    int32 ParentIndex = RefSkeleton.RawRefBoneInfo[BoneIndex].ParentIndex;
+    if (ParentIndex != INDEX_NONE)
+    {
+        FBodyInstance* ParentBody = Bodies[ParentIndex];
+        FTransform ParentWorldTransform = FTransform(ParentBody->GetActor()->worldMatrix);
+        FTransform ParentLocalTransform = ParentWorldTransform.GetRelativeTransform(WorldTransform);
+
+        FTransform LocalTransform = BodyLocalTransform.GetRelativeTransform(ParentLocalTransform);
+        BonePoseContext.Pose[BoneIndex] = LocalTransform;
+    }
+    else
+    {
+        BonePoseContext.Pose[BoneIndex] = BodyLocalTransform; // 부모가 없으면 로컬 변환을 그대로 사용합니다.
     }
 }
 
