@@ -23,11 +23,13 @@ void UPhysicsManager::Initialize()
     PxPvd* pvd = PxCreatePvd(*Foundation);
     PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
     pvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
-#endif
-
     // Physics Core
     Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, *TolerancesScale, true, pvd);
     PxInitExtensions(*Physics, pvd);
+#else
+    Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, *TolerancesScale, true);
+#endif
+
 
     PxMaterial* DefaultMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
 
