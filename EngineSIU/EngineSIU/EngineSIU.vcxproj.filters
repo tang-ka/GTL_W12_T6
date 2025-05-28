@@ -1706,16 +1706,14 @@
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PhysicsViewerPanel.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\PhysicsAsset.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintSetup.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\DepthOfFieldRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcessRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\CarActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CarComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
     <Natvis Include="Engine\Source\ThirdParty\sol2\sol2.natvis" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\CascadedShadowMap.hlsl" />
-    <FxCompile Include="Shaders\DepthCubeMapVS.hlsl" />
-    <FxCompile Include="Shaders\DepthOnlyVS.hlsl" />
-    <FxCompile Include="Shaders\PointLightCubemapGS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SkeletalMeshComponent.h" />
@@ -1835,6 +1833,10 @@
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PhysicsViewerPanel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\PhysicsAsset.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintSetup.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\DepthOfFieldRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostProcessRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\CarActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CarComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />
@@ -1863,5 +1865,11 @@
     <None Include="Shaders\CommonMeshPixelShaderWorldNormal.hlsl" />
     <None Include="Shaders\BillBoardVertexShader.hlsl" />
     <None Include="Shaders\CommonMeshPixelShaderWorldTangent.hlsl" />
+    <None Include="Shaders\CascadedShadowMap.hlsl" />
+    <None Include="Shaders\DepthCubeMapVS.hlsl" />
+    <None Include="Shaders\DepthOfFieldShader.hlsl" />
+    <None Include="Shaders\DepthOnlyVS.hlsl" />
+    <None Include="Shaders\PointLightCubemapGS.hlsl" />
+    <None Include="Shaders\FullScreenQuadVertexShader.hlsl" />
   </ItemGroup>
 </Project>
