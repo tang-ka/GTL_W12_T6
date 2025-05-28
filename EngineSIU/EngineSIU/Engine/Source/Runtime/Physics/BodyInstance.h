@@ -20,5 +20,5 @@ public:
 
 private:
     GameObject* Actor = nullptr;
-    USceneComponent* Owner = nullptr;
+    //USceneComponent* Owner = nullptr;
 };

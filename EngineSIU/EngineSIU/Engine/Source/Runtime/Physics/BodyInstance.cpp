@@ -137,10 +137,8 @@ void FBodyInstance::SetBodyTransform(const FTransform& NewTransform)
         return;
     }
 
-    FVector Location = NewTransform.GetTranslation();
-    FQuat Rotation = NewTransform.GetRotation();
-    PxVec3 PxLocation(Location.X, Location.Y, Location.Z);
-    PxQuat PxRotation(Rotation.X, Rotation.Y, Rotation.Z, Rotation.W);
+    PxVec3 PxLocation = NewTransform.GetTranslation().ToPxVec3();
+    PxQuat PxRotation = NewTransform.GetRotation().ToPxQuat();
 
     Actor->rigidBody->setGlobalPose(PxTransform(PxLocation, PxRotation));
 }
