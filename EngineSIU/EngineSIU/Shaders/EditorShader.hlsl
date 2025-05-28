@@ -802,9 +802,9 @@ PS_INPUT CapsuleVS(
     }
     
     float3 p = localPos;
-    localPos.x = -p.z;
-    localPos.y = p.y;
-    localPos.z = p.x;
+    //localPos.x = -p.z;
+    //localPos.y = p.y;
+    //localPos.z = p.x;
 
     float totalHeight = 2.0 * halfHeight + 2.0 * Radius;
     float heightNormalized = (localPos.z + halfHeight + Radius) / totalHeight;
