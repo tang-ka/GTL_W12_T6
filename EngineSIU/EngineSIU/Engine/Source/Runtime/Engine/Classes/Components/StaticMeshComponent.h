@@ -7,6 +7,14 @@
 class FBodyInstance;
 class GameObject;
 
+enum EShape
+{
+    EBox,
+    ESphere,
+    ECapsule,
+    EConvex
+};
+
 class UStaticMeshComponent : public UMeshComponent
 {
     DECLARE_CLASS(UStaticMeshComponent, UMeshComponent)
@@ -60,4 +68,5 @@ protected:
     bool bIsSphere = false;
     bool bIsCapsule = false;
     bool bIsConvex = false;
+    EShape CurShape = EShape::EBox;
 };

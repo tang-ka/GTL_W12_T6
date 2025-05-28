@@ -16,6 +16,8 @@ struct FKAggregateGeom;
 struct FKBoxElem;
 struct FKSphereElem;
 struct FKSphylElem;
+class UBodySetup;
+class UStaticMeshComponent;
 
 class FEditorRenderPass : public FRenderPassBase
 {
@@ -51,6 +53,7 @@ private:
 
     void RenderPhysicsAssetDebug(UPhysicsAsset* PhysicsAsset, USkeletalMeshComponent* SkelMeshComp);
     void RenderPhysicsAssetsDebug(uint64 ShowFlag);
+    void RenderStaticMeshPhysicsDebug(UBodySetup* BodySetup, UStaticMeshComponent* StaticMeshComp);
 
     TArray<FVector> GenerateUVSphereVertices(int32 Rings, int32 Sectors);
     TArray<uint32> GenerateUVSphereIndices(int32 Rings, int32 Sectors);

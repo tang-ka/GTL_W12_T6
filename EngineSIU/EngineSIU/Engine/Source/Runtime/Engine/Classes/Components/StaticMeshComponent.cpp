@@ -32,7 +32,6 @@ void UStaticMeshComponent::BeginPlay()
 {
     if (StaticMesh->GetBodySetup() && bSimulatePhysics)
     {
-        StaticMesh->GetBodySetup()->SetBodyShape(bIsBox, bIsSphere, bIsCapsule, bIsConvex, this);
         Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }
@@ -410,6 +409,18 @@ void UStaticMeshComponent::HandleContactPoint(FVector Pos, FVector Norm)
 void UStaticMeshComponent::SetBodySetupGeom(bool Box, bool Sphere, bool Capsule, bool Convex)
 {
     bIsBox = Box; bIsSphere = Sphere; bIsCapsule = Capsule; bIsConvex = Convex;
+    EShape NewShape;
+    if (Box)
+        NewShape = EBox;
+    else if (Sphere)
+        NewShape = ESphere;
+    else if (Capsule)
+        NewShape = ECapsule;
+    else
+        NewShape = EConvex;
+    if(NewShape!=CurShape)
+        StaticMesh->GetBodySetup()->SetBodyShape(bIsBox, bIsSphere, bIsCapsule, bIsConvex, this);
+    CurShape = NewShape;
 }
 
 void UStaticMeshComponent::GetBodySetupGeom(bool& OutBox, bool& OutSphere, bool& OutCapsule, bool& OutConvex)

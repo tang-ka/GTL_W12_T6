@@ -278,7 +278,7 @@ void UBodySetup::SetBodyShape(bool Box, bool Sphere, bool Capsule, bool Convex, 
     AggGeom.ConvexElems.Empty();
     FStaticMeshRenderData* StaticMeshData = Comp->GetStaticMesh()->GetRenderData();
     FVector Center = (StaticMeshData->BoundingBoxMax + StaticMeshData->BoundingBoxMin) * 0.5f;
-    FVector Extent = (StaticMeshData->BoundingBoxMax - StaticMeshData->BoundingBoxMin) * Comp->GetComponentScale3D() * 0.5f;
+    FVector Extent = (StaticMeshData->BoundingBoxMax - StaticMeshData->BoundingBoxMin) * 0.5f;
     float MidExtent;
     float MaxExtent = FMath::Max(FMath::Max(Extent.X, Extent.Y), Extent.Z);
     int Orientation[2];

@@ -29,6 +29,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Animation/Skeleton.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 void FEditorRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
@@ -791,7 +792,7 @@ void FEditorRenderPass::RenderSphereElements(const TArray<FKSphereElem>& SphereE
 
     for (const FKSphereElem& SphereElem : SphereElems)
     {
-        FTransform LocalTransform(FRotator::ZeroRotator, SphereElem.Center, FVector::OneVector);
+        FTransform LocalTransform(FRotator::ZeroRotator, SphereElem.Center, FVector(SphereElem.Radius));
         FTransform FinalTransform = BaseTransform * BoneTransform * LocalTransform;
 
         FConstantBufferDebugSphere BufferData;
@@ -899,8 +900,35 @@ void FEditorRenderPass::RenderPhysicsAssetsDebug(uint64 ShowFlag)
                     RenderPhysicsAssetDebug(PhysicsAsset, SkelMeshComp);
                 }
             }
+            if (UStaticMeshComponent* StaticMeshComp = Actor->GetComponentByClass<UStaticMeshComponent>())
+            {
+                if (!StaticMeshComp->GetStaticMesh())
+                    continue;
+                if (UBodySetup* BodySetup = StaticMeshComp->GetStaticMesh()->GetBodySetup())
+                {
+                    RenderStaticMeshPhysicsDebug(BodySetup, StaticMeshComp);
+                }
+            }
         }
     }
+}
+
+void FEditorRenderPass::RenderStaticMeshPhysicsDebug(UBodySetup* BodySetup, UStaticMeshComponent* StaticMeshComp)
+{
+    if (!BodySetup || !StaticMeshComp->ShouldSimulatePhysics())
+    {
+        return;
+    }
+
+    Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerSolidBack);
+
+    FTransform StaticMeshTransform = StaticMeshComp->GetComponentTransform();
+
+    FKAggregateGeom* AggGeom = &(BodySetup->AggGeom);
+
+    RenderBoxElements(AggGeom->BoxElems, StaticMeshTransform, FTransform());
+    RenderSphereElements(AggGeom->SphereElems, StaticMeshTransform, FTransform());
+    RenderCapsuleElements(AggGeom->SphylElems, StaticMeshTransform, FTransform());
 }
 
 TArray<FVector> FEditorRenderPass::GenerateUVSphereVertices(int32 Rings, int32 Sectors)
