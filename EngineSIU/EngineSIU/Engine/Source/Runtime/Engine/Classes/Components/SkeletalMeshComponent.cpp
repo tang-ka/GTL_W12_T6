@@ -593,6 +593,10 @@ void USkeletalMeshComponent::CreateBodies()
         {
             BoneTransform = RefBonePoseTransforms[BoneIndex];
         }
+        else
+        {
+            BoneTransform = GetWorldTransform();
+        }
 
         NewInstance->InitBody(this, BodySetup, BoneTransform);
         Bodies.Add(NewInstance);

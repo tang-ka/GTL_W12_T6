@@ -27,5 +27,4 @@ public:
 
 private:
     USkeletalMeshComponent* SkeletalMeshComponent = nullptr;
-
 };

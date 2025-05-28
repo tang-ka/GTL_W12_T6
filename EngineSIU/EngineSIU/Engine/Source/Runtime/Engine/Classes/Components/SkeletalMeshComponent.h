@@ -177,6 +177,10 @@ public:
 	void SyncComponentToConstraint();
     void SyncPhysicsFlags();
 
+    void GenerateRagdoll();
+    void GenerateRagdollBody();
+    void GenerateRagdollConstraint();
+
     bool ShouldSimulateSkel() const { return bIsSimulateSkel; }
     bool UseGravitySkel() const { return bUseGravitySkel; }
     bool IsKinematicSkel() const { return bIsKinematicSkel; }
