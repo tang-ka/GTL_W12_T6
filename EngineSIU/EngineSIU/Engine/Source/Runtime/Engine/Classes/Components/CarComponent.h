@@ -32,10 +32,11 @@ private:
     PxMaterial* DefaultMaterial = nullptr;
     PxRigidDynamic* CarBody = nullptr;
     PxRigidDynamic* Wheels[4] = { nullptr }; //FR, FL, RR, RL
-    PxRevoluteJoint* Joints[4] = { nullptr };
+    PxRevoluteJoint* RJoints[2] = { nullptr }; //RR, RL
+    PxD6Joint* FJoints[2] = { nullptr }; //FR, FL
     PxRevoluteJoint* SteeringJoint = nullptr;
-    float MaxSteerAngle = PxPi / 6.f;
-    float DeltaSteerAngle = PxPi / 4.5f;
+    float MaxSteerAngle = PxPi / 9.f;
+    float DeltaSteerAngle = PxPi / 18.f;
 
     //UStaticMeshComponent* BodyComp = nullptr; 바디는 나
     UStaticMeshComponent* WheelComp[4] = { nullptr };
@@ -43,15 +44,15 @@ private:
     bool bHasBody = false;
 
     FVector CarBodyPos = FVector(0, 0, 1.5f);
-    FVector BodyExtent = FVector(3.f, 1.f, 0.6f);
-    FVector WheelSize = FVector(0.5f);
+    FVector BodyExtent = FVector(4, 1.25f, 1);
+    FVector WheelSize = FVector(1.f);
 
     const PxVec3 WheelPos[4] =
     {
-        {2.5f, 1.5f, 0.9f} , //FR
-        {2.5f, -1.5f, 0.9f}, //FL
-        {-2.5f, 1.5f, 0.9f}, //RR
-        {-2.5f, -1.5f, 0.9f}  //RL
+        {   4.f, 2.5f, 0.5f}, //FR
+        {   4.f, -2.5f, 0.5f}, //FL
+        {-4.65f, 2.5f, 0.5f}, //RR
+        {-4.65f, -2.5f, 0.5f}  //RL
     };
 
 public:

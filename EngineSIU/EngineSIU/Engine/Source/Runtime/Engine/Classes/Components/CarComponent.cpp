@@ -94,15 +94,15 @@ void UCarComponent::BeginPlay()
 
 void UCarComponent::SpawnComponents()
 {
-    SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Primitives/CubePrimitive.obj"));
+    SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Dodge/Car_RemoveWheel.obj"));
     SetWorldLocation(CarBodyPos);
-    SetWorldScale3D(BodyExtent * 2.f);
+    SetWorldScale3D(FVector(1.f));
     for (int i = 0; i < 4; ++i)
     {
         AActor* Owner = GetOwner();
         WheelComp[i] = GetOwner()->AddComponent<UStaticMeshComponent>();
         WheelComp[i]->SetupAttachment(GetOwner()->GetRootComponent());
-        WheelComp[i]->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Tire/tire3.obj"));
+        WheelComp[i]->SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Tire/tire.obj"));
         WheelComp[i]->SetWorldLocation(FVector(WheelPos[i].x, WheelPos[i].y, WheelPos[i].z));
         WheelComp[i]->SetWorldScale3D(WheelSize);
         UE_LOG(ELogLevel::Warning, "Spawn Wheel");
@@ -113,9 +113,10 @@ void UCarComponent::MoveCar()
 {
     if (GetKeyState(VK_RBUTTON) & 0x8000 || !bHasBody)
     {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 2; ++i)
         {
-            Joints[i]->setDriveVelocity(0.f);
+            RJoints[i]->setDriveVelocity(0.f);
+            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0.f));
         }
         SteeringJoint->setDriveVelocity(0);
         return;
@@ -134,27 +135,30 @@ void UCarComponent::MoveCar()
 
     if (PressedKeys.Contains(EKeys::W))
     {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 2; ++i)
         {
-            Joints[i]->setDriveVelocity(15.f);
+            RJoints[i]->setDriveVelocity(15.f);
+            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0, 15.f, 0));
         }
         UE_LOG(ELogLevel::Display, "W Pressed!");
     }
 
     if (PressedKeys.Contains(EKeys::S))
     {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 2; ++i)
         {
-            Joints[i]->setDriveVelocity(-15.f);
+            RJoints[i]->setDriveVelocity(-15.f);
+            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0, -15.f, 0));
         }
         UE_LOG(ELogLevel::Display, "S Pressed!");
     }
 
     if (PressedKeys.IsEmpty())
     {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 2; ++i)
         {
-            Joints[i]->setDriveVelocity(0.f);
+            RJoints[i]->setDriveVelocity(0.f);
+            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0.f));
         }
         SteeringJoint->setDriveVelocity(0);
     }
@@ -165,9 +169,11 @@ void UCarComponent::AddPhysBody()
     PxPhysics* Physics = UPhysicsManager::Get().GetPhysics();
     PxScene* Scene = UPhysicsManager::Get().GetScene();
     if (!DefaultMaterial)
-        DefaultMaterial = Physics->createMaterial(1.f, 1.f, 0.f);
+        DefaultMaterial = Physics->createMaterial(2.f, 2.f, 0.f);
 
     //몸통
+    BodyExtent = (AABB.MaxLocation - AABB.MinLocation) * 0.5f;
+    BodyExtent.Z *= 0.4f;
     PxBoxGeometry CarBodyGeom(BodyExtent.ToPxVec3());
     CarBody = Physics->createRigidDynamic(PxTransform(CarBodyPos.ToPxVec3()));
     {
@@ -182,7 +188,7 @@ void UCarComponent::AddPhysBody()
     }
 
     //바퀴
-    float WheelRadius = 0.5f;
+    float WheelRadius = 1.2f;
     PxSphereGeometry WheelGeom(WheelRadius);
 
     for (int i = 0; i < 4; ++i)
@@ -193,16 +199,16 @@ void UCarComponent::AddPhysBody()
         WheelShape->setSimulationFilterData(PxFilterData(ECollisionChannel::ECC_Wheel, 0xFFFF, 0, 0));
         Wheels[i]->attachShape(*WheelShape);
         WheelShape->release();
-        PxRigidBodyExt::updateMassAndInertia(*Wheels[i], 20.0f);
+        PxRigidBodyExt::updateMassAndInertia(*Wheels[i], 0.1f);
         Scene->addActor(*Wheels[i]);
     }
 
     PxTransform bodyPose = CarBody->getGlobalPose();   // e.g. (0,0,1), q=I
     //뒷바퀴 몸체 연결
-    for (int i = 2; i < 4; ++i)
+    for (int i = 0; i < 2; ++i)
     {
         // 1) wheelPose 읽어오기
-        PxTransform wheelPose = Wheels[i]->getGlobalPose(); // e.g. (1,0.9,0.7), q=I
+        PxTransform wheelPose = Wheels[i+2]->getGlobalPose(); // e.g. (1,0.9,0.7), q=I
 
         // 2) 월드에서의 joint 위치/회전 정의
         PxQuat hingeRotYtoX(PxHalfPi, PxVec3(0, 0, 1));       // Z축 +90° → X_local → Y_world
@@ -216,28 +222,34 @@ void UCarComponent::AddPhysBody()
         PxTransform localFrameWheel = wheelPose.getInverse() * jointGlobalPose;
 
         // 4) joint 생성
-        Joints[i] = PxRevoluteJointCreate(
+        RJoints[i] = PxRevoluteJointCreate(
             *Physics,
             CarBody, localFrameChassis,
-            Wheels[i], localFrameWheel);
+            Wheels[i+2], localFrameWheel);
 
         //Joints[i]->setDriveVelocity(10.0f);
 
         // 힌지 축 고정(회전자유), 다른 축은 잠금
-        Joints[i]->setRevoluteJointFlag(PxRevoluteJointFlag::eDRIVE_ENABLED, true);
-        Joints[i]->setRevoluteJointFlag(PxRevoluteJointFlag::eLIMIT_ENABLED, false);
-        Joints[i]->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
+        RJoints[i]->setRevoluteJointFlag(PxRevoluteJointFlag::eDRIVE_ENABLED, true);
+        RJoints[i]->setRevoluteJointFlag(PxRevoluteJointFlag::eLIMIT_ENABLED, false);
+        RJoints[i]->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
+        RJoints[i]->setConstraintFlag(physx::PxConstraintFlag::eVISUALIZATION, true);
     }
 
     //차 회전 관련 조인트 세팅
     PxTransform FRWheelT = Wheels[0]->getGlobalPose();
     PxTransform FLWheelT = Wheels[1]->getGlobalPose();
     PxQuat JointOrientation(PxHalfPi, PxVec3(0, 1, 0));
-    PxVec3 JointPos = (FRWheelT.p + FLWheelT.p) * 0.2f;
+    PxVec3 JointPos = (FRWheelT.p + FLWheelT.p) * 0.5f + PxVec3(0,0,0.4f);
     PxTransform JointT(JointPos, JointOrientation);
 
     PxTransform HubT(JointPos);
     PxRigidDynamic* Hub = Physics->createRigidDynamic(HubT);
+    PxVec3 HubSize = PxVec3(0.2f, (FRWheelT.p.y - FLWheelT.p.y) * 0.5f, 0.2f);
+    PxShape* HubShape = Physics->createShape(PxBoxGeometry(HubSize), *DefaultMaterial);
+    HubShape->setSimulationFilterData(PxFilterData(ECollisionChannel::ECC_CarBody, 0xFFFF, 0, 0));
+    Hub->attachShape(*HubShape);
+
     Scene->addActor(*Hub);
 
     PxTransform BodyLocal = bodyPose.getInverse() * JointT;
@@ -251,24 +263,40 @@ void UCarComponent::AddPhysBody()
     SteeringJoint->setRevoluteJointFlag(PxRevoluteJointFlag::eDRIVE_ENABLED, true);
     SteeringJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
     SteeringJoint->setLimit(PxJointAngularLimitPair(-MaxSteerAngle, +MaxSteerAngle));
-
-    PxQuat WheelJointQ(PxHalfPi, PxVec3(0, 0, 1));       // Z축 +90° → X_local → Y_world
+    SteeringJoint->setRevoluteJointFlag(PxRevoluteJointFlag::eLIMIT_ENABLED, true);
+    SteeringJoint->setConstraintFlag(physx::PxConstraintFlag::eVISUALIZATION, true);
 
     //허브 앞바퀴 연결
     for (int i = 0; i < 2; ++i)
     {
-        PxTransform WheelJointT(Wheels[i]->getGlobalPose().p, WheelJointQ);
+        PxTransform WheelJointT(Wheels[i]->getGlobalPose().p);
         PxTransform LocalWheel = Wheels[i]->getGlobalPose().getInverse() * WheelJointT;
         PxTransform LocalHub = HubT.getInverse() * WheelJointT;
 
-        Joints[i] = PxRevoluteJointCreate(
+        FJoints[i] = PxD6JointCreate(
             *Physics,
             Hub, LocalHub,
             Wheels[i], LocalWheel
         );
-        Joints[i]->setRevoluteJointFlag(PxRevoluteJointFlag::eDRIVE_ENABLED, true);
-        Joints[i]->setRevoluteJointFlag(PxRevoluteJointFlag::eLIMIT_ENABLED, false);
-        Joints[i]->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
+        FJoints[i]->setMotion(PxD6Axis::eX, PxD6Motion::eLOCKED);
+        FJoints[i]->setMotion(PxD6Axis::eY, PxD6Motion::eLOCKED);
+        FJoints[i]->setMotion(PxD6Axis::eZ, PxD6Motion::eLOCKED);
+        FJoints[i]->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLOCKED);
+        FJoints[i]->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLOCKED);
+        FJoints[i]->setConstraintFlag(physx::PxConstraintFlag::eVISUALIZATION, true);
+
+        FJoints[i]->setMotion(PxD6Axis::eSWING1, PxD6Motion::eFREE);
+        PxD6JointDrive driveConfig(
+            /*stiffness=*/ 5000.0f,
+            /*damping=*/   200.0f,
+            /*maxForce=*/  PX_MAX_F32,
+            /*isAcceleration=*/ true
+        );
+        FJoints[i]->setDrive(PxD6Drive::eTWIST, driveConfig);
+
+        // 6) 초기 목표 위치(0회전)로 세팅
+        FJoints[i]->setDrivePosition(PxTransform(PxQuat(0, PxVec3(0, 1, 0))));
+        FJoints[i]->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
     }
     bHasBody = true;
 }
@@ -280,10 +308,12 @@ void UCarComponent::RemovePhysBody()
     SteeringJoint = nullptr;
 
     Scene->removeActor(*CarBody);
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 2; ++i)
     {
-        Joints[i]->release();
-        Joints[i] = nullptr;
+        RJoints[i]->release();
+        FJoints[i]->release();
+        RJoints[i] = nullptr;
+        FJoints[i] = nullptr;
         Scene->removeActor(*Wheels[i]);
     }
     bHasBody = false;
