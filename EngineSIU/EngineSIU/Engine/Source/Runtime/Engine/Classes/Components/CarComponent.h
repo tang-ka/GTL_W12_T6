@@ -35,8 +35,8 @@ private:
     PxRevoluteJoint* RJoints[2] = { nullptr }; //RR, RL
     PxD6Joint* FJoints[2] = { nullptr }; //FR, FL
     PxRevoluteJoint* SteeringJoint = nullptr;
-    float MaxSteerAngle = PxPi / 6.f;
-    float DeltaSteerAngle = PxPi / 4.5f;
+    float MaxSteerAngle = PxPi / 9.f;
+    float DeltaSteerAngle = PxPi / 18.f;
 
     //UStaticMeshComponent* BodyComp = nullptr; 바디는 나
     UStaticMeshComponent* WheelComp[4] = { nullptr };

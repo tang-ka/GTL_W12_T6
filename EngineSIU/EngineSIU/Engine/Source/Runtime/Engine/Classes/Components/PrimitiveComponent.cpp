@@ -230,6 +230,9 @@ void UPrimitiveComponent::GetProperties(TMap<FString, FString>& OutProperties) c
     OutProperties.Add(TEXT("m_Type"), m_Type);
     OutProperties.Add(TEXT("AABB_min"), AABB.MinLocation.ToString());
     OutProperties.Add(TEXT("AABB_max"), AABB.MaxLocation.ToString());
+    OutProperties.Add(TEXT("bIsStatic"), FString::Printf("%d" ,(static_cast<int>(bIsStatic))));
+    OutProperties.Add(TEXT("bSimulatePhysics"), FString::Printf("%d" ,(static_cast<int>(bSimulatePhysics))));
+    OutProperties.Add(TEXT("bSimulateGravity"), FString::Printf("%d" ,(static_cast<int>(bSimulateGravity))));
 }
 
 void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -258,6 +261,22 @@ void UPrimitiveComponent::SetProperties(const TMap<FString, FString>& InProperti
     if (AABBmaxStr)
     {
         AABB.MaxLocation.InitFromString(*AABBmaxStr);
+    }
+
+    const FString* IsStatic = InProperties.Find(TEXT("bIsStatic"));
+    if (IsStatic)
+    {
+        bIsStatic = IsStatic->ToBool();
+    }
+    const FString* SimulateGravity = InProperties.Find(TEXT("bSimulateGravity"));
+    if (IsStatic)
+    {
+        bSimulateGravity = SimulateGravity->ToBool();
+    }
+    const FString* SimulatePhysics = InProperties.Find(TEXT("bSimulatePhysics"));
+    if (IsStatic)
+    {
+        bSimulatePhysics = SimulatePhysics->ToBool();
     }
 }
 

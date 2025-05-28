@@ -94,7 +94,7 @@ void UCarComponent::BeginPlay()
 
 void UCarComponent::SpawnComponents()
 {
-    SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Dodge/Car.obj"));
+    SetStaticMesh(FObjManager::GetStaticMesh(L"Contents/Dodge/Car_RemoveWheel.obj"));
     SetWorldLocation(CarBodyPos);
     SetWorldScale3D(FVector(1.f));
     for (int i = 0; i < 4; ++i)
@@ -199,7 +199,7 @@ void UCarComponent::AddPhysBody()
         WheelShape->setSimulationFilterData(PxFilterData(ECollisionChannel::ECC_Wheel, 0xFFFF, 0, 0));
         Wheels[i]->attachShape(*WheelShape);
         WheelShape->release();
-        PxRigidBodyExt::updateMassAndInertia(*Wheels[i], 20.0f);
+        PxRigidBodyExt::updateMassAndInertia(*Wheels[i], 0.1f);
         Scene->addActor(*Wheels[i]);
     }
 
@@ -240,7 +240,7 @@ void UCarComponent::AddPhysBody()
     PxTransform FRWheelT = Wheels[0]->getGlobalPose();
     PxTransform FLWheelT = Wheels[1]->getGlobalPose();
     PxQuat JointOrientation(PxHalfPi, PxVec3(0, 1, 0));
-    PxVec3 JointPos = (FRWheelT.p + FLWheelT.p) * 0.5f + PxVec3(0,0,0.35f);
+    PxVec3 JointPos = (FRWheelT.p + FLWheelT.p) * 0.5f + PxVec3(0,0,0.4f);
     PxTransform JointT(JointPos, JointOrientation);
 
     PxTransform HubT(JointPos);
