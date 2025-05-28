@@ -53,6 +53,15 @@ struct FKBoxElem : public FKShapeElem
 
     }
 
+    FKBoxElem(FVector C, FVector E)
+        : FKShapeElem(EAggCollisionShape::Box)
+        , Center(C)
+        , Rotation(FRotator::ZeroRotator)
+        , Extent(E)
+    {
+
+    }
+
     virtual ~FKBoxElem() = default;
 
     friend bool operator==(const FKBoxElem& LHS, const FKBoxElem& RHS)

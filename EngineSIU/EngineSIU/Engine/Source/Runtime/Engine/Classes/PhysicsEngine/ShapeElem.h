@@ -143,7 +143,7 @@ struct FKConvexElem : public FKShapeElem
     FRotator Rotation = FRotator::ZeroRotator;
 
     TArray<FVector> VertexData;
-    TArray<int32> FaceIndexBuffer;
+    TArray<UINT> FaceIndexBuffer;
     TArray<FVector> FaceNormalBuffer;
 };
 

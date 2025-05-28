@@ -3,6 +3,8 @@
 #include "PhysicsEngine/BoxElem.h"
 #include "PhysicsEngine/SphylElem.h"
 #include "PhysicalMaterial.h"
+#include <Engine/Asset/StaticMeshAsset.h>
+#include "Components/StaticMeshComponent.h"
 
 UBodySetup::UBodySetup()
 {
@@ -266,4 +268,95 @@ void UBodySetup::DisplayProperty()
     {
         Property->DisplayInImGui(this);
     }
+}
+
+void UBodySetup::SetBodyShape(bool Box, bool Sphere, bool Capsule, bool Convex, const UStaticMeshComponent* Comp)
+{
+    AggGeom.BoxElems.Empty();
+    AggGeom.SphereElems.Empty();
+    AggGeom.SphylElems.Empty();
+    AggGeom.ConvexElems.Empty();
+    FStaticMeshRenderData* StaticMeshData = Comp->GetStaticMesh()->GetRenderData();
+    FVector Center = (StaticMeshData->BoundingBoxMax + StaticMeshData->BoundingBoxMin) * 0.5f;
+    FVector Extent = (StaticMeshData->BoundingBoxMax - StaticMeshData->BoundingBoxMin) * Comp->GetComponentScale3D() * 0.5f;
+    float MidExtent;
+    float MaxExtent = FMath::Max(FMath::Max(Extent.X, Extent.Y), Extent.Z);
+    int Orientation[2];
+    if (MaxExtent == Extent.X)
+    {
+        Orientation[0] = 0;
+        MidExtent = FMath::Max(Extent.Y, Extent.Z);
+        if (MidExtent == Extent.Y)
+            Orientation[1] = 1;
+        else
+            Orientation[1] = 2;
+    }
+    else if (MaxExtent == Extent.Y)
+    {
+        Orientation[0] = 1;
+        MidExtent = FMath::Max(Extent.X, Extent.Z);
+        if (MidExtent == Extent.X)
+            Orientation[1] = 0;
+        else
+            Orientation[1] = 2;
+    }
+    else
+    {
+        Orientation[0] = 2;
+        MidExtent = FMath::Max(Extent.X, Extent.Y);
+        if (MidExtent == Extent.X)
+            Orientation[1] = 0;
+        else
+            Orientation[1] = 1;
+    }
+    if (Box)
+    {
+        FKBoxElem Box(Center, Extent);
+        AggGeom.BoxElems.Add(Box);
+    }
+    if (Sphere)
+    {
+        FKSphereElem Sphere(Center, MaxExtent);
+        AggGeom.SphereElems.Add(Sphere);
+    }
+    else if (Capsule)
+    {
+        float Radius = MidExtent;
+        FKSphylElem Capsule(Radius, MaxExtent - Radius);
+        FRotator Rotation;
+        switch (Orientation[0])
+        {
+        case 0:
+            break;
+        case 1:
+            Rotation = FRotator(FQuat(FVector(1, 0, 0), FMath::DegreesToRadians(90.f)));
+            break;
+        case 2:
+            Rotation = FRotator(FQuat(FVector(0, 0, 1), FMath::DegreesToRadians(90.f)));
+            break;
+        }
+        Capsule.Rotation = Rotation;
+        AggGeom.SphylElems.Add(Capsule);
+    }
+    else if (Convex)
+    {
+        FKConvexElem Convex;
+        Convex.Center = Center;
+        TArray<FVector> Vertices;
+        TArray<FVector> Normals;
+        
+        for (const auto& Vertex : StaticMeshData->Vertices)
+        {
+            FVector Data(Vertex.X, Vertex.Y, Vertex.Z);
+            Vertices.Add(Data);
+            FVector NormData(Vertex.NormalX, Vertex.NormalY, Vertex.NormalZ);
+            Normals.Add(NormData);
+        }
+        Convex.VertexData = Vertices;
+        Convex.FaceIndexBuffer = StaticMeshData->Indices;
+        Convex.FaceNormalBuffer = Normals;
+
+        AggGeom.ConvexElems.Add(Convex);
+    }
+    
 }

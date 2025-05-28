@@ -804,81 +804,83 @@ void PropertyEditorPanel::RenderForBoundingBody(UPrimitiveComponent* PrimitiveCo
 
     if (bPhysics)
     {
-        static bool bSphere = false;
-        static bool bBox = true;
-        static bool bCapsule = false;
-        static bool bConvex = false;
-
-        bool prev = bSphere;
-        if (ImGui::Checkbox("Sphere", &bSphere))
+        UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(PrimitiveComp);
+        if (StaticMeshComp)
         {
-            if (bSphere) 
+            bool bBox = false;
+            bool bSphere = false; 
+            bool bCapsule = false; 
+            bool bConvex = false;
+            StaticMeshComp->GetBodySetupGeom(bBox, bSphere, bCapsule, bConvex);
+
+            if (ImGui::Checkbox("Sphere", &bSphere))
             {
-                // Sphere를 켠 경우 나머지 모두 끄기
-                bBox = bCapsule = bConvex = false;
-            }
-            else 
-            {
-                // 만약 유저가 유일하게 켜진 Sphere를 끄려 하면, 다시 켜준다.
-                if (!bBox && !bCapsule && !bConvex) 
+                if (bSphere)
                 {
-                    bSphere = true;
+                    // Sphere를 켠 경우 나머지 모두 끄기
+                    bBox = bCapsule = bConvex = false;
+                }
+                else
+                {
+                    // 만약 유저가 유일하게 켜진 Sphere를 끄려 하면, 다시 켜준다.
+                    if (!bBox && !bCapsule && !bConvex)
+                    {
+                        bSphere = true;
+                    }
                 }
             }
-        }
-        ImGui::SameLine(); // 같은 라인에 배치
+            ImGui::SameLine(); // 같은 라인에 배치
 
-        // Box
-        prev = bBox;
-        if (ImGui::Checkbox("Box", &bBox)) 
-        {
-            if (bBox) 
+            // Box
+            if (ImGui::Checkbox("Box", &bBox))
             {
-                bSphere = bCapsule = bConvex = false;
-            }
-            else 
-            {
-                if (!bSphere && !bCapsule && !bConvex)
+                if (bBox)
                 {
-                    bBox = true;
+                    bSphere = bCapsule = bConvex = false;
+                }
+                else
+                {
+                    if (!bSphere && !bCapsule && !bConvex)
+                    {
+                        bBox = true;
+                    }
                 }
             }
-        }
-        ImGui::SameLine();
+            ImGui::SameLine();
 
-        // Capsule
-        prev = bCapsule;
-        if (ImGui::Checkbox("Capsule", &bCapsule))
-        {
-            if (bCapsule)
+            // Capsule
+            if (ImGui::Checkbox("Capsule", &bCapsule))
             {
-                bSphere = bBox = bConvex = false;
-            }
-            else 
-            {
-                if (!bSphere && !bBox && !bConvex)
+                if (bCapsule)
                 {
-                    bCapsule = true;
+                    bSphere = bBox = bConvex = false;
+                }
+                else
+                {
+                    if (!bSphere && !bBox && !bConvex)
+                    {
+                        bCapsule = true;
+                    }
                 }
             }
-        }
-        ImGui::SameLine();
+            ImGui::SameLine();
 
-        // Convex
-        prev = bConvex;
-        if (ImGui::Checkbox("Convex", &bConvex))
-        {
-            if (bConvex) 
+            // Convex
+            if (ImGui::Checkbox("Convex", &bConvex))
             {
-                bSphere = bBox = bCapsule = false;
-            }
-            else 
-            {
-                if (!bSphere && !bBox && !bCapsule)
+                if (bConvex)
                 {
-                    bConvex = true;
+                    bSphere = bBox = bCapsule = false;
+                }
+                else
+                {
+                    if (!bSphere && !bBox && !bCapsule)
+                    {
+                        bConvex = true;
+                    }
                 }
             }
+            StaticMeshComp->SetBodySetupGeom(bBox, bSphere, bCapsule, bConvex);
         }
 
         bool bIsStatic = PrimitiveComp->GetIsStatic();
@@ -896,7 +898,7 @@ void PropertyEditorPanel::RenderForBoundingBody(UPrimitiveComponent* PrimitiveCo
         }
 
         ImGui::Text("Physics Material Setting");
-        UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(PrimitiveComp);
+        
 
         bool bChanged = false;
         float StaticFriction;

@@ -29,6 +29,14 @@ struct FKSphereElem : public FKShapeElem
 
     }
 
+    FKSphereElem(FVector c, float r)
+        : FKShapeElem(EAggCollisionShape::Sphere)
+        , Center(c)
+        , Radius(r)
+    {
+
+    }
+
     virtual ~FKSphereElem() = default;
 
     friend bool operator==(const FKSphereElem& LHS, const FKSphereElem& RHS)

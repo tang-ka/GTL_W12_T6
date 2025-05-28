@@ -138,7 +138,7 @@ void UCarComponent::MoveCar()
         for (int i = 0; i < 2; ++i)
         {
             RJoints[i]->setDriveVelocity(15.f);
-            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0, 15.f, 0));
+            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0, 30.f, 0));
         }
         UE_LOG(ELogLevel::Display, "W Pressed!");
     }
@@ -148,7 +148,7 @@ void UCarComponent::MoveCar()
         for (int i = 0; i < 2; ++i)
         {
             RJoints[i]->setDriveVelocity(-15.f);
-            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0, -15.f, 0));
+            FJoints[i]->setDriveVelocity(PxVec3(0.f), PxVec3(0, -30.f, 0));
         }
         UE_LOG(ELogLevel::Display, "S Pressed!");
     }
@@ -244,7 +244,7 @@ void UCarComponent::AddPhysBody()
     PxTransform JointT(JointPos, JointOrientation);
 
     PxTransform HubT(JointPos);
-    PxRigidDynamic* Hub = Physics->createRigidDynamic(HubT);
+    Hub = Physics->createRigidDynamic(HubT);
     PxVec3 HubSize = PxVec3(0.2f, (FRWheelT.p.y - FLWheelT.p.y) * 0.5f, 0.2f);
     PxShape* HubShape = Physics->createShape(PxBoxGeometry(HubSize), *DefaultMaterial);
     HubShape->setSimulationFilterData(PxFilterData(ECollisionChannel::ECC_CarBody, 0xFFFF, 0, 0));
@@ -308,12 +308,16 @@ void UCarComponent::RemovePhysBody()
     SteeringJoint = nullptr;
 
     Scene->removeActor(*CarBody);
-    for (int i = 0; i < 2; ++i)
+    Scene->removeActor(*Hub);
+    for (int i = 0; i < 4; ++i)
     {
-        RJoints[i]->release();
-        FJoints[i]->release();
-        RJoints[i] = nullptr;
-        FJoints[i] = nullptr;
+        if (i < 2)
+        {
+            RJoints[i]->release();
+            FJoints[i]->release();
+            RJoints[i] = nullptr;
+            FJoints[i] = nullptr;
+        }
         Scene->removeActor(*Wheels[i]);
     }
     bHasBody = false;
