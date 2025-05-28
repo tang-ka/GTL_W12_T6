@@ -40,6 +40,7 @@
 #include "Renderer/CompositingPass.h"
 #include <Engine/FbxLoader.h>
 #include "Particles/ParticleSystemComponent.h"
+#include "Actors/CarActor.h"
 
 ControlEditorPanel::ControlEditorPanel()
 {
@@ -528,7 +529,10 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     break;
                 }
                 case OBJ_VEHICLE:
-                    UPhysicsManager::Get().SpawnVehicle();
+                    SpawnedActor = World->SpawnActor<ACarActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_CAR"));
+                    Cast<UCarComponent>(SpawnedActor->GetRootComponent())->SpawnComponents();
+                    //UPhysicsManager::Get().SpawnVehicle();
                     break;
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:

@@ -5,7 +5,7 @@
 #include <Components/StaticMeshComponent.h>
 #include <UObject/Casts.h>
 #include "World/World.h"
-#include "PxVehicleManager.h"
+#include "Components/CarComponent.h"
 
 UPhysicsManager::UPhysicsManager()
 {
@@ -21,11 +21,12 @@ void UPhysicsManager::Initialize()
 #ifdef _DEBUG
     PxPvd* pvd = PxCreatePvd(*Foundation);
     PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-    pvd->connect(*transport, PxPvdInstrumentationFlag::ePROFILE);
+    pvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 #endif
 
     // Physics Core
     Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, *TolerancesScale, true, pvd);
+    PxInitExtensions(*Physics, pvd);
 
     PxMaterial* DefaultMaterial = Physics->createMaterial(0.5f, 0.5f, 0.6f);
 
@@ -131,6 +132,9 @@ void UPhysicsManager::Simulate(float DeltaTime)
         }
     }
 
+    if (Car)
+        Car->MoveCar();
+
     Scene->simulate(DeltaTime);
     Scene->fetchResults(true);
 
@@ -149,8 +153,8 @@ void UPhysicsManager::Simulate(float DeltaTime)
         Object->UpdateFromPhysics();
     }
 
-    if (Vehicle)
-        Vehicle->Tick(DeltaTime);
+    if (Car)
+        Car->UpdatePhysics();
 }
 
 void UPhysicsManager::RemoveGameObjects()
@@ -172,12 +176,64 @@ void UPhysicsManager::RemoveGameObject(GameObject* InGameObject)
     PendingRemoveGameObjects.Add(InGameObject);
 }
 
-void UPhysicsManager::SpawnVehicle()
+
+void UPhysicsManager::InputKey(const FKeyEvent& InKeyEvent)
 {
-    if (Vehicle)
+    if (!Car)
         return;
-    Vehicle = new UPxVehicleManager;
-    //Vehicle->Initialize(Physics, Scene);
+    if (GEngine->ActiveWorld->WorldType == EWorldType::Editor)
+        return;
+    switch (InKeyEvent.GetCharacter())
+    {
+    case 'A':
+    {
+        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+        {
+            Car->PressedKeys.Add(EKeys::A);
+        }
+        else if (InKeyEvent.GetInputEvent() == IE_Released)
+        {
+            Car->PressedKeys.Remove(EKeys::A);
+        }
+        break;
+    }
+    case 'D':
+    {
+        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+        {
+            Car->PressedKeys.Add(EKeys::D);
+        }
+        else if (InKeyEvent.GetInputEvent() == IE_Released)
+        {
+            Car->PressedKeys.Remove(EKeys::D);
+        }
+        break;
+    }
+    case 'W':
+    {
+        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+        {
+            Car->PressedKeys.Add(EKeys::W);
+        }
+        else if (InKeyEvent.GetInputEvent() == IE_Released)
+        {
+            Car->PressedKeys.Remove(EKeys::W);
+        }
+        break;
+    }
+    case 'S':
+    {
+        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+        {
+            Car->PressedKeys.Add(EKeys::S);
+        }
+        else if (InKeyEvent.GetInputEvent() == IE_Released)
+        {
+            Car->PressedKeys.Remove(EKeys::S);
+        }
+        break;
+    }
+    }
 }
 
 void GameObject::UpdateFromPhysics()

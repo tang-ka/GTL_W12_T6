@@ -12,7 +12,7 @@ using namespace physx;
 using namespace DirectX;
 
 class USceneComponent;
-class UPxVehicleManager;
+class UCarComponent;
 
 #define SCOPED_READ_LOCK(scene) PxSceneReadLock scopedReadLock(scene);
 #define SCOPED_WRITE_LOCK(scene) PxSceneWriteLock scopedWriteLock(scene);
@@ -77,7 +77,7 @@ public:
 
     void RemoveGameObject(GameObject* InGameObject);
 
-    void SpawnVehicle();
+    void InputKey(const FKeyEvent& InKeyEvent);
 
 private:
     PxDefaultAllocator Allocator;
@@ -99,7 +99,7 @@ private:
 
 public:
     FOnPhysicsContact OnPhysicsContact;
-    UPxVehicleManager* Vehicle = nullptr;
+    UCarComponent* Car = nullptr;
 };
 
 enum ECollisionChannel

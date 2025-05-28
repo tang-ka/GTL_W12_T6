@@ -228,7 +228,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\PxVehicleManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\CarActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CarComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintSetup.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\ConstraintInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\BodyInstanceCore.cpp" />
@@ -555,7 +556,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\PhysX\lib\x64
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\PxVehicleManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\CarActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CarComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\ConstraintSetup.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BoxElem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\SphereElem.h" />

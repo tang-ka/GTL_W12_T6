@@ -10,6 +10,7 @@
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "SlateCore/Widgets/SWindow.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "Engine/PhysicsManager.h"
 
 extern FEngineLoop GEngineLoop;
 
@@ -325,7 +326,7 @@ void SLevelEditor::RegisterEditorInputDelegates()
                     {
                         USceneComponent* TargetComponent = nullptr;
                         if (USceneComponent* SelectedComponent = EdEngine->GetSelectedComponent())
-                        {
+                        {  
                             TargetComponent = SelectedComponent;
                         }
                         else if (AActor* SelectedActor = EdEngine->GetSelectedActor())
@@ -613,6 +614,16 @@ void SLevelEditor::RegisterEditorInputDelegates()
     InputDelegatesHandles.Add(Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
         {
             ActiveViewportClient->InputKey(InKeyEvent);
+        }));
+
+    InputDelegatesHandles.Add(Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    {
+            UPhysicsManager::Get().InputKey(InKeyEvent);
+    }));
+
+    InputDelegatesHandles.Add(Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+        {
+            UPhysicsManager::Get().InputKey(InKeyEvent);
         }));
 }
 
