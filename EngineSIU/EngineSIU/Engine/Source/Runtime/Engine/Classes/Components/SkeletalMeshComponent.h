@@ -30,7 +30,7 @@ class USkeletalMeshComponent : public USkinnedMeshComponent
 
 public:
     USkeletalMeshComponent();
-    virtual ~USkeletalMeshComponent() override = default;
+    virtual ~USkeletalMeshComponent() override;
 
     virtual void InitializeComponent() override;
     virtual UObject* Duplicate(UObject* InOuter) override;

@@ -31,6 +31,11 @@ USkeletalMeshComponent::USkeletalMeshComponent()
     CPURenderData = std::make_unique<FSkeletalMeshRenderData>();
 }
 
+USkeletalMeshComponent::~USkeletalMeshComponent()
+{
+    DestroyPhysics();
+}
+
 void USkeletalMeshComponent::InitializeComponent()
 {
     Super::InitializeComponent();
@@ -588,10 +593,13 @@ void USkeletalMeshComponent::CreateBodies()
         FName BoneName = BodySetup->BoneName;
         int32 BoneIndex = RefSkeleton.FindRawBoneIndex(BoneName);
 
+        TArray<FMatrix> CurrentBoneGlobalMatrix;
+        GetCurrentGlobalBoneMatrices(CurrentBoneGlobalMatrix);
+
         FTransform BoneTransform = FTransform::Identity;
         if (BoneIndex != INDEX_NONE && RefBonePoseTransforms.IsValidIndex(BoneIndex))
         {
-            BoneTransform = RefBonePoseTransforms[BoneIndex];
+            BoneTransform = FTransform(CurrentBoneGlobalMatrix[BoneIndex] * GetWorldMatrix());
         }
         else
         {
