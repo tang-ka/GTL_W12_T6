@@ -491,7 +491,7 @@ FString PhysicsViewerPanel::GetCleanBoneName(const FString& InFullName)
 
     int32 colonIdx = name.FindChar(TEXT(':'),
         /*case*/ ESearchCase::CaseSensitive,
-        /*dir*/  ESearchDir::FromEnd);
+        /*dir*/  ESearchDir::FromEnd);  
     if (colonIdx != INDEX_NONE)
     {
         return name.RightChop(colonIdx + 1);
@@ -516,13 +516,19 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
     {
         const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[BoneIndex];
 
-        FTransform BoneTransform = CalculateBoneWorldTransform(BoneIndex);
+        if (BoneInfo.ParentIndex == -1 || BoneInfo.ParentIndex == 0) continue; // 루트 본은 스킵
 
-        CreatePhysicsBodySetup(BoneInfo, BoneTransform, BoneIndex);
+        //FTransform BoneTransform = CalculateBoneWorldTransform(BoneIndex);
 
-        UBodySetup* BodySetup = FindBodySetupForBone(BoneIndex);
+        //CreatePhysicsBodySetup(BoneInfo, BoneTransform, BoneIndex);
 
-        if (BoneInfo.ParentIndex == -1) continue; // 루트 본은 스킵
+        //UBodySetup* BodySetup = FindBodySetupForBone(BoneIndex);
+        //UBodySetup* BodySetup = FindBodySetupForBone(BoneInfo.ParentIndex);
+
+        UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(SkeletalMesh->GetPhysicsAsset());
+        NewBodySetup->BoneName = CopiedRefSkeleton->RawRefBoneInfo[BoneInfo.ParentIndex].Name;
+        NewBodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
+        SkeletalMesh->GetPhysicsAsset()->GetBodySetups().Add(NewBodySetup);
 
         FVector ParentLocation = CalculateBoneWorldTransform(BoneInfo.ParentIndex).GetTranslation();
         FVector BoneLocation = CalculateBoneWorldTransform(BoneIndex).GetTranslation();
@@ -540,7 +546,7 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
         //}
         //Axis.Normalize();
         //float Angle = FMath::Acos(Dot);
-        FQuat RotQuat(FVector(0, 0, 1), 1.57);
+
 
         // CAPSULE TEST
         FKSphylElem SphylElem;
@@ -551,13 +557,19 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
         //SphylElem.Rotation = FQuat::Identity.Rotator();
         ////SphylElem.Center.Z = BoneLength * -0.5f;
         //BodySetup->AggGeom.SphylElems.Add(SphylElem);
-
+        // 
+        // 
+        //FQuat RotQuat = FQuat::Identity;
+        FQuat RotQuat(FVector(0, 0, 1), 1.57);
+         
         SphylElem.Center = FVector::ZeroVector;
-        SphylElem.Radius = 0.5f;
-        SphylElem.Length = 2;
-        //SphylElem.Rotation = FQuat::Identity.Rotator();
+        //SphylElem.Radius = FMath::Min(BoneLength * 0.1f, 2.0f);
+        SphylElem.Radius = 1;
+        SphylElem.Length = (BoneLength - SphylElem.Radius * 2) * 0.9;
+        SphylElem.Center.Z += SphylElem.Length * 0.5f;
         SphylElem.Rotation = RotQuat.Rotator();
-        BodySetup->AggGeom.SphylElems.Add(SphylElem);
+        //BodySetup->AggGeom.SphylElems.Add(SphylElem);
+        NewBodySetup->AggGeom.SphylElems.Add(SphylElem);
     }
 }
 
@@ -752,11 +764,10 @@ void PhysicsViewerPanel::CreatePhysicsBodySetup(const FMeshBoneInfo& BoneInfo, c
 		SkeletalMesh->SetPhysicsAsset(NewPhysicsAsset);
 	}
 	UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(SkeletalMesh->GetPhysicsAsset());
-	NewBodySetup->BoneName = BoneInfo.Name;
+	//NewBodySetup->BoneName = BoneInfo.Name;
+    NewBodySetup->BoneName = CopiedRefSkeleton->RawRefBoneInfo[BoneInfo.ParentIndex].Name;
 
 	NewBodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
-	//NewBodySetup->DefaultInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	//NewBodySetup->DefaultInstance.SetObjectType(ECollisionChannel::ECC_WorldDynamic);
 
 	SkeletalMesh->GetPhysicsAsset()->GetBodySetups().Add(NewBodySetup);
 }

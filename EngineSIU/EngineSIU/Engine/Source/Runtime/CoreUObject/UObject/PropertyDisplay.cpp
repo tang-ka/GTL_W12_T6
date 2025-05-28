@@ -956,7 +956,7 @@ void FKAggregateGeomProperty::DisplayCapsuleElements(FKAggregateGeom* AggGeom, U
                 float rotation[3] = { CapsuleElem.Rotation.Pitch, CapsuleElem.Rotation.Yaw, CapsuleElem.Rotation.Roll };
                 if (ImGui::DragFloat3("Rotation", rotation, 1.0f, -180.0f, 180.0f))
                 {
-                    CapsuleElem.Rotation = FRotator(rotation[0], rotation[1], rotation[2]);
+                    CapsuleElem.Rotation = FRotator(rotation[2], rotation[0], rotation[1]);
                 }
 
                 // Remove 버튼

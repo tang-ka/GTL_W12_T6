@@ -129,6 +129,7 @@ void AFish::SetHealth(int32 InHealth, bool bShouldNotify)
 
 void AFish::SetMaxHealth(int32 InMaxHealth)
 {
+    return;
     MaxHealth = InMaxHealth;
 
     SetHealth(GetHealth());
