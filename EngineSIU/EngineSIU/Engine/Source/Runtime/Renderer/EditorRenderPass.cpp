@@ -843,8 +843,10 @@ void FEditorRenderPass::RenderCapsuleElements(const TArray<FKSphylElem>& Capsule
 
     for (const FKSphylElem& CapsuleElem : CapsuleElems)
     {
-        FTransform LocalTransform(CapsuleElem.Rotation, CapsuleElem.Center, FVector::OneVector);
-        FTransform FinalTransform = BaseTransform * BoneTransform * LocalTransform;
+        FTransform LocalTransform(CapsuleElem.Rotation + FRotator(90, 0, 0), CapsuleElem.Center, FVector::OneVector);
+        FTransform TempBoneTransform = BoneTransform;
+        TempBoneTransform.SetScale3D(FVector(BoneTransform.Scale3D.Z, BoneTransform.Scale3D.Y, BoneTransform.Scale3D.X));
+        FTransform FinalTransform = BaseTransform * TempBoneTransform * LocalTransform;
 
         FConstantBufferDebugCapsule BufferData;
         BufferData.WorldMatrix = FinalTransform.ToMatrixWithScale();
