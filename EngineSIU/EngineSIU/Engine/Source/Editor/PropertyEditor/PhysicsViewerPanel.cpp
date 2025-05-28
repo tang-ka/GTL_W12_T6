@@ -359,6 +359,7 @@ void PhysicsViewerPanel::RenderPhysicsDetailPanel()
 	{
 		GenerateBoxBodiesForAllBones();
         GenerateConstraintsForAllBones();
+        //GenerateRagdoll();
 	}
 
 	ImGui::Separator();
@@ -528,14 +529,34 @@ void PhysicsViewerPanel::GenerateBoxBodiesForAllBones()
 
         float BoneLength = (BoneLocation - ParentLocation).Length();
 
+        //FVector Dir = (BoneLocation - ParentLocation).GetSafeNormal();
+
+        //const FVector Up(1, 0, 0);
+        //float Dot = FMath::Clamp(FVector::DotProduct(Up, Dir), -1.0f, 1.0f);
+        //FVector Axis = Up ^ Dir;
+        //if (Axis.IsNearlyZero())
+        //{
+        //    Axis = FVector(1, 0, 0);
+        //}
+        //Axis.Normalize();
+        //float Angle = FMath::Acos(Dot);
+        FQuat RotQuat(FVector(0, 0, 1), 1.57);
+
         // CAPSULE TEST
         FKSphylElem SphylElem;
         // 원본 Length = half length * 2 + 2 * radius
+        //SphylElem.Center = FVector::ZeroVector;
+        //SphylElem.Radius = FMath::Min(BoneLength * 0.5f * 0.2f, 2.0f);
+        //SphylElem.Length = (BoneLength - SphylElem.Radius * 2) * 0.5f;
+        //SphylElem.Rotation = FQuat::Identity.Rotator();
+        ////SphylElem.Center.Z = BoneLength * -0.5f;
+        //BodySetup->AggGeom.SphylElems.Add(SphylElem);
+
         SphylElem.Center = FVector::ZeroVector;
-        SphylElem.Radius = BoneLength * 0.5f * 0.2f;
-        SphylElem.Length = (BoneLength - SphylElem.Radius * 2) * 0.5f;
-        SphylElem.Rotation = FRotator::ZeroRotator;
-        SphylElem.Center.Z = BoneLength * -0.5f;
+        SphylElem.Radius = 0.5f;
+        SphylElem.Length = 2;
+        //SphylElem.Rotation = FQuat::Identity.Rotator();
+        SphylElem.Rotation = RotQuat.Rotator();
         BodySetup->AggGeom.SphylElems.Add(SphylElem);
     }
 }
@@ -588,13 +609,58 @@ void PhysicsViewerPanel::GenerateRagdollBody()
         return;
     }
 
+    TArray<FMatrix> CurrentGlobalBoneMatrix;
+    RefSkeletalMeshComponent->GetCurrentGlobalBoneMatrices(CurrentGlobalBoneMatrix);
+
+    FTransform WorldTransform = RefSkeletalMeshComponent->GetWorldTransform();
+
     for (int32 CurBoneIndex = 0; CurBoneIndex < CopiedRefSkeleton->RawRefBoneInfo.Num(); CurBoneIndex++)
     {
         const FMeshBoneInfo& BoneInfo = CopiedRefSkeleton->RawRefBoneInfo[CurBoneIndex];
         int32 ParentIndex = BoneInfo.ParentIndex;
+        if (ParentIndex == INDEX_NONE || ParentIndex == 0)
+        {
+            continue;
+        }
 
+        UBodySetup* NewBodySetup = FObjectFactory::ConstructObject<UBodySetup>(SkeletalMesh->GetPhysicsAsset());
+        NewBodySetup->BoneName = CopiedRefSkeleton->RawRefBoneInfo[ParentIndex].Name;
+        NewBodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
+        SkeletalMesh->GetPhysicsAsset()->GetBodySetups().Add(NewBodySetup);
+        
+        FTransform ParentWorld = FTransform(CurrentGlobalBoneMatrix[ParentIndex]);
+        FTransform ChildWorld = FTransform(CurrentGlobalBoneMatrix[CurBoneIndex]);
+
+        float BoneLength = (CopiedRefSkeleton->GetRawRefBonePose()[CurBoneIndex].GetTranslation()).Length();
+
+        FVector ParentLoc = ParentWorld.GetTranslation();
+        FVector ChildLoc = ChildWorld.GetTranslation();
+
+        //BoneLength = (ChildLoc - ParentLoc).Length();
+        FVector Dir = (ChildLoc - ParentLoc).GetSafeNormal();
+
+        const FVector Up(0, 0, 1);
+        float Dot = FMath::Clamp(FVector::DotProduct(Up, Dir), -1.0f, 1.0f);
+        FVector Axis = Up ^ Dir;
+        if (Axis.IsNearlyZero())
+        {
+            Axis = FVector(1, 0, 0);
+        }
+        Axis.Normalize();
+        float Angle = FMath::Acos(Dot);
+        FQuat RotQuat(Axis, Angle);
+        
+        FKSphylElem SphylElem;
+        // 원본 Length = half length * 2 + 2 * radius
+        SphylElem.Center = FVector::ZeroVector;
+        //SphylElem.Radius = BoneLength * 0.1f;
+        SphylElem.Radius = FMath::Min((BoneLength - SphylElem.Radius * 2) * 0.5f, 2.0f);
+        SphylElem.Length = (BoneLength - SphylElem.Radius * 2) * 0.5f;
+        //SphylElem.Length = (BoneLength * 0.4f);
+        SphylElem.Rotation = RotQuat.Rotator();
+        SphylElem.Center.Z = BoneLength * 0.5f;
+        NewBodySetup->AggGeom.SphylElems.Add(SphylElem);
     }
-
 }
 
 void PhysicsViewerPanel::GenerateRagdollConstraint()

@@ -30,7 +30,7 @@ class USkeletalMeshComponent : public USkinnedMeshComponent
 
 public:
     USkeletalMeshComponent();
-    virtual ~USkeletalMeshComponent() override = default;
+    virtual ~USkeletalMeshComponent() override;
 
     virtual void InitializeComponent() override;
     virtual UObject* Duplicate(UObject* InOuter) override;
@@ -176,6 +176,10 @@ public:
     void SyncComponentToBody();
 	void SyncComponentToConstraint();
     void SyncPhysicsFlags();
+
+    void GenerateRagdoll();
+    void GenerateRagdollBody();
+    void GenerateRagdollConstraint();
 
     bool ShouldSimulateSkel() const { return bIsSimulateSkel; }
     bool UseGravitySkel() const { return bUseGravitySkel; }
