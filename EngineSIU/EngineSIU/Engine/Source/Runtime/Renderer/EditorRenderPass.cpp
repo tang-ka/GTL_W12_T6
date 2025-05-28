@@ -843,10 +843,8 @@ void FEditorRenderPass::RenderCapsuleElements(const TArray<FKSphylElem>& Capsule
 
     for (const FKSphylElem& CapsuleElem : CapsuleElems)
     {
-        FTransform LocalTransform(CapsuleElem.Rotation + FRotator(90, 0, 0), CapsuleElem.Center, FVector::OneVector);
-        FTransform TempBoneTransform = BoneTransform;
-        TempBoneTransform.SetScale3D(FVector(BoneTransform.Scale3D.Z, BoneTransform.Scale3D.Y, BoneTransform.Scale3D.X));
-        FTransform FinalTransform = BaseTransform * TempBoneTransform * LocalTransform;
+        FTransform LocalTransform(CapsuleElem.Rotation, CapsuleElem.Center, FVector::OneVector);
+        FTransform FinalTransform = BaseTransform * BoneTransform * LocalTransform;
 
         FConstantBufferDebugCapsule BufferData;
         BufferData.WorldMatrix = FinalTransform.ToMatrixWithScale();
@@ -930,7 +928,17 @@ void FEditorRenderPass::RenderStaticMeshPhysicsDebug(UBodySetup* BodySetup, USta
 
     RenderBoxElements(AggGeom->BoxElems, StaticMeshTransform, FTransform());
     RenderSphereElements(AggGeom->SphereElems, StaticMeshTransform, FTransform());
-    RenderCapsuleElements(AggGeom->SphylElems, StaticMeshTransform, FTransform());
+
+    TArray<FKSphylElem> CopiedSphyElems;
+    for (auto Elem : AggGeom->SphylElems)
+    {
+        auto TempElem = Elem;
+        TempElem.Rotation += FRotator(90, 0, 0);
+        CopiedSphyElems.Add(TempElem);
+    }
+    auto TempStaticMeshTransform = StaticMeshTransform;
+    TempStaticMeshTransform.SetScale3D(FVector(StaticMeshTransform.Scale3D.Z, StaticMeshTransform.Scale3D.Y, StaticMeshTransform.Scale3D.X));
+    RenderCapsuleElements(CopiedSphyElems, TempStaticMeshTransform, FTransform());
 }
 
 TArray<FVector> FEditorRenderPass::GenerateUVSphereVertices(int32 Rings, int32 Sectors)
