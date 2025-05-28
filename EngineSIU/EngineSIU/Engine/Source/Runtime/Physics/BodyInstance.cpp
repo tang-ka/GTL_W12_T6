@@ -41,9 +41,16 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
 
     TArray<PxShape*> Shapes;
 
+    FVector CompScale = InOwner->GetComponentScale3D();
+    float MaxScale = FMath::Max(FMath::Max(CompScale.X, CompScale.Y), CompScale.Z);
+    int Orientation;
+    if (MaxScale == CompScale.X) Orientation = 0;
+    else if (MaxScale == CompScale.Y) Orientation = 1;
+    else Orientation = 2;
+
     for (const FKSphereElem& Sphere : AggGeom.SphereElems)
     {
-        PxSphereGeometry SphereGeom(Sphere.Radius);
+        PxSphereGeometry SphereGeom(Sphere.Radius * MaxScale);
         PxVec3 SphereCenter = Sphere.Center.ToPxVec3();
         PxTransform LocalPose(SphereCenter);
 
@@ -54,7 +61,7 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
 
     for (const FKBoxElem& Box : AggGeom.BoxElems)
     {
-        PxBoxGeometry BoxGeom((Box.Extent * InOwner->GetComponentScale3D()).ToPxVec3());
+        PxBoxGeometry BoxGeom((Box.Extent * CompScale).ToPxVec3());
         PxVec3 BoxCenter = Box.Center.ToPxVec3();
         FQuat BoxQuat(FRotator(Box.Rotation));
         PxQuat BoxRotation = BoxQuat.ToPxQuat();
@@ -67,7 +74,8 @@ void FBodyInstance::InitBody(USceneComponent* InOwner, UBodySetup* Setup, const 
 
     for (const FKSphylElem& Sphyl : AggGeom.SphylElems)
     {
-        PxCapsuleGeometry CapsuleGeom(Sphyl.Radius, Sphyl.GetScaledHalfLength(FVector::One()));
+        FVector Scale = FVector(CompScale.Z, CompScale.Y, CompScale.X);
+        PxCapsuleGeometry CapsuleGeom(Sphyl.Radius * MaxScale, Sphyl.GetScaledHalfLength(CompScale));
         PxVec3 CapsuleCenter = Sphyl.Center.ToPxVec3();
         FQuat CapsuleQuat(FRotator(Sphyl.Rotation));
         PxQuat CapsuleRotation = CapsuleQuat.ToPxQuat();

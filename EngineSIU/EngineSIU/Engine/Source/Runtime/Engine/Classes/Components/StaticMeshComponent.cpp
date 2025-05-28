@@ -278,6 +278,7 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* Value)
     {
         OverrideMaterials.SetNum(Value->GetMaterials().Num());
         AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
+        StaticMesh->GetBodySetup()->SetBodyShape(bIsBox, bIsSphere, bIsCapsule, bIsConvex, this);
     }
 }
 
