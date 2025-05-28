@@ -37,12 +37,18 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
     //FrameB = FTransform::Identity.ToPxTransform();
 
     D6Joint = PxD6JointCreate(*Phys, ActorA, FrameA, ActorB, FrameB);
+
     D6Joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
+    D6Joint->setConstraintFlag(physx::PxConstraintFlag::eVISUALIZATION, true);
 
     // 축별 모션 제한 설정
     D6Joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
     D6Joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
     D6Joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+
+    //D6Joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLOCKED);
+    //D6Joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLOCKED);
+    //D6Joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLOCKED);
 
     // 리밋 값 설정 (라디안 단위)
     D6Joint->setSwingLimit(PxJointLimitCone(
@@ -61,6 +67,10 @@ void FConstraintInstance::InitConstraint(USkeletalMeshComponent* InOwner, UConst
         D6Joint->setMotion(PxD6Axis::eX, PxD6Motion::eLIMITED);
         D6Joint->setMotion(PxD6Axis::eY, PxD6Motion::eLIMITED);
         D6Joint->setMotion(PxD6Axis::eZ, PxD6Motion::eLIMITED);
+
+        //D6Joint->setMotion(PxD6Axis::eX, PxD6Motion::eLOCKED);
+        //D6Joint->setMotion(PxD6Axis::eY, PxD6Motion::eLOCKED);
+        //D6Joint->setMotion(PxD6Axis::eZ, PxD6Motion::eLOCKED);
         PxJointLinearLimit LinearLimitHard(ToleranceScale, ConstraintSetup->LinearLimitSize);
         D6Joint->setLinearLimit(LinearLimitHard);
     }

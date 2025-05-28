@@ -156,9 +156,9 @@ public:
     TArray<FBodyInstance*> Bodies;
     TArray<FConstraintInstance*> Constraints;
 
-    bool bIsSimulateSkel = false;  
-    bool bUseGravitySkel = false;
-    bool bIsKinematicSkel = false;
+    bool bIsSimulateSkel = true;  
+    bool bUseGravitySkel = true;
+    bool bIsKinematicSkel = true;
 
 public:
     UPhysicsAsset* GetPhysicsAsset() const;

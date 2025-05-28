@@ -765,15 +765,6 @@ void USkeletalMeshComponent::SetKinematicSkel(bool Value)
 void USkeletalMeshComponent::SimulatePhysics(bool Value)
 {
     Super::SimulatePhysics(Value);
-    //if (bSimulatePhysics)
-    //{
-    //    if (SkeletalMeshAsset && StaticMesh->GetBodySetup())
-    //        Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
-    //}
-    //else
-    //{
-    //    Body->TermBody();
-    //}
     bSimulatePhysics = false;
 }
 

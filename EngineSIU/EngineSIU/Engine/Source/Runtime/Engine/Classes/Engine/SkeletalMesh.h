@@ -30,5 +30,5 @@ protected:
 
     USkeleton* Skeleton;
 
-    UPhysicsAsset* PhysicsAsset;
+    UPhysicsAsset* PhysicsAsset = nullptr;
 };

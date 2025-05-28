@@ -28,7 +28,6 @@ private:
     TMap<int32, USceneComponent*> BoneComponentMap;
 
     float Width = 0, Height = 0;
-    USkeletalMesh* SkeletalMesh;
 
     void LoadBoneIcon();
     void CopyRefSkeleton();
@@ -51,6 +50,12 @@ private:
     void GenerateBoxBodiesForAllBones();
     void GenerateConstraintsForAllBones();
 
+    void GenerateRagdoll();
+    void GenerateRagdollBody();
+    void GenerateRagdollConstraint();
+
+    void CreateBodySetupForAllBone();
+
     void CalculateConstraintTransforms(int32 ParentBoneIndex, int32 ChildBoneIndex, UConstraintSetup* ConstraintSetup);
 
     FTransform CalculateBoneWorldTransform(int32 BoneIndex);
@@ -68,6 +73,7 @@ private:
 
     int32 SelectedBoneIndex = INDEX_NONE;
 
-    FReferenceSkeleton* CopiedRefSkeleton = nullptr;
     USkeletalMeshComponent* RefSkeletalMeshComponent = nullptr;
+    USkeletalMesh* SkeletalMesh = nullptr;
+    FReferenceSkeleton* CopiedRefSkeleton = nullptr;
 };

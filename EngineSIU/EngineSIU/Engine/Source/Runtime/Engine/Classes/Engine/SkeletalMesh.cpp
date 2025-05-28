@@ -4,7 +4,6 @@
 
 USkeletalMesh::USkeletalMesh()
 {
-    PhysicsAsset = nullptr;
 }
 
 void USkeletalMesh::SetRenderData(std::unique_ptr<FSkeletalMeshRenderData> InRenderData)

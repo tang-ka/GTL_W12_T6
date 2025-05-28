@@ -17,8 +17,6 @@ public:
 
     TArray<UBodySetup*>& GetBodySetups() { return BodySetups; }
     TArray<UConstraintSetup*>& GetConstraintSetups() { return ConstraintSetups; }
-    
-    void GenerateRagdollFromSkeletalMesh(USkeletalMesh* InSkeletalMesh);
 
 private:
     TArray<UBodySetup*> BodySetups;

@@ -48,6 +48,9 @@ void UPhysicsManager::Initialize()
 
     Scene = Physics->createScene(SceneDesc);
 
+    Scene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LOCAL_FRAMES, 1.0f);
+    Scene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
+
 #ifdef _DEBUG
     PxPvdSceneClient* PvdClient = Scene->getScenePvdClient();
     if (PvdClient)
