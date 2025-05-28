@@ -4,7 +4,3 @@
 UPhysicsAsset::UPhysicsAsset()
 {
 }
-
-void UPhysicsAsset::GenerateRagdollFromSkeletalMesh(USkeletalMesh* SkeletalMesh)
-{
-}
