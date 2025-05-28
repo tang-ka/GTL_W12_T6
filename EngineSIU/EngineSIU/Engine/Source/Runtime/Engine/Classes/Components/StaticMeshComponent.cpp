@@ -32,6 +32,7 @@ void UStaticMeshComponent::BeginPlay()
 {
     if (StaticMesh->GetBodySetup() && bSimulatePhysics)
     {
+        StaticMesh->GetBodySetup()->SetBodyShape(bIsBox, bIsSphere, bIsCapsule, bIsConvex, this);
         Body->InitBody(this, StaticMesh->GetBodySetup(), GetWorldTransform(), bIsStatic);
     }
 }
@@ -45,6 +46,7 @@ UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
     NewComponent->bSimulateGravity = bSimulateGravity;
     NewComponent->SetStaticMesh(StaticMesh);
     NewComponent->SelectedSubMeshIndex = SelectedSubMeshIndex;
+    NewComponent->SetBodySetupGeom(bIsBox, bIsSphere, bIsCapsule, bIsConvex);
 
     return NewComponent;
 }
@@ -72,6 +74,11 @@ void UStaticMeshComponent::GetProperties(TMap<FString, FString>& OutProperties) 
     {
         OutProperties.Add(TEXT("StaticMeshPath"), TEXT("None")); // 메시 없음 명시
     }
+
+    OutProperties.Add(TEXT("bIsBox"), FString::Printf("%d", (static_cast<int>(bIsBox))));
+    OutProperties.Add(TEXT("bIsSphere"), FString::Printf("%d", (static_cast<int>(bIsSphere))));
+    OutProperties.Add(TEXT("bIsCapsule"), FString::Printf("%d", (static_cast<int>(bIsCapsule))));
+    OutProperties.Add(TEXT("bIsConvex"), FString::Printf("%d", (static_cast<int>(bIsConvex))));
 }
 
 void UStaticMeshComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -112,6 +119,27 @@ void UStaticMeshComponent::SetProperties(const TMap<FString, FString>& InPropert
         // 여기서는 기본값을 유지하거나, 안전하게 nullptr로 설정할 수 있습니다.
         // SetStaticMesh(nullptr); // 또는 아무것도 안 함
         UE_LOG(ELogLevel::Display, TEXT("StaticMeshPath key not found for %s, mesh unchanged."), *GetName());
+    }
+
+    const FString* IsBox = InProperties.Find(TEXT("bIsBox"));
+    if (IsBox)
+    {
+        bIsBox = IsBox->ToBool();
+    }
+    const FString* IsSphere = InProperties.Find(TEXT("bIsSphere"));
+    if (IsSphere)
+    {
+        bIsSphere = IsSphere->ToBool();
+    }
+    const FString* IsCapsule = InProperties.Find(TEXT("bIsCapsule"));
+    if (IsCapsule)
+    {
+        bIsCapsule = IsCapsule->ToBool();
+    }
+    const FString* IsConvex = InProperties.Find(TEXT("bIsConvex"));
+    if (IsConvex)
+    {
+        bIsConvex = IsConvex->ToBool();
     }
 }
 
@@ -377,6 +405,16 @@ void UStaticMeshComponent::HandleContactPoint(FVector Pos, FVector Norm)
     ContactEffect->SetActorRotation(FRotator(FQuat(RotAxis, RotAngle).GetNormalized()));
     Comp->SetInitialSpeed(2.f);
     Comp->SetMaxSpeed(10.0f);
+}
+
+void UStaticMeshComponent::SetBodySetupGeom(bool Box, bool Sphere, bool Capsule, bool Convex)
+{
+    bIsBox = Box; bIsSphere = Sphere; bIsCapsule = Capsule; bIsConvex = Convex;
+}
+
+void UStaticMeshComponent::GetBodySetupGeom(bool& OutBox, bool& OutSphere, bool& OutCapsule, bool& OutConvex)
+{
+    OutBox = bIsBox; OutSphere = bIsSphere; OutCapsule = bIsCapsule; OutConvex = bIsConvex;
 }
 
 void UStaticMeshComponent::SetIsStatic(bool Value)

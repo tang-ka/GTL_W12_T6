@@ -5,7 +5,8 @@
 #include "PhysicsEngine/BodySetupCore.h"
 
 class UPhysicalMaterial;
-class UPrimitiveComponent;
+class UStaticMeshComponent;
+struct FStaticMeshRenderData;
 
 /**
  * BodySetup contains all collision information that is associated with a single asset.
@@ -23,6 +24,8 @@ public:
     virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
 
     virtual void DisplayProperty() override;
+
+    void SetBodyShape(bool Box, bool Sphere, bool Capsule, bool Convex, const UStaticMeshComponent* Comp);
 
     /** Simplified collision representation of this */
     UPROPERTY_WITH_FLAGS(EditAnywhere, FKAggregateGeom, AggGeom)

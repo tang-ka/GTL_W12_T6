@@ -31,6 +31,7 @@ public:
 private:
     PxMaterial* DefaultMaterial = nullptr;
     PxRigidDynamic* CarBody = nullptr;
+    PxRigidDynamic* Hub = nullptr;
     PxRigidDynamic* Wheels[4] = { nullptr }; //FR, FL, RR, RL
     PxRevoluteJoint* RJoints[2] = { nullptr }; //RR, RL
     PxD6Joint* FJoints[2] = { nullptr }; //FR, FL

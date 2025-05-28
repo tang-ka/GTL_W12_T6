@@ -49,7 +49,15 @@ public:
 
     void HandleContactPoint(FVector Pos, FVector Norm);
 
+    void SetBodySetupGeom(bool Box, bool Sphere, bool Capsule, bool Convex);
+
+    void GetBodySetupGeom(bool& OutBox, bool& OutSphere, bool& OutCapsule, bool& OutConvex);
+
 protected:
     UStaticMesh* StaticMesh = nullptr;
     int SelectedSubMeshIndex = -1;
+    bool bIsBox = true;
+    bool bIsSphere = false;
+    bool bIsCapsule = false;
+    bool bIsConvex = false;
 };
