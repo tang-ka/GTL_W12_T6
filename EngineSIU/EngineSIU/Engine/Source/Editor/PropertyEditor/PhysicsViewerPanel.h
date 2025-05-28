@@ -50,12 +50,6 @@ private:
     void GenerateBoxBodiesForAllBones();
     void GenerateConstraintsForAllBones();
 
-    void GenerateRagdoll();
-    void GenerateRagdollBody();
-    void GenerateRagdollConstraint();
-
-    void CreateBodySetupForAllBone();
-
     void CalculateConstraintTransforms(int32 ParentBoneIndex, int32 ChildBoneIndex, UConstraintSetup* ConstraintSetup);
 
     FTransform CalculateBoneWorldTransform(int32 BoneIndex);
