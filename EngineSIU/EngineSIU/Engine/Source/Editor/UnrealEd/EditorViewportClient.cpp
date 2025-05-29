@@ -15,6 +15,9 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "SlateCore/Input/Events.h"
 
+#include "Engine/PhysicsManager.h"
+#include "Components/CarComponent.h"
+
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::OrthoSize = 10.0f;
 
@@ -505,19 +508,34 @@ void FEditorViewportClient::PivotMoveUp(const float InValue) const
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
-    if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE && false)
+    if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE && (UPhysicsManager::Get().Car))
     {
-        FMinimalViewInfo ViewInfo;
-        GetViewInfo(ViewInfo);
-
-        FMatrix RotationMatrix = ViewInfo.Rotation.ToMatrix();
-        FVector FinalUp = FMatrix::TransformVector(FVector::UpVector, RotationMatrix);
+        //1인칭
+        //UCarComponent* Car = UPhysicsManager::Get().Car;
+        //FVector Front = Car->GetForwardVector();
+        //FVector Pos = Car->GetComponentLocation() + Front * -1.f + FVector(0,0,1.5f);
+        //View = JungleMath::CreateViewMatrix(
+        //    Pos, Pos + Front, FVector(0, 0, 1)
+        //);
         
+        // 3인칭
+        UCarComponent* Car = UPhysicsManager::Get().Car;
+        FVector Front = Car->GetForwardVector();
+        FVector Pos = Car->GetComponentLocation() + Front * -20.f + FVector(0, 0, 7.5f);
         View = JungleMath::CreateViewMatrix(
-            ViewInfo.Location,
-            ViewInfo.Location + ViewInfo.Rotation.ToVector(),
-            FinalUp
+            Pos, Pos + Front * 0.2f, FVector(0, 0, 1)  
         );
+        //FMinimalViewInfo ViewInfo;
+        //GetViewInfo(ViewInfo);
+        //
+        //FMatrix RotationMatrix = ViewInfo.Rotation.ToMatrix();
+        //FVector FinalUp = FMatrix::TransformVector(FVector::UpVector, RotationMatrix);
+        //
+        //View = JungleMath::CreateViewMatrix(
+        //    ViewInfo.Location,
+        //    ViewInfo.Location + ViewInfo.Rotation.ToVector(),
+        //    FinalUp
+        //);
     }
     else
     {
